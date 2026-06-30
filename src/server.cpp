@@ -4,6 +4,7 @@
 
 #include "server.h"
 
+#include "activeobject.h"
 #include "chat_interface.h"
 #include "chatmessage.h"
 #include "config.h"
@@ -950,8 +951,10 @@ void Server::AsyncRunStep(float dtime, bool initial_step)
 					std::vector<ActiveObjectMessage>* list = buffered_message.second;
 					// Go through every message
 					for (const ActiveObjectMessage &aom : *list) {
+						const auto cmd = static_cast<ActiveObjectCommand>(aom.datastring[0]);
+
 						// Send position updates to players who do not see the attachment
-						if (aom.datastring[0] == AO_CMD_UPDATE_POSITION) {
+						if (cmd == AO_CMD_UPDATE_POSITION) {
 							if (sao->getId() == player->getId())
 								continue;
 
@@ -962,6 +965,9 @@ void Server::AsyncRunStep(float dtime, bool initial_step)
 									client->m_known_objects.end())
 								continue;
 						}
+
+						if (cmd >= AO_CMD_STOP_ANIMATION && client->net_proto_version < 52)
+							continue; // AO_CMD_STOP_ANIMATION added in protocol version 52
 
 						// Add full new data to appropriate buffer
 						std::string &buffer = aom.reliable ? reliable_data : unreliable_data;
