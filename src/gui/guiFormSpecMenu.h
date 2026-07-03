@@ -19,6 +19,7 @@
 #include "guiScrollBar.h"
 #include "guiTable.h"
 #include "util/string.h"
+#include "util/enriched_string.h"
 #include "StyleSpec.h"
 #include <ICursorControl.h> // gui::ECURSOR_ICON
 #include <IGUIStaticText.h>
@@ -536,6 +537,9 @@ private:
 	void showTooltip(const std::wstring &text, const video::SColor &color,
 		const video::SColor &bgcolor);
 	void showHyperTip(GUIHyperText *e, const HyperTipSpec &spec);
+
+	gui::IGUIStaticText *addLabel(const EnrichedString &text, const core::rect<s32> &rect,
+		gui::IGUIElement *parent, const StyleSpec &style, bool word_wrap = true, s32 id = 0);
 
 	/**
 	 * Auto-scrolls a scroll container to center the focused element.
