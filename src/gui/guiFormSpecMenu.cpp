@@ -4152,8 +4152,11 @@ ItemStack GUIFormSpecMenu::verifySelectedItem()
 					ItemStack stack = list->getItem(m_selected_item->i);
 					if (!m_selected_swap.empty()) {
 						if (m_selected_swap.name == stack.name &&
-								m_selected_swap.count == stack.count)
+								m_selected_swap.count == stack.count) {
 							m_selected_swap.clear();
+							// After a sucessful swap, make sure the whole stack is selected.
+							m_selected_amount = stack.count;
+						}
 					} else {
 						m_selected_amount = std::min(m_selected_amount, stack.count);
 					}
@@ -5072,7 +5075,6 @@ bool GUIFormSpecMenu::OnEvent(const SEvent& event)
 			// they are swapped
 			if (leftover.count == stack_from.count && leftover.name == stack_from.name) {
 				if (m_selected_swap.empty()) {
-					m_selected_amount = stack_to.count;
 					m_selected_dragging = false;
 
 					// WARNING: BLACK MAGIC, BUT IN A REDUCED SET
