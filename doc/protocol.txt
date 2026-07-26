@@ -13,7 +13,7 @@ Initialization:
 	  packet without accidentally getting a double initialization.
 	- Packet content:
 		# Basic header
-		u32 protocol_id = PROTOCOL_ID = 0x4f457403
+		u32 protocol_id = PROTOCOL_ID = 0x41584953
 		u16 sender_peer_id = PEER_ID_INEXISTENT = 0
 		u8 channel = 0
 		# Reliable packet header
@@ -25,7 +25,7 @@ Initialization:
 - Server responds with something like this:
 	- Packet content:
 		# Basic header
-		u32 protocol_id = PROTOCOL_ID = 0x4f457403
+		u32 protocol_id = PROTOCOL_ID = 0x41584953
 		u16 sender_peer_id = PEER_ID_INEXISTENT = 0
 		u8 channel = 0
 		# Reliable packet header
@@ -38,7 +38,7 @@ Initialization:
 - Then the connection can be disconnected by sending:
 	- Packet content:
 		# Basic header
-		u32 protocol_id = PROTOCOL_ID = 0x4f457403
+		u32 protocol_id = PROTOCOL_ID = 0x41584953
 		u16 sender_peer_id = whatever was gotten in CONTROLTYPE_SET_PEER_ID
 		u8 channel = 0
 		# Control packet header

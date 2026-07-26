@@ -575,7 +575,7 @@ void Camera::update(LocalPlayer* player, f32 frametime, f32 tool_reload_ratio)
 
 void Camera::updateViewingRange()
 {
-	f32 viewing_range = g_settings->getFloat("viewing_range");
+	f32 viewing_range = g_settings->getFloat("viewing_range") * 16.0f;
 
 	m_cameranode->setNearValue(0.1f * BS);
 

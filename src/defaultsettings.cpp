@@ -113,7 +113,7 @@ void set_default_settings()
 	settings->setDefault("screenshot_format", "png");
 	settings->setDefault("screenshot_quality", "0");
 	settings->setDefault("client_unload_unused_data_timeout", "600");
-	settings->setDefault("client_mapblock_limit", "7500"); // about 120 MB
+	settings->setDefault("client_mapblock_limit", "50000"); // about 800 MB
 	settings->setDefault("enable_build_where_you_stand", "false");
 	settings->setDefault("curl_timeout", "20000");
 	settings->setDefault("secure.curl_proxy", "");
@@ -252,7 +252,7 @@ void set_default_settings()
 	settings->setDefault("tooltip_append_itemname", "false");
 	settings->setDefault("fps_max", "60");
 	settings->setDefault("fps_max_unfocused", "10");
-	settings->setDefault("viewing_range", "190");
+	settings->setDefault("viewing_range", "12");
 	settings->setDefault("client_mesh_chunk", "1");
 	settings->setDefault("screen_w", "1024");
 	settings->setDefault("screen_h", "600");
@@ -266,9 +266,9 @@ void set_default_settings()
 	settings->setDefault("smooth_lighting", "true");
 	settings->setDefault("performance_tradeoffs", "false");
 	settings->setDefault("array_texture_max", "65535");
-	settings->setDefault("lighting_alpha", "0.0");
+	settings->setDefault("lighting_alpha", "1.5");
 	settings->setDefault("lighting_beta", "1.5");
-	settings->setDefault("display_gamma", "1.0");
+	settings->setDefault("display_gamma", "1.3");
 	settings->setDefault("lighting_boost", "0.2");
 	settings->setDefault("lighting_boost_center", "0.5");
 	settings->setDefault("lighting_boost_spread", "0.2");
@@ -449,7 +449,7 @@ void set_default_settings()
 	settings->setDefault("strict_protocol_version_checking", "false");
 	settings->setDefault("protocol_version_min", "1");
 	settings->setDefault("player_transfer_distance", "0");
-	settings->setDefault("max_simultaneous_block_sends_per_client", "40");
+	settings->setDefault("max_simultaneous_block_sends_per_client", "100");
 
 	settings->setDefault("motd", "");
 	settings->setDefault("max_users", "15");
@@ -476,7 +476,7 @@ void set_default_settings()
 	settings->setDefault("active_block_range", "4");
 	//settings->setDefault("max_simultaneous_block_sends_per_client", "1");
 	// This causes frametime jitter on client side, or does it?
-	settings->setDefault("max_block_send_distance", "12");
+	settings->setDefault("max_block_send_distance", "32");
 	settings->setDefault("block_send_optimize_distance", "4");
 	settings->setDefault("block_cull_optimize_distance", "25");
 	settings->setDefault("server_side_occlusion_culling", "true");
@@ -538,7 +538,7 @@ void set_default_settings()
 	settings->setDefault("mapgen_limit", "31007");
 	settings->setDefault("chunksize", "5");
 	settings->setDefault("fixed_map_seed", "");
-	settings->setDefault("max_block_generate_distance", "10");
+	settings->setDefault("max_block_generate_distance", "32");
 	settings->setDefault("enable_mapgen_debug_info", "false");
 	Mapgen::setDefaultSettings(settings);
 

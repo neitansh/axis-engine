@@ -519,7 +519,7 @@ void Client::step(float dtime)
 		if (configured_limit < 0) {
 			mapblock_limit = -1;
 		} else {
-			s32 view_range = g_settings->getS16("viewing_range");
+			s32 view_range = g_settings->getS16("viewing_range") * 16;
 			// Up to a certain limit we want to guarantee that the client can keep
 			// a full 360° view loaded in memory without blocks vanishing behind
 			// the players back.

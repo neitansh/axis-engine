@@ -1,2 +1,2 @@
-rootProject.name = "Luanti"
+rootProject.name = "The Axis"
 include ':app', ':native'

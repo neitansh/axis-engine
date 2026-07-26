@@ -35,6 +35,7 @@ do
 	math.randomseed(seed)
 end
 
+axis = core
 minetest = core
 
 -- Load other files

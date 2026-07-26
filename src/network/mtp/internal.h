@@ -9,7 +9,7 @@
 #include "util/numeric.h"
 
 // Constant that differentiates the protocol from random data and other protocols
-#define PROTOCOL_ID 0x4f457403
+#define PROTOCOL_ID 0x41584953
 
 #define MAX_UDP_PEERS 65535
 
