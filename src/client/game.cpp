@@ -2100,21 +2100,27 @@ void Game::toggleUpdateCamera()
 		m_game_ui->showTranslatedStatusText("Camera update enabled");
 }
 
+// "viewing_range" is configured in mapblocks, see builtin/settingtypes.txt
+static constexpr s16 VIEWING_RANGE_MIN = 2;
+static constexpr s16 VIEWING_RANGE_MAX = 250;
+
 void Game::increaseViewRange()
 {
 	s16 range = g_settings->getS16("viewing_range");
-	s16 range_new = range + 10;
+	s16 range_new = range + 1;
 	s16 server_limit = sky->getFogDistance();
 
-	if (range_new >= 4000)
+	if (range_new >= VIEWING_RANGE_MAX)
 	{
-		range_new = 4000;
-		std::wstring msg = server_limit >= 0 && range_new > server_limit ? fwgettext("Viewing range changed to %d (the maximum), but limited to %d by game or mod", range_new, server_limit) : fwgettext("Viewing range changed to %d (the maximum)", range_new);
+		range_new = VIEWING_RANGE_MAX;
+		s16 nodes_new = range_new * MAP_BLOCKSIZE;
+		std::wstring msg = server_limit >= 0 && nodes_new > server_limit ? fwgettext("Viewing range changed to %d (the maximum), but limited to %d by game or mod", nodes_new, server_limit) : fwgettext("Viewing range changed to %d (the maximum)", nodes_new);
 		m_game_ui->showStatusText(msg);
 	}
 	else
 	{
-		std::wstring msg = server_limit >= 0 && range_new > server_limit ? fwgettext("Viewing range changed to %d, but limited to %d by game or mod", range_new, server_limit) : fwgettext("Viewing range changed to %d", range_new);
+		s16 nodes_new = range_new * MAP_BLOCKSIZE;
+		std::wstring msg = server_limit >= 0 && nodes_new > server_limit ? fwgettext("Viewing range changed to %d, but limited to %d by game or mod", nodes_new, server_limit) : fwgettext("Viewing range changed to %d", nodes_new);
 		m_game_ui->showStatusText(msg);
 	}
 	g_settings->set("viewing_range", itos(range_new));
@@ -2123,18 +2129,20 @@ void Game::increaseViewRange()
 void Game::decreaseViewRange()
 {
 	s16 range = g_settings->getS16("viewing_range");
-	s16 range_new = range - 10;
+	s16 range_new = range - 1;
 	s16 server_limit = sky->getFogDistance();
 
-	if (range_new <= 20)
+	if (range_new <= VIEWING_RANGE_MIN)
 	{
-		range_new = 20;
-		std::wstring msg = server_limit >= 0 && range_new > server_limit ? fwgettext("Viewing changed to %d (the minimum), but limited to %d by game or mod", range_new, server_limit) : fwgettext("Viewing changed to %d (the minimum)", range_new);
+		range_new = VIEWING_RANGE_MIN;
+		s16 nodes_new = range_new * MAP_BLOCKSIZE;
+		std::wstring msg = server_limit >= 0 && nodes_new > server_limit ? fwgettext("Viewing changed to %d (the minimum), but limited to %d by game or mod", nodes_new, server_limit) : fwgettext("Viewing changed to %d (the minimum)", nodes_new);
 		m_game_ui->showStatusText(msg);
 	}
 	else
 	{
-		std::wstring msg = server_limit >= 0 && range_new > server_limit ? fwgettext("Viewing range changed to %d, but limited to %d by game or mod", range_new, server_limit) : fwgettext("Viewing range changed to %d", range_new);
+		s16 nodes_new = range_new * MAP_BLOCKSIZE;
+		std::wstring msg = server_limit >= 0 && nodes_new > server_limit ? fwgettext("Viewing range changed to %d, but limited to %d by game or mod", nodes_new, server_limit) : fwgettext("Viewing range changed to %d", nodes_new);
 		m_game_ui->showStatusText(msg);
 	}
 	g_settings->set("viewing_range", itos(range_new));
