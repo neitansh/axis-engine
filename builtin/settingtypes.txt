@@ -998,6 +998,10 @@ enable_local_map_saving (Saving map received from server) bool false
 #    URL to the server list displayed in the Multiplayer Tab.
 serverlist_url (Serverlist URL) [common] string
 
+#    Load every mod found in the mods folder, without listing it in the world.
+#    A world can still switch a mod off with "load_mod_<name> = false".
+enable_all_mods (Load all installed mods) bool true
+
 #    If enabled, server account registration is separate from login in the UI.
 #    If disabled, connecting to a server will automatically register a new account.
 enable_split_login_register (Enable split login/register) bool true

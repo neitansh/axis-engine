@@ -80,6 +80,9 @@ void set_default_settings()
 	settings->setDefault("bind_address", "");
 	settings->setDefault("serverlist_url", "");
 
+	// Load every installed mod unless a world switches it off explicitly
+	settings->setDefault("enable_all_mods", "true");
+
 	// Client
 	settings->setDefault("address", "");
 	settings->setDefault("remote_port", "30000");

@@ -131,6 +131,11 @@ void ModConfiguration::addModsFromConfig(
 			load_mod_names[name.substr(9)] = value;
 	}
 
+	// With this on, an installed mod is loaded unless the world says otherwise.
+	// A world then only has to record what is switched *off*, so dropping a mod
+	// into the folder is enough to have it running.
+	const bool enable_all = g_settings->getBool("enable_all_mods");
+
 	// List of enabled non-game non-world mods
 	std::vector<ModSpec> addon_mods;
 
@@ -158,9 +163,15 @@ void ModConfiguration::addModsFromConfig(
 				} else {
 					candidates[pair->first].emplace_back(mod.virtual_path);
 				}
-			} else {
+			} else if (enable_all && !conf.exists("load_mod_" + mod.name)) {
+				// The world has never seen this mod: take it along and write
+				// the choice down, so the list stays readable afterwards.
+				addon_mods.push_back(mod);
+				conf.set("load_mod_" + mod.name, mod.virtual_path);
+			} else if (!enable_all) {
 				conf.remove("load_mod_" + mod.name);
 			}
+			// Otherwise the world disabled it on purpose; leave that line alone
 		}
 	}
 	conf.updateConfigFile(settings_path.c_str());
