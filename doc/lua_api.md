@@ -9258,7 +9258,7 @@ You **must not** mix names and track numbers to refer to the same animation.
 * `get_player_control()`: returns table with player input
     * The table contains the following boolean fields representing the pressed
       keys: `up`, `down`, `left`, `right`, `jump`, `aux1`, `sneak`, `dig`,
-      `place`, `LMB`, `RMB` and `zoom`.
+      `place`, `sprint`, `LMB`, `RMB` and `zoom`.
     * The fields `LMB` and `RMB` are equal to `dig` and `place` respectively,
       and exist only to preserve backwards compatibility.
     * The table also contains the fields `movement_x` and `movement_y`.
@@ -9281,6 +9281,7 @@ You **must not** mix names and track numbers to refer to the same animation.
         * 7 - dig
         * 8 - place
         * 9 - zoom
+        * 10 - sprint
     * Returns `0` (no bits set) if the object is not a player.
 * `set_physics_override(override_table)`
     * Overrides the physics attributes of the player
