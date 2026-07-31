@@ -610,7 +610,8 @@ local function get_formspec(dialogdata)
 
 		local avail_w = right_pane_width - 0.25
 		if not comp.full_width then
-			avail_w = avail_w - 1.4
+			-- Room for the reset button; explanations are drawn inline now
+			avail_w = avail_w - 0.65
 		end
 		if comp.max_w then
 			avail_w = math.min(avail_w, comp.max_w)
@@ -622,7 +623,7 @@ local function get_formspec(dialogdata)
 		fs[#fs + 1] = "style_type[image_button;border=false;padding=]"
 
 		local show_reset = comp.resettable and comp.setting
-		local show_info = comp.info_text and comp.info_text ~= ""
+		local show_info = comp.full_width and comp.info_text and comp.info_text ~= ""
 		if show_reset or show_info then
 			-- ensure there's enough space for reset/info
 			used_h = math.max(used_h, 0.5)
@@ -664,7 +665,7 @@ local function get_formspec(dialogdata)
 					fgettext("Reset setting to default: $1", tostring(default)) or
 					fgettext("Reset setting to default")
 			fs[#fs + 1] = ("image_button[%f,%f;0.5,0.5;%s;%s;]"):format(
-					right_pane_width - 1.4, info_reset_y, reset_icon_path, "reset_" .. i)
+					right_pane_width - 0.65, info_reset_y, reset_icon_path, "reset_" .. i)
 			fs[#fs + 1] = ("tooltip[%s;%s]"):format("reset_" .. i, reset_tooltip)
 		end
 
@@ -679,7 +680,7 @@ local function get_formspec(dialogdata)
 		fs[#fs + 1] = "container_end[]"
 
 		if used_h > 0 then
-			local spacing = 0.25
+			local spacing = 0.1
 			local next_comp = dialogdata.components[i + 1]
 			if next_comp and next_comp.spacing then
 				spacing = next_comp.spacing

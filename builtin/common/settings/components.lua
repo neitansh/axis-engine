@@ -13,8 +13,8 @@ local make = {}
 --
 -- A component is a table with the following:
 --
--- * `full_width`: (Optional) true if the component shouldn't reserve space for info / reset.
--- * `info_text`: (Optional) string, informational text shown in an info icon.
+-- * `full_width`: (Optional) true if the component shouldn't reserve space for the reset button.
+-- * `info_text`: (Optional) string, informational text shown in a tooltip.
 -- * `setting`: (Optional) the setting.
 -- * `max_w`: (Optional) maximum width, `avail_w` will never exceed this.
 -- * `resettable`: (Optional) if this is true, a reset button is shown.
@@ -31,6 +31,17 @@ local make = {}
 --     * Return true if the event was handled, to prevent future components receiving it.
 
 
+-- Every ordinary setting is drawn as one row: name (and a short explanation)
+-- on the left, the control that changes it on the right.
+local ROW_H = 0.8
+local DESC_H = 0.55
+local CONTROL_W = 4.0
+local GAP = 0.2
+
+local COLOR_DESC = "#9aa0a6"
+local COLOR_HEADING = "#ffd24a"
+
+
 local function get_label(setting)
 	local show_technical_names = core.settings:get_bool("show_technical_names")
 	if not show_technical_names and setting.readable_name then
@@ -40,8 +51,47 @@ local function get_label(setting)
 end
 
 
+-- Short explanation shown under the name. The area label wraps and truncates
+-- on its own, so the text does not need to be shortened here.
+local function get_description(setting)
+	local comment = setting.comment
+	if not comment or comment == "" then
+		return nil
+	end
+	return core.formspec_escape((fgettext_ne(comment):gsub("%s*\n%s*", " ")))
+end
+
+
 local function is_valid_number(value)
 	return type(value) == "number" and not (value ~= value or value >= math.huge or value <= -math.huge)
+end
+
+
+-- Geometry of a single row for the given width.
+local function layout(avail_w, has_desc)
+	local control_x = avail_w - CONTROL_W
+	return {
+		height = ROW_H + (has_desc and DESC_H or 0),
+		label_w = math.max(1, control_x - GAP),
+		control_x = control_x,
+		-- Vertical centre of the control column
+		control_y = ROW_H / 2,
+	}
+end
+
+
+local function render_label(l, label, desc)
+	local fs = {
+		("label[0,0;%f,%f;%s]"):format(l.label_w, ROW_H, label),
+	}
+
+	if desc then
+		fs[#fs + 1] = ("style_type[label;textcolor=%s;font_size=*0.9]"):format(COLOR_DESC)
+		fs[#fs + 1] = ("label[0,%f;%f,%f;%s]"):format(ROW_H - 0.1, l.label_w, DESC_H, desc)
+		fs[#fs + 1] = "style_type[label;textcolor=;font_size=]"
+	end
+
+	return table.concat(fs)
 end
 
 
@@ -49,8 +99,13 @@ function make.heading(text, info_text)
 	return {
 		full_width = true,
 		info_text = info_text,
+		spacing = 0.45,
 		get_formspec = function(self, avail_w)
-			return ("label[0,0.6;%s]box[0,0.9;%f,0.05;#ccc6]"):format(core.formspec_escape(text), avail_w), 1.2
+			return ("style_type[label;textcolor=%s;font=bold]" ..
+				"label[0,0;%f,0.6;%s]" ..
+				"style_type[label;textcolor=;font=]" ..
+				"box[0,0.62;%f,0.03;#ffffff22]"):format(
+					COLOR_HEADING, avail_w, core.formspec_escape(text), avail_w), 0.75
 		end,
 	}
 end
@@ -76,37 +131,47 @@ function make.note(text)
 	return {
 		full_width = true,
 		get_formspec = function(self, avail_w)
-			-- Assuming label height 0.4:
-			-- Position at y=0 to eat 0.2 of the padding above, leave 0.05.
-			-- The returned used_height doesn't include padding.
-			return ("label[0,0;%s]"):format(core.colorize("#bbb", core.formspec_escape(text))), 0.2
+			return ("style_type[label;textcolor=%s;font_size=*0.9]" ..
+				"label[0,0;%f,0.45;%s]" ..
+				"style_type[label;textcolor=;font_size=]"):format(
+					COLOR_DESC, avail_w, core.formspec_escape(text)), 0.45
 		end,
 	}
 end
 
 
---- Used for string and numeric style fields
+--- Text entry, used for values that have no bounds to slide between.
 ---
 --- @param converter Function to coerce values from strings.
 --- @param validator Validator function, optional. Returns true when valid.
 --- @param stringifier Function to convert values to strings, optional.
-local function make_field(converter, validator, stringifier)
+local function make_text_entry(converter, validator, stringifier)
 	return function(setting)
 		return {
-			info_text = setting.comment,
 			setting = setting,
 
 			get_formspec = function(self, avail_w)
 				local value = core.settings:get(setting.name) or setting.default
 				self.resettable = core.settings:has(setting.name)
 
-				local fs = ("field[0,0.3;%f,0.8;%s;%s;%s]"):format(
-					avail_w - 1.5, setting.name, get_label(setting), core.formspec_escape(value))
-				fs = fs .. ("field_enter_after_edit[%s;true]"):format(setting.name)
-				fs = fs .. ("field_close_on_enter[%s;false]"):format(setting.name) -- for pause menu env
-				fs = fs .. ("button[%f,0.3;1.5,0.8;%s;%s]"):format(avail_w - 1.5, "set_" .. setting.name, fgettext("Set"))
+				local desc = get_description(setting)
+				local l = layout(avail_w, desc ~= nil)
+				local field_w = CONTROL_W - 0.75
 
-				return fs, 1.1
+				local fs = {
+					render_label(l, get_label(setting), desc),
+					("field[%f,%f;%f,0.7;%s;;%s]"):format(
+						l.control_x, l.control_y - 0.35, field_w,
+						setting.name, core.formspec_escape(value)),
+					("field_enter_after_edit[%s;true]"):format(setting.name),
+					-- for pause menu env
+					("field_close_on_enter[%s;false]"):format(setting.name),
+					("button[%f,%f;0.7,0.7;%s;%s]"):format(
+						l.control_x + field_w + 0.05, l.control_y - 0.35,
+						"set_" .. setting.name, fgettext("Set")),
+				}
+
+				return table.concat(fs), l.height
 			end,
 
 			on_submit = function(self, fields)
@@ -131,32 +196,145 @@ local function make_field(converter, validator, stringifier)
 end
 
 
-make.float = make_field(tonumber, is_valid_number, function(x)
+local float_to_string = function(x)
 	local str = tostring(x)
 	if str:match("^[+-]?%d+$") then
 		str = str .. ".0"
 	end
 	return str
-end)
-make.int = make_field(function(x)
+end
+
+local text_float = make_text_entry(tonumber, is_valid_number, float_to_string)
+local text_int = make_text_entry(function(x)
 	local value = tonumber(x)
 	return value and math.floor(value)
 end, is_valid_number)
-make.string = make_field(tostring, nil)
+
+make.string = make_text_entry(tostring, nil)
+
+
+-- Bounded numbers get a slider, which is the whole point of having a settings
+-- menu instead of editing minetest.conf by hand.
+local SLIDER_STEPS = 1000
+
+local function make_slider(is_int)
+	return function(setting)
+		-- Without both bounds there is nothing to slide between.
+		if not (is_valid_number(setting.min) and is_valid_number(setting.max)
+				and setting.max > setting.min) then
+			return (is_int and text_int or text_float)(setting)
+		end
+
+		local min, max = setting.min, setting.max
+		-- Small integer ranges map onto the scrollbar one to one, which keeps
+		-- every reachable value exact.
+		local direct = is_int and (max - min) <= SLIDER_STEPS
+		local sb_min = direct and min or 0
+		local sb_max = direct and max or SLIDER_STEPS
+
+		local function to_slider(value)
+			if direct then
+				return math.floor(value + 0.5)
+			end
+			return math.floor((value - min) / (max - min) * SLIDER_STEPS + 0.5)
+		end
+
+		local function from_slider(pos)
+			if direct then
+				return pos
+			end
+			local value = min + (pos / SLIDER_STEPS) * (max - min)
+			if is_int then
+				return math.floor(value + 0.5)
+			end
+			-- Two decimals is as fine as anyone needs to aim with a slider
+			return math.floor(value * 100 + 0.5) / 100
+		end
+
+		local function format_value(value)
+			if is_int then
+				return tostring(math.floor(value))
+			end
+			return (("%.2f"):format(value):gsub("%.?0+$", ""))
+		end
+
+		return {
+			setting = setting,
+
+			get_formspec = function(self, avail_w)
+				local value = tonumber(core.settings:get(setting.name))
+						or tonumber(setting.default) or min
+				value = math.min(math.max(value, min), max)
+				self.resettable = core.settings:has(setting.name)
+
+				local desc = get_description(setting)
+				local l = layout(avail_w, desc ~= nil)
+				local value_w = 0.9
+				local slider_w = CONTROL_W - value_w - 0.1
+
+				local fs = {
+					render_label(l, get_label(setting), desc),
+					("scrollbaroptions[min=%d;max=%d;smallstep=%d;largestep=%d;thumbsize=%d;arrows=hide]")
+						:format(sb_min, sb_max,
+							direct and 1 or math.max(1, math.floor(SLIDER_STEPS / 100)),
+							direct and math.max(1, math.floor((max - min) / 10))
+								or math.max(1, math.floor(SLIDER_STEPS / 10)),
+							math.max(1, math.floor((sb_max - sb_min) / 20))),
+					("scrollbar[%f,%f;%f,0.4;horizontal;%s;%d]"):format(
+						l.control_x, l.control_y - 0.2, slider_w,
+						setting.name, to_slider(value)),
+					"style_type[label;halign=right]",
+					("label[%f,0;%f,%f;%s]"):format(
+						l.control_x + slider_w + 0.1, value_w, ROW_H,
+						core.formspec_escape(format_value(value))),
+					"style_type[label;halign=left]",
+					-- Restore the defaults for any plain scrollbar drawn later
+					"scrollbaroptions[min=0;max=1000;smallstep=10;largestep=100;thumbsize=1;arrows=default]",
+				}
+
+				return table.concat(fs), l.height
+			end,
+
+			on_submit = function(self, fields)
+				local event = core.explode_scrollbar_event(fields[setting.name])
+				if event.type ~= "CHG" then
+					return false
+				end
+
+				local value = from_slider(event.value)
+				value = math.min(math.max(value, min), max)
+				core.settings:set(setting.name,
+					is_int and tostring(math.floor(value)) or float_to_string(value))
+				return true
+			end,
+		}
+	end
+end
+
+make.int = make_slider(true)
+make.float = make_slider(false)
 
 
 function make.bool(setting)
 	return {
-		info_text = setting.comment,
 		setting = setting,
 
 		get_formspec = function(self, avail_w)
 			local value = core.settings:get_bool(setting.name, core.is_yes(setting.default))
 			self.resettable = core.settings:has(setting.name)
 
-			local fs = ("checkbox[0,0.25;%s;%s;%s]"):format(
-				setting.name, get_label(setting), tostring(value))
-			return fs, 0.5
+			local desc = get_description(setting)
+			local l = layout(avail_w, desc ~= nil)
+
+			local fs = {
+				render_label(l, get_label(setting), desc),
+				("checkbox[%f,%f;%s;%s;%s]"):format(
+					l.control_x, l.control_y, setting.name,
+					value and fgettext("Enabled") or fgettext("Disabled"),
+					tostring(value)),
+			}
+
+			return table.concat(fs), l.height
 		end,
 
 		on_submit = function(self, fields)
@@ -173,28 +351,30 @@ end
 
 function make.enum(setting)
 	return {
-		info_text = setting.comment,
 		setting = setting,
-		max_w = 4.5,
 
 		get_formspec = function(self, avail_w)
 			local value = core.settings:get(setting.name) or setting.default
 			self.resettable = core.settings:has(setting.name)
 
 			local labels = setting.option_labels or {}
-
 			local items = {}
 			for i, option in ipairs(setting.values) do
 				items[i] = core.formspec_escape(labels[option] or option)
 			end
 
-			local selected_idx = table.indexof(setting.values, value)
-			local fs = "label[0,0.1;" .. get_label(setting) .. "]"
+			local desc = get_description(setting)
+			local l = layout(avail_w, desc ~= nil)
 
-			fs = fs .. ("dropdown[0,0.3;%f,0.8;%s;%s;%d;true]"):format(
-				avail_w, setting.name, table.concat(items, ","), selected_idx, value)
+			local fs = {
+				render_label(l, get_label(setting), desc),
+				("dropdown[%f,%f;%f,0.7;%s;%s;%d;true]"):format(
+					l.control_x, l.control_y - 0.35, CONTROL_W,
+					setting.name, table.concat(items, ","),
+					table.indexof(setting.values, value)),
+			}
 
-			return fs, 1.1
+			return table.concat(fs), l.height
 		end,
 
 		on_submit = function(self, fields)
@@ -214,7 +394,6 @@ end
 
 local function make_path(setting)
 	return {
-		info_text = setting.comment,
 		setting = setting,
 
 		get_formspec = function(self, avail_w)
@@ -272,7 +451,6 @@ end
 
 function make.v3f(setting)
 	return {
-		info_text = setting.comment,
 		setting = setting,
 
 		get_formspec = function(self, avail_w)
@@ -330,7 +508,6 @@ function make.flags(setting)
 	local checkboxes = {}
 
 	return {
-		info_text = setting.comment,
 		setting = setting,
 
 		get_formspec = function(self, avail_w)
@@ -421,7 +598,6 @@ end
 
 local function make_noise_params(setting)
 	return {
-		info_text = setting.comment,
 		setting = setting,
 
 		get_formspec = function(self, avail_w)
@@ -505,7 +681,6 @@ function make.key(setting)
 	key_add_empty[setting.name] = nil
 
 	return {
-		info_text = setting.comment,
 		setting = setting,
 		spacing = 0.1,
 
