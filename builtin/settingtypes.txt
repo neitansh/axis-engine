@@ -185,8 +185,6 @@ keymap_sneak (Sneak) key SYSTEM_SCANCODE_225|GAMEPAD_BUTTON_1
 keymap_sprint (Sprint key) key SYSTEM_SCANCODE_224
 
 #    Key for digging, punching or using something.
-
-#    Key for digging, punching or using something.
 #    (Note: The actual meaning might vary on a per-game basis.)
 keymap_dig (Dig/punch/use) key KEY_LBUTTON|GAMEPAD_AXIS_PLUS_5
 
