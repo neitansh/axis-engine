@@ -364,15 +364,24 @@ void ClientLauncher::config_guienv()
 {
 	gui::IGUISkin *skin = guienv->getSkin();
 
+	// Menu palette: dark slate panels, light controls, one green accent.
+	// Keep in sync with builtin/common/menu_style.lua.
 	skin->setColor(gui::EGDC_WINDOW_SYMBOL, video::SColor(255, 255, 255, 255));
 	skin->setColor(gui::EGDC_BUTTON_TEXT, video::SColor(255, 255, 255, 255));
+	skin->setColor(gui::EGDC_3D_FACE, video::SColor(255, 63, 64, 66));
 	skin->setColor(gui::EGDC_3D_LIGHT, video::SColor(0, 0, 0, 0));
-	skin->setColor(gui::EGDC_3D_HIGH_LIGHT, video::SColor(255, 30, 30, 30));
-	skin->setColor(gui::EGDC_3D_SHADOW, video::SColor(255, 0, 0, 0));
-	skin->setColor(gui::EGDC_HIGH_LIGHT, video::SColor(255, 70, 120, 50));
+	skin->setColor(gui::EGDC_3D_HIGH_LIGHT, video::SColor(255, 30, 31, 32));
+	skin->setColor(gui::EGDC_3D_SHADOW, video::SColor(255, 10, 10, 11));
+	skin->setColor(gui::EGDC_3D_DARK_SHADOW, video::SColor(255, 0, 0, 0));
+	skin->setColor(gui::EGDC_SCROLLBAR, video::SColor(255, 198, 198, 198));
+	skin->setColor(gui::EGDC_HIGH_LIGHT, video::SColor(255, 60, 133, 39));
 	skin->setColor(gui::EGDC_HIGH_LIGHT_TEXT, video::SColor(255, 255, 255, 255));
-	skin->setColor(gui::EGDC_EDITABLE, video::SColor(255, 128, 128, 128));
-	skin->setColor(gui::EGDC_FOCUSED_EDITABLE, video::SColor(255, 96, 134, 49));
+	skin->setColor(gui::EGDC_EDITABLE, video::SColor(255, 30, 31, 32));
+	skin->setColor(gui::EGDC_FOCUSED_EDITABLE, video::SColor(255, 60, 133, 39));
+	skin->setColor(gui::EGDC_GRAY_TEXT, video::SColor(255, 154, 160, 166));
+	skin->setColor(gui::EGDC_GRAY_EDITABLE, video::SColor(255, 40, 41, 42));
+	skin->setColor(gui::EGDC_TOOLTIP, video::SColor(255, 255, 255, 255));
+	skin->setColor(gui::EGDC_TOOLTIP_BACKGROUND, video::SColor(230, 30, 31, 32));
 
 	float density = rangelim(g_settings->getFloat("gui_scaling"), 0.5f, 20) *
 					RenderingEngine::getDisplayDensity();

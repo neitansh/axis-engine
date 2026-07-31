@@ -96,7 +96,8 @@ local function get_formspec(self)
 
 	local formspec = prepend or ""
 
-	formspec = formspec .. "bgcolor[;neither]" .. ("container[0,%f]"):format(TABHEADER_H)
+	formspec = formspec .. "bgcolor[;neither]" .. menu_style.prelude()
+		.. ("container[0,%f]"):format(TABHEADER_H)
 
 	-- Layout:
 	--
@@ -111,7 +112,7 @@ local function get_formspec(self)
 	formspec = formspec .. ("container[%f,0]"):format(content_x)
 
 	-- Main content background
-	formspec = formspec .. ("box[0,0;%f,%f;#0000008C]"):format(orig_tsize.width, orig_tsize.height)
+	formspec = formspec .. menu_style.panel(0, 0, orig_tsize.width, orig_tsize.height)
 
 	-- Existing tab content
 	formspec = formspec .. content
@@ -132,12 +133,7 @@ local function get_formspec(self)
 
 		-- Sidebar background
 		formspec = formspec
-			.. ("box[%f,0;%f,%f;%s]"):format(
-				sidebar_x,
-				sidebar_width,
-				sidebar_height,
-				self.sidebar.background or "#111111"
-			)
+			.. menu_style.panel(sidebar_x, 0, sidebar_width, sidebar_height)
 
 		-- Sidebar buttons
 		local button_y = padding
@@ -154,18 +150,10 @@ local function get_formspec(self)
 
 				local button_name = self.name .. "_sidebar_" .. i
 
-				local style
+				local style = ""
 
 				if i == self.last_tab_index then
-					style = ("style[%s;bgcolor=%s;border=false]"):format(
-						button_name,
-						self.sidebar.active_background or "#4CAF50"
-					)
-				else
-					style = ("style[%s;bgcolor=%s;border=false]"):format(
-						button_name,
-						self.sidebar.button_background or "#222222"
-					)
+					style = menu_style.accent(button_name)
 				end
 
 				formspec = formspec
@@ -196,10 +184,6 @@ local function get_formspec(self)
 				local action_name = self.name .. "_sidebar_action_" .. action.name
 
 				formspec = formspec
-					.. ("style[%s;bgcolor=%s;border=false]"):format(
-						action_name,
-						self.sidebar.button_background or "#222222"
-					)
 					.. ("button[%f,%f;%f,%f;%s;%s]"):format(
 						button_x,
 						action_y,

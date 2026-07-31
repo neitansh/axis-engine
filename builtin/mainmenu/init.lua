@@ -14,6 +14,7 @@ local menupath = core.get_mainmenu_path()
 local basepath = core.get_builtin_path()
 defaulttexturedir = core.get_texturepath_share() .. DIR_DELIM .. "base" .. DIR_DELIM .. "pack" .. DIR_DELIM
 
+dofile(basepath .. "common" .. DIR_DELIM .. "menu_style.lua")
 dofile(basepath .. "common" .. DIR_DELIM .. "menu.lua")
 dofile(basepath .. "common" .. DIR_DELIM .. "filterlist.lua")
 dofile(basepath .. "fstk" .. DIR_DELIM .. "buttonbar.lua")
@@ -111,10 +112,6 @@ local function init_globals()
 		padding = 0.25,
 		button_height = 0.75,
 		button_spacing = 0.12,
-
-		background = "#111111",
-		button_background = "#222222",
-		active_background = "#4CAF50",
 
 		actions = {
 			{

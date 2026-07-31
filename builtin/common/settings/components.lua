@@ -39,7 +39,7 @@ local CONTROL_W = 4.0
 local GAP = 0.2
 
 local COLOR_DESC = "#9aa0a6"
-local COLOR_HEADING = "#ffd24a"
+local COLOR_HEADING = menu_style.HEADING
 
 
 local function get_label(setting)
@@ -357,24 +357,27 @@ function make.bool(setting)
 
 			local desc = get_description(setting)
 			local l = layout(avail_w, desc ~= nil)
+			local button = "toggle_" .. setting.name
 
 			local fs = {
 				render_label(l, get_label(setting), desc),
-				("checkbox[%f,%f;%s;%s;%s]"):format(
-					l.control_x, l.control_y, setting.name,
-					value and fgettext("Enabled") or fgettext("Disabled"),
-					tostring(value)),
+				-- A switch reads at a glance where a checkbox needs a second look
+				value and menu_style.accent(button) or "",
+				("button[%f,%f;%f,0.7;%s;%s]"):format(
+					l.control_x, l.control_y - 0.35, CONTROL_W, button,
+					value and fgettext("Enabled") or fgettext("Disabled")),
 			}
 
 			return table.concat(fs), l.height
 		end,
 
 		on_submit = function(self, fields)
-			if fields[setting.name] == nil then
+			if not fields["toggle_" .. setting.name] then
 				return false
 			end
 
-			core.settings:set_bool(setting.name, core.is_yes(fields[setting.name]))
+			local value = core.settings:get_bool(setting.name, core.is_yes(setting.default))
+			core.settings:set_bool(setting.name, not value)
 			return true
 		end,
 	}

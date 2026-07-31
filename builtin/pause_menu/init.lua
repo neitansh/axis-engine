@@ -5,6 +5,8 @@ local commonpath = scriptpath.."common"..DIR_DELIM
 -- we're in-game, so no absolute paths are needed
 defaulttexturedir = ""
 
+dofile(core.get_builtin_path() .. "common" .. DIR_DELIM .. "menu_style.lua")
+
 local builtin_shared = {}
 
 assert(loadfile(commonpath .. "register.lua"))(builtin_shared)

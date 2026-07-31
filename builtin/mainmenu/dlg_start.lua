@@ -5,9 +5,9 @@
 -- screen below the engine logo. Picking an entry opens the tabview itself.
 
 local BUTTON_W = 5.0
-local BUTTON_H = 0.9
-local BUTTON_SPACING = 0.18
-local PADDING = 0.5
+local BUTTON_H = 1.0
+local BUTTON_SPACING = 0.22
+local PADDING = 0.6
 
 local start_page
 
@@ -57,14 +57,16 @@ local function get_formspec(data)
 	local fs = {
 		("formspec_version[6]size[%f,%f]"):format(width, height),
 		"bgcolor[;neither]",
-		("box[0,0;%f,%f;%s]"):format(width, height,
-			sidebar.background or "#111111"),
+		menu_style.panel(0, 0, width, height),
+		menu_style.prelude(),
 	}
 
 	local y = PADDING
-	for _, entry in ipairs(entries) do
-		fs[#fs + 1] = ("style[%s;bgcolor=%s;border=false]"):format(
-			entry.name, sidebar.button_background or "#222222")
+	for i, entry in ipairs(entries) do
+		-- The first entry is what people came here for, so it leads in green
+		if i == 1 then
+			fs[#fs + 1] = menu_style.accent(entry.name)
+		end
 		fs[#fs + 1] = ("button[%f,%f;%f,%f;%s;%s]"):format(
 			PADDING, y, BUTTON_W, BUTTON_H, entry.name, entry.label)
 

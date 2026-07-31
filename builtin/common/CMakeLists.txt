@@ -10,6 +10,7 @@ set(BUILTIN_COMMON_SRCS
 	common/menu.lua
 	common/metatable.lua
 	common/misc_helpers.lua
+	common/menu_style.lua
 	common/mod_storage.lua
 	common/register.lua
 	common/serialize.lua

@@ -696,19 +696,19 @@ local function get_formspec(dialogdata)
 		"size[", tostring(tabsize.width), ",", tostring(tabsize.height + extra_h), "]",
 		core.settings:get_bool("touch_gui") and "padding[0.01,0.01]" or "",
 		"bgcolor[#0000]",
+		menu_style.prelude(),
 
 		-- HACK: this is needed to allow resubmitting the same formspec
 		formspec_show_hack and " " or "",
 
-		"box[0,0;", tostring(tabsize.width), ",", tostring(tabsize.height), ";#0000008C]",
+		menu_style.panel(0, 0, tabsize.width, tabsize.height),
 
 		("button[0,%f;%f,0.8;back;%s]"):format(
 				tabsize.height + 0.2, back_w,
 				-- TRANSLATORS: Button text to go back
 				fgettext("Back")),
 
-		("box[%f,%f;%f,0.8;#0000008C]"):format(
-			back_w + 0.2, tabsize.height + 0.2, checkbox_w),
+		menu_style.panel(back_w + 0.2, tabsize.height + 0.2, checkbox_w, 0.8),
 		("checkbox[%f,%f;show_technical_names;%s;%s]"):format(
 			back_w + 2*0.2, tabsize.height + 0.6,
 			-- TRANSLATORS: Checkbox that toggles displaying the technical setting names
@@ -727,15 +727,13 @@ local function get_formspec(dialogdata)
 		"container_end[]",
 		("scroll_container[0.25,1.25;%f,%f;leftscroll;vertical;0.1;0]"):format(
 			left_pane_width, tabsize.height - 1.5),
-		"style_type[button;border=false;bgcolor=#3333]",
-		"style_type[button:hover;border=false;bgcolor=#6663]",
 	}
 
 	local y = 0
 	for _, other_page in ipairs(filtered_pages) do
-		local selected = other_page.id == page_id
-		fs[#fs + 1] = ("box[0,%f;%f,0.9;%s]"):format(
-			y, left_pane_width-left_pane_padding, selected and "#4CAF50FF" or "#2a2a2aCC")
+		if other_page.id == page_id then
+			fs[#fs + 1] = menu_style.accent("page_" .. other_page.id)
+		end
 		fs[#fs + 1] = ("button[0,%f;%f,0.9;page_%s;%s]")
 			:format(y, left_pane_width-left_pane_padding, other_page.id, fgettext(other_page.title))
 		y = y + 0.98
@@ -754,8 +752,6 @@ local function get_formspec(dialogdata)
 		fs[#fs + 1] = ("scrollbar[%f,1.25;%f,%f;vertical;leftscroll;%f]"):format(
 				left_pane_width + 0.25, scrollbar_w, tabsize.height - 1.5, dialogdata.leftscroll or 0)
 	end
-
-	fs[#fs + 1] = "style_type[button;border=;bgcolor=]"
 
 	dialogdata.expanded = dialogdata.expanded or {}
 	if not dialogdata.components then
