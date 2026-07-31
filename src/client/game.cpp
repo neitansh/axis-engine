@@ -2698,7 +2698,7 @@ void Game::handleClientEvent_SetSky(ClientEvent *event, CameraOrientation *cam)
 
 	// if the fog distance is reset, switch back to the client's viewing_range
 	if (event->set_sky->fog_distance < 0)
-		draw_control->wanted_range = g_settings->getS16("viewing_range");
+		draw_control->wanted_range = g_settings->getS16("viewing_range") * MAP_BLOCKSIZE;
 
 	if (event->set_sky->fog_start >= 0)
 		sky->setFogStart(rangelim(event->set_sky->fog_start, 0.0f, 0.99f));
