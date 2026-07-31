@@ -353,6 +353,7 @@ local function make_slider(is_int)
 						l.control_x + slider_w + 0.15, l.control_y - 0.325, value_w),
 					("box[%f,%f;%f,0.61;#101317]"):format(
 						l.control_x + slider_w + 0.17, l.control_y - 0.305, value_w - 0.04),
+					("style[%s;halign=center]"):format(setting.name .. "_value"),
 					("field[%f,%f;%f,0.65;%s;;%s]"):format(
 						l.control_x + slider_w + 0.15, l.control_y - 0.325, value_w,
 						setting.name .. "_value", format_value(value)),

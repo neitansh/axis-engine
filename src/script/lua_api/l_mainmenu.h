@@ -154,6 +154,9 @@ private:
 	// clipboard
 	static int l_copy_to_clipboard(lua_State *L);
 
+	//! Round trip time to a server, in milliseconds
+	static int l_ping_server(lua_State *L);
+
 public:
 
 	/**

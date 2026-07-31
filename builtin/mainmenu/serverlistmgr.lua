@@ -155,6 +155,48 @@ local OFFICIAL_SERVERS = {
 	},
 }
 
+local ping_in_flight = false
+
+-- Round trip time to each official server, measured off the main thread so the
+-- menu keeps drawing while the packets are out.
+local function measure_pings()
+	if ping_in_flight or not core.handle_async or not core.ping_server then
+		return
+	end
+	ping_in_flight = true
+
+	local targets = {}
+	for i, server in ipairs(serverlistmgr.servers or {}) do
+		targets[i] = { address = server.address, port = server.port }
+	end
+
+	core.handle_async(function(list)
+		local result = {}
+		if not core.ping_server then
+			return result
+		end
+
+		for i, target in ipairs(list) do
+			local ms = core.ping_server(target.address, target.port, 2000)
+			result[i] = ms and ms / 1000 or nil
+		end
+		return result
+	end, targets, function(result)
+		ping_in_flight = false
+		if not result then
+			return
+		end
+
+		for i, ping in pairs(result) do
+			local server = serverlistmgr.servers[i]
+			if server then
+				server.ping = ping
+			end
+		end
+		core.event_handler("Refresh")
+	end)
+end
+
 function serverlistmgr.sync()
 	local servers = {}
 
@@ -163,6 +205,7 @@ function serverlistmgr.sync()
 	end
 
 	serverlistmgr.servers = servers
+	measure_pings()
 end
 
 --------------------------------------------------------------------------------

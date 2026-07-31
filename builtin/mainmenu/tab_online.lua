@@ -123,9 +123,11 @@ local function get_formspec(tabview, name, tabdata)
 		"label[0.25,0.35;" .. fgettext("Address") .. "]" ..
 		-- TRANSLATORS: Network port
 		"label[4.25,0.35;" .. fgettext("Port") .. "]" ..
-		"field[0.25,0.5;4,0.75;te_address;;" ..
+		menu_style.inset(0.25, 0.5, 4, 0.75) ..
+		"field[0.35,0.5;3.8,0.75;te_address;;" ..
 			core.formspec_escape(core.settings:get("address")) .. "]" ..
-		"field[4.25,0.5;1.25,0.75;te_port;;" ..
+		menu_style.inset(4.25, 0.5, 1.25, 0.75) ..
+		"field[4.35,0.5;1.05,0.75;te_port;;" ..
 			core.formspec_escape(core.settings:get("remote_port")) .. "]" ..
 
 		-- Description Background
@@ -136,8 +138,10 @@ local function get_formspec(tabview, name, tabdata)
 		"container[0,4.8]" ..
 		"label[0.25,0;" .. fgettext("Name") .. "]" ..
 		"label[2.875,0;" .. fgettext("Password") .. "]" ..
-		"field[0.25,0.2;2.625,0.75;te_name;;" .. core.formspec_escape(core.settings:get("name")) .. "]" ..
-		"pwdfield[2.875,0.2;2.625,0.75;te_pwd;]" ..
+		menu_style.inset(0.25, 0.2, 2.625, 0.75) ..
+		"field[0.35,0.2;2.425,0.75;te_name;;" .. core.formspec_escape(core.settings:get("name")) .. "]" ..
+		menu_style.inset(2.875, 0.2, 2.625, 0.75) ..
+		"pwdfield[2.975,0.2;2.425,0.75;te_pwd;]" ..
 		"container_end[]"
 
 	-- Connect

@@ -17,7 +17,7 @@ menu_style = {}
 menu_style.TEXT = "#E8EAED"
 menu_style.TEXT_MUTED = "#8C949E"
 menu_style.TEXT_DIM = "#6E757E"
-menu_style.TEXT_ON_ACCENT = "#08201B"
+menu_style.TEXT_ON_ACCENT = "#F2FFFB"
 
 -- Accents
 menu_style.ACCENT = "#7FD6C0"

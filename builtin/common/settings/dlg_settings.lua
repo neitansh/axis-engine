@@ -683,7 +683,6 @@ local function get_formspec(dialogdata)
 
 	local left_pane_width = core.settings:get_bool("touch_gui") and 4.5 or 4.25
 	local left_pane_padding = 0.25
-	local search_width = left_pane_width + scrollbar_w - (0.75 * 2)
 
 	local back_w = 3
 	local show_technical_names = core.settings:get_bool("show_technical_names")
@@ -692,6 +691,9 @@ local function get_formspec(dialogdata)
 	local header_h = 1.0
 	local top = header_h + menu_style.SPACE.md
 	local search_h = 0.8
+	local icon_size = 0.5
+	local search_box_w = left_pane_width + scrollbar_w
+	local search_field_w = search_box_w - icon_size * 2 - menu_style.SPACE.md * 2
 	local list_top = top + search_h + menu_style.SPACE.md
 	local list_h = tabsize.height - list_top - pad
 
@@ -715,21 +717,27 @@ local function get_formspec(dialogdata)
 			fgettext("Settings")),
 		menu_style.divider(pad, header_h, tabsize.width - pad * 2),
 
-		-- Search sits above the page list it filters
-		menu_style.inset(pad, top, search_width + 1.5, search_h),
+		-- Search sits above the page list it filters. The icons live inside the
+		-- field, inset from its right edge, so nothing hangs over the border.
+		menu_style.inset(pad, top, search_box_w, search_h),
+		("style[search_query;halign=left]"),
 		("field[%f,%f;%f,%f;search_query;;%s]"):format(
-			pad + menu_style.SPACE.sm, top, search_width, search_h,
+			pad + menu_style.SPACE.md, top, search_field_w, search_h,
 			core.formspec_escape(dialogdata.query or "")),
 		"field_enter_after_edit[search_query;true]",
 		"field_close_on_enter[search_query;false]", -- for pause menu env
-		("container[%f,%f]"):format(pad + search_width + menu_style.SPACE.sm, top + 0.03),
-			menu_style.icon("search,search_clear"),
-			"image_button[0,0;0.74,0.74;", core.formspec_escape(defaulttexturedir .. "search.png"), ";search;]",
-			"image_button[0.74,0;0.74,0.74;", core.formspec_escape(defaulttexturedir .. "clear.png"), ";search_clear;]",
-			"tooltip[search;", fgettext("Search"), "]",
-			-- TRANSLATORS: Tooltip of a button that clears input
-			"tooltip[search_clear;", fgettext("Clear"), "]",
-		"container_end[]",
+		menu_style.icon("search,search_clear"),
+		("image_button[%f,%f;%f,%f;%s;search;]"):format(
+			pad + search_box_w - icon_size * 2 - menu_style.SPACE.xs,
+			top + (search_h - icon_size) / 2, icon_size, icon_size,
+			core.formspec_escape(defaulttexturedir .. "search.png")),
+		("image_button[%f,%f;%f,%f;%s;search_clear;]"):format(
+			pad + search_box_w - icon_size - menu_style.SPACE.xs,
+			top + (search_h - icon_size) / 2, icon_size, icon_size,
+			core.formspec_escape(defaulttexturedir .. "clear.png")),
+		("tooltip[search;%s]"):format(fgettext("Search")),
+		-- TRANSLATORS: Tooltip of a button that clears input
+		("tooltip[search_clear;%s]"):format(fgettext("Clear")),
 
 		-- Bottom bar
 		menu_style.divider(pad, tabsize.height, tabsize.width - pad * 2),

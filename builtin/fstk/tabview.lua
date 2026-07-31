@@ -64,17 +64,9 @@ local function get_formspec(self)
 		height = orig_tsize.height,
 	}
 
-	-- Sidebar
-	local sidebar_width = 0
-	local sidebar_gap = 0
-
-	if self.sidebar then
-		sidebar_width = self.sidebar.width or 3.0
-		sidebar_gap = self.sidebar.gap or 0.4
-	end
-
-	-- The whole formspec becomes wider because of the sidebar.
-	tsize.width = orig_tsize.width + sidebar_width + sidebar_gap
+	-- The sidebar data is kept for the landing page; the tab view itself is
+	-- just content, and Escape takes you back to that page.
+	local content_x = 0
 
 	-- Room for the logo strip above and the footer below the content
 	tsize.height = tsize.height
@@ -99,17 +91,8 @@ local function get_formspec(self)
 	formspec = formspec .. "bgcolor[;neither]" .. menu_style.prelude()
 		.. ("container[0,%f]"):format(TABHEADER_H)
 
-	-- Layout:
-	--
-	-- ┌──────────────┐   gap   ┌──────────────────────────┐
-	-- │   sidebar    │         │       tab content        │
-	-- │              │         │                          │
-	-- └──────────────┘         └──────────────────────────┘
-
-	local content_x = sidebar_width + sidebar_gap
-
-	-- One card holds the rail, the content and the footer, so the screen reads
-	-- as a single object instead of three panels floating next to each other.
+	-- One card holds the content and the footer, so the screen reads as a
+	-- single object rather than a panel floating over the world.
 	local card_h = orig_tsize.height + FOOTER_H
 
 	formspec = formspec .. menu_style.panel(0, 0, tsize.width, card_h)
@@ -121,76 +104,6 @@ local function get_formspec(self)
 	formspec = formspec .. content
 
 	formspec = formspec .. "container_end[]"
-
-	-- Left sidebar
-	if self.sidebar then
-		local padding = self.sidebar.padding or menu_style.SPACE.sm
-		local button_height = self.sidebar.button_height or menu_style.ROW
-		local button_spacing = self.sidebar.button_spacing or menu_style.SPACE.xs
-		local sidebar_height = orig_tsize.height
-
-		local button_x = padding
-		local button_width = sidebar_width - padding * 2
-
-		formspec = formspec .. menu_style.surface(
-			menu_style.SPACE.sm, menu_style.SPACE.sm,
-			sidebar_width - menu_style.SPACE.sm, sidebar_height - menu_style.SPACE.sm * 2)
-
-		-- Tells you what the rail is for without adding a second heading level
-		formspec = formspec .. menu_style.caption(
-			button_x + menu_style.SPACE.sm, padding, button_width, 0.5,
-			core.formspec_escape(fgettext("Menu")))
-
-		local button_y = padding + 0.5 + menu_style.SPACE.xs
-
-		local function nav_button(name, label, active)
-			local out = {}
-
-			if active then
-				-- A filled row plus a marker on the leading edge: the eye finds
-				-- the current page before it starts reading captions.
-				out[#out + 1] = menu_style.selected(name)
-			else
-				out[#out + 1] = menu_style.ghost(name)
-			end
-
-			out[#out + 1] = ("button[%f,%f;%f,%f;%s;%s]"):format(
-				button_x, button_y, button_width, button_height, name,
-				core.formspec_escape(label))
-
-			button_y = button_y + button_height + button_spacing
-			return table.concat(out)
-		end
-
-		for i = 1, #self.tablist do
-			local current_tab = self.tablist[i]
-
-			if current_tab.sidebar then
-				local caption = current_tab.caption
-
-				if type(caption) == "function" then
-					caption = caption(self)
-				end
-
-				formspec = formspec .. nav_button(
-					self.name .. "_sidebar_" .. i, caption, i == self.last_tab_index)
-			end
-		end
-
-		if self.sidebar.actions and #self.sidebar.actions > 0 then
-			local count = #self.sidebar.actions
-			local block_h = count * button_height + (count - 1) * button_spacing
-
-			button_y = sidebar_height - padding - block_h
-			formspec = formspec .. menu_style.divider(
-				button_x, button_y - menu_style.SPACE.md, button_width)
-
-			for _, action in ipairs(self.sidebar.actions) do
-				formspec = formspec .. nav_button(
-					self.name .. "_sidebar_action_" .. action.name, action.label, false)
-			end
-		end
-	end
 
 	formspec = formspec .. "container_end[]"
 
@@ -223,27 +136,6 @@ local function handle_buttons(self, fields)
 
 	if self:handle_tab_buttons(fields) then
 		return true
-	end
-
-	if self.sidebar then
-		for i = 1, #self.tablist do
-			local button_name = self.name .. "_sidebar_" .. i
-
-			if fields[button_name] then
-				self:set_tab(self.tablist[i].name)
-				return true
-			end
-		end
-	end
-
-	if self.sidebar and self.sidebar.actions then
-		for _, action in ipairs(self.sidebar.actions) do
-			local button_name = self.name .. "_sidebar_action_" .. action.name
-
-			if fields[button_name] then
-				return action.on_click(self)
-			end
-		end
 	end
 
 	if fields["mainmenu_footer_about"] then

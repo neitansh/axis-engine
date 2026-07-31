@@ -22,6 +22,11 @@
 #include "client/renderingengine.h"
 #include "client/texturepaths.h"
 #include "network/networkprotocol.h"
+#include "network/socket.h"
+#include "network/networkexceptions.h"
+#include "network/address.h"
+#include "network/mtp/internal.h"
+#include "util/serialize.h"
 #include "content/mod_configuration.h"
 #include "common/c_converter.h"
 #include "gui/guiOpenURL.h"
@@ -1193,9 +1198,86 @@ void ModApiMainMenu::Initialize(lua_State *L, int top)
 	API_FCT(share_file);
 	API_FCT(do_async_callback);
 	API_FCT(copy_to_clipboard);
+	API_FCT(ping_server);
 
 	lua_pushboolean(L, g_first_run);
 	lua_setfield(L, top, "is_first_run");
+}
+
+/******************************************************************************/
+/******************************************************************************/
+int ModApiMainMenu::l_ping_server(lua_State *L)
+{
+	std::string address = luaL_checkstring(L, 1);
+	int port = luaL_checkint(L, 2);
+	int timeout_ms = luaL_optint(L, 3, 2000);
+
+	if (port <= 0 || port > 65535)
+		return 0;
+
+	Address dest;
+	try {
+		dest.Resolve(address.c_str());
+	} catch (const ResolveError &) {
+		return 0;
+	}
+	dest.setPort(port);
+
+	UDPSocket socket;
+	if (!socket.init(dest.isIPv6(), true))
+		return 0;
+
+	try {
+		if (dest.isIPv6()) {
+			IPv6AddressBytes any;
+			socket.Bind(Address(&any, 0));
+		} else {
+			socket.Bind(Address((u32)0, (u16)0));
+		}
+	} catch (const SocketException &) {
+		// An ephemeral port is best effort; sending still works without it
+	}
+
+	// A disconnect control packet: servers answer it and it leaves no peer behind
+	u8 packet[] = {
+		0x4f, 0x45, 0x74, 0x03, // replaced with PROTOCOL_ID below
+		0x00, 0x00,             // sender peer id: inexistent
+		0x00,                   // channel
+		0x00,                   // type: control
+		0x03,                   // controltype: disco
+	};
+	writeU32(packet, PROTOCOL_ID);
+
+	u64 sent_at = porting::getTimeMs();
+
+	try {
+		socket.Send(dest, packet, sizeof(packet));
+	} catch (const SendFailedException &) {
+		return 0;
+	}
+
+	char buffer[1024];
+	Address sender;
+
+	while (true) {
+		if (!socket.WaitData(timeout_ms))
+			return 0;
+
+		int received = socket.Receive(sender, buffer, sizeof(buffer));
+		if (received < 0)
+			return 0;
+
+		if (sender.getPort() == dest.getPort())
+			break;
+
+		u64 waited = porting::getTimeMs() - sent_at;
+		if ((int)waited >= timeout_ms)
+			return 0;
+		timeout_ms -= (int)waited;
+	}
+
+	lua_pushnumber(L, (double)(porting::getTimeMs() - sent_at));
+	return 1;
 }
 
 /******************************************************************************/
@@ -1225,4 +1307,5 @@ void ModApiMainMenu::InitializeAsync(lua_State *L, int top)
 	API_FCT(get_max_supp_proto);
 	API_FCT(get_formspec_version);
 	API_FCT(is_debug_build);
+	API_FCT(ping_server);
 }
