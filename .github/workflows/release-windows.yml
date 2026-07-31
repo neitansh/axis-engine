@@ -131,6 +131,12 @@ jobs:
           cp -r textures axis_windows/
           cp -r fonts axis_windows/
 
+          if [ -d locale ]; then
+            cp -r locale axis_windows/
+          else
+            echo "::warning::No compiled translations found, shipping without locale/."
+          fi
+
           echo "Portable package contents:"
           find axis_windows -maxdepth 2 -type f | sort
 

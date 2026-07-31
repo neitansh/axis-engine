@@ -168,6 +168,12 @@ jobs:
           cp -r textures axis_linux/
           cp -r fonts axis_linux/
 
+          if [ -d locale ]; then
+            cp -r locale axis_linux/
+          else
+            echo "::warning::No compiled translations found, shipping without locale/."
+          fi
+
           # ------------------------------------------------------------
           # Show bundled libraries
           # ------------------------------------------------------------
