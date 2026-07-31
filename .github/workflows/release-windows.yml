@@ -84,7 +84,7 @@ jobs:
           echo "Bundling DLL dependencies..."
 
           bash util/bundle_dlls.sh \
-            bin/luanti.exe \
+            bin/axis.exe \
             bin/
 
       # ================================================================
@@ -102,7 +102,7 @@ jobs:
               echo "::error::$line"
               missing=1
             fi
-          done < <(ldd bin/luanti.exe)
+          done < <(ldd bin/axis.exe)
 
           if [ "$missing" -ne 0 ]; then
             echo ""
@@ -140,8 +140,8 @@ jobs:
       - name: Validate Portable Package
         shell: msys2 {0}
         run: |
-          if [ ! -f "axis_windows/bin/luanti.exe" ]; then
-            echo "::error::luanti.exe was not found in portable package."
+          if [ ! -f "axis_windows/bin/axis.exe" ]; then
+            echo "::error::axis.exe was not found in portable package."
             exit 1
           fi
 
