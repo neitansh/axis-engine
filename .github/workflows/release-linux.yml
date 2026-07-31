@@ -29,7 +29,12 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DRUN_IN_PLACE=TRUE \
             -DBUILD_SERVER=FALSE \
-            -DBUILD_CLIENT=TRUE
+            -DBUILD_CLIENT=TRUE \
+            -DENABLE_LEVELDB=FALSE \
+            -DENABLE_REDIS=FALSE \
+            -DENABLE_POSTGRESQL=FALSE \
+            -DENABLE_SPATIALINDEX=FALSE \
+            -DENABLE_PROMETHEUS=FALSE
           cmake --build build
 
       - name: Prepare Portable Package
