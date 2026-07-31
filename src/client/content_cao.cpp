@@ -273,8 +273,14 @@ bool GenericCAO::getCollisionBox(aabb3f *toset) const
 		toset->MinEdge = m_prop.collisionbox.MinEdge * BS;
 		toset->MaxEdge = m_prop.collisionbox.MaxEdge * BS;
 
-		toset->MinEdge += m_position;
-		toset->MaxEdge += m_position;
+		// An attached object carries no position of its own: m_position still
+		// holds whatever it had before being attached. getPosition() resolves
+		// the parent chain, so a box attached to a moving object ends up where
+		// it is actually drawn and can be stood on.
+		const v3f position = getParent() ? getPosition() : m_position;
+
+		toset->MinEdge += position;
+		toset->MaxEdge += position;
 
 		return true;
 	}
