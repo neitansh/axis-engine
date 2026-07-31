@@ -32,7 +32,7 @@ jobs:
             mingw-w64-x86_64-gmp
             mingw-w64-x86_64-jsoncpp
             mingw-w64-x86_64-zstd
-            mingw-w64-x86_64-sdl2
+            mingw-w64-x86_64-SDL2
             mingw-w64-x86_64-openal
             mingw-w64-x86_64-libvorbis
             mingw-w64-x86_64-libogg
