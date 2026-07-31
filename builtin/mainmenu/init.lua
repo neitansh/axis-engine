@@ -6,13 +6,13 @@ MAIN_TAB_W = 15.5
 MAIN_TAB_H = 7.1
 TABHEADER_H = 0.85
 GAMEBAR_H = 1.25
+FOOTER_H = 3.2
 GAMEBAR_OFFSET_DESKTOP = 0.375
 GAMEBAR_OFFSET_TOUCH = 0.15
 
 local menupath = core.get_mainmenu_path()
 local basepath = core.get_builtin_path()
-defaulttexturedir = core.get_texturepath_share() .. DIR_DELIM .. "base" ..
-					DIR_DELIM .. "pack" .. DIR_DELIM
+defaulttexturedir = core.get_texturepath_share() .. DIR_DELIM .. "base" .. DIR_DELIM .. "pack" .. DIR_DELIM
 
 dofile(basepath .. "common" .. DIR_DELIM .. "menu.lua")
 dofile(basepath .. "common" .. DIR_DELIM .. "filterlist.lua")
@@ -41,10 +41,10 @@ dofile(menupath .. DIR_DELIM .. "dlg_clients_list.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_server_list_mods.lua")
 
 local tabs = {
-	content  = dofile(menupath .. DIR_DELIM .. "tab_content.lua"),
+	content = dofile(menupath .. DIR_DELIM .. "tab_content.lua"),
 	about = dofile(menupath .. DIR_DELIM .. "tab_about.lua"),
 	local_game = dofile(menupath .. DIR_DELIM .. "tab_local.lua"),
-	play_online = dofile(menupath .. DIR_DELIM .. "tab_online.lua")
+	play_online = dofile(menupath .. DIR_DELIM .. "tab_online.lua"),
 }
 
 local function main_event_handler(tabview, event)
@@ -92,8 +92,7 @@ local function init_globals()
 				return true
 			end
 			local game = pkgmgr.find_by_gameid(el_gameid)
-			if (not game or game.id ~= el_gameid)
-					and pkgmgr.find_by_gameid(gameid).aliases[el_gameid] then
+			if (not game or game.id ~= el_gameid) and pkgmgr.find_by_gameid(gameid).aliases[el_gameid] then
 				return true
 			end
 			return false
@@ -107,12 +106,49 @@ local function init_globals()
 	mm_game_theme.set_engine() -- This is just a fallback.
 
 	-- Create main tabview
-	local tv_main = tabview_create("maintab", {x = MAIN_TAB_W, y = MAIN_TAB_H}, {x = 0, y = 0})
+	local tv_main = tabview_create("maintab", { x = MAIN_TAB_W, y = MAIN_TAB_H }, { x = 0, y = 0 })
+
+	tv_main:set_sidebar({
+		width = 3.2,
+		gap = 0.4,
+
+		padding = 0.25,
+		button_height = 0.75,
+		button_spacing = 0.12,
+
+		background = "#111111",
+		button_background = "#222222",
+		active_background = "#4CAF50",
+
+		actions = {
+			{
+				name = "open_settings",
+				label = fgettext("Settings"),
+				on_click = function(tabview)
+					local dlg = create_settings_dlg()
+					dlg:set_parent(tabview)
+					tabview:hide()
+					dlg:show()
+					return true
+				end,
+			},
+			{
+				name = "quit",
+				label = fgettext("Exit"),
+				on_click = function()
+					core.close()
+					return true
+				end,
+			},
+		},
+	})
 
 	tv_main:set_autosave_tab(true)
 	tv_main:add(tabs.local_game)
 	tv_main:add(tabs.play_online)
 	tv_main:add(tabs.content)
+
+	tabs.about.sidebar = false
 	tv_main:add(tabs.about)
 
 	tv_main:set_global_event_handler(main_event_handler)
@@ -122,19 +158,6 @@ local function init_globals()
 	if last_tab and tv_main.current_tab ~= last_tab then
 		tv_main:set_tab(last_tab)
 	end
-
-	tv_main:set_end_button({
-		icon = defaulttexturedir .. "settings_btn.png",
-		label = fgettext("Settings"),
-		name = "open_settings",
-		on_click = function(tabview)
-			local dlg = create_settings_dlg()
-			dlg:set_parent(tabview)
-			tabview:hide()
-			dlg:show()
-			return true
-		end,
-	})
 
 	ui.set_default("maintab")
 	tv_main:show()

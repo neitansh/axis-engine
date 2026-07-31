@@ -41,6 +41,7 @@ void MyEventReceiver::reloadKeybindings()
 	keybindings[KeyType::SNEAK] = getKeySetting("keymap_sneak");
 	keybindings[KeyType::DIG] = getKeySetting("keymap_dig");
 	keybindings[KeyType::PLACE] = getKeySetting("keymap_place");
+	keybindings[KeyType::SPRINT] = getKeySetting("keymap_sprint");
 
 	keybindings[KeyType::ESC] = getKeySetting("keymap_pause");
 	keybindings[KeyType::ESC].keys.emplace_back(EscapeKey);

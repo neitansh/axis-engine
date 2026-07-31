@@ -18,6 +18,8 @@ uniform float animationTimer;
 uniform float crackAnimationLength;
 uniform float crackLevel;
 uniform float crackTextureScale;
+uniform vec4 u_dyn_lights[16];
+uniform float u_dyn_light_count;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	// shadow texture
@@ -468,6 +470,35 @@ void main(void)
 	}
 
 	vec4 col = vec4(base.rgb * varColor.rgb, 1.0);
+
+	// ====================================================================
+	// --- РАСЧЕТ ДИНАМИЧЕСКОГО СВЕТА ОТ ФАКЕЛОВ ---
+	// ====================================================================
+	float dyn_light_contribution = 0.0;
+
+	for (int i = 0; i < 4; i++) {
+		if (i >= int(u_dyn_light_count)) {
+			break;
+		}
+
+		vec3 light_pos = u_dyn_lights[i].xyz;
+		float max_radius = u_dyn_lights[i].w;
+
+		float dist = distance(worldPosition, light_pos);
+		if (dist < max_radius) {
+			float atten = clamp(1.0 - (dist / max_radius), 0.0, 1.0);
+			float intensity = atten * atten;
+
+			dyn_light_contribution += intensity;
+		}
+	}
+
+	vec3 torch_color = vec3(1.04, 1.04, 0.25);
+
+	vec3 dyn_light = vec3(dyn_light_contribution) * torch_color;
+
+	col.rgb = base.rgb * clamp(varColor.rgb + dyn_light, vec3(0.0), vec3(1.0));
+	// ====================================================================
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	// Fragment normal, can differ from vNormal which is derived from vertex normals.

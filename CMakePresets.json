@@ -9,32 +9,52 @@
       "name": "Debug",
       "displayName": "Debug",
       "description": "Debug preset with debug symbols and no optimizations",
+      "binaryDir": "${sourceDir}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "RUN_IN_PLACE": "TRUE"
       }
     },
     {
       "name": "Release",
       "displayName": "Release",
-      "description": "Release preset with optimizations and no debug symbols",
+      "description": "Release with optimizations and in-place build",
+      "binaryDir": "${sourceDir}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "RUN_IN_PLACE": "TRUE"
+      }
+    },
+    {
+      "name": "Server-Release",
+      "displayName": "Server Release",
+      "description": "Release build for Headless Server (no GUI)",
+      "binaryDir": "${sourceDir}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "RUN_IN_PLACE": "TRUE",
+        "BUILD_SERVER": "TRUE",
+        "BUILD_CLIENT": "FALSE"
       }
     },
     {
       "name": "RelWithDebInfo",
       "displayName": "RelWithDebInfo",
-      "description": "Release with debug symbols",
+      "description": "Release with debug symbols and in-place build",
+      "binaryDir": "${sourceDir}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "RUN_IN_PLACE": "TRUE"
       }
     },
     {
       "name": "MinSizeRel",
       "displayName": "MinSizeRel",
-      "description": "Release with minimal code size",
+      "description": "Release with minimal code size and in-place build",
+      "binaryDir": "${sourceDir}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "MinSizeRel"
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "RUN_IN_PLACE": "TRUE"
       }
     }
   ]

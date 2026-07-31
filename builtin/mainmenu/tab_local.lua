@@ -454,9 +454,9 @@ local function on_change(type)
 			mm_game_theme.set_engine()
 		end
 
-		if singleplayer_refresh_gamebar() then
-			ui.find_by_name("game_button_bar"):show()
-		end
+		--if singleplayer_refresh_gamebar() then
+		--	ui.find_by_name("game_button_bar"):show()
+		--end
 	elseif type == "LEAVE" then
 		menudata.worldlist:set_filtercriteria(nil)
 		local gamebar = ui.find_by_name("game_button_bar")

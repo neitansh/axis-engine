@@ -142,3 +142,12 @@ lib/irrlichtmt
 
 # Generated mod storage database
 client/mod_storage.sqlite
+
+deploy.sh
+
+# Временная папка для сборки деплоя
+/deploy_tmp/
+
+# Временный архив деплоя
+/axis_content.tar.gz
+/axis_server_image.tar.gz

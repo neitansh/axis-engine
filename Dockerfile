@@ -37,51 +37,52 @@ RUN cd prometheus-cpp && \
 
 FROM dev AS builder
 
-COPY .git /usr/src/luanti/.git
-COPY CMakeLists.txt /usr/src/luanti/CMakeLists.txt
-COPY README.md /usr/src/luanti/README.md
-COPY minetest.conf.example /usr/src/luanti/minetest.conf.example
-COPY builtin /usr/src/luanti/builtin
-COPY cmake /usr/src/luanti/cmake
-COPY doc /usr/src/luanti/doc
-COPY fonts /usr/src/luanti/fonts
-COPY lib /usr/src/luanti/lib
-COPY misc /usr/src/luanti/misc
-COPY po /usr/src/luanti/po
-COPY src /usr/src/luanti/src
-COPY irr /usr/src/luanti/irr
-COPY textures /usr/src/luanti/textures
+COPY .git /usr/src/axis/.git
+COPY CMakeLists.txt /usr/src/axis/CMakeLists.txt
+COPY README.md /usr/src/axis/README.md
+COPY minetest.conf.example /usr/src/axis/minetest.conf.example
+COPY builtin /usr/src/axis/builtin
+COPY cmake /usr/src/axis/cmake
+COPY doc /usr/src/axis/doc
+COPY fonts /usr/src/axis/fonts
+COPY lib /usr/src/axis/lib
+COPY misc /usr/src/axis/misc
+COPY po /usr/src/axis/po
+COPY src /usr/src/axis/src
+COPY irr /usr/src/axis/irr
+COPY textures /usr/src/axis/textures
 
-WORKDIR /usr/src/luanti
+WORKDIR /usr/src/axis
+
 RUN cmake -B build \
-		-DCMAKE_INSTALL_PREFIX=/usr/local \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DBUILD_SERVER=TRUE \
+		-DRUN_IN_PLACE=TRUE \
 		-DENABLE_PROMETHEUS=TRUE \
 		-DBUILD_UNITTESTS=FALSE -DBUILD_BENCHMARKS=FALSE \
 		-DBUILD_CLIENT=FALSE \
 		-GNinja && \
-	cmake --build build && \
-	cmake --install build
+	cmake --build build
 
 FROM $DOCKER_IMAGE AS runtime
 
 RUN apk add --no-cache curl gmp libstdc++ libgcc libpq jsoncpp zstd-libs \
 				sqlite-libs postgresql hiredis leveldb && \
-	adduser -D minetest --uid 30000 -h /var/lib/minetest && \
-	chown -R minetest:minetest /var/lib/minetest
+	adduser -D axis --uid 30000 -h /app && \
+	chown -R axis:axis /app
 
-WORKDIR /var/lib/minetest
+WORKDIR /app
 
-COPY --from=builder /usr/local/share/luanti /usr/local/share/luanti
-COPY --from=builder /usr/local/bin/luantiserver /usr/local/bin/luantiserver
-COPY --from=builder /usr/local/share/doc/luanti/minetest.conf.example /etc/minetest/minetest.conf
-COPY --from=builder /usr/local/lib/libspatialindex* /usr/local/lib/
-COPY --from=builder /usr/local/lib/libluajit* /usr/local/lib/
-USER minetest:minetest
+COPY --from=builder /usr/src/axis/bin/* /app/bin/axisserver
+COPY --from=builder /usr/src/axis/builtin /app/builtin
+COPY --from=builder /usr/local/lib /app/libs
+
+ENV LD_LIBRARY_PATH=/app/libs
+
+USER axis:axis
 
 EXPOSE 30000/udp 30000/tcp
-VOLUME /var/lib/minetest/ /etc/minetest/
+VOLUME /app/
 
-ENTRYPOINT ["/usr/local/bin/luantiserver"]
-CMD ["--config", "/etc/minetest/minetest.conf"]
+ENTRYPOINT ["/app/bin/axisserver"]
+CMD ["--config", "/app/minetest.conf"]

@@ -28,7 +28,7 @@
 #include <unordered_map>
 
 #if USE_SOUND
-	#include "sound/sound_openal.h"
+#include "sound/sound_openal.h"
 #endif
 
 /* mainmenumanager.h
@@ -61,13 +61,15 @@ ClientLauncher::~ClientLauncher()
 
 	g_settings->deregisterAllChangedCallbacks(this);
 
-	if (g_menucloudsmgr) {
+	if (g_menucloudsmgr)
+	{
 		assert(g_menucloudsmgr->getReferenceCount() == 1);
 		g_menucloudsmgr->drop();
 		g_menucloudsmgr = nullptr;
 	}
 
-	if (g_menuclouds) {
+	if (g_menuclouds)
+	{
 		assert(g_menuclouds->getReferenceCount() == 1);
 		g_menuclouds->drop();
 		g_menuclouds = nullptr;
@@ -94,7 +96,6 @@ ClientLauncher::~ClientLauncher()
 #endif
 }
 
-
 bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args)
 {
 	GameStartData start_data;
@@ -102,9 +103,12 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 
 	init_args(start_data, cmd_args);
 
-	try {
+	try
+	{
 		init_engine();
-	} catch (BaseException &e) {
+	}
+	catch (BaseException &e)
+	{
 		errorstream << e.what() << std::endl;
 		RenderingEngine::showErrorMessageBox(e.what());
 		return false;
@@ -132,9 +136,12 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 	g_settings->registerChangedCallback("gui_scaling", setting_changed_callback, this);
 	g_settings->registerChangedCallback("smooth_scrolling", setting_changed_callback, this);
 
-	try {
+	try
+	{
 		g_fontengine = new FontEngine(guienv);
-	} catch (BaseException &e) {
+	}
+	catch (BaseException &e)
+	{
 		errorstream << e.what() << std::endl;
 		RenderingEngine::showErrorMessageBox(e.what());
 		return false;
@@ -144,7 +151,8 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 	// This is only global so it can be used by RenderingEngine::draw_load_screen().
 	assert(!g_menucloudsmgr && !g_menuclouds);
 	std::unique_ptr<IWritableShaderSource> ssrc;
-	try {
+	try
+	{
 		ssrc.reset(createShaderSource());
 		ssrc->addShaderUniformSetterFactory(std::make_unique<FogShaderUniformSetterFactory>());
 
@@ -153,14 +161,16 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 		auto tm = mt_localtime();
 		u32 seed = (tm.tm_year << 16) | tm.tm_yday; // unique clouds every day
 		g_menuclouds = new Clouds(g_menucloudsmgr, ssrc.get(), -1, seed);
-	} catch (BaseException &e) {
+	}
+	catch (BaseException &e)
+	{
 		errorstream << e.what() << std::endl;
 		RenderingEngine::showErrorMessageBox(e.what());
 		return false;
 	}
 	g_menuclouds->setHeight(100.0f);
 	g_menuclouds->update(v3f(0, 0, 0), m_rendering_engine->m_menu_clouds_color);
-	scene::ICameraSceneNode* camera;
+	scene::ICameraSceneNode *camera;
 	camera = g_menucloudsmgr->addCameraSceneNode(NULL, v3f(0, 0, 0), v3f(0, 60, 100));
 	camera->setFarValue(10000);
 
@@ -179,23 +189,22 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 	/*
 		Menu-game loop
 	*/
-	bool retval         = true;
+	bool retval = true;
 	volatile auto *kill = porting::signal_handler_killstatus();
 
 	while (m_rendering_engine->run() && !*kill &&
-		!g_gamecallback->shutdown_requested) {
+		   !g_gamecallback->shutdown_requested)
+	{
 		// Set the window caption
-		auto driver_name = m_rendering_engine->getVideoDriver()->getName();
 		std::string caption = std::string(PROJECT_NAME_C) +
-			" " + g_version_hash +
-			" [" + gettext("Main Menu") + "]" +
-			" [" + driver_name + "]";
+							  " " + g_version_hash +
+							  " [" + gettext("Main Menu") + "]";
 
-		m_rendering_engine->get_raw_device()->
-			setWindowCaption(utf8_to_wide(caption).c_str());
+		m_rendering_engine->get_raw_device()->setWindowCaption(utf8_to_wide(caption).c_str());
 
 #ifdef NDEBUG
-		try {
+		try
+		{
 #endif
 			guienv->clear();
 
@@ -205,7 +214,7 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 				Otherwise they won't be automatically drawn.
 			*/
 			guiroot = guienv->addStaticText(L"",
-				core::rect<s32>(0, 0, 10000, 10000));
+											core::rect<s32>(0, 0, 10000, 10000));
 
 			bool should_run_game = launch_game(errordata, start_data, cmd_args);
 
@@ -217,7 +226,8 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 				break;
 			first_loop = false;
 
-			if (!should_run_game) {
+			if (!should_run_game)
+			{
 				if (skip_main_menu)
 					break;
 				continue;
@@ -233,10 +243,11 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 				m_rendering_engine,
 				start_data,
 				errordata,
-				chat_backend
-			);
+				chat_backend);
 #ifdef NDEBUG
-		} catch (std::exception &e) {
+		}
+		catch (std::exception &e)
+		{
 			errordata.message = "Some exception: " + debug_describe_exc(e);
 			errorstream << errordata.message << std::endl;
 		}
@@ -258,7 +269,8 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 			g_settings->updateConfigFile(g_settings_path.c_str());
 
 		// If no main menu, show error and exit
-		if (skip_main_menu) {
+		if (skip_main_menu)
+		{
 			if (!errordata.message.empty())
 				retval = false;
 			break;
@@ -266,7 +278,8 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 	} // Menu-game loop
 
 	// If profiler was enabled print it one last time
-	if (g_settings->getFloat("profiler_print_interval") > 0) {
+	if (g_settings->getFloat("profiler_print_interval") > 0)
+	{
 		infostream << "Profiler:" << std::endl;
 		g_profiler->print(infostream);
 		g_profiler->clear();
@@ -280,14 +293,16 @@ void ClientLauncher::init_args(GameStartData &start_data, const Settings &cmd_ar
 	skip_main_menu = cmd_args.getFlag("go");
 
 	start_data.address = g_settings->get("address");
-	if (cmd_args.exists("address")) {
+	if (cmd_args.exists("address"))
+	{
 		// Join a remote server
 		start_data.mode = GameClientData::GM_JOIN;
 		start_data.address = cmd_args.get("address");
 		start_data.world_path.clear();
 		start_data.name = g_settings->get("name");
 	}
-	if (!start_data.world_path.empty()) {
+	if (!start_data.world_path.empty())
+	{
 		// Start a singleplayer instance
 		start_data.mode = GameClientData::GM_SINGLEPLAYER;
 		start_data.address = "";
@@ -297,7 +312,8 @@ void ClientLauncher::init_args(GameStartData &start_data, const Settings &cmd_ar
 		start_data.name = cmd_args.get("name");
 
 	// If a world was commanded, select it
-	if (!start_data.world_path.empty()) {
+	if (!start_data.world_path.empty())
+	{
 		if (!start_data.name.empty())
 			start_data.mode = GameClientData::GM_HOST_AND_JOIN;
 
@@ -308,8 +324,7 @@ void ClientLauncher::init_args(GameStartData &start_data, const Settings &cmd_ar
 		spec.name = _("[--world parameter]");
 	}
 
-	random_input = g_settings->getBool("random_input")
-			|| cmd_args.getFlag("random-input");
+	random_input = g_settings->getBool("random_input") || cmd_args.getFlag("random-input");
 }
 
 void ClientLauncher::init_engine()
@@ -329,7 +344,7 @@ void ClientLauncher::init_input()
 
 void ClientLauncher::setting_changed_callback(const std::string &name, void *data)
 {
-	static_cast<ClientLauncher*>(data)->config_guienv();
+	static_cast<ClientLauncher *>(data)->config_guienv();
 }
 
 static video::ITexture *loadTexture(video::IVideoDriver *driver, const char *path)
@@ -337,7 +352,8 @@ static video::ITexture *loadTexture(video::IVideoDriver *driver, const char *pat
 	// FIXME?: it would be cleaner to do this through a ITextureSource, but we don't have one
 	video::ITexture *texture = nullptr;
 	verbosestream << "Loading texture " << path << std::endl;
-	if (auto *image = driver->createImageFromFile(path); image) {
+	if (auto *image = driver->createImageFromFile(path); image)
+	{
 		texture = driver->addTexture(fs::GetFilenameFromPath(path), image);
 		image->drop();
 	}
@@ -359,7 +375,7 @@ void ClientLauncher::config_guienv()
 	skin->setColor(gui::EGDC_FOCUSED_EDITABLE, video::SColor(255, 96, 134, 49));
 
 	float density = rangelim(g_settings->getFloat("gui_scaling"), 0.5f, 20) *
-		RenderingEngine::getDisplayDensity();
+					RenderingEngine::getDisplayDensity();
 	skin->setScale(density);
 	skin->setSize(gui::EGDS_CHECK_BOX_WIDTH, (s32)(17.0f * density));
 	skin->setSize(gui::EGDS_SCROLLBAR_SIZE, (s32)(21.0f * density));
@@ -371,7 +387,8 @@ void ClientLauncher::config_guienv()
 	static u32 orig_sprite_id = skin->getIcon(gui::EGDI_CHECK_BOX_CHECKED);
 	static std::unordered_map<std::string, u32> sprite_ids;
 
-	if (density > 1.5f) {
+	if (density > 1.5f)
+	{
 		// Texture dimensions should be a power of 2
 		std::string path = porting::path_share + "/textures/base/pack/";
 		if (density > 3.5f)
@@ -382,24 +399,30 @@ void ClientLauncher::config_guienv()
 			path.append("checkbox_16.png");
 
 		auto cached_id = sprite_ids.find(path);
-		if (cached_id != sprite_ids.end()) {
+		if (cached_id != sprite_ids.end())
+		{
 			skin->setIcon(gui::EGDI_CHECK_BOX_CHECKED, cached_id->second);
-		} else {
+		}
+		else
+		{
 			auto *driver = m_rendering_engine->get_video_driver();
 			auto *texture = loadTexture(driver, path.c_str());
 			s32 id = skin->getSpriteBank()->addTextureAsSprite(texture);
-			if (id != -1) {
+			if (id != -1)
+			{
 				skin->setIcon(gui::EGDI_CHECK_BOX_CHECKED, id);
 				sprite_ids.emplace(path, id);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		skin->setIcon(gui::EGDI_CHECK_BOX_CHECKED, orig_sprite_id);
 	}
 }
 
 bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_data,
-		const Settings &cmd_args)
+								 const Settings &cmd_args)
 {
 	std::string &error_message = errordata.message;
 
@@ -407,14 +430,18 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 	if (cmd_args.exists("password"))
 		start_data.password = cmd_args.get("password");
 
-	if (cmd_args.exists("password-file")) {
+	if (cmd_args.exists("password-file"))
+	{
 		std::ifstream passfile(cmd_args.get("password-file"));
-		if (passfile.good()) {
+		if (passfile.good())
+		{
 			std::getline(passfile, start_data.password);
-		} else {
+		}
+		else
+		{
 			error_message = gettext("Provided password file "
-					"failed to open: ")
-					+ cmd_args.get("password-file");
+									"failed to open: ") +
+							cmd_args.get("password-file");
 			errorstream << error_message << std::endl;
 			return false;
 		}
@@ -423,7 +450,8 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 	/*
 	 * Show the GUI menu
 	 */
-	if (!skip_main_menu) {
+	if (!skip_main_menu)
+	{
 		// Initialize menu data
 		MainMenuData menudata(errordata);
 		(GameClientData &)menudata = start_data;
@@ -435,7 +463,8 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 		if (!m_rendering_engine->run() || *porting::signal_handler_killstatus())
 			return false;
 
-		if (!menudata.script_data.message.empty()) {
+		if (!menudata.script_data.message.empty())
+		{
 			/* The calling function will pass this back into this function upon the
 			 * next iteration (if any) causing it to be displayed by the GUI
 			 */
@@ -451,7 +480,8 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 		std::vector<WorldSpec> worldspecs = getAvailableWorlds();
 
 		int world_index = menudata.selected_world;
-		if (world_index >= 0 && world_index < (int)worldspecs.size()) {
+		if (world_index >= 0 && world_index < (int)worldspecs.size())
+		{
 			start_data.world_spec = worldspecs[world_index];
 			start_data.world_path = start_data.world_spec.path;
 		}
@@ -459,22 +489,27 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 		(GameClientData &)start_data = menudata;
 	}
 
-	if (!start_data.isSinglePlayer() && start_data.name.empty()) {
+	if (!start_data.isSinglePlayer() && start_data.name.empty())
+	{
 		error_message = gettext("Please choose a name!");
 		errorstream << error_message << std::endl;
 		return false;
 	}
 
 	// If using simple singleplayer mode, override
-	if (start_data.isSinglePlayer()) {
+	if (start_data.isSinglePlayer())
+	{
 		start_data.name = "singleplayer";
 		start_data.password = "";
 		start_data.socket_port = myrand_range(49152, 65535);
-	} else {
+	}
+	else
+	{
 		g_settings->set("name", start_data.name);
 	}
 
-	if (start_data.name.length() > PLAYERNAME_SIZE - 1) {
+	if (start_data.name.length() > PLAYERNAME_SIZE - 1)
+	{
 		error_message = gettext("Player name too long.");
 		start_data.name.resize(PLAYERNAME_SIZE);
 		g_settings->set("name", start_data.name);
@@ -482,32 +517,38 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 	}
 
 	// For singleplayer and local server
-	if (start_data.isAnyServer()) {
+	if (start_data.isAnyServer())
+	{
 		auto &worldspec = start_data.world_spec;
-		if (worldspec.path.empty()) {
+		if (worldspec.path.empty())
+		{
 			errordata.setError(
-				gettext("No world selected and no address provided. Nothing to do.")
-			);
+				gettext("No world selected and no address provided. Nothing to do."));
 			return false;
 		}
 
 		infostream << "Selected world: " << worldspec.name
-			<< " [" << worldspec.path << "]" << std::endl;
+				   << " [" << worldspec.path << "]" << std::endl;
 
 		// Figure out which game we'll be using
 		// Note that start_data.game_spec contains the gameid from the command line
 		bool world_exists = getWorldExists(worldspec.path);
-		if (world_exists) {
+		if (world_exists)
+		{
 			auto world_game = findWorldSubgame(worldspec.path);
 			if (world_game.isValid())
 				start_data.game_spec = world_game;
 		}
 
-		if (!start_data.game_spec.isValid()) {
+		if (!start_data.game_spec.isValid())
+		{
 			std::string msg;
-			if (world_exists) {
+			if (world_exists)
+			{
 				msg = gettext("Could not find or load game: ") + worldspec.gameid;
-			} else {
+			}
+			else
+			{
 				msg = gettext("World does not exist and no game selected to create one.");
 			}
 			errordata.setError(msg);
@@ -520,13 +561,14 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 
 void ClientLauncher::main_menu(MainMenuData *menudata)
 {
-	volatile auto       *kill   = porting::signal_handler_killstatus();
+	volatile auto *kill = porting::signal_handler_killstatus();
 	video::IVideoDriver *driver = m_rendering_engine->get_video_driver();
-	auto                *device = m_rendering_engine->get_raw_device();
+	auto *device = m_rendering_engine->get_raw_device();
 
 	// Wait until app is in foreground because of #15883
 	infostream << "Waiting for app to be in foreground" << std::endl;
-	while (m_rendering_engine->run() && !*kill) {
+	while (m_rendering_engine->run() && !*kill)
+	{
 		if (device->isWindowVisible())
 			break;
 		sleep_ms(25);
@@ -535,7 +577,8 @@ void ClientLauncher::main_menu(MainMenuData *menudata)
 
 	infostream << "Waiting for other menus" << std::endl;
 	auto framemarker = FrameMarker("ClientLauncher::main_menu()-wait-frame").started();
-	while (m_rendering_engine->run() && !*kill) {
+	while (m_rendering_engine->run() && !*kill)
+	{
 		if (!isMenuActive())
 			break;
 		driver->beginScene(true, true, video::SColor(255, 128, 128, 128));
@@ -551,7 +594,8 @@ void ClientLauncher::main_menu(MainMenuData *menudata)
 
 	// Make sure normal mouse cursor is restored
 	auto *cur_control = device->getCursorControl();
-	if (cur_control) {
+	if (cur_control)
+	{
 		cur_control->setVisible(true);
 		cur_control->setRelativeMode(false);
 	}

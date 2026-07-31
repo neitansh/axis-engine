@@ -2,3 +2,19 @@
 ./build/*
 ./cache/*
 Dockerfile
+# Игнорируем папки сборки
+build/
+deploy_tmp/
+
+# Игнорируем временные файлы компилятора
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Игнорируем архивы деплоя
+axis_content.tar.gz
+axis_server_image.tar.gz
+
+cmake_config.h
+src/cmake_config.h

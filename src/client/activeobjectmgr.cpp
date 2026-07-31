@@ -23,12 +23,29 @@ void ActiveObjectMgr::step(
 		float dtime, const std::function<void(ClientActiveObject *)> &f)
 {
 	size_t count = 0;
+	
+	// Сначала родители (объекты без parent)
 	for (auto &ao_it : m_active_objects.iter()) {
 		if (!ao_it.second)
 			continue;
-		count++;
-		f(ao_it.second.get());
+		ClientActiveObject *obj = ao_it.second.get();
+		if (obj->getParent() == nullptr) {
+			count++;
+			f(obj);
+		}
 	}
+	
+	// Потом дети (объекты с parent)
+	for (auto &ao_it : m_active_objects.iter()) {
+		if (!ao_it.second)
+			continue;
+		ClientActiveObject *obj = ao_it.second.get();
+		if (obj->getParent() != nullptr) {
+			count++;
+			f(obj);
+		}
+	}
+	
 	g_profiler->avg("ActiveObjectMgr: CAO count [#]", count);
 }
 

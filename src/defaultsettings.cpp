@@ -113,7 +113,7 @@ void set_default_settings()
 	settings->setDefault("screenshot_format", "png");
 	settings->setDefault("screenshot_quality", "0");
 	settings->setDefault("client_unload_unused_data_timeout", "600");
-	settings->setDefault("client_mapblock_limit", "50000"); // about 800 MB
+	settings->setDefault("client_mapblock_limit", "10000"); // about 800 MB
 	settings->setDefault("enable_build_where_you_stand", "false");
 	settings->setDefault("curl_timeout", "20000");
 	settings->setDefault("secure.curl_proxy", "");
@@ -138,6 +138,7 @@ void set_default_settings()
 	settings->setDefault("keymap_right", "SYSTEM_SCANCODE_7|GAMEPAD_AXIS_PLUS_0"); // KEY_KEY_D|Left Joystick
 	settings->setDefault("keymap_jump", "SYSTEM_SCANCODE_44|GAMEPAD_BUTTON_0"); // KEY_SPACE|Gamepad South
 	settings->setDefault("keymap_sneak", "SYSTEM_SCANCODE_225|GAMEPAD_BUTTON_1"); // KEY_LSHIFT|Gamepad East
+	settings->setDefault("keymap_sprint", "SYSTEM_SCANCODE_224"); // KEY_LCONTROL
 	settings->setDefault("keymap_dig", "MOUSE_BUTTON_1|GAMEPAD_AXIS_PLUS_5"); // LMB|Gamepad RT
 	settings->setDefault("keymap_place", "MOUSE_BUTTON_3|GAMEPAD_AXIS_PLUS_4"); // RMB|Gamepad LT
 	settings->setDefault("keymap_drop", "SYSTEM_SCANCODE_20|GAMEPAD_BUTTON_12"); // KEY_KEY_Q|D-Pad Down
@@ -317,7 +318,7 @@ void set_default_settings()
 
 	// Effects
 	settings->setDefault("enable_post_processing", "true");
-	settings->setDefault("post_processing_texture_bits", "10");
+	settings->setDefault("post_processing_texture_bits", "8");
 	settings->setDefault("directional_colored_fog", "true");
 	settings->setDefault("inventory_items_animations", "false");
 	settings->setDefault("mip_map", "false");
@@ -346,7 +347,7 @@ void set_default_settings()
 	settings->setDefault("enable_dynamic_shadows", "false");
 	settings->setDefault("shadow_strength_gamma", "1.0");
 	settings->setDefault("shadow_poisson_filter", "true");
-	settings->setDefault("shadow_update_frames", "16");
+	settings->setDefault("shadow_update_frames", "32");
 	settings->setDefault("shadow_soft_radius", "5.0");
 	settings->setDefault("shadow_sky_body_orbit_tilt", "0.0");
 #ifndef __ANDROID__
@@ -375,7 +376,7 @@ void set_default_settings()
 	settings->setDefault("safe_dig_and_place", "false");
 	settings->setDefault("random_input", "false");
 	settings->setDefault("aux1_descends", "false");
-	settings->setDefault("doubletap_jump", "false");
+	settings->setDefault("doubletap_jump", "true");
 	settings->setDefault("always_fly_fast", "true");
 	settings->setDefault("toggle_sneak_key", "false");
 	settings->setDefault("toggle_aux1_key", "false");
@@ -516,10 +517,10 @@ void set_default_settings()
 	// Physics
 	settings->setDefault("movement_acceleration_default", "3");
 	settings->setDefault("movement_acceleration_air", "2");
-	settings->setDefault("movement_acceleration_fast", "10");
-	settings->setDefault("movement_speed_walk", "4");
-	settings->setDefault("movement_speed_crouch", "1.35");
-	settings->setDefault("movement_speed_fast", "20");
+	settings->setDefault("movement_acceleration_fast", "3");
+	settings->setDefault("movement_speed_walk", "4.317");
+	settings->setDefault("movement_speed_crouch", "1.31");
+	settings->setDefault("movement_speed_fast", "21.84");
 	settings->setDefault("movement_speed_climb", "3");
 	settings->setDefault("movement_speed_jump", "6.5");
 	settings->setDefault("movement_liquid_fluidity", "1");

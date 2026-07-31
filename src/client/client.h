@@ -22,6 +22,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "dynamic_light_manager.h"
+
 #if !IS_CLIENT_BUILD
 #error Do not include in server builds
 #endif
@@ -442,6 +444,9 @@ public:
 
 	bool inhibit_inventory_revert = false;
 
+	DynamicLightManager& getDynamicLightManager() { return m_dynamic_light_manager; }
+	void updateDynamicLights();
+
 private:
 	struct PendingMediaDownload {
 		// Tokens to ack to the server. multiple because server can send duplicate
@@ -610,4 +615,6 @@ private:
 
 	// The number of blocks the client will combine for mesh generation.
 	MeshGrid m_mesh_grid;
+
+	DynamicLightManager m_dynamic_light_manager;
 };

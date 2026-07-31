@@ -1,0 +1,50 @@
+name: Manual Linux Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Версия релиза (например, v0.1.0)'
+        required: true
+        default: 'v0.1.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release:
+    name: Build & Upload Linux Client
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Dependencies
+        run: |
+          source ./util/ci/common.sh
+          install_linux_deps g++-11
+
+      - name: Build Engine
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DRUN_IN_PLACE=TRUE \
+            -DBUILD_SERVER=FALSE \
+            -DBUILD_CLIENT=TRUE
+          cmake --build build
+
+      - name: Prepare Portable Package
+        run: |
+          mkdir axis_linux
+          
+          cp -r bin builtin client textures fonts axis_linux/
+          
+          tar -czvf axis_client_linux.tar.gz axis_linux
+
+      - name: Create GitHub Release and Upload Asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.event.inputs.tag_name }}" \
+            --title "Release ${{ github.event.inputs.tag_name }}" \
+            --notes "Чистая портативная сборка клиента Axis для Linux (GLIBC 2.35+)." \
+            axis_client_linux.tar.gz

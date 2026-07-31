@@ -20,6 +20,7 @@ public:
 		AUTOFORWARD,
 		DIG,
 		PLACE,
+		SPRINT,
 
 		ESC,
 
