@@ -8128,3 +8128,12 @@ msgstr "Меню"
 
 msgid "Game"
 msgstr "Игра"
+
+msgid "Russia"
+msgstr "Россия"
+
+msgid "Europe"
+msgstr "Европа"
+
+msgid "Official Servers"
+msgstr "Официальные серверы"
