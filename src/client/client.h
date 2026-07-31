@@ -448,6 +448,8 @@ public:
 	void updateDynamicLights();
 
 private:
+	u8 getWieldLightSource(const std::string &wield_item);
+
 	struct PendingMediaDownload {
 		// Tokens to ack to the server. multiple because server can send duplicate
 		// requests
@@ -617,4 +619,7 @@ private:
 	MeshGrid m_mesh_grid;
 
 	DynamicLightManager m_dynamic_light_manager;
+
+	// Caches the light_source value of serialized wield items
+	std::unordered_map<std::string, u8> m_wield_light_cache;
 };

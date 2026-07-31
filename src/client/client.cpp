@@ -486,8 +486,10 @@ void Client::updateDynamicLights()
 	}
 
 	// 2. Добавляем свет от окружающих игроков (CAO)
+	// Light of another player can only reach us if that player is within two
+	// light radii, so there is no point in looking any further.
 	std::vector<DistanceSortedActiveObject> active_objects;
-	m_env.getActiveObjects(local_player->getPosition(), 100 * BS, active_objects);
+	m_env.getActiveObjects(local_player->getPosition(), 2 * LIGHT_MAX * BS, active_objects);
 
 	for (const auto &s_obj : active_objects) {
 		ClientActiveObject *cao = s_obj.obj;
@@ -499,22 +501,37 @@ void Client::updateDynamicLights()
 			if (wield_item.empty())
 				continue;
 
-			ItemStack item;
-			try {
-				item.deSerialize(wield_item, idef());
-			} catch (SerializationError &e) {
-				// A malformed item string must not take down the client
-				continue;
-			}
-			const ContentFeatures &f = ndef()->get(item.name);
-
-			if (f.light_source > 0) {
+			u8 light_source = getWieldLightSource(wield_item);
+			if (light_source > 0) {
 				v3f pos = gcao->getPosition();
 				pos.Y += 1.2f * BS;
-				m_dynamic_light_manager.addLight(pos, v3f(1.04f, 1.04f, 1.04f), (float)f.light_source * BS);
+				m_dynamic_light_manager.addLight(pos, v3f(1.04f, 1.04f, 1.04f), (float)light_source * BS);
 			}
 		}
 	}
+}
+
+u8 Client::getWieldLightSource(const std::string &wield_item)
+{
+	auto it = m_wield_light_cache.find(wield_item);
+	if (it != m_wield_light_cache.end())
+		return it->second;
+
+	u8 light_source = 0;
+	ItemStack item;
+	try {
+		item.deSerialize(wield_item, idef());
+		light_source = ndef()->get(item.name).light_source;
+	} catch (SerializationError &e) {
+		// A malformed item string must not take down the client
+	}
+
+	// Keep the cache from growing without bound, item strings carry metadata
+	if (m_wield_light_cache.size() >= 256)
+		m_wield_light_cache.clear();
+	m_wield_light_cache[wield_item] = light_source;
+
+	return light_source;
 }
 
 void Client::step(float dtime)
