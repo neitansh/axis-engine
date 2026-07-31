@@ -117,7 +117,7 @@ local function get_formspec(tabview, name, tabdata)
 		"container_end[]" ..
 
 		"container[9.75,0]" ..
-		"box[0,0;5.75,7.1;#666666]" ..
+		menu_style.surface(0, 0, 5.75, 7.1) ..
 
 		-- TRANSLATORS: Network address
 		"label[0.25,0.35;" .. fgettext("Address") .. "]" ..
@@ -130,7 +130,7 @@ local function get_formspec(tabview, name, tabdata)
 
 		-- Description Background
 		"label[0.25,1.6;" .. fgettext("Server Description") .. "]" ..
-		"box[0.25,1.85;5.25,2.7;#999999]"..
+		menu_style.inset(0.25, 1.85, 5.25, 2.7) ..
 
 		-- Name / Password
 		"container[0,4.8]" ..
@@ -146,7 +146,8 @@ local function get_formspec(tabview, name, tabdata)
 		retval = retval .. "button[0.25,6;2.5,0.75;btn_mp_register;" .. fgettext("Register") .. "]"
 	end
 	-- TRANSLATORS: Login to server
-	retval = retval .. "button[3,6;2.5,0.75;btn_mp_login;" .. fgettext("Login") .. "]"
+	retval = retval .. menu_style.accent("btn_mp_login") ..
+			"button[3,6;2.5,0.75;btn_mp_login;" .. fgettext("Login") .. "]"
 
 	local selected_server = find_selected_server()
 

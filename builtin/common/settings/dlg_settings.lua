@@ -707,7 +707,8 @@ local function get_formspec(dialogdata)
 		-- HACK: this is needed to allow resubmitting the same formspec
 		formspec_show_hack and " " or "",
 
-		menu_style.panel(0, 0, tabsize.width, tabsize.height),
+		-- The card covers the bottom bar too, so nothing floats on the world
+		menu_style.panel(0, 0, tabsize.width, tabsize.height + extra_h),
 
 		-- Header: the screen says what it is, then separates itself from the body
 		menu_style.title(pad, menu_style.SPACE.md, tabsize.width - pad * 2, header_h - 0.2,
@@ -731,7 +732,7 @@ local function get_formspec(dialogdata)
 		"container_end[]",
 
 		-- Bottom bar
-		menu_style.divider(pad, tabsize.height + 0.05, tabsize.width - pad * 2),
+		menu_style.divider(pad, tabsize.height, tabsize.width - pad * 2),
 		("button[%f,%f;%f,0.85;back;%s]"):format(
 				pad, tabsize.height + menu_style.SPACE.md, back_w,
 				-- TRANSLATORS: Button text to go back
