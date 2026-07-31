@@ -182,5 +182,5 @@ jobs:
         run: |
           gh release create "${{ github.event.inputs.tag_name }}" axis_client_windows.zip \
             --title "Release ${{ github.event.inputs.tag_name }}" \
-            --notes "Чистая портативная сборка клиента Axis." \
+            --notes "Сборка клиента Axis." \
             || gh release upload "${{ github.event.inputs.tag_name }}" axis_client_windows.zip --clobber

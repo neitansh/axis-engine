@@ -52,17 +52,19 @@ jobs:
           # ------------------------------------------------------------
           # Collect non-system shared libraries recursively.
           #
-          # We intentionally DO NOT bundle:
+          # DO NOT bundle:
           #   glibc
           #   libpthread
           #   libm
           #   libdl
           #   librt
+          #   libutil
           #   libgcc_s
+          #   libstdc++
           #   ld-linux
           #   linux-vdso
           #
-          # Everything else goes into libs/.
+          # Other dependencies are bundled into libs/.
           # ------------------------------------------------------------
 
           declare -A SEEN
@@ -71,9 +73,12 @@ jobs:
             local name="$1"
 
             case "$name" in
+              # Linux kernel virtual DSO
               linux-vdso.so.*)
                 return 0
                 ;;
+
+              # glibc
               libc.so.*)
                 return 0
                 ;;
@@ -92,9 +97,18 @@ jobs:
               libutil.so.*)
                 return 0
                 ;;
+
+              # GCC runtime
               libgcc_s.so.*)
                 return 0
                 ;;
+
+              # C++ standard library
+              libstdc++.so.*)
+                return 0
+                ;;
+
+              # Dynamic loader
               ld-linux*.so.*)
                 return 0
                 ;;
@@ -117,7 +131,7 @@ jobs:
                 continue
               fi
 
-              # Skip libraries we already processed.
+              # Skip libraries already processed.
               if [[ "${SEEN[$name]}" == "1" ]]; then
                 continue
               fi
@@ -128,7 +142,7 @@ jobs:
 
               cp "$lib" "axis_linux/libs/$name"
 
-              # Recursively process dependencies of this library.
+              # Recursively process dependencies.
               copy_deps "$lib"
             done < <(
               ldd "$file" 2>/dev/null |
@@ -193,5 +207,5 @@ jobs:
 
           gh release create "${{ github.event.inputs.tag_name }}" axis_client_linux.tar.gz \
             --title "Release ${{ github.event.inputs.tag_name }}" \
-            --notes "Чистая портативная сборка клиента Axis." \
+            --notes "Сборка клиента Axis." \
             || gh release upload "${{ github.event.inputs.tag_name }}" axis_client_linux.tar.gz --clobber
