@@ -1095,14 +1095,6 @@ if(WIN32)
 	endif()
 endif()
 
-macro(CreateLegacyAlias _cmake_target _old_path _new_name)
-	add_custom_target("${_cmake_target}" ALL
-		COMMAND "${CMAKE_COMMAND}" -E create_symlink "${_new_name}" "${_old_path}"
-		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-	add_dependencies("${_cmake_target}" "${_new_name}")
-	install(PROGRAMS "${_old_path}" DESTINATION ${BINDIR})
-endmacro()
-
 if(BUILD_CLIENT AND NOT ANDROID)
 	install(TARGETS ${PROJECT_NAME}
 		RUNTIME DESTINATION ${BINDIR}
@@ -1110,9 +1102,6 @@ if(BUILD_CLIENT AND NOT ANDROID)
 		ARCHIVE DESTINATION ${BINDIR}
 		BUNDLE DESTINATION .
 	)
-	# if(UNIX)
-	# 	CreateLegacyAlias(minetest_alias "${EXECUTABLE_OUTPUT_PATH}/minetest" ${PROJECT_NAME})
-	# endif()
 
 	if(APPLE)
 		install(CODE "
@@ -1134,12 +1123,9 @@ if(BUILD_CLIENT AND NOT ANDROID)
 			FILES_MATCHING PATTERN "*.ttf" PATTERN "*.txt")
 endif()
 
-# if(BUILD_SERVER)
-# 	install(TARGETS ${PROJECT_NAME}server DESTINATION ${BINDIR})
-# 	if(UNIX)
-# 		CreateLegacyAlias(minetestserver_alias "${EXECUTABLE_OUTPUT_PATH}/minetestserver" ${PROJECT_NAME}server)
-# 	endif()
-# endif()
+if(BUILD_SERVER)
+	install(TARGETS ${PROJECT_NAME}server DESTINATION ${BINDIR})
+endif()
 
 if (ANDROID)
 	# Android does this manually in app/build.gradle -> prepareAssets
