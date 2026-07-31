@@ -2932,9 +2932,8 @@ msgid "Anticheat movement tolerance"
 msgstr "Допуск движения античита"
 
 #: src/settings_translation_file.cpp
-#, fuzzy
 msgid "Append item name to tooltips"
-msgstr "Добавлять названия предметов во всплывающих подсказках."
+msgstr "Показывать название предмета в подсказке"
 
 #: src/settings_translation_file.cpp
 #, fuzzy
@@ -3062,7 +3061,7 @@ msgstr "Режим автомасштабирования"
 
 #: src/settings_translation_file.cpp
 msgid "Aux1 key for climbing/descending"
-msgstr "Клавиша Aux1 для подъёма/спуска"
+msgstr "Клавиша Aux1 опускает вниз"
 
 #: src/settings_translation_file.cpp
 msgid "Base ground level"
@@ -3138,7 +3137,7 @@ msgstr "Путь к жирному моноширинному шрифту"
 
 #: src/settings_translation_file.cpp
 msgid "Build inside player"
-msgstr "Разрешить ставить ноды на месте игрока"
+msgstr "Ставить блоки внутри себя"
 
 #: src/settings_translation_file.cpp
 msgid "Builtin"
@@ -3436,7 +3435,7 @@ msgstr "Соединяет стекло, если поддерживается �
 
 #: src/settings_translation_file.cpp
 msgid "Console alpha"
-msgstr "Прозрачность консоли"
+msgstr "Непрозрачность консоли"
 
 #: src/settings_translation_file.cpp
 msgid "Console color"
@@ -3776,7 +3775,7 @@ msgstr "Доменное имя сервера, отображаемое в сп
 
 #: src/settings_translation_file.cpp
 msgid "Double tap jump for fly"
-msgstr "Двойной прыжок для полёта"
+msgstr "Двойной прыжок включает полёт"
 
 #: src/settings_translation_file.cpp
 msgid "Double-tapping the jump key toggles fly mode."
@@ -3825,11 +3824,11 @@ msgstr "Эффекты"
 
 #: src/settings_translation_file.cpp
 msgid "Enable Automatic Exposure"
-msgstr "Включить автоматическую экспозицию"
+msgstr "Автоэкспозиция"
 
 #: src/settings_translation_file.cpp
 msgid "Enable Bloom"
-msgstr "Включить эффект свечения (блум)"
+msgstr "Свечение (блум)"
 
 #: src/settings_translation_file.cpp
 msgid "Enable Bloom Debug"
@@ -3878,7 +3877,7 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Enable Post Processing"
-msgstr "Включить постобработку"
+msgstr "Постобработка"
 
 #: src/settings_translation_file.cpp
 msgid "Enable Raytraced Culling"
@@ -3919,7 +3918,7 @@ msgstr "Включить окно консоли"
 
 #: src/settings_translation_file.cpp
 msgid "Enable dynamic shadows"
-msgstr "Включает динамичные тени"
+msgstr "Динамические тени"
 
 #: src/settings_translation_file.cpp
 msgid "Enable joysticks"
@@ -4086,7 +4085,7 @@ msgstr "Кадры в секунду (FPS)"
 
 #: src/settings_translation_file.cpp
 msgid "FPS when unfocused"
-msgstr "Максимум FPS вне фокуса"
+msgstr "Максимум FPS в фоне"
 
 #: src/settings_translation_file.cpp
 msgid "Factor noise"
@@ -4654,7 +4653,7 @@ msgstr "Слот для хотбара 9"
 
 #: src/settings_translation_file.cpp
 msgid "Hotbar: Enable mouse wheel for selection"
-msgstr "Хотбар: включить колёсико мыши для выбора"
+msgstr "Выбор в хотбаре колёсиком мыши"
 
 #: src/settings_translation_file.cpp
 msgid "Hotbar: Invert mouse wheel direction"
@@ -5271,7 +5270,7 @@ msgstr "Распространение усиления роста кривой 
 
 #: src/settings_translation_file.cpp
 msgid "Light curve gamma"
-msgstr "Гамма кривой света"
+msgstr "Яркость картинки"
 
 #: src/settings_translation_file.cpp
 msgid "Light curve high gradient"
@@ -5328,7 +5327,7 @@ msgstr "Время очистки очереди жидкостей"
 
 #: src/settings_translation_file.cpp
 msgid "Liquid reflections"
-msgstr "Отражения жидкости"
+msgstr "Отражения на воде"
 
 #: src/settings_translation_file.cpp
 msgid "Liquid sinking"
@@ -5785,7 +5784,7 @@ msgstr "Высота сканирования миникарты"
 
 #: src/settings_translation_file.cpp
 msgid "Minimum dig repetition interval"
-msgstr "Минимальный интервал повторения раскопок"
+msgstr "Задержка повторного удара"
 
 #: src/settings_translation_file.cpp
 msgid "Minimum limit of random number of large caves per mapchunk."
@@ -5801,7 +5800,7 @@ msgstr "Минимальное количество вершин для меш �
 
 #: src/settings_translation_file.cpp
 msgid "Mipmapping"
-msgstr "Мипмаппинг"
+msgstr "Сглаживание дальних текстур"
 
 #: src/settings_translation_file.cpp
 msgid "Miscellaneous"
@@ -6096,7 +6095,7 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Pause on lost window focus"
-msgstr "Пауза при потере фокуса"
+msgstr "Пауза при сворачивании"
 
 #: src/settings_translation_file.cpp
 msgid "Per-player limit of queued blocks load from disk"
@@ -6112,7 +6111,7 @@ msgstr "Физика"
 
 #: src/settings_translation_file.cpp
 msgid "Place repetition interval"
-msgstr "Интервал повторного размещения"
+msgstr "Задержка повторной установки"
 
 #: src/settings_translation_file.cpp
 msgid "Player transfer distance"
@@ -6234,7 +6233,7 @@ msgstr "Случайный порядок загрузки мода"
 
 #: src/settings_translation_file.cpp
 msgid "Recent Chat Messages"
-msgstr "Недавние сообщения чата"
+msgstr "Сообщений в чате на экране"
 
 #: src/settings_translation_file.cpp
 msgid "Regular font path"
@@ -6347,7 +6346,7 @@ msgstr "Шум распространения холмов"
 
 #: src/settings_translation_file.cpp
 msgid "Safe digging and placing"
-msgstr "Безопасное копание и размещение"
+msgstr "Не ломать и не ставить случайно"
 
 #: src/settings_translation_file.cpp
 msgid "Sandy beaches occur when np_beach exceeds this value."
@@ -6730,11 +6729,11 @@ msgstr "Путь к шейдерам"
 
 #: src/settings_translation_file.cpp
 msgid "Shadow filter quality"
-msgstr "Качество фильтрации теней"
+msgstr "Качество теней"
 
 #: src/settings_translation_file.cpp
 msgid "Shadow map render distance"
-msgstr "Расстояние рендера до теней карты"
+msgstr "Дальность теней"
 
 #: src/settings_translation_file.cpp
 msgid "Shadow map texture in 32 bits"
@@ -6773,7 +6772,7 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Show name tag backgrounds by default"
-msgstr "Отображать фон у плашки с именем"
+msgstr "Подложка под именами игроков"
 
 #: src/settings_translation_file.cpp
 msgid "Shutdown message"
@@ -7354,7 +7353,7 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Toggle Aux1 key"
-msgstr "Включить клавишу Aux1"
+msgstr "Переключать Aux1 нажатием"
 
 #: src/settings_translation_file.cpp
 msgid "Toggle HUD"
@@ -7362,7 +7361,7 @@ msgstr "Вкл/откл интерфейс"
 
 #: src/settings_translation_file.cpp
 msgid "Toggle Sneak key"
-msgstr "Клавиша переключения приседания"
+msgstr "Переключать приседание нажатием"
 
 #: src/settings_translation_file.cpp
 msgid "Toggle automatic forward"
@@ -7442,7 +7441,7 @@ msgstr "Множитель чувствительности сенсорного
 
 #: src/settings_translation_file.cpp
 msgid "Tradeoffs for performance"
-msgstr "Компромиссы для производительности"
+msgstr "Пожертвовать качеством ради FPS"
 
 #: src/settings_translation_file.cpp
 msgid "Translucent foliage"
@@ -7516,7 +7515,7 @@ msgstr "Адрес списка серверов, отображающийся �
 
 #: src/settings_translation_file.cpp
 msgid "Undersampling"
-msgstr "Субдискретизация"
+msgstr "Понижение разрешения мира"
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -7710,7 +7709,7 @@ msgstr "Дальность отрисовки в нодах."
 
 #: src/settings_translation_file.cpp
 msgid "Viewing range"
-msgstr "Дальность обзора"
+msgstr "Дальность прорисовки"
 
 #: src/settings_translation_file.cpp
 msgid "Virtual joystick triggers Aux1 button"
@@ -7734,11 +7733,11 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Volume when unfocused"
-msgstr "Громкость при расфокусировке"
+msgstr "Громкость в фоне"
 
 #: src/settings_translation_file.cpp
 msgid "Volumetric lighting"
-msgstr "Объёмное освещение"
+msgstr "Объёмный свет"
 
 #: src/settings_translation_file.cpp
 msgid ""
