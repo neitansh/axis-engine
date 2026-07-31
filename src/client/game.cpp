@@ -59,6 +59,9 @@
 
 typedef s32 SamplerLayer_t;
 
+// Must match the size of "u_dyn_lights" in the node and object fragment shaders
+static constexpr size_t MAX_DYN_LIGHTS = 4;
+
 class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 {
 	Sky *m_sky;
@@ -82,7 +85,7 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	CachedVertexShaderSetting<float, 3> m_camera_offset_vertex{"cameraOffset"};
 	CachedPixelShaderSetting<float, 3> m_camera_position_pixel{"cameraPosition"};
 	CachedVertexShaderSetting<float, 3> m_camera_position_vertex{"cameraPosition"};
-	CachedPixelShaderSetting<float, 16> m_dyn_lights{"u_dyn_lights"};
+	CachedPixelShaderSetting<float, MAX_DYN_LIGHTS * 4> m_dyn_lights{"u_dyn_lights"};
 	CachedPixelShaderSetting<float> m_dyn_light_count{"u_dyn_light_count"};
 	CachedVertexShaderSetting<float, 2> m_texel_size0_vertex{"texelSize0"};
 	CachedPixelShaderSetting<float, 2> m_texel_size0_pixel{"texelSize0"};
@@ -267,13 +270,13 @@ public:
 		// ====================================================================
 		// --- ПАТЧ ДИНАМИЧЕСКОГО СВЕТА В РУКАХ ИГРОКОВ ---
 		// ====================================================================
-		float dyn_lights[16] = {0.0f};
+		float dyn_lights[MAX_DYN_LIGHTS * 4] = {0.0f};
 		float light_count = 0.0f;
 
 		v3f camera_offset_f = intToFloat(m_client->getCamera()->getOffset(), BS);
 
 		// Запрашиваем у менеджера 4 ближайших источника
-		auto closest = m_client->getDynamicLightManager().getClosestLights(camera_position, 4);
+		auto closest = m_client->getDynamicLightManager().getClosestLights(camera_position, MAX_DYN_LIGHTS);
 
 		for (const auto &light : closest)
 		{

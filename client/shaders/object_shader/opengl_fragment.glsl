@@ -8,7 +8,7 @@ uniform vec3 dayLight;
 uniform lowp vec4 fogColor;
 uniform float fogDistance;
 uniform float fogShadingParameter;
-uniform vec4 u_dyn_lights[16];
+uniform vec4 u_dyn_lights[4];
 uniform float u_dyn_light_count;
 
 // The cameraOffset is the current center of the visible world.

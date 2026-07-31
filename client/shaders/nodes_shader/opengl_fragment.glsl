@@ -18,7 +18,7 @@ uniform float animationTimer;
 uniform float crackAnimationLength;
 uniform float crackLevel;
 uniform float crackTextureScale;
-uniform vec4 u_dyn_lights[16];
+uniform vec4 u_dyn_lights[4];
 uniform float u_dyn_light_count;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
