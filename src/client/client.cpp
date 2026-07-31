@@ -495,8 +495,17 @@ void Client::updateDynamicLights()
 
 		GenericCAO *gcao = dynamic_cast<GenericCAO *>(cao);
 		if (gcao && gcao->isPlayer() && gcao != local_player->getCAO()) {
+			const std::string &wield_item = gcao->getProperties().wield_item;
+			if (wield_item.empty())
+				continue;
+
 			ItemStack item;
-			item.deSerialize(gcao->getProperties().wield_item, idef());
+			try {
+				item.deSerialize(wield_item, idef());
+			} catch (SerializationError &e) {
+				// A malformed item string must not take down the client
+				continue;
+			}
 			const ContentFeatures &f = ndef()->get(item.name);
 
 			if (f.light_source > 0) {
