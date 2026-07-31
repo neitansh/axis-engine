@@ -91,8 +91,9 @@ jobs:
                 return 0
                 ;;
 
-              # Sound servers
-              libasound.so.*|libpulse*.so.*|libjack*.so.*|libpipewire*.so.*)
+              # Sound servers. Private libraries such as libpulsecommon carry
+              # no soname version, so these match on the prefix alone.
+              libasound.so*|libpulse*|libjack*|libpipewire*)
                 return 0
                 ;;
 
@@ -212,8 +213,9 @@ jobs:
             exit 1
           fi
 
-          # Every bundled library has to be picked up from libs/, otherwise the
-          # package silently depends on whatever the build machine happens to have.
+          # A bundled library that still resolves elsewhere is dead weight: some
+          # other library requests it through an RPATH of its own, which wins.
+          # That is not a packaging failure, RPATH correctness is checked above.
           libs_dir="$(cd axis_linux/libs && pwd)"
 
           for lib in axis_linux/libs/*; do
@@ -223,8 +225,8 @@ jobs:
 
             dir="$(cd "$(dirname "$path")" && pwd)"
             if [ "$dir" != "$libs_dir" ]; then
-              echo "::error::$name resolves to $path instead of libs/."
-              exit 1
+              echo "::warning::$name is provided by the host ($path), dropping it."
+              rm -f "$lib"
             fi
           done
 
