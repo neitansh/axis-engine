@@ -82,7 +82,7 @@ ENV LD_LIBRARY_PATH=/app/libs
 USER axis:axis
 
 EXPOSE 30000/udp 30000/tcp
-VOLUME /app/
+VOLUME /app/worlds/ /app/games/ /app/mods/
 
 ENTRYPOINT ["/app/bin/axisserver"]
 CMD ["--config", "/app/minetest.conf"]
