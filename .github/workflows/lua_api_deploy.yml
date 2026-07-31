@@ -12,7 +12,7 @@ on:
       - 'doc/lua_api.md'
       - 'doc/mkdocs/'
     branches:
-      - master
+      - main
 
 jobs:
   build:
