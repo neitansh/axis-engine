@@ -660,8 +660,8 @@ void LocalPlayer::applyControl(float dtime, Environment *env)
 		{
 			if (!is_climbing)
 			{
-				// aux1 is "Turbo button"
-				if (fast_move || free_move)
+				// sprint is "Turbo button"
+				if (fast_move)
 					superspeed = true;
 			}
 		}
@@ -672,7 +672,7 @@ void LocalPlayer::applyControl(float dtime, Environment *env)
 			if (free_move)
 			{
 				// In free movement mode, sneak descends
-				if (is_sprinting || (fast_move && always_fly_fast))
+				if (fast_move && (is_sprinting || always_fly_fast))
 					speedV.Y = -speed_fast;
 				else
 					speedV.Y = -speed_walk;
@@ -715,14 +715,14 @@ void LocalPlayer::applyControl(float dtime, Environment *env)
 				// Don't fly up if sneak key is pressed
 				if (player_settings.aux1_descends || always_fly_fast)
 				{
-					if (fast_move || is_sprinting)
+					if (fast_move)
 						speedV.Y = speed_fast;
 					else
 						speedV.Y = speed_walk;
 				}
 				else
 				{
-					if (is_sprinting)
+					if (fast_move && is_sprinting)
 						speedV.Y = speed_fast;
 					else
 						speedV.Y = speed_walk;
