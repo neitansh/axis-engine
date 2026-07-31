@@ -8122,3 +8122,9 @@ msgstr "Не удалось распаковать «$1» "
 
 msgid "This modpack has an explicit name given in its modpack.conf "
 msgstr "У этого модпака задано имя в modpack.conf "
+
+msgid "Menu"
+msgstr "Меню"
+
+msgid "Game"
+msgstr "Игра"
