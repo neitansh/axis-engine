@@ -341,7 +341,7 @@ msgstr "(Системный язык)"
 #. TRANSLATORS: Shown when a default setting is the empty string
 #: builtin/common/settings/dlg_settings.lua
 msgid "<empty>"
-msgstr ""
+msgstr "<пусто>"
 
 #: builtin/common/settings/dlg_settings.lua
 msgid "Accessibility"
@@ -379,9 +379,8 @@ msgid "Controls"
 msgstr "Управление"
 
 #: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
-#, fuzzy
 msgid "Damage"
-msgstr "Урон / PvP"
+msgstr "Урон"
 
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/common/settings/shadows_component.lua
@@ -423,9 +422,8 @@ msgstr "Вернуть значение по умолчанию"
 
 #. TRANSLATORS: $1 will be replaced with a default setting value
 #: builtin/common/settings/dlg_settings.lua
-#, fuzzy
 msgid "Reset setting to default: $1"
-msgstr "Вернуть значение по умолчанию ($1)"
+msgstr "Сбросить к значению по умолчанию: $1"
 
 #: builtin/common/settings/dlg_settings.lua builtin/mainmenu/tab_online.lua
 msgid "Search"
@@ -1547,9 +1545,8 @@ msgstr ""
 "$1"
 
 #: builtin/mainmenu/tab_online.lua
-#, fuzzy
 msgid "Possible filters"
-msgstr "Фильтрация Пуассона"
+msgstr "Доступные фильтры"
 
 #: builtin/mainmenu/tab_online.lua
 msgid "Public Servers"
@@ -1634,9 +1631,8 @@ msgid "Media..."
 msgstr "Медиафайлы..."
 
 #: src/client/fontengine.cpp
-#, fuzzy
 msgid "Failed to find a valid font"
-msgstr "Не удалось найти файлы шейдера \"%s\"."
+msgstr "Не удалось найти подходящий шрифт"
 
 #: src/client/game.cpp src/client/render/pipeline.cpp src/client/shader.cpp
 #: src/server.cpp
@@ -2148,7 +2144,7 @@ msgstr "Средний Клик"
 #: src/client/keycode.cpp
 #, c-format
 msgid "Mouse Button %d"
-msgstr ""
+msgstr "Кнопка мыши %d"
 
 #. TRANSLATORS: This is a mouse button.
 #: src/client/keycode.cpp
@@ -2328,9 +2324,8 @@ msgid "Failed to create the texture \"%s\" for the rendering pipeline."
 msgstr "Не удалось создать текстуру \"%s\" для конвейерного рендеринга."
 
 #: src/client/renderingengine.cpp
-#, fuzzy
 msgid "Could not initialize any supported video driver!"
-msgstr "Полигоны не доступны этим видео драйвером"
+msgstr "Не удалось запустить ни один поддерживаемый видеодрайвер!"
 
 #: src/client/shader.cpp
 #, c-format
@@ -2385,9 +2380,8 @@ msgid "Opening webpage"
 msgstr "Открытие страницы"
 
 #: src/gui/guiEngine.cpp
-#, fuzzy
 msgid "Failed to load main menu script!"
-msgstr "Скрипт главного меню"
+msgstr "Не удалось загрузить скрипт главного меню!"
 
 #: src/gui/guiFormSpecMenu.cpp
 msgid "Proceed"
@@ -2936,9 +2930,8 @@ msgid "Append item name to tooltips"
 msgstr "Показывать название предмета в подсказке"
 
 #: src/settings_translation_file.cpp
-#, fuzzy
 msgid "Append the full item name to the tooltip of item stacks."
-msgstr "Добавлять названия предметов во всплывающих подсказках."
+msgstr "Показывать полное название предмета в подсказке к стопке."
 
 #: src/settings_translation_file.cpp
 msgid "Apple trees noise"
@@ -3528,9 +3521,8 @@ msgstr ""
 "Также контролирует цвет объекта прицела"
 
 #: src/settings_translation_file.cpp
-#, fuzzy
 msgid "Damage flash"
-msgstr "Флаги генерации карты"
+msgstr "Вспышка при уроне"
 
 #: src/settings_translation_file.cpp
 msgid "Debug log file size threshold"
@@ -3884,9 +3876,8 @@ msgid "Enable Raytraced Culling"
 msgstr "Включить лучевое окклюзивное отсечение"
 
 #: src/settings_translation_file.cpp
-#, fuzzy
 msgid "Enable SSCSM"
-msgstr "Включить всё"
+msgstr "Включить SSCSM"
 
 #: src/settings_translation_file.cpp
 msgid "Enable a confirmation dialog before closing."
@@ -4167,7 +4158,7 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Flashing of the screen when taking damage."
-msgstr ""
+msgstr "Вспышка экрана при получении урона."
 
 #: src/settings_translation_file.cpp
 msgid "Floatland density"
@@ -5140,14 +5131,12 @@ msgid "Keyboard and Mouse"
 msgstr "Клавиатура и мышь"
 
 #: src/settings_translation_file.cpp
-#, fuzzy
 msgid "Keyboard camera speed"
-msgstr "Клавиатура и мышь"
+msgstr "Скорость поворота камеры с клавиатуры"
 
 #: src/settings_translation_file.cpp
-#, fuzzy
 msgid "Keyboard-controlled camera rotation speed, in degrees per second."
-msgstr "Скорость вертикального лазания в нодах в секунду."
+msgstr "Скорость поворота камеры клавишами, градусов в секунду."
 
 #: src/settings_translation_file.cpp
 msgid "Kick players who sent more than X messages per 10 seconds."
@@ -5365,21 +5354,19 @@ msgstr "Локальная команда"
 
 #: src/settings_translation_file.cpp
 msgid "Look down"
-msgstr ""
+msgstr "Смотреть вниз"
 
 #: src/settings_translation_file.cpp
-#, fuzzy
 msgid "Look left"
-msgstr "Двигаться влево"
+msgstr "Смотреть влево"
 
 #: src/settings_translation_file.cpp
-#, fuzzy
 msgid "Look right"
-msgstr "Двигаться вправо"
+msgstr "Смотреть вправо"
 
 #: src/settings_translation_file.cpp
 msgid "Look up"
-msgstr ""
+msgstr "Смотреть вверх"
 
 #: src/settings_translation_file.cpp
 msgid "Lower Y limit of dungeons."
@@ -6616,6 +6603,8 @@ msgid ""
 "variables.\n"
 "Note that this will not apply to Luanti's in-game protocol."
 msgstr ""
+"Прокси для cURL. Это URI, как и переменные окружения *_proxy.\n"
+"Учтите, что это не относится к HTTP-запросам из модов."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -7859,6 +7848,8 @@ msgid ""
 "Where to enable server-sent client-side modding (SSCSM).\n"
 "Warning: Experimental."
 msgstr ""
+"Где включать клиентские моды, присылаемые сервером (SSCSM).\n"
+"Внимание: экспериментальная возможность."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -8039,7 +8030,7 @@ msgstr "Лимит одновременных соединений cURL"
 
 #: src/settings_translation_file.cpp
 msgid "cURL proxy address"
-msgstr ""
+msgstr "Адрес прокси для cURL"
 
 #: src/util/screenshot.cpp
 #, c-format
@@ -8059,3 +8050,75 @@ msgstr "Не удалось сохранить снимок экрана в \"%s
 #~ "game:<имя>\n"
 #~ "mod:<имя>\n"
 #~ "player:<имя>"
+
+msgid "Advanced settings"
+msgstr "Дополнительно"
+
+msgid "All rights reserved"
+msgstr "Все права защищены"
+
+msgid "Details"
+msgstr "Подробнее"
+
+msgid "Developer"
+msgstr "Разработчику"
+
+msgid "Game and network"
+msgstr "Игра и сеть"
+
+msgid "Hints"
+msgstr "Подсказки"
+
+msgid "Hosting"
+msgstr "Свой сервер"
+
+msgid "Interaction"
+msgstr "Взаимодействие"
+
+msgid "Interface"
+msgstr "Интерфейс"
+
+msgid "Keys"
+msgstr "Клавиши"
+
+msgid "Menus"
+msgstr "Меню"
+
+msgid "Mouse"
+msgstr "Мышь"
+
+msgid "Picture"
+msgstr "Изображение"
+
+msgid "Player"
+msgstr "Игрок"
+
+msgid "Quality"
+msgstr "Качество"
+
+msgid "Shadows"
+msgstr "Тени"
+
+msgid "Water and foliage"
+msgstr "Вода и листва"
+
+msgid "Window"
+msgstr "Окно"
+
+msgid "World"
+msgstr "Мир"
+
+msgid "World generation"
+msgstr "Генерация мира"
+
+msgid "Copy to clipboard"
+msgstr "Скопировать в буфер обмена"
+
+msgid "Failed to enable mo"
+msgstr "Не удалось включить мод"
+
+msgid "Failed to extract \"$1\" "
+msgstr "Не удалось распаковать «$1» "
+
+msgid "This modpack has an explicit name given in its modpack.conf "
+msgstr "У этого модпака задано имя в modpack.conf "
