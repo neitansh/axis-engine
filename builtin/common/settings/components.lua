@@ -82,14 +82,17 @@ end
 
 local function render_label(l, label, desc)
 	local fs = {
+		"style_type[label;valign=center]",
 		("label[0,0;%f,%f;%s]"):format(l.label_w, ROW_H, label),
 	}
 
 	if desc then
-		fs[#fs + 1] = ("style_type[label;textcolor=%s;font_size=*0.9]"):format(COLOR_DESC)
-		fs[#fs + 1] = ("label[0,%f;%f,%f;%s]"):format(ROW_H - 0.1, l.label_w, DESC_H, desc)
+		fs[#fs + 1] = ("style_type[label;textcolor=%s;font_size=*0.9;valign=top]"):format(COLOR_DESC)
+		fs[#fs + 1] = ("label[0,%f;%f,%f;%s]"):format(ROW_H - 0.15, l.label_w, DESC_H, desc)
 		fs[#fs + 1] = "style_type[label;textcolor=;font_size=]"
 	end
+
+	fs[#fs + 1] = "style_type[label;valign=top]"
 
 	return table.concat(fs)
 end
@@ -216,6 +219,8 @@ make.string = make_text_entry(tostring, nil)
 -- Bounded numbers get a slider, which is the whole point of having a settings
 -- menu instead of editing minetest.conf by hand.
 local SLIDER_STEPS = 1000
+-- Widest span a slider is still meaningful for
+local SLIDER_RANGE_LIMIT = 1000
 
 local function make_slider(is_int)
 	return function(setting)
@@ -226,6 +231,13 @@ local function make_slider(is_int)
 		end
 
 		local min, max = setting.min, setting.max
+		-- Settings like fps_max are declared with a nominal maximum of 2^32-1.
+		-- Sliding across such a range is useless and lets a stray pixel set a
+		-- value in the millions, so those keep a text field.
+		if (max - min) > SLIDER_RANGE_LIMIT then
+			return (is_int and text_int or text_float)(setting)
+		end
+
 		-- Small integer ranges map onto the scrollbar one to one, which keeps
 		-- every reachable value exact.
 		local direct = is_int and (max - min) <= SLIDER_STEPS
@@ -283,11 +295,11 @@ local function make_slider(is_int)
 					("scrollbar[%f,%f;%f,0.4;horizontal;%s;%d]"):format(
 						l.control_x, l.control_y - 0.2, slider_w,
 						setting.name, to_slider(value)),
-					"style_type[label;halign=right]",
+					"style_type[label;halign=right;valign=center]",
 					("label[%f,0;%f,%f;%s]"):format(
 						l.control_x + slider_w + 0.1, value_w, ROW_H,
 						core.formspec_escape(format_value(value))),
-					"style_type[label;halign=left]",
+					"style_type[label;halign=left;valign=top]",
 					-- Restore the defaults for any plain scrollbar drawn later
 					"scrollbaroptions[min=0;max=1000;smallstep=10;largestep=100;thumbsize=1;arrows=default]",
 				}
