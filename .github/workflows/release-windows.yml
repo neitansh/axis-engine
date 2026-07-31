@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Версия релиза (например, v0.1.0)'
+        description: "Версия релиза (например, v0.1.0)"
         required: true
-        default: 'v0.1.0'
+        default: "v0.1.0"
 
 permissions:
   contents: write
@@ -15,35 +15,52 @@ jobs:
   build_and_release:
     name: Build & Upload Windows Client
     runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v7
 
-      - uses: msys2/setup-msys2@v2
+    steps:
+      # ================================================================
+      # Checkout
+      # ================================================================
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # ================================================================
+      # MSYS2 CLANG64
+      # ================================================================
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: CLANG64
           update: true
           install: >-
+            git
             zip
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-sqlite3
-            mingw-w64-x86_64-curl
-            mingw-w64-x86_64-gmp
-            mingw-w64-x86_64-jsoncpp
-            mingw-w64-x86_64-zstd
-            mingw-w64-x86_64-SDL2
-            mingw-w64-x86_64-openal
-            mingw-w64-x86_64-libvorbis
-            mingw-w64-x86_64-libogg
-            mingw-w64-x86_64-libjpeg-turbo
-            mingw-w64-x86_64-libpng
+            mingw-w64-clang-x86_64-clang
+            mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-ninja
+            mingw-w64-clang-x86_64-curl-winssl
+            mingw-w64-clang-x86_64-libpng
+            mingw-w64-clang-x86_64-libjpeg-turbo
+            mingw-w64-clang-x86_64-freetype
+            mingw-w64-clang-x86_64-libogg
+            mingw-w64-clang-x86_64-libvorbis
+            mingw-w64-clang-x86_64-sqlite3
+            mingw-w64-clang-x86_64-openal
+            mingw-w64-clang-x86_64-zstd
+            mingw-w64-clang-x86_64-gettext
+            mingw-w64-clang-x86_64-luajit
+            mingw-w64-clang-x86_64-SDL2
 
-      - name: Build Engine
+      # ================================================================
+      # Build
+      # ================================================================
+      - name: Configure Engine
         shell: msys2 {0}
         run: |
-          cmake -B build -G Ninja \
+          cmake -B build \
+            -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
             -DRUN_IN_PLACE=TRUE \
             -DBUILD_SERVER=FALSE \
             -DBUILD_CLIENT=TRUE \
@@ -52,20 +69,113 @@ jobs:
             -DENABLE_POSTGRESQL=FALSE \
             -DENABLE_SPATIALINDEX=FALSE \
             -DENABLE_PROMETHEUS=FALSE
-          cmake --build build
 
+      - name: Build Engine
+        shell: msys2 {0}
+        run: |
+          cmake --build build --parallel
+
+      # ================================================================
+      # Bundle DLL dependencies
+      # ================================================================
+      - name: Bundle Windows DLLs
+        shell: msys2 {0}
+        run: |
+          echo "Bundling DLL dependencies..."
+
+          bash util/bundle_dlls.sh \
+            bin/luanti.exe \
+            bin/
+
+      # ================================================================
+      # Verify DLL dependencies
+      # ================================================================
+      - name: Verify DLL dependencies
+        shell: msys2 {0}
+        run: |
+          echo "Checking executable dependencies..."
+
+          missing=0
+
+          while read -r line; do
+            if echo "$line" | grep -q "not found"; then
+              echo "::error::$line"
+              missing=1
+            fi
+          done < <(ldd bin/luanti.exe)
+
+          if [ "$missing" -ne 0 ]; then
+            echo ""
+            echo "ERROR: Some DLL dependencies are missing."
+            exit 1
+          fi
+
+          echo "All direct DLL dependencies are present."
+
+      # ================================================================
+      # Prepare portable package
+      # ================================================================
       - name: Prepare Portable Package
         shell: msys2 {0}
         run: |
-          mkdir axis_windows
-          
-          ldd bin/*.exe | grep -i "mingw64" | awk '{print $3}' | xargs -I {} cp {} bin/
-          
-          cp -r bin builtin client textures fonts axis_windows/
-          
-          zip -r axis_client_windows.zip axis_windows
+          rm -rf axis_windows
+          mkdir -p axis_windows/bin
 
-      - name: Create GitHub Release and Upload Asset
+          # Executable + all bundled DLLs
+          cp bin/*.exe axis_windows/bin/
+          cp bin/*.dll axis_windows/bin/
+
+          # Runtime data
+          cp -r builtin axis_windows/
+          cp -r client axis_windows/
+          cp -r textures axis_windows/
+          cp -r fonts axis_windows/
+
+          echo "Portable package contents:"
+          find axis_windows -maxdepth 2 -type f | sort
+
+      # ================================================================
+      # Final package validation
+      # ================================================================
+      - name: Validate Portable Package
+        shell: msys2 {0}
+        run: |
+          if [ ! -f "axis_windows/bin/luanti.exe" ]; then
+            echo "::error::luanti.exe was not found in portable package."
+            exit 1
+          fi
+
+          dll_count=$(find axis_windows/bin -maxdepth 1 -iname "*.dll" | wc -l)
+
+          echo "Bundled DLL count: $dll_count"
+
+          if [ "$dll_count" -eq 0 ]; then
+            echo "::error::No DLLs were bundled."
+            exit 1
+          fi
+
+          echo "Portable package validation passed."
+
+      # ================================================================
+      # Create ZIP
+      # ================================================================
+      - name: Create Portable ZIP
+        shell: msys2 {0}
+        run: |
+          rm -f axis_client_windows.zip
+
+          cd axis_windows
+          zip -r ../axis_client_windows.zip .
+
+          cd ..
+
+          echo "Package size:"
+          du -h axis_client_windows.zip
+
+      # ================================================================
+      # GitHub Release
+      # ================================================================
+      - name: Create GitHub Release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
