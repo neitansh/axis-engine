@@ -36,6 +36,8 @@ jobs:
             mingw-w64-x86_64-openal
             mingw-w64-x86_64-libvorbis
             mingw-w64-x86_64-libogg
+            mingw-w64-x86_64-libjpeg-turbo
+            mingw-w64-x86_64-libpng
 
       - name: Build Engine
         shell: msys2 {0}
