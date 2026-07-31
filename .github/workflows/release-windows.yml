@@ -1,0 +1,74 @@
+name: Manual Windows Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Версия релиза (например, v0.1.0)'
+        required: true
+        default: 'v0.1.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release:
+    name: Build & Upload Windows Client
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            zip
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-sqlite3
+            mingw-w64-x86_64-curl
+            mingw-w64-x86_64-gmp
+            mingw-w64-x86_64-jsoncpp
+            mingw-w64-x86_64-zstd
+            mingw-w64-x86_64-sdl2
+            mingw-w64-x86_64-openal
+            mingw-w64-x86_64-libvorbis
+            mingw-w64-x86_64-libogg
+
+      - name: Build Engine
+        shell: msys2 {0}
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DRUN_IN_PLACE=TRUE \
+            -DBUILD_SERVER=FALSE \
+            -DBUILD_CLIENT=TRUE \
+            -DENABLE_LEVELDB=FALSE \
+            -DENABLE_REDIS=FALSE \
+            -DENABLE_POSTGRESQL=FALSE \
+            -DENABLE_SPATIALINDEX=FALSE \
+            -DENABLE_PROMETHEUS=FALSE
+          cmake --build build
+
+      - name: Prepare Portable Package
+        shell: msys2 {0}
+        run: |
+          mkdir axis_windows
+          
+          ldd bin/*.exe | grep -i "mingw64" | awk '{print $3}' | xargs -I {} cp {} bin/
+          
+          cp -r bin builtin client textures fonts axis_windows/
+          
+          zip -r axis_client_windows.zip axis_windows
+
+      - name: Create GitHub Release and Upload Asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.event.inputs.tag_name }}" axis_client_windows.zip \
+            --title "Release ${{ github.event.inputs.tag_name }}" \
+            --notes "Чистая портативная сборка клиента Axis." \
+            || gh release upload "${{ github.event.inputs.tag_name }}" axis_client_windows.zip --clobber

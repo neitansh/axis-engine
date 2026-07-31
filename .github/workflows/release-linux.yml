@@ -49,7 +49,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.event.inputs.tag_name }}" \
+          gh release create "${{ github.event.inputs.tag_name }}" axis_client_linux.tar.gz \
             --title "Release ${{ github.event.inputs.tag_name }}" \
-            --notes "Чистая портативная сборка клиента Axis для Linux (GLIBC 2.35+)." \
-            axis_client_linux.tar.gz
+            --notes "Чистая портативная сборка клиента Axis." \
+            || gh release upload "${{ github.event.inputs.tag_name }}" axis_client_linux.tar.gz --clobber
