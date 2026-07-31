@@ -603,7 +603,7 @@ void LocalPlayer::applyControl(float dtime, Environment *env)
 	bool pitch_move = (free_move || in_liquid) && player_settings.pitch_move;
 	// When aux1_descends is enabled the fast key is used to go down, so fast isn't possible
 	bool is_sprinting = control.sprint || (free_move && physics_override.speed > 1.1f);
-	bool fast_climb = fast_move && is_sprinting && !player_settings.aux1_descends; 
+	bool fast_climb = fast_move && is_sprinting && !player_settings.aux1_descends;
 	bool always_fly_fast = player_settings.always_fly_fast;
 
 	// Whether superspeed mode is used or not

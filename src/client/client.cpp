@@ -151,7 +151,7 @@ Client::Client(
 											  m_env(
 												  make_irr<ClientMap>(this, rendering_engine, control, 666),
 												  tsrc, this),
-											  m_particle_manager(std::make_unique<ParticleManager>(&m_env)),
+											m_particle_manager(std::make_unique<ParticleManager>(&m_env)),
 											  m_allow_login_or_register(allow_login_or_register),
 											  m_server_ser_ver(SER_FMT_VER_INVALID),
 											  m_last_chat_message_sent(time(NULL)),
@@ -1054,7 +1054,7 @@ void Client::deletingPeer(con::IPeer *peer, bool timeout)
 {
 	infostream << "Client::deletingPeer(): "
 				  "Server Peer is getting deleted "
-			   << "(timeout=" << timeout << ")" << std::endl;
+			<< "(timeout=" << timeout << ")" << std::endl;
 
 	m_access_denied = true;
 	if (timeout)
@@ -1133,7 +1133,7 @@ void Client::ReceiveAll()
 		{
 			infostream << "Client::ReceiveAll(): "
 						  "Packet processing budget exceeded."
-					   << std::endl;
+					<< std::endl;
 			break;
 		}
 
@@ -1148,7 +1148,7 @@ void Client::ReceiveAll()
 		{
 			infostream << "Client::ReceiveAll(): "
 						  "InvalidIncomingDataException: what()="
-					   << e.what() << std::endl;
+					<< e.what() << std::endl;
 #ifdef NDEBUG
 		}
 		catch (SerializationError &e)
@@ -1189,7 +1189,7 @@ void Client::ProcessData(NetworkPacket *pkt)
 	{
 		infostream << "Client::ProcessData(): Discarding data not "
 					  "coming from server: peer_id="
-				   << static_cast<int>(pkt->getPeerId())
+				<< static_cast<int>(pkt->getPeerId())
 				   << " command=" << static_cast<unsigned>(command) << std::endl;
 		return;
 	}
@@ -1217,7 +1217,7 @@ void Client::ProcessData(NetworkPacket *pkt)
 	{
 		infostream << "Client: Server serialization"
 					  " format invalid. Skipping incoming command "
-				   << static_cast<unsigned>(command) << std::endl;
+				<< static_cast<unsigned>(command) << std::endl;
 		return;
 	}
 

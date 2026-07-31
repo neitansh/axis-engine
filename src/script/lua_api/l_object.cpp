@@ -405,7 +405,7 @@ int ObjectRef::l_set_armor_groups(lua_State *L)
 		{
 			warningstream << "Mod tried to enable damage for a player, but it's "
 							 "disabled globally. Ignoring."
-						  << std::endl;
+						<< std::endl;
 			infostream << script_get_backtrace(L) << std::endl;
 			groups["immortal"] = 1;
 		}

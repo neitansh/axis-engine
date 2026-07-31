@@ -119,7 +119,7 @@ void Camera::notifyFovChange()
 							   ? spec.is_multiplier
 									 ? m_cache_fov * spec.fov // apply multiplier to client-set FOV
 									 : spec.fov				  // absolute override
-							   : m_cache_fov;				  // reset to client-set FOV
+							: m_cache_fov;				  // reset to client-set FOV
 
 	m_fov_transition_active = spec.transition_time > 0.0f;
 	if (m_fov_transition_active)
@@ -248,7 +248,7 @@ void Camera::addArmInertia(f32 player_yaw)
 	m_cam_vel.X = std::fabs(rangelim(m_last_cam_pos.X - player_yaw,
 									 -100.0f, 100.0f) /
 							0.016f) *
-				  0.01f;
+				0.01f;
 	m_cam_vel.Y = std::fabs((m_last_cam_pos.Y - m_camera_direction.Y) / 0.016f);
 	f32 gap_X = std::fabs(WIELDMESH_OFFSET_X - m_wieldmesh_offset.X);
 	f32 gap_Y = std::fabs(WIELDMESH_OFFSET_Y - m_wieldmesh_offset.Y);
@@ -779,10 +779,10 @@ void Camera::drawNametags()
 		v2s32 screen_pos;
 		screen_pos.X = screensize.X *
 						   (0.5f + transformed_pos[0] * zDiv * 0.5f) -
-					   textsize.Width / 2;
+					textsize.Width / 2;
 		screen_pos.Y = screensize.Y *
 						   (0.5f - transformed_pos[1] * zDiv * 0.5f) -
-					   textsize.Height / 2;
+					textsize.Height / 2;
 		core::rect<s32> size(0, 0, textsize.Width, textsize.Height);
 
 		auto bgcolor = nametag->getBgColor(m_show_nametag_backgrounds);
