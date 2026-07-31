@@ -205,7 +205,12 @@ local function get_formspec(tabview, name, tabdata)
 		end
 	end
 
-	retval = retval .. "container[5.25,4.875]"
+	-- Two cards: what the world is set up as, and which world it is
+	retval = retval ..
+			menu_style.surface(0.375, 0.375, 4.5, tabview.height - 0.75) ..
+			menu_style.surface(5.25, 0.375, 9.875, 4.5) ..
+			menu_style.heading(0.75, 0.55, 3.9, 0.6, fgettext("Game")) ..
+			"container[5.25,4.875]"
 	if world then
 		retval = retval ..
 				"button[0,0;3.225,0.8;world_delete;".. fgettext("Delete") .. "]" ..
@@ -214,20 +219,21 @@ local function get_formspec(tabview, name, tabdata)
 	retval = retval ..
 			"button[6.65,0;3.225,0.8;world_create;".. fgettext("New") .. "]" ..
 			"container_end[]" ..
-			"container[0.375,0.375]" ..
+			"container[0.75,1.15]" ..
 			creative ..
 			damage ..
 			host ..
 			"container_end[]" ..
-			"container[5.25,0.375]" ..
-			"label[0,0.2;".. fgettext("Select World:") .. "]"..
-			"textlist[0,0.5;9.875,3.9;sp_worlds;" ..
+			"container[5.625,0.375]" ..
+			menu_style.heading(0, 0.15, 6, 0.6, fgettext("Select World:")) ..
+			"textlist[0,0.85;9.125,3.6;sp_worlds;" ..
 			menu_render_worldlist() ..
 			";" .. index .. "]" ..
 			"container_end[]"
 
 	if core.settings:get_bool("enable_server") and disabled_settings["enable_server"] == nil then
 		retval = retval ..
+				menu_style.accent("play") ..
 				"button[10.1875,5.925;4.9375,0.8;play;".. fgettext("Host Game") .. "]" ..
 				"container[0.375,0.375]" ..
 				"checkbox[0,"..y..";cb_server_announce;" .. fgettext("Announce Server") .. ";" ..
@@ -263,6 +269,7 @@ local function get_formspec(tabview, name, tabdata)
 		retval = retval .. "container_end[]"
 	elseif world then
 		retval = retval ..
+				menu_style.accent("play") ..
 				"button[10.1875,5.925;4.9375,0.8;play;" .. fgettext("Play Game") .. "]"
 	end
 

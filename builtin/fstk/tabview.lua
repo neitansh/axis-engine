@@ -76,16 +76,16 @@ local function get_formspec(self)
 	-- The whole formspec becomes wider because of the sidebar.
 	tsize.width = orig_tsize.width + sidebar_width + sidebar_gap
 
+	-- Room for the logo strip above and the footer below the content
 	tsize.height = tsize.height
 		+ TABHEADER_H
 		+ (TOUCH_GUI and GAMEBAR_OFFSET_TOUCH or GAMEBAR_OFFSET_DESKTOP)
-		+ GAMEBAR_H
 		+ FOOTER_H
 
 	if self.parent == nil and not prepend then
 		prepend = string.format("size[%f,%f,%s]", tsize.width, tsize.height, dump(self.fixed_size))
 
-		local anchor_pos = TABHEADER_H + orig_tsize.height / 2
+		local anchor_pos = TABHEADER_H + (orig_tsize.height + FOOTER_H) / 2
 
 		prepend = prepend .. ("anchor[0.5,%f]"):format(anchor_pos / tsize.height)
 
@@ -108,11 +108,14 @@ local function get_formspec(self)
 
 	local content_x = sidebar_width + sidebar_gap
 
+	-- One card holds the rail, the content and the footer, so the screen reads
+	-- as a single object instead of three panels floating next to each other.
+	local card_h = orig_tsize.height + FOOTER_H
+
+	formspec = formspec .. menu_style.panel(0, 0, tsize.width, card_h)
+
 	-- Main content container
 	formspec = formspec .. ("container[%f,0]"):format(content_x)
-
-	-- Main content background
-	formspec = formspec .. menu_style.panel(0, 0, orig_tsize.width, orig_tsize.height)
 
 	-- Existing tab content
 	formspec = formspec .. content
@@ -121,22 +124,43 @@ local function get_formspec(self)
 
 	-- Left sidebar
 	if self.sidebar then
-		local sidebar_x = 0
+		local padding = self.sidebar.padding or menu_style.SPACE.sm
+		local button_height = self.sidebar.button_height or menu_style.ROW
+		local button_spacing = self.sidebar.button_spacing or menu_style.SPACE.xs
 		local sidebar_height = orig_tsize.height
 
-		local padding = self.sidebar.padding or 0.25
-		local button_height = self.sidebar.button_height or 0.75
-		local button_spacing = self.sidebar.button_spacing or 0.12
-
-		local button_x = sidebar_x + padding
+		local button_x = padding
 		local button_width = sidebar_width - padding * 2
 
-		-- Sidebar background
-		formspec = formspec
-			.. menu_style.panel(sidebar_x, 0, sidebar_width, sidebar_height)
+		formspec = formspec .. menu_style.surface(
+			menu_style.SPACE.sm, menu_style.SPACE.sm,
+			sidebar_width - menu_style.SPACE.sm, sidebar_height - menu_style.SPACE.sm * 2)
 
-		-- Sidebar buttons
-		local button_y = padding
+		-- Tells you what the rail is for without adding a second heading level
+		formspec = formspec .. menu_style.caption(
+			button_x + menu_style.SPACE.sm, padding, button_width, 0.5,
+			core.formspec_escape(fgettext("Menu")))
+
+		local button_y = padding + 0.5 + menu_style.SPACE.xs
+
+		local function nav_button(name, label, active)
+			local out = {}
+
+			if active then
+				-- A filled row plus a marker on the leading edge: the eye finds
+				-- the current page before it starts reading captions.
+				out[#out + 1] = menu_style.selected(name)
+			else
+				out[#out + 1] = menu_style.ghost(name)
+			end
+
+			out[#out + 1] = ("button[%f,%f;%f,%f;%s;%s]"):format(
+				button_x, button_y, button_width, button_height, name,
+				core.formspec_escape(label))
+
+			button_y = button_y + button_height + button_spacing
+			return table.concat(out)
+		end
 
 		for i = 1, #self.tablist do
 			local current_tab = self.tablist[i]
@@ -148,77 +172,44 @@ local function get_formspec(self)
 					caption = caption(self)
 				end
 
-				local button_name = self.name .. "_sidebar_" .. i
-
-				local style = ""
-
-				if i == self.last_tab_index then
-					style = menu_style.accent(button_name)
-				end
-
-				formspec = formspec
-					.. style
-					.. ("button[%f,%f;%f,%f;%s;%s]"):format(
-						button_x,
-						button_y,
-						button_width,
-						button_height,
-						button_name,
-						core.formspec_escape(caption)
-					)
-
-				button_y = button_y + button_height + button_spacing
+				formspec = formspec .. nav_button(
+					self.name .. "_sidebar_" .. i, caption, i == self.last_tab_index)
 			end
 		end
 
-		if self.sidebar and self.sidebar.actions then
-			local action_count = #self.sidebar.actions
-			local action_height = button_height
-			local action_spacing = button_spacing
+		if self.sidebar.actions and #self.sidebar.actions > 0 then
+			local count = #self.sidebar.actions
+			local block_h = count * button_height + (count - 1) * button_spacing
 
-			local actions_height = action_count * action_height + (action_count - 1) * action_spacing
+			button_y = sidebar_height - padding - block_h
+			formspec = formspec .. menu_style.divider(
+				button_x, button_y - menu_style.SPACE.md, button_width)
 
-			local action_y = sidebar_height - padding - actions_height
-
-			for i, action in ipairs(self.sidebar.actions) do
-				local action_name = self.name .. "_sidebar_action_" .. action.name
-
-				formspec = formspec
-					.. ("button[%f,%f;%f,%f;%s;%s]"):format(
-						button_x,
-						action_y,
-						button_width,
-						action_height,
-						action_name,
-						core.formspec_escape(action.label)
-					)
-
-				action_y = action_y + action_height + action_spacing
+			for _, action in ipairs(self.sidebar.actions) do
+				formspec = formspec .. nav_button(
+					self.name .. "_sidebar_action_" .. action.name, action.label, false)
 			end
 		end
 	end
 
 	formspec = formspec .. "container_end[]"
 
-	-- Footer
-	local footer_y = tsize.height - 0.45
-	local footer_width = 9.2
-	local footer_overflow = 6.8
-	local footer_x = tsize.width - footer_width + footer_overflow
+	-- Footer strip spanning both columns, inside the card
+	local footer_h = 0.6
+	local footer_y = TABHEADER_H + orig_tsize.height + menu_style.SPACE.xs
 
 	formspec = formspec
-		.. ("container[%f,%f]"):format(footer_x, footer_y)
-		.. "style[mainmenu_footer_about;"
-		.. "border=false;"
-		.. "noclip=true;"
-		.. "bgcolor=#00000000;"
-		.. "bgcolor_hovered=#00000000;"
-		.. "bgcolor_pressed=#00000000;"
-		.. "textcolor=#FFFFFF]"
-		.. "style_type[label;noclip=true]"
-		.. ("label[0,0.08;the Axis © · the iVy Studio · %s]"):format(fgettext("All rights reserved"))
-		.. "label[6.0,0.08;Luanti © ·]"
-		.. ("button[6.7,-0.13;2.5,0.45;mainmenu_footer_about;%s]"):format(fgettext("Details"))
+		.. ("container[0,%f]"):format(footer_y)
+		.. menu_style.divider(menu_style.SPACE.lg, 0, tsize.width - menu_style.SPACE.lg * 2)
+		.. menu_style.caption(menu_style.SPACE.lg, menu_style.SPACE.sm,
+			tsize.width - 2.6 - menu_style.SPACE.lg, footer_h,
+			core.formspec_escape("the Axis © the iVy Studio · " ..
+				fgettext_ne("All rights reserved")))
+		.. menu_style.ghost("mainmenu_footer_about")
+		.. ("style[mainmenu_footer_about;font_size=*0.9]")
+		.. ("button[%f,%f;2.2,%f;mainmenu_footer_about;%s]"):format(
+			tsize.width - 2.2 - menu_style.SPACE.lg, menu_style.SPACE.xs, footer_h,
+			fgettext("Details"))
 		.. "container_end[]"
 
 	return formspec

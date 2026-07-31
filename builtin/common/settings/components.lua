@@ -34,8 +34,10 @@ local make = {}
 -- Every ordinary setting is drawn as one row: name (and a short explanation)
 -- on the left, the control that changes it on the right.
 local ROW_H = 0.8
-local DESC_H = 0.55
-local CONTROL_W = 4.0
+local DESC_H = 0.62
+-- Roughly what fits on the two lines a description gets
+local DESC_CHARS = 64
+local CONTROL_W = 3.6
 local GAP = 0.2
 
 local COLOR_DESC = "#9aa0a6"
@@ -51,6 +53,30 @@ local function get_label(setting)
 end
 
 
+-- LuaJIT has no utf8 library, so character counting is done by hand.
+-- Returns the byte index the given character ends at, or nil if the text is
+-- shorter than that.
+local function byte_offset_of_char(text, count)
+	local chars, i = 0, 1
+
+	while i <= #text do
+		local byte = text:byte(i)
+		local width = byte < 0x80 and 1
+			or byte < 0xE0 and 2
+			or byte < 0xF0 and 3
+			or 4
+
+		chars = chars + 1
+		if chars > count then
+			return i - 1
+		end
+		i = i + width
+	end
+
+	return nil
+end
+
+
 -- Short explanation shown under the name. The area label wraps and truncates
 -- on its own, so the text does not need to be shortened here.
 local function get_description(setting)
@@ -58,7 +84,18 @@ local function get_description(setting)
 	if not comment or comment == "" then
 		return nil
 	end
-	return core.formspec_escape((fgettext_ne(comment):gsub("%s*\n%s*", " ")))
+	local text = fgettext_ne(comment):gsub("%s*\n%s*", " ")
+	-- One sentence keeps every row the same height and still says what it does
+	text = text:match("^(.-[%.!%?])%s") or text
+
+	-- The row only has two lines; cut on a word so nothing renders half a line
+	local cut = byte_offset_of_char(text, DESC_CHARS)
+	if cut then
+		local shortened = text:sub(1, cut)
+		text = (shortened:match("^(.*)%s%S*$") or shortened) .. "…"
+	end
+
+	return core.formspec_escape(text)
 end
 
 
@@ -88,7 +125,7 @@ local function render_label(l, label, desc)
 
 	if desc then
 		fs[#fs + 1] = ("style_type[label;textcolor=%s;font_size=*0.9;valign=top]"):format(COLOR_DESC)
-		fs[#fs + 1] = ("label[0,%f;%f,%f;%s]"):format(ROW_H - 0.15, l.label_w, DESC_H, desc)
+		fs[#fs + 1] = ("label[0,%f;%f,%f;%s]"):format(ROW_H - 0.04, l.label_w, DESC_H, desc)
 		fs[#fs + 1] = "style_type[label;textcolor=;font_size=]"
 	end
 
@@ -303,6 +340,10 @@ local function make_slider(is_int)
 						l.control_x, l.control_y - 0.175, slider_w,
 						setting.name, to_slider(value)),
 					-- The field lets you type an exact value the slider cannot hit
+					("box[%f,%f;%f,0.65;#333941]"):format(
+						l.control_x + slider_w + 0.15, l.control_y - 0.325, value_w),
+					("box[%f,%f;%f,0.61;#101317]"):format(
+						l.control_x + slider_w + 0.17, l.control_y - 0.305, value_w - 0.04),
 					("field[%f,%f;%f,0.65;%s;;%s]"):format(
 						l.control_x + slider_w + 0.15, l.control_y - 0.325, value_w,
 						setting.name .. "_value", format_value(value)),

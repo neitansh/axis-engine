@@ -2,6 +2,34 @@
 -- Copyright (C) 2014 sapier
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
+-- The engine only accepts these before anything else, and stops looking for
+-- size[] at the first element that is not one of them.
+local LEADING_ELEMENTS = {
+	formspec_version = true,
+	size = true,
+	invsize = true,
+	position = true,
+	anchor = true,
+	padding = true,
+	no_prepend = true,
+}
+
+--- Puts shared styles into a formspec without displacing its leading elements.
+function dialog_insert_styles(formspec, styles)
+	local pos = 1
+
+	while true do
+		local _, stop, name = formspec:find("^%s*([%a_]+)%[[^%]]*%]", pos)
+		if not stop or not LEADING_ELEMENTS[name] then
+			break
+		end
+		pos = stop + 1
+	end
+
+	return formspec:sub(1, pos - 1) .. styles .. formspec:sub(pos)
+end
+
+
 local function dialog_event_handler(self,event)
 	if self.user_eventhandler == nil or
 		self.user_eventhandler(event) == false then
@@ -17,7 +45,16 @@ end
 local dialog_metatable = {
 	eventhandler = dialog_event_handler,
 	get_formspec = function(self)
-				if not self.hidden then return self.formspec(self.data) end
+				if self.hidden then
+					return
+				end
+
+				local fs = self.formspec(self.data)
+				if not fs or fs == "" then
+					return fs
+				end
+
+				return dialog_insert_styles(fs, menu_style.prelude())
 			end,
 	handle_buttons = function(self,fields)
 				if not self.hidden then return self.buttonhandler(self,fields) end

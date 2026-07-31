@@ -4,17 +4,18 @@
 -- Landing page shown on startup: the sidebar of the main tabview, centred on
 -- screen below the engine logo. Picking an entry opens the tabview itself.
 
-local BUTTON_W = 5.0
-local BUTTON_H = 1.0
-local BUTTON_SPACING = 0.22
-local PADDING = 0.6
+local PAD = 0.7
+local WIDTH = 6.4
+local GAP = 0.2
+local H_PRIMARY = 1.15
+local H_SECONDARY = 0.95
 
 local start_page
 
--- Builds the entry list from the tabview, so the landing page and the sidebar
--- always offer the same choices.
+-- Splits the tabview into what the landing page shows as one leading action,
+-- the remaining destinations, and the two utility actions at the bottom.
 local function get_entries(tabview)
-	local entries = {}
+	local tabs, actions = {}, {}
 
 	for i, tab in ipairs(tabview.tablist) do
 		if tab.sidebar then
@@ -23,7 +24,7 @@ local function get_entries(tabview)
 				caption = caption(tabview)
 			end
 
-			entries[#entries + 1] = {
+			tabs[#tabs + 1] = {
 				name = "start_tab_" .. i,
 				label = caption,
 				tab_index = i,
@@ -31,55 +32,92 @@ local function get_entries(tabview)
 		end
 	end
 
-	local sidebar = tabview.sidebar
-	if sidebar and sidebar.actions then
-		for _, action in ipairs(sidebar.actions) do
-			entries[#entries + 1] = {
-				name = "start_action_" .. action.name,
-				label = action.label,
-				action = action,
-			}
-		end
+	for _, action in ipairs(tabview.sidebar and tabview.sidebar.actions or {}) do
+		actions[#actions + 1] = {
+			name = "start_action_" .. action.name,
+			label = action.label,
+			action = action,
+		}
 	end
 
-	return entries
+	return tabs, actions
 end
+
+
+local function all_entries(tabview)
+	local tabs, actions = get_entries(tabview)
+	for _, action in ipairs(actions) do
+		tabs[#tabs + 1] = action
+	end
+	return tabs
+end
+
 
 local function get_formspec(data)
 	local tabview = data.tabview
-	local sidebar = tabview.sidebar or {}
-	local entries = get_entries(tabview)
+	local tabs, actions = get_entries(tabview)
 
-	local width = BUTTON_W + PADDING * 2
-	local height = PADDING * 2 + #entries * BUTTON_H
-			+ math.max(0, #entries - 1) * BUTTON_SPACING
+	local body_w = WIDTH - PAD * 2
+	local action_w = (body_w - GAP) / 2
 
-	local fs = {
-		("formspec_version[6]size[%f,%f]"):format(width, height),
-		"bgcolor[;neither]",
-		menu_style.panel(0, 0, width, height),
-		menu_style.prelude(),
-	}
+	local fs = {}
+	local y = PAD
 
-	local y = PADDING
-	for i, entry in ipairs(entries) do
-		-- The first entry is what people came here for, so it leads in green
-		if i == 1 then
-			fs[#fs + 1] = menu_style.accent(entry.name)
+	-- Leading action, then the other destinations
+	local rows = {}
+	for i, entry in ipairs(tabs) do
+		local h = i == 1 and H_PRIMARY or H_SECONDARY
+		rows[#rows + 1] = { entry = entry, y = y, h = h, primary = i == 1 }
+		y = y + h + GAP
+	end
+
+	if #actions > 0 then
+		y = y + menu_style.SPACE.sm
+		rows.divider_y = y
+		y = y + menu_style.SPACE.md
+		rows.action_y = y
+		y = y + H_SECONDARY
+	end
+
+	y = y + menu_style.SPACE.lg
+	local caption_y = y
+	local height = y + 0.5 + PAD - menu_style.SPACE.lg
+
+	fs[#fs + 1] = ("formspec_version[6]size[%f,%f]"):format(WIDTH, height)
+	fs[#fs + 1] = "bgcolor[;neither]"
+	fs[#fs + 1] = menu_style.panel(0, 0, WIDTH, height)
+	fs[#fs + 1] = menu_style.prelude()
+
+	for _, row in ipairs(rows) do
+		if row.primary then
+			fs[#fs + 1] = menu_style.accent(row.entry.name)
+			fs[#fs + 1] = ("style[%s;font=bold;font_size=*1.1]"):format(row.entry.name)
 		end
 		fs[#fs + 1] = ("button[%f,%f;%f,%f;%s;%s]"):format(
-			PADDING, y, BUTTON_W, BUTTON_H, entry.name, entry.label)
-
-		y = y + BUTTON_H + BUTTON_SPACING
+			PAD, row.y, body_w, row.h, row.entry.name, row.entry.label)
 	end
+
+	if rows.divider_y then
+		fs[#fs + 1] = menu_style.divider(PAD, rows.divider_y, body_w, true)
+
+		for i, entry in ipairs(actions) do
+			fs[#fs + 1] = ("button[%f,%f;%f,%f;%s;%s]"):format(
+				PAD + (i - 1) * (action_w + GAP), rows.action_y,
+				action_w, H_SECONDARY, entry.name, entry.label)
+		end
+	end
+
+	fs[#fs + 1] = menu_style.caption(PAD, caption_y, body_w, 0.5,
+		core.formspec_escape(core.get_version().string), "center")
 
 	return table.concat(fs)
 end
 
+
 local function button_handler(this, fields)
 	local tabview = this.data.tabview
 
-	for _, entry in ipairs(get_entries(tabview)) do
+	for _, entry in ipairs(all_entries(tabview)) do
 		if fields[entry.name] then
 			if entry.action then
 				-- Actions take the view they were triggered from, so dialogs

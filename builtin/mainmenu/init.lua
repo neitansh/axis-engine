@@ -6,7 +6,7 @@ MAIN_TAB_W = 15.5
 MAIN_TAB_H = 7.1
 TABHEADER_H = 0.85
 GAMEBAR_H = 1.25
-FOOTER_H = 3.2
+FOOTER_H = 1.0
 GAMEBAR_OFFSET_DESKTOP = 0.375
 GAMEBAR_OFFSET_TOUCH = 0.15
 
@@ -106,12 +106,8 @@ local function init_globals()
 	local tv_main = tabview_create("maintab", { x = MAIN_TAB_W, y = MAIN_TAB_H }, { x = 0, y = 0 })
 
 	tv_main:set_sidebar({
-		width = 3.2,
-		gap = 0.4,
-
-		padding = 0.25,
-		button_height = 0.75,
-		button_spacing = 0.12,
+		width = 3.4,
+		gap = 0.35,
 
 		actions = {
 			{

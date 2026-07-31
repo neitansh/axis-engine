@@ -673,7 +673,7 @@ local function get_formspec(dialogdata)
 	local page_id = dialogdata.page_id or "graphics"
 	local page = filtered_page_by_id[page_id]
 
-	local extra_h = 1 -- not included in tabsize.height
+	local extra_h = 1.4 -- not included in tabsize.height
 	local tabsize = {
 		width = core.settings:get_bool("touch_gui") and 16.5 or 15.5,
 		height = core.settings:get_bool("touch_gui") and (10 - extra_h) or 12,
@@ -686,8 +686,14 @@ local function get_formspec(dialogdata)
 	local search_width = left_pane_width + scrollbar_w - (0.75 * 2)
 
 	local back_w = 3
-	local checkbox_w = tabsize.width - back_w - 2*0.2
 	local show_technical_names = core.settings:get_bool("show_technical_names")
+
+	local pad = menu_style.SPACE.lg
+	local header_h = 1.0
+	local top = header_h + menu_style.SPACE.md
+	local search_h = 0.8
+	local list_top = top + search_h + menu_style.SPACE.md
+	local list_h = tabsize.height - list_top - pad
 
 	formspec_show_hack = not formspec_show_hack
 
@@ -703,40 +709,56 @@ local function get_formspec(dialogdata)
 
 		menu_style.panel(0, 0, tabsize.width, tabsize.height),
 
-		("button[0,%f;%f,0.8;back;%s]"):format(
-				tabsize.height + 0.2, back_w,
-				-- TRANSLATORS: Button text to go back
-				fgettext("Back")),
+		-- Header: the screen says what it is, then separates itself from the body
+		menu_style.title(pad, menu_style.SPACE.md, tabsize.width - pad * 2, header_h - 0.2,
+			fgettext("Settings")),
+		menu_style.divider(pad, header_h, tabsize.width - pad * 2),
 
-		menu_style.panel(back_w + 0.2, tabsize.height + 0.2, checkbox_w, 0.8),
-		("checkbox[%f,%f;show_technical_names;%s;%s]"):format(
-			back_w + 2*0.2, tabsize.height + 0.6,
-			-- TRANSLATORS: Checkbox that toggles displaying the technical setting names
-			fgettext("Show technical names"), tostring(show_technical_names)),
-
-		"field[0.25,0.25;", tostring(search_width), ",0.75;search_query;;",
-			core.formspec_escape(dialogdata.query or ""), "]",
+		-- Search sits above the page list it filters
+		menu_style.inset(pad, top, search_width + 1.5, search_h),
+		("field[%f,%f;%f,%f;search_query;;%s]"):format(
+			pad + menu_style.SPACE.sm, top, search_width, search_h,
+			core.formspec_escape(dialogdata.query or "")),
 		"field_enter_after_edit[search_query;true]",
 		"field_close_on_enter[search_query;false]", -- for pause menu env
-		"container[", tostring(search_width + 0.25), ", 0.25]",
-			"image_button[0,0;0.75,0.75;", core.formspec_escape(defaulttexturedir .. "search.png"), ";search;]",
-			"image_button[0.75,0;0.75,0.75;", core.formspec_escape(defaulttexturedir .. "clear.png"), ";search_clear;]",
+		("container[%f,%f]"):format(pad + search_width + menu_style.SPACE.sm, top + 0.03),
+			menu_style.icon("search,search_clear"),
+			"image_button[0,0;0.74,0.74;", core.formspec_escape(defaulttexturedir .. "search.png"), ";search;]",
+			"image_button[0.74,0;0.74,0.74;", core.formspec_escape(defaulttexturedir .. "clear.png"), ";search_clear;]",
 			"tooltip[search;", fgettext("Search"), "]",
 			-- TRANSLATORS: Tooltip of a button that clears input
 			"tooltip[search_clear;", fgettext("Clear"), "]",
 		"container_end[]",
-		("scroll_container[0.25,1.25;%f,%f;leftscroll;vertical;0.1;0]"):format(
-			left_pane_width, tabsize.height - 1.5),
+
+		-- Bottom bar
+		menu_style.divider(pad, tabsize.height + 0.05, tabsize.width - pad * 2),
+		("button[%f,%f;%f,0.85;back;%s]"):format(
+				pad, tabsize.height + menu_style.SPACE.md, back_w,
+				-- TRANSLATORS: Button text to go back
+				fgettext("Back")),
+		("checkbox[%f,%f;show_technical_names;%s;%s]"):format(
+			pad + back_w + menu_style.SPACE.lg, tabsize.height + menu_style.SPACE.md + 0.42,
+			-- TRANSLATORS: Checkbox that toggles displaying the technical setting names
+			fgettext("Show technical names"), tostring(show_technical_names)),
+
+		("scroll_container[%f,%f;%f,%f;leftscroll;vertical;0.1;0]"):format(
+			pad, list_top, left_pane_width, list_h),
 	}
 
 	local y = 0
+	local entry_w = left_pane_width - left_pane_padding
 	for _, other_page in ipairs(filtered_pages) do
+		local name = "page_" .. other_page.id
+
 		if other_page.id == page_id then
-			fs[#fs + 1] = menu_style.accent("page_" .. other_page.id)
+			fs[#fs + 1] = menu_style.selected(name)
+		else
+			fs[#fs + 1] = menu_style.ghost(name)
 		end
-		fs[#fs + 1] = ("button[0,%f;%f,0.9;page_%s;%s]")
-			:format(y, left_pane_width-left_pane_padding, other_page.id, fgettext(other_page.title))
-		y = y + 0.98
+
+		fs[#fs + 1] = ("button[0,%f;%f,%f;%s;%s]"):format(
+			y, entry_w, menu_style.ROW, name, fgettext(other_page.title))
+		y = y + menu_style.ROW + menu_style.SPACE.xs
 	end
 
 	if #filtered_pages == 0 then
@@ -748,9 +770,9 @@ local function get_formspec(dialogdata)
 
 	fs[#fs + 1] = "scroll_container_end[]"
 
-	if y >= tabsize.height - 1.25 then
-		fs[#fs + 1] = ("scrollbar[%f,1.25;%f,%f;vertical;leftscroll;%f]"):format(
-				left_pane_width + 0.25, scrollbar_w, tabsize.height - 1.5, dialogdata.leftscroll or 0)
+	if y >= list_h then
+		fs[#fs + 1] = ("scrollbar[%f,%f;%f,%f;vertical;leftscroll;%f]"):format(
+				pad + left_pane_width, list_top, scrollbar_w, list_h, dialogdata.leftscroll or 0)
 	end
 
 	dialogdata.expanded = dialogdata.expanded or {}
@@ -759,11 +781,14 @@ local function get_formspec(dialogdata)
 			build_page_components(page, dialogdata.expanded[page_id]) or {}
 	end
 
-	local right_pane_width = tabsize.width - left_pane_width - 0.375 - 2*scrollbar_w - 0.25
-	fs[#fs + 1] = ("scroll_container[%f,0;%f,%f;rightscroll;vertical;0.1;0.25]"):format(
-			tabsize.width - right_pane_width - scrollbar_w, right_pane_width, tabsize.height)
+	local right_x = pad + left_pane_width + scrollbar_w + menu_style.SPACE.lg
+	local right_pane_width = tabsize.width - right_x - scrollbar_w - menu_style.SPACE.md
+	fs[#fs + 1] = menu_style.inset(right_x - menu_style.SPACE.sm, list_top,
+		right_pane_width + scrollbar_w + menu_style.SPACE.md, list_h)
+	fs[#fs + 1] = ("scroll_container[%f,%f;%f,%f;rightscroll;vertical;0.1;0.25]"):format(
+			right_x, list_top, right_pane_width, list_h)
 
-	y = 0.25
+	y = menu_style.SPACE.md
 	for i, comp in ipairs(dialogdata.components) do
 		fs[#fs + 1] = ("container[0,%f]"):format(y)
 
@@ -851,9 +876,9 @@ local function get_formspec(dialogdata)
 
 	fs[#fs + 1] = "scroll_container_end[]"
 
-	if y >= tabsize.height then
-		fs[#fs + 1] = ("scrollbar[%f,0;%f,%f;vertical;rightscroll;%f]"):format(
-				tabsize.width - scrollbar_w, scrollbar_w, tabsize.height, dialogdata.rightscroll or 0)
+	if y >= list_h then
+		fs[#fs + 1] = ("scrollbar[%f,%f;%f,%f;vertical;rightscroll;%f]"):format(
+				right_x + right_pane_width, list_top, scrollbar_w, list_h, dialogdata.rightscroll or 0)
 	end
 
 	return table.concat(fs, "")
