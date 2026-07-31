@@ -232,9 +232,9 @@ local function get_formspec(self)
 		.. "bgcolor_pressed=#00000000;"
 		.. "textcolor=#FFFFFF]"
 		.. "style_type[label;noclip=true]"
-		.. "label[0,0.08;the Axis © · the iVy Studio · All rights reserved]"
+		.. ("label[0,0.08;the Axis © · the iVy Studio · %s]"):format(fgettext("All rights reserved"))
 		.. "label[6.0,0.08;Luanti © ·]"
-		.. "button[6.7,-0.13;2.5,0.45;mainmenu_footer_about;Подробнее]"
+		.. ("button[6.7,-0.13;2.5,0.45;mainmenu_footer_about;%s]"):format(fgettext("Details"))
 		.. "container_end[]"
 
 	return formspec
@@ -304,34 +304,6 @@ local function handle_events(self, event)
 	end
 
 	return false
-end
-
---------------------------------------------------------------------------------
-local function tab_header(self, size)
-	local toadd = ""
-
-	for i = 1, #self.tablist do
-		if toadd ~= "" then
-			toadd = toadd .. ","
-		end
-
-		local caption = self.tablist[i].caption
-		if type(caption) == "function" then
-			caption = caption(self)
-		end
-
-		toadd = toadd .. caption
-	end
-	return string.format(
-		"tabheader[%f,%f;%f,%f;%s;%s;%i;true;false]",
-		self.header_x,
-		self.header_y,
-		size.width,
-		size.height,
-		self.name,
-		toadd,
-		self.last_tab_index
-	)
 end
 
 --------------------------------------------------------------------------------
@@ -426,13 +398,9 @@ local tabview_metatable = {
 	set_fixed_size = function(self, state)
 		self.fixed_size = state
 	end,
-	set_end_button = function(self, v)
-		self.end_button = v
-	end,
 	set_sidebar = function(self, v)
 		self.sidebar = v
 	end,
-	tab_header = tab_header,
 	handle_tab_buttons = handle_tab_buttons,
 }
 
