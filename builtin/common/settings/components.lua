@@ -219,8 +219,6 @@ make.string = make_text_entry(tostring, nil)
 -- Bounded numbers get a slider, which is the whole point of having a settings
 -- menu instead of editing minetest.conf by hand.
 local SLIDER_STEPS = 1000
--- Widest span a slider is still meaningful for
-local SLIDER_RANGE_LIMIT = 1000
 
 local function make_slider(is_int)
 	return function(setting)
@@ -231,13 +229,6 @@ local function make_slider(is_int)
 		end
 
 		local min, max = setting.min, setting.max
-		-- Settings like fps_max are declared with a nominal maximum of 2^32-1.
-		-- Sliding across such a range is useless and lets a stray pixel set a
-		-- value in the millions, so those keep a text field.
-		if (max - min) > SLIDER_RANGE_LIMIT then
-			return (is_int and text_int or text_float)(setting)
-		end
-
 		-- Small integer ranges map onto the scrollbar one to one, which keeps
 		-- every reachable value exact.
 		local direct = is_int and (max - min) <= SLIDER_STEPS
@@ -281,8 +272,8 @@ local function make_slider(is_int)
 
 				local desc = get_description(setting)
 				local l = layout(avail_w, desc ~= nil)
-				local value_w = 0.9
-				local slider_w = CONTROL_W - value_w - 0.1
+				local value_w = 1.25
+				local slider_w = CONTROL_W - value_w - 0.15
 
 				local fs = {
 					render_label(l, get_label(setting), desc),
@@ -292,14 +283,15 @@ local function make_slider(is_int)
 							direct and math.max(1, math.floor((max - min) / 10))
 								or math.max(1, math.floor(SLIDER_STEPS / 10)),
 							math.max(1, math.floor((sb_max - sb_min) / 20))),
-					("scrollbar[%f,%f;%f,0.4;horizontal;%s;%d]"):format(
-						l.control_x, l.control_y - 0.2, slider_w,
+					("scrollbar[%f,%f;%f,0.35;horizontal;%s;%d]"):format(
+						l.control_x, l.control_y - 0.175, slider_w,
 						setting.name, to_slider(value)),
-					"style_type[label;halign=right;valign=center]",
-					("label[%f,0;%f,%f;%s]"):format(
-						l.control_x + slider_w + 0.1, value_w, ROW_H,
-						core.formspec_escape(format_value(value))),
-					"style_type[label;halign=left;valign=top]",
+					-- The field lets you type an exact value the slider cannot hit
+					("field[%f,%f;%f,0.65;%s;;%s]"):format(
+						l.control_x + slider_w + 0.15, l.control_y - 0.325, value_w,
+						setting.name .. "_value", format_value(value)),
+					("field_enter_after_edit[%s;true]"):format(setting.name .. "_value"),
+					("field_close_on_enter[%s;false]"):format(setting.name .. "_value"),
 					-- Restore the defaults for any plain scrollbar drawn later
 					"scrollbaroptions[min=0;max=1000;smallstep=10;largestep=100;thumbsize=1;arrows=default]",
 				}
@@ -308,16 +300,28 @@ local function make_slider(is_int)
 			end,
 
 			on_submit = function(self, fields)
+				local function store(value)
+					value = math.min(math.max(value, min), max)
+					core.settings:set(setting.name,
+						is_int and tostring(math.floor(value + 0.5)) or float_to_string(value))
+					return true
+				end
+
+				local typed = fields[setting.name .. "_value"]
+				if typed and fields.key_enter_field == setting.name .. "_value" then
+					local value = tonumber(typed)
+					if not is_valid_number(value) then
+						return true
+					end
+					return store(value)
+				end
+
 				local event = core.explode_scrollbar_event(fields[setting.name])
 				if event.type ~= "CHG" then
 					return false
 				end
 
-				local value = from_slider(event.value)
-				value = math.min(math.max(value, min), max)
-				core.settings:set(setting.name,
-					is_int and tostring(math.floor(value)) or float_to_string(value))
-				return true
+				return store(from_slider(event.value))
 			end,
 		}
 	end

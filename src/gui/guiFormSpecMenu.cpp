@@ -3167,8 +3167,22 @@ void GUIFormSpecMenu::regenerateGui(v2u32 screensize)
 
 	parserData mydata;
 
+	// A scrollbar being dragged is destroyed by the rebuild below, which would
+	// cancel the drag. Remember it and hand the drag to its replacement.
+	std::string dragged_scrollbar;
+	GUIScrollBar::DragState dragged_state;
+
 	// Preserve stuff only on same form, not on a new form.
 	if (m_text_dst->m_formname == m_last_formname) {
+		for (const auto &scrollbar : m_scrollbars) {
+			GUIScrollBar::DragState state = scrollbar.second->getDragState();
+			if (state.dragging) {
+				dragged_scrollbar = scrollbar.first.fname;
+				dragged_state = state;
+				break;
+			}
+		}
+
 		// Preserve tables/textlists
 		for (auto &m_table : m_tables) {
 			std::string tablename = m_table.first.fname;
@@ -3511,6 +3525,16 @@ void GUIFormSpecMenu::regenerateGui(v2u32 screensize)
 			|| !isMyDescendant(focused_element)
 			|| focused_element->getType() == gui::EGUIET_TAB_CONTROL)
 		setInitialFocus();
+
+	if (!dragged_scrollbar.empty()) {
+		for (const auto &scrollbar : m_scrollbars) {
+			if (scrollbar.first.fname == dragged_scrollbar) {
+				scrollbar.second->setDragState(dragged_state);
+				Environment->setFocus(scrollbar.second);
+				break;
+			}
+		}
+	}
 
 	skin->setFont(old_font);
 

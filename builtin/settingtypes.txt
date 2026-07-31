@@ -454,12 +454,12 @@ joystick_frustum_sensitivity (Joystick frustum sensitivity) float 170.0 0.001
 #    Width component of the initial window size.
 #
 #    Requires: desktop
-screen_w (Screen width) int 1024 1 65535
+screen_w (Screen width) int 1024 320 7680
 
 #    Height component of the initial window size.
 #
 #    Requires: desktop
-screen_h (Screen height) int 600 1 65535
+screen_h (Screen height) int 600 240 4320
 
 #    Whether the window is maximized.
 #
@@ -488,7 +488,7 @@ pause_on_lost_focus (Pause on lost window focus) bool false
 
 #    If FPS would go higher than this, limit it by sleeping
 #    to not waste CPU power for no benefit.
-fps_max (Maximum FPS) int 60 1 4294967295
+fps_max (Maximum FPS) int 60 20 360
 
 #    Vertical screen synchronization.
 #    Note: A restart is required after changing this!
@@ -496,7 +496,7 @@ fps_max (Maximum FPS) int 60 1 4294967295
 vsync (VSync) bool false
 
 #    Maximum FPS when the window is not focused.
-fps_max_unfocused (FPS when unfocused) int 10 1 4294967295
+fps_max_unfocused (FPS when unfocused) int 10 1 120
 
 # View distance in chunks (1 chunk = 16 blocks).
 # Min = 2
@@ -1036,7 +1036,7 @@ serverlist_url (Serverlist URL) [common] string https://servers.luanti.org
 motd (Message of the day) string
 
 #    Maximum number of players that can be connected simultaneously.
-max_users (Maximum users) int 15 0 65535
+max_users (Maximum users) int 15 1 256
 
 #    If this is set, players will always (re)spawn at the given position.
 static_spawnpoint (Static spawn point) string
@@ -1061,7 +1061,7 @@ strict_protocol_version_checking (Strict protocol checking) bool false
 #    This allows for more fine-grained control than strict_protocol_version_checking.
 #    Luanti still enforces its own internal minimum, and enabling
 #    strict_protocol_version_checking will effectively override this.
-protocol_version_min (Protocol version minimum) int 1 1 65535
+protocol_version_min (Protocol version minimum) int 1 1 100
 
 #    Specifies URL from which client fetches media instead of using UDP.
 #    $filename should be accessible from $remote_media$filename via cURL
@@ -1115,7 +1115,7 @@ csm_restriction_flags (Client side modding restrictions) int 62 0 63
 
 #   If the CSM restriction for node range is enabled, get_node calls are limited
 #   to this distance from the player to the node.
-csm_restriction_noderange (Client-side node lookup range restriction) int 0 0 4294967295
+csm_restriction_noderange (Client-side node lookup range restriction) int 0 0 8192
 
 [**Chat]
 
@@ -1124,13 +1124,13 @@ csm_restriction_noderange (Client-side node lookup range restriction) int 0 0 42
 strip_color_codes (Strip color codes) bool true
 
 #    Set the maximum length of a chat message (in characters) sent by clients.
-chat_message_max_size (Chat message max length) int 500 10 65535
+chat_message_max_size (Chat message max length) int 500 10 2000
 
 #    Number of messages a player may send per 10 seconds.
 chat_message_limit_per_10sec (Chat message count limit) float 8.0 1.0
 
 #    Kick players who sent more than X messages per 10 seconds.
-chat_message_limit_trigger_kick (Chat message kick threshold) int 50 1 65535
+chat_message_limit_trigger_kick (Chat message kick threshold) int 50 1 1000
 
 [*Server Gameplay] [server]
 
@@ -1148,7 +1148,7 @@ item_entity_ttl (Item entity TTL) int 900 -1
 
 #    Specifies the default stack size of nodes, items and tools.
 #    Note that mods or games may explicitly set a stack for certain (or all) items.
-default_stack_max (Default stack size) int 99 1 65535
+default_stack_max (Default stack size) int 99 1 1000
 
 [**Physics]
 
@@ -1211,7 +1211,7 @@ mg_name (Mapgen name) enum v7 v7,valleys,carpathian,v5,flat,fractal,singlenode,v
 water_level (Water level) int 1 -31000 31000
 
 #    From how far blocks are generated for clients, stated in mapblocks (16 nodes).
-max_block_generate_distance (Max block generate distance) [server] int 10 1 32767
+max_block_generate_distance (Max block generate distance) [server] int 10 1 128
 
 #    Limit of map generation, in nodes, in all 6 directions from (0, 0, 0).
 #    Only mapchunks completely within the mapgen limit are generated.
@@ -1753,7 +1753,7 @@ mgfractal_fractal (Fractal type) int 1 1 18
 #    Increasing this increases the amount of fine detail, but also
 #    increases processing load.
 #    At iterations = 20 this mapgen has a similar load to mapgen V7.
-mgfractal_iterations (Iterations) int 11 1 65535
+mgfractal_iterations (Iterations) int 11 1 64
 
 #    (X,Y,Z) scale of fractal in nodes.
 #    Actual fractal size will be 2 to 3 times larger.
@@ -1836,7 +1836,7 @@ mgvalleys_spflags (Mapgen Valleys specific flags) flags altitude_chill,humid_riv
 #    The vertical distance over which heat drops by 20 if 'altitude_chill' is
 #    enabled. Also, the vertical distance over which humidity drops by 10 if
 #    'altitude_dry' is enabled.
-mgvalleys_altitude_chill (Altitude chill) int 90 0 65535
+mgvalleys_altitude_chill (Altitude chill) int 90 0 1000
 
 #    Depth below which you'll find large caves.
 mgvalleys_large_cave_depth (Large cave depth) int -33 -31000 31000
@@ -1866,10 +1866,10 @@ mgvalleys_cavern_taper (Cavern taper) int 192 0 32767
 mgvalleys_cavern_threshold (Cavern threshold) float 0.6
 
 #    How deep to make rivers.
-mgvalleys_river_depth (River depth) int 4 0 65535
+mgvalleys_river_depth (River depth) int 4 0 100
 
 #    How wide to make rivers.
-mgvalleys_river_size (River size) int 5 0 65535
+mgvalleys_river_size (River size) int 5 0 100
 
 #    Controls width of tunnels, a smaller value creates wider tunnels.
 #    Value >= 10.0 completely disables generation of tunnels and avoids the
@@ -2250,7 +2250,7 @@ client_unload_unused_data_timeout (Mapblock unload timeout) [client] float 600.0
 #    Note that there is an internal dynamic minimum number of blocks that
 #    won't be deleted, depending on the current view range.
 #    Set to -1 for no limit.
-client_mapblock_limit (Mapblock limit) [client] int 7500 -1 2147483647
+client_mapblock_limit (Mapblock limit) [client] int 7500 -1 50000
 
 #    Maximum number of blocks that are simultaneously sent per client.
 #    The maximum total count is calculated dynamically:
@@ -2263,7 +2263,7 @@ full_block_send_enable_min_time_from_building (Delay in sending blocks after bui
 
 #    Maximum number of packets sent per send step in the low-level networking code.
 #    You generally don't need to change this, however busy servers may benefit from a higher number.
-max_packets_per_iteration (Max. packets per iteration) [common] int 1024 1 65535
+max_packets_per_iteration (Max. packets per iteration) [common] int 1024 1 8192
 
 #    Compression level to use when sending mapblocks to the client.
 #    -1 - use default compression level
@@ -2310,24 +2310,24 @@ dedicated_server_step (Dedicated server step) float 0.09 0.0 1.0
 unlimited_player_transfer_distance (Unlimited player transfer distance) bool true
 
 #    Defines the maximal player transfer distance in blocks (0 = unlimited).
-player_transfer_distance (Player transfer distance) int 0 0 65535
+player_transfer_distance (Player transfer distance) int 0 0 512
 
 #    From how far clients know about objects, stated in mapblocks (16 nodes).
 #
 #    Setting this larger than active_block_range will also cause the server
 #    to maintain active objects up to this distance in the direction the
 #    player is looking. (This can avoid mobs suddenly disappearing from view)
-active_object_send_range_blocks (Active object send range) int 8 1 65535
+active_object_send_range_blocks (Active object send range) int 8 1 64
 
 #    The radius of the volume of blocks around every player that is subject to the
 #    active block stuff, stated in mapblocks (16 nodes).
 #    In active blocks objects are loaded and ABMs run.
 #    This is also the minimum range in which active objects (mobs) are maintained.
 #    This should be configured together with active_object_send_range_blocks.
-active_block_range (Active block range) int 4 1 65535
+active_block_range (Active block range) int 4 1 64
 
 #    From how far blocks are sent to clients, stated in mapblocks (16 nodes).
-max_block_send_distance (Max block send distance) int 12 1 65535
+max_block_send_distance (Max block send distance) int 12 1 128
 
 #    Default maximum number of forceloaded mapblocks.
 #    Set this to -1 to disable the limit.
@@ -2338,10 +2338,10 @@ server_map_save_interval (Map save interval) float 5.3 0.001
 
 #    How long the server will wait before unloading unused mapblocks, stated in seconds.
 #    Higher value is smoother, but will use more RAM.
-server_unload_unused_data_timeout (Unload unused server data) int 29 0 4294967295
+server_unload_unused_data_timeout (Unload unused server data) int 29 0 3600
 
 #    Maximum number of statically stored objects in a block.
-max_objects_per_block (Maximum objects per block) int 256 256 65535
+max_objects_per_block (Maximum objects per block) int 256 256 8192
 
 #    Length of time between active block management cycles, stated in seconds.
 active_block_mgmt_interval (Active block management interval) float 2.0 0.0
@@ -2357,12 +2357,12 @@ abm_time_budget (ABM time budget) float 0.2 0.1 0.9
 nodetimer_interval (NodeTimer interval) float 0.2 0.1 1.0
 
 #    Max liquids processed per step.
-liquid_loop_max (Liquid loop max) int 100000 1 4294967295
+liquid_loop_max (Liquid loop max) int 100000 1 100000
 
 #    The time (in seconds) that the liquids queue may grow beyond processing
 #    capacity until an attempt is made to decrease its size by dumping old queue
 #    items.  A value of 0 disables the functionality.
-liquid_queue_purge_time (Liquid queue purge time) int 0 0 65535
+liquid_queue_purge_time (Liquid queue purge time) int 0 0 600
 
 #    Liquid update interval in seconds.
 liquid_update (Liquid update tick) float 1.0 0.001
@@ -2424,7 +2424,7 @@ num_emerge_threads (Number of emerge threads) int 0 0 32767
 [**cURL] [common]
 
 #    Maximum time an interactive request (e.g. server list fetch) may take, stated in milliseconds.
-curl_timeout (cURL interactive timeout) int 20000 1000 2147483647
+curl_timeout (cURL interactive timeout) int 20000 1000 120000
 
 #    Set proxy to use by cURL. This is an URI just like the *_proxy environment variables.
 #    Note that this will not apply to Luanti's in-game protocol.
@@ -2435,10 +2435,10 @@ secure.curl_proxy (cURL proxy address) string
 #    -    Serverlist download and server announcement.
 #    -    Downloads performed by main menu (e.g. mod manager).
 #    Only has an effect if compiled with cURL.
-curl_parallel_limit (cURL parallel limit) int 8 1 2147483647
+curl_parallel_limit (cURL parallel limit) int 8 1 64
 
 #    Maximum time a file download (e.g. a mod download) may take, stated in milliseconds.
-curl_file_download_timeout (cURL file download timeout) int 300000 5000 2147483647
+curl_file_download_timeout (cURL file download timeout) int 300000 5000 600000
 
 [**Client Debugging] [client]
 
@@ -2476,7 +2476,7 @@ enable_console (Enable console window) [common] bool false
 #    Number of extra blocks that can be loaded by /clearobjects at once.
 #    This is a trade-off between SQLite transaction overhead and
 #    memory consumption (4096=100MB, as a rule of thumb).
-max_clearobjects_extra_loaded_blocks (Max. clearobjects extra blocks) [server] int 4096 0 4294967295
+max_clearobjects_extra_loaded_blocks (Max. clearobjects extra blocks) [server] int 4096 0 65536
 
 #    World directory (everything in the world is stored here).
 #    Not needed if starting from the main menu.

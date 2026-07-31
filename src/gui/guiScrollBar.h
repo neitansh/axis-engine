@@ -19,4 +19,21 @@ public:
 			core::rect<s32> rectangle, bool horizontal, ISimpleTextureSource *tsrc);
 
 	virtual ~GUIScrollBar() {}
+
+	//! State of an in-progress mouse drag.
+	struct DragState
+	{
+		bool dragging = false;
+		bool by_slider = false;
+		s32 offset = 0;
+	};
+
+	DragState getDragState() const { return {Dragging, DraggedBySlider, DragOffset}; }
+
+	void setDragState(const DragState &state)
+	{
+		Dragging = state.dragging;
+		DraggedBySlider = state.by_slider;
+		DragOffset = state.offset;
+	}
 };
