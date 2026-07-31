@@ -133,8 +133,10 @@ function render_serverlist_row(spec)
 		table.insert(details, render_client_count(spec.clients) .. " / " ..
 			render_client_count(spec.clients_max))
 	else
+		-- Player counts come from a public server list, which the Axis does not
+		-- use. An empty cell is honest; a question mark just looks broken.
 		table.insert(details, color)
-		table.insert(details, "?")
+		table.insert(details, "")
 	end
 
 	if spec.creative then
