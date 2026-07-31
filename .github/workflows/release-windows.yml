@@ -14,7 +14,7 @@ permissions:
 jobs:
   build_and_release:
     name: Build & Upload Windows Client
-    runs-on: windows-2022
+    runs-on: windows-latest
 
     steps:
       # ================================================================
@@ -56,6 +56,10 @@ jobs:
       - name: Configure Engine
         shell: msys2 {0}
         run: |
+          # The checkout is owned by another user as far as MSYS2 git is
+          # concerned, which would strip the commit hash from the version.
+          git config --global --add safe.directory "$(pwd)"
+
           cmake -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -64,6 +68,7 @@ jobs:
             -DRUN_IN_PLACE=TRUE \
             -DBUILD_SERVER=FALSE \
             -DBUILD_CLIENT=TRUE \
+            -DENABLE_GETTEXT=TRUE \
             -DENABLE_LEVELDB=FALSE \
             -DENABLE_REDIS=FALSE \
             -DENABLE_POSTGRESQL=FALSE \
@@ -76,43 +81,6 @@ jobs:
           cmake --build build --parallel
 
       # ================================================================
-      # Bundle DLL dependencies
-      # ================================================================
-      - name: Bundle Windows DLLs
-        shell: msys2 {0}
-        run: |
-          echo "Bundling DLL dependencies..."
-
-          bash util/bundle_dlls.sh \
-            bin/axis.exe \
-            bin/
-
-      # ================================================================
-      # Verify DLL dependencies
-      # ================================================================
-      - name: Verify DLL dependencies
-        shell: msys2 {0}
-        run: |
-          echo "Checking executable dependencies..."
-
-          missing=0
-
-          while read -r line; do
-            if echo "$line" | grep -q "not found"; then
-              echo "::error::$line"
-              missing=1
-            fi
-          done < <(ldd bin/axis.exe)
-
-          if [ "$missing" -ne 0 ]; then
-            echo ""
-            echo "ERROR: Some DLL dependencies are missing."
-            exit 1
-          fi
-
-          echo "All direct DLL dependencies are present."
-
-      # ================================================================
       # Prepare portable package
       # ================================================================
       - name: Prepare Portable Package
@@ -120,10 +88,15 @@ jobs:
         run: |
           rm -rf axis_windows
           mkdir -p axis_windows/bin
+          mkdir -p axis_windows/libs
 
-          # Executable + all bundled DLLs
-          cp bin/*.exe axis_windows/bin/
-          cp bin/*.dll axis_windows/bin/
+          cp bin/axis.exe axis_windows/bin/
+
+          # Every DLL the executable needs, directly or transitively.
+          echo "Bundling DLL dependencies into libs/..."
+          bash util/bundle_dlls.sh \
+            axis_windows/bin/axis.exe \
+            axis_windows/libs
 
           # Runtime data
           cp -r builtin axis_windows/
@@ -134,33 +107,61 @@ jobs:
           if [ -d locale ]; then
             cp -r locale axis_windows/
           else
-            echo "::warning::No compiled translations found, shipping without locale/."
+            echo "::error::No compiled translations found, gettext support is missing."
+            exit 1
           fi
 
-          echo "Portable package contents:"
-          find axis_windows -maxdepth 2 -type f | sort
+          # Windows resolves imported DLLs next to the executable or through
+          # PATH, it has no equivalent of RPATH. This launcher is what makes
+          # the libs/ directory usable.
+          printf '@echo off\r\nsetlocal\r\nset "PATH=%%~dp0libs;%%PATH%%"\r\n"%%~dp0bin\\axis.exe" %%*\r\n' \
+            > axis_windows/axis.cmd
+
+          echo ""
+          echo "Bundled DLLs:"
+          ls -1 axis_windows/libs
 
       # ================================================================
       # Final package validation
       # ================================================================
       - name: Validate Portable Package
-        shell: msys2 {0}
+        shell: pwsh
         run: |
-          if [ ! -f "axis_windows/bin/axis.exe" ]; then
-            echo "::error::axis.exe was not found in portable package."
-            exit 1
-          fi
+          $root = Join-Path $PWD 'axis_windows'
+          $exe = Join-Path $root 'bin\axis.exe'
 
-          dll_count=$(find axis_windows/bin -maxdepth 1 -iname "*.dll" | wc -l)
+          if (-not (Test-Path $exe)) {
+            throw 'axis.exe was not found in the portable package.'
+          }
 
-          echo "Bundled DLL count: $dll_count"
+          $dlls = @(Get-ChildItem (Join-Path $root 'libs') -Filter '*.dll' -ErrorAction SilentlyContinue)
+          if ($dlls.Count -eq 0) {
+            throw 'No DLLs were bundled into libs\.'
+          }
+          Write-Host "Bundled DLL count: $($dlls.Count)"
 
-          if [ "$dll_count" -eq 0 ]; then
-            echo "::error::No DLLs were bundled."
-            exit 1
-          fi
+          $strays = @(Get-ChildItem (Join-Path $root 'bin') -Filter '*.dll' -ErrorAction SilentlyContinue)
+          if ($strays.Count -ne 0) {
+            throw 'DLLs must be shipped in libs\, not next to the executable.'
+          }
 
-          echo "Portable package validation passed."
+          if (-not (Test-Path (Join-Path $root 'axis.cmd'))) {
+            throw 'The axis.cmd launcher is missing from the package.'
+          }
+
+          # Resolve DLLs exactly the way axis.cmd does. A missing dependency
+          # makes the loader fail before main() with STATUS_DLL_NOT_FOUND.
+          $env:PATH = (Join-Path $root 'libs') + ';' + $env:PATH
+          $proc = Start-Process -FilePath $exe -ArgumentList '--version' -PassThru
+          if (-not $proc.WaitForExit(60000)) {
+            $proc.Kill()
+            throw 'The packaged client did not exit within 60 seconds.'
+          }
+          if ($proc.ExitCode -ne 0) {
+            throw "The packaged client failed to start (exit code $($proc.ExitCode))."
+          }
+
+          Write-Host 'Portable package validation passed.'
 
       # ================================================================
       # Create ZIP

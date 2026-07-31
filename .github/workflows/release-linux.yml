@@ -22,7 +22,7 @@ jobs:
       - name: Install Dependencies
         run: |
           source ./util/ci/common.sh
-          install_linux_deps g++-11
+          install_linux_deps g++-11 ninja-build
 
       - name: Build Engine
         run: |
@@ -31,15 +31,17 @@ jobs:
             -DRUN_IN_PLACE=TRUE \
             -DBUILD_SERVER=FALSE \
             -DBUILD_CLIENT=TRUE \
+            -DENABLE_GETTEXT=TRUE \
             -DCMAKE_BUILD_RPATH='$ORIGIN/../libs' \
             -DCMAKE_INSTALL_RPATH='$ORIGIN/../libs' \
+            -DCMAKE_EXE_LINKER_FLAGS='-Wl,--disable-new-dtags' \
             -DENABLE_LEVELDB=FALSE \
             -DENABLE_REDIS=FALSE \
             -DENABLE_POSTGRESQL=FALSE \
             -DENABLE_SPATIALINDEX=FALSE \
             -DENABLE_PROMETHEUS=FALSE
 
-          cmake --build build
+          cmake --build build --parallel
 
       - name: Prepare Portable Package
         run: |
@@ -50,66 +52,53 @@ jobs:
           cp bin/axis axis_linux/bin/
 
           # ------------------------------------------------------------
-          # Collect non-system shared libraries recursively.
+          # Collect shared libraries recursively into libs/, which the
+          # executable finds through its RPATH ($ORIGIN/../libs).
           #
-          # DO NOT bundle:
-          #   glibc
-          #   libpthread
-          #   libm
-          #   libdl
-          #   librt
-          #   libutil
-          #   libgcc_s
-          #   libstdc++
-          #   ld-linux
-          #   linux-vdso
-          #
-          # Other dependencies are bundled into libs/.
+          # Libraries that must come from the host are skipped: bundling
+          # the graphics, sound or session stack makes the package fail
+          # on machines whose drivers do not match the build machine.
           # ------------------------------------------------------------
 
           declare -A SEEN
 
           is_system_lib() {
-            local name="$1"
-
-            case "$name" in
-              # Linux kernel virtual DSO
-              linux-vdso.so.*)
+            case "$1" in
+              # Dynamic loader and kernel virtual DSO
+              linux-vdso.so.*|ld-linux*.so.*)
                 return 0
                 ;;
 
-              # glibc
-              libc.so.*)
-                return 0
-                ;;
-              libm.so.*)
-                return 0
-                ;;
-              libpthread.so.*)
-                return 0
-                ;;
-              libdl.so.*)
-                return 0
-                ;;
-              librt.so.*)
-                return 0
-                ;;
-              libutil.so.*)
+              # glibc and toolchain runtime
+              libc.so.*|libm.so.*|libpthread.so.*|libdl.so.*|librt.so.*|\
+              libutil.so.*|libanl.so.*|libnsl.so.*|libresolv.so.*|\
+              libgcc_s.so.*|libstdc++.so.*)
                 return 0
                 ;;
 
-              # GCC runtime
-              libgcc_s.so.*)
+              # Graphics drivers
+              libGL.so.*|libGLX.so.*|libGLdispatch.so.*|libOpenGL.so.*|\
+              libGLESv2.so.*|libEGL.so.*|libglapi.so.*|libgbm.so.*|libdrm.so.*)
                 return 0
                 ;;
 
-              # C++ standard library
-              libstdc++.so.*)
+              # Display servers
+              libX11.so.*|libX11-xcb.so.*|libxcb*.so.*|libXau.so.*|\
+              libXdmcp.so.*|libXext.so.*|libXfixes.so.*|libXrender.so.*|\
+              libXi.so.*|libXrandr.so.*|libXcursor.so.*|libXinerama.so.*|\
+              libXss.so.*|libXxf86vm.so.*|libxshmfence.so.*|\
+              libwayland-*.so.*|libxkbcommon*.so.*)
                 return 0
                 ;;
 
-              # Dynamic loader
-              ld-linux*.so.*)
+              # Sound servers
+              libasound.so.*|libpulse*.so.*|libjack*.so.*|libpipewire*.so.*)
+                return 0
+                ;;
+
+              # Session and system services
+              libdbus-1.so.*|libsystemd.so.*|libudev.so.*|libcap.so.*|\
+              libselinux.so.*)
                 return 0
                 ;;
             esac
@@ -126,12 +115,10 @@ jobs:
               local name
               name="$(basename "$lib")"
 
-              # Skip system runtime.
               if is_system_lib "$name"; then
                 continue
               fi
 
-              # Skip libraries already processed.
               if [[ "${SEEN[$name]}" == "1" ]]; then
                 continue
               fi
@@ -171,7 +158,8 @@ jobs:
           if [ -d locale ]; then
             cp -r locale axis_linux/
           else
-            echo "::warning::No compiled translations found, shipping without locale/."
+            echo "::error::No compiled translations found, gettext support is missing."
+            exit 1
           fi
 
           # ------------------------------------------------------------
@@ -186,30 +174,69 @@ jobs:
           echo "Library sizes:"
           du -ah axis_linux/libs | sort -h
 
-      - name: Verify Portable Binary
+      - name: Verify Portable Package
         run: |
-          echo "Checking RPATH:"
+          if [ ! -x axis_linux/bin/axis ]; then
+            echo "::error::axis was not found in the portable package."
+            exit 1
+          fi
+
+          if [ -z "$(ls -A axis_linux/libs)" ]; then
+            echo "::error::No libraries were bundled into libs/."
+            exit 1
+          fi
+
+          echo "RPATH:"
           readelf -d axis_linux/bin/axis | grep -E 'RPATH|RUNPATH'
 
-          echo ""
-          echo "Checking dependencies:"
-          ldd axis_linux/bin/axis
+          if ! readelf -d axis_linux/bin/axis | grep -qE '\$ORIGIN/\.\./libs'; then
+            echo "::error::The executable does not point at ../libs."
+            exit 1
+          fi
+
+          # DT_RUNPATH is not inherited by the dependencies of a library, so
+          # transitively needed libraries would silently come from the host.
+          if readelf -d axis_linux/bin/axis | grep -q '(RUNPATH)'; then
+            echo "::error::The executable uses RUNPATH, link it with --disable-new-dtags."
+            exit 1
+          fi
+
+          resolved="$(ldd axis_linux/bin/axis)"
 
           echo ""
-          echo "Checking for missing libraries:"
+          echo "Resolved dependencies:"
+          echo "$resolved"
 
-          if ldd axis_linux/bin/axis | grep -q "not found"; then
+          if echo "$resolved" | grep -q "not found"; then
             echo "::error::Missing shared library dependency."
             exit 1
           fi
 
-          echo "All dependencies resolved."
+          # Every bundled library has to be picked up from libs/, otherwise the
+          # package silently depends on whatever the build machine happens to have.
+          libs_dir="$(cd axis_linux/libs && pwd)"
+
+          for lib in axis_linux/libs/*; do
+            name="$(basename "$lib")"
+            path="$(echo "$resolved" | awk -v n="$name" '$1 == n { print $3 }')"
+            [ -z "$path" ] && continue
+
+            dir="$(cd "$(dirname "$path")" && pwd)"
+            if [ "$dir" != "$libs_dir" ]; then
+              echo "::error::$name resolves to $path instead of libs/."
+              exit 1
+            fi
+          done
+
+          echo ""
+          echo "Starting the packaged client:"
+          ./axis_linux/bin/axis --version
 
       - name: Create GitHub Release and Upload Asset
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tar -czvf axis_client_linux.tar.gz axis_linux
+          tar -czf axis_client_linux.tar.gz axis_linux
 
           gh release create "${{ github.event.inputs.tag_name }}" axis_client_linux.tar.gz \
             --title "Release ${{ github.event.inputs.tag_name }}" \
