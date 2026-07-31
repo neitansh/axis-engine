@@ -1238,15 +1238,16 @@ int ModApiMainMenu::l_ping_server(lua_State *L)
 		// An ephemeral port is best effort; sending still works without it
 	}
 
-	// A disconnect control packet: servers answer it and it leaves no peer behind
-	u8 packet[] = {
-		0x4f, 0x45, 0x74, 0x03, // replaced with PROTOCOL_ID below
-		0x00, 0x00,             // sender peer id: inexistent
-		0x00,                   // channel
-		0x00,                   // type: control
-		0x03,                   // controltype: disco
-	};
-	writeU32(packet, PROTOCOL_ID);
+	// The opening packet of the protocol: an empty reliable original sent with
+	// no peer id. The server answers it by handing out a peer id, which is the
+	// earliest reply we can measure. See doc/protocol.txt.
+	u8 packet[BASE_HEADER_SIZE + 3 + 1] = {};
+	writeU32(&packet[0], PROTOCOL_ID);
+	writeU16(&packet[4], PEER_ID_INEXISTENT);
+	packet[6] = 0; // channel
+	packet[7] = con::PACKET_TYPE_RELIABLE;
+	writeU16(&packet[8], SEQNUM_INITIAL);
+	packet[10] = con::PACKET_TYPE_ORIGINAL;
 
 	u64 sent_at = porting::getTimeMs();
 
