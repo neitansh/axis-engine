@@ -411,10 +411,10 @@ void set_default_settings()
 	settings->setDefault("serverlist_file", "favoriteservers.json");
 
 	// General font settings
-	settings->setDefault("font_path", porting::getDataPath("fonts" DIR_DELIM "Inter-Regular.ttf"));
-	settings->setDefault("font_path_italic", porting::getDataPath("fonts" DIR_DELIM "Inter-Italic.ttf"));
-	settings->setDefault("font_path_bold", porting::getDataPath("fonts" DIR_DELIM "Inter-Bold.ttf"));
-	settings->setDefault("font_path_bold_italic", porting::getDataPath("fonts" DIR_DELIM "Inter-BoldItalic.ttf"));
+	settings->setDefault("font_path", porting::getDataPath("fonts" DIR_DELIM "DepartureMono-Regular.otf"));
+	settings->setDefault("font_path_italic", porting::getDataPath("fonts" DIR_DELIM "DepartureMono-Regular.otf"));
+	settings->setDefault("font_path_bold", porting::getDataPath("fonts" DIR_DELIM "DepartureMono-Regular.otf"));
+	settings->setDefault("font_path_bold_italic", porting::getDataPath("fonts" DIR_DELIM "DepartureMono-Regular.otf"));
 	settings->setDefault("font_bold", "false");
 	settings->setDefault("font_italic", "false");
 	settings->setDefault("font_shadow", "1");

@@ -2175,11 +2175,11 @@ font_size_divisible_by (Font size divisible by) int 1 1
 
 #    Path to the default font. Must be a TrueType font.
 #    The fallback font will be used if the font cannot be loaded.
-font_path (Regular font path) filepath fonts/Inter-Regular.ttf
+font_path (Regular font path) filepath fonts/DepartureMono-Regular.otf
 
-font_path_bold (Bold font path) filepath fonts/Inter-Bold.ttf
-font_path_italic (Italic font path) filepath fonts/Inter-Italic.ttf
-font_path_bold_italic (Bold and italic font path) filepath fonts/Inter-BoldItalic.ttf
+font_path_bold (Bold font path) filepath fonts/DepartureMono-Regular.otf
+font_path_italic (Italic font path) filepath fonts/DepartureMono-Regular.otf
+font_path_bold_italic (Bold and italic font path) filepath fonts/DepartureMono-Regular.otf
 
 #    Font size of the monospace font where 1 unit = 1 pixel at 96 DPI
 mono_font_size (Monospace font size) int 16 5 72
