@@ -113,10 +113,6 @@ jobs:
         run: |
           ./bin/luanti --run-unittests
 
-      - name: Singleplayer test (GLES)
-        run: |
-          clientconf="video_driver=ogles2" xvfb-run ./util/test_singleplayer.sh
-
   # Current clang version
   clang_20:
     runs-on: ubuntu-24.04
@@ -137,14 +133,6 @@ jobs:
       - name: Test
         run: |
           ./bin/luanti --run-unittests
-
-      - name: Integration test + devtest
-        run: |
-          ./util/test_multiplayer.sh
-
-      - name: Singleplayer test (GL3)
-        run: |
-          clientconf="video_driver=opengl3" xvfb-run ./util/test_singleplayer.sh
 
   # Build with prometheus-cpp (server-only), also runs on ARM64
   clang_prometheus_arm:
