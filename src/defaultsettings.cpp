@@ -425,12 +425,6 @@ void set_default_settings()
 	settings->setDefault("contentdb_flag_blacklist", "nonfree, desktop_default");
 #endif
 
-#if ENABLE_UPDATE_CHECKER
-	settings->setDefault("update_information_url", "https://www.luanti.org/release_info.json");
-#else
-	settings->setDefault("update_information_url", "");
-#endif
-
 	// Server
 	settings->setDefault("strip_color_codes", "true");
 #ifndef NDEBUG
