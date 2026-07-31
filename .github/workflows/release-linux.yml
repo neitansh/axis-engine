@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Версия релиза (например, v0.1.0)'
+        description: "Версия релиза (например, v0.1.0)"
         required: true
-        default: 'v0.1.0'
+        default: "v0.1.0"
 
 permissions:
   contents: write
@@ -15,6 +15,7 @@ jobs:
   build_and_release:
     name: Build & Upload Linux Client
     runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v7
 
@@ -30,25 +31,166 @@ jobs:
             -DRUN_IN_PLACE=TRUE \
             -DBUILD_SERVER=FALSE \
             -DBUILD_CLIENT=TRUE \
+            -DCMAKE_BUILD_RPATH='$ORIGIN/../libs' \
+            -DCMAKE_INSTALL_RPATH='$ORIGIN/../libs' \
             -DENABLE_LEVELDB=FALSE \
             -DENABLE_REDIS=FALSE \
             -DENABLE_POSTGRESQL=FALSE \
             -DENABLE_SPATIALINDEX=FALSE \
             -DENABLE_PROMETHEUS=FALSE
+
           cmake --build build
 
       - name: Prepare Portable Package
         run: |
-          mkdir axis_linux
-          
-          cp -r bin builtin client textures fonts axis_linux/
-          
-          tar -czvf axis_client_linux.tar.gz axis_linux
+          rm -rf axis_linux
+          mkdir -p axis_linux/bin
+          mkdir -p axis_linux/libs
+
+          cp bin/axis axis_linux/bin/
+
+          # ------------------------------------------------------------
+          # Collect non-system shared libraries recursively.
+          #
+          # We intentionally DO NOT bundle:
+          #   glibc
+          #   libpthread
+          #   libm
+          #   libdl
+          #   librt
+          #   libgcc_s
+          #   ld-linux
+          #   linux-vdso
+          #
+          # Everything else goes into libs/.
+          # ------------------------------------------------------------
+
+          declare -A SEEN
+
+          is_system_lib() {
+            local name="$1"
+
+            case "$name" in
+              linux-vdso.so.*)
+                return 0
+                ;;
+              libc.so.*)
+                return 0
+                ;;
+              libm.so.*)
+                return 0
+                ;;
+              libpthread.so.*)
+                return 0
+                ;;
+              libdl.so.*)
+                return 0
+                ;;
+              librt.so.*)
+                return 0
+                ;;
+              libutil.so.*)
+                return 0
+                ;;
+              libgcc_s.so.*)
+                return 0
+                ;;
+              ld-linux*.so.*)
+                return 0
+                ;;
+            esac
+
+            return 1
+          }
+
+          copy_deps() {
+            local file="$1"
+
+            while read -r lib; do
+              [ -z "$lib" ] && continue
+
+              local name
+              name="$(basename "$lib")"
+
+              # Skip system runtime.
+              if is_system_lib "$name"; then
+                continue
+              fi
+
+              # Skip libraries we already processed.
+              if [[ "${SEEN[$name]}" == "1" ]]; then
+                continue
+              fi
+
+              SEEN[$name]=1
+
+              echo "Bundling: $name"
+
+              cp "$lib" "axis_linux/libs/$name"
+
+              # Recursively process dependencies of this library.
+              copy_deps "$lib"
+            done < <(
+              ldd "$file" 2>/dev/null |
+                awk '
+                  /=> \// {
+                    print $3
+                  }
+                  /^[[:space:]]*\// {
+                    print $1
+                  }
+                '
+            )
+          }
+
+          copy_deps bin/axis
+
+          # ------------------------------------------------------------
+          # Runtime data
+          # ------------------------------------------------------------
+
+          cp -r builtin axis_linux/
+          cp -r client axis_linux/
+          cp -r textures axis_linux/
+          cp -r fonts axis_linux/
+
+          # ------------------------------------------------------------
+          # Show bundled libraries
+          # ------------------------------------------------------------
+
+          echo ""
+          echo "Bundled libraries:"
+          find axis_linux/libs -maxdepth 1 -type f -printf '%f\n' | sort
+
+          echo ""
+          echo "Library sizes:"
+          du -ah axis_linux/libs | sort -h
+
+      - name: Verify Portable Binary
+        run: |
+          echo "Checking RPATH:"
+          readelf -d axis_linux/bin/axis | grep -E 'RPATH|RUNPATH'
+
+          echo ""
+          echo "Checking dependencies:"
+          ldd axis_linux/bin/axis
+
+          echo ""
+          echo "Checking for missing libraries:"
+
+          if ldd axis_linux/bin/axis | grep -q "not found"; then
+            echo "::error::Missing shared library dependency."
+            exit 1
+          fi
+
+          echo "All dependencies resolved."
 
       - name: Create GitHub Release and Upload Asset
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          tar -czvf axis_client_linux.tar.gz axis_linux
+
           gh release create "${{ github.event.inputs.tag_name }}" axis_client_linux.tar.gz \
             --title "Release ${{ github.event.inputs.tag_name }}" \
             --notes "Чистая портативная сборка клиента Axis." \
