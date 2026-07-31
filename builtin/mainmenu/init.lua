@@ -38,6 +38,7 @@ dofile(menupath .. DIR_DELIM .. "dlg_reinstall_mtg.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_rebind_keys.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_clients_list.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_server_list_mods.lua")
+dofile(menupath .. DIR_DELIM .. "dlg_start.lua")
 
 local tabs = {
 	content = dofile(menupath .. DIR_DELIM .. "tab_content.lua"),
@@ -46,17 +47,13 @@ local tabs = {
 	play_online = dofile(menupath .. DIR_DELIM .. "tab_online.lua"),
 }
 
+local start_page
+
 local function main_event_handler(tabview, event)
 	if event == "MenuQuit" then
-		local show_dialog = core.settings:get_bool("enable_esc_dialog")
-		if not ui.childlist["mainmenu_quit_confirm"] and show_dialog then
-			tabview:hide()
-			local dlg = create_exit_dialog()
-			dlg:set_parent(tabview)
-			dlg:show()
-		else
-			core.close()
-		end
+		-- Step back to the landing page instead of leaving the menu
+		tabview:hide()
+		start_page:show()
 		return true
 	end
 	return true
@@ -158,12 +155,14 @@ local function init_globals()
 		tv_main:set_tab(last_tab)
 	end
 
-	ui.set_default("maintab")
-	tv_main:show()
+	start_page = create_start_page(tv_main)
+
+	ui.set_default("mainmenu_start")
+	start_page:show()
 	ui.update()
 
 	-- synchronous, chain parents to only show one at a time
-	local parent = tv_main
+	local parent = start_page
 	parent = migrate_keybindings(parent)
 	check_reinstall_mtg(parent)
 end
