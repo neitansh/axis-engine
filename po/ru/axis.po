@@ -620,7 +620,7 @@ msgstr "Игры"
 #: builtin/mainmenu/content/dlg_package.lua builtin/mainmenu/serverlistmgr.lua
 #: src/client/game.cpp
 msgid "Loading..."
-msgstr "Загрузка..."
+msgstr "Загрузка"
 
 #: builtin/mainmenu/content/dlg_contentdb.lua
 msgid "Mods"
@@ -1575,7 +1575,7 @@ msgstr "Время ожидания соединения истекло."
 
 #: src/client/client.cpp
 msgid "Done!"
-msgstr "Готово!"
+msgstr "Готово"
 
 #: src/client/client.cpp
 msgid "Initializing nodes"
@@ -1583,15 +1583,15 @@ msgstr "Инициализация нод"
 
 #: src/client/client.cpp
 msgid "Initializing nodes..."
-msgstr "Инициализация нод..."
+msgstr "Подготовка блоков"
 
 #: src/client/client.cpp
 msgid "Loading textures..."
-msgstr "Загрузка текстур..."
+msgstr "Загрузка текстур"
 
 #: src/client/client.cpp
 msgid "Rebuilding shaders..."
-msgstr "Сборка шейдеров..."
+msgstr "Сборка шейдеров"
 
 #: src/client/client.cpp src/gui/guiEngine.cpp src/util/screenshot.cpp
 #, c-format
@@ -1628,7 +1628,7 @@ msgstr "Мира не существует, и нету выбранной иг�
 
 #: src/client/clientmedia.cpp src/client/game.cpp
 msgid "Media..."
-msgstr "Медиафайлы..."
+msgstr "Загрузка ресурсов"
 
 #: src/client/fontengine.cpp
 msgid "Failed to find a valid font"
@@ -1710,7 +1710,7 @@ msgstr "Пользовательские моды отключены"
 
 #: src/client/game.cpp
 msgid "Connecting to server..."
-msgstr "Подключение к серверу..."
+msgstr "Подключение к серверу"
 
 #: src/client/game.cpp
 msgid "Connection error (timed out?)"
@@ -1780,7 +1780,7 @@ msgstr "Туман включён игрой или модом"
 
 #: src/client/game.cpp
 msgid "Item definitions..."
-msgstr "Определения предметов..."
+msgstr "Загрузка предметов"
 
 #: src/client/game.cpp
 msgid "KiB/s"
@@ -1812,7 +1812,7 @@ msgstr "Режим прохождения сквозь стены включён
 
 #: src/client/game.cpp
 msgid "Node definitions..."
-msgstr "Описания нод..."
+msgstr "Загрузка блоков"
 
 #: src/client/game.cpp
 msgid "Pitch move mode disabled"
@@ -1828,7 +1828,7 @@ msgstr "График профилировщика отображён"
 
 #: src/client/game.cpp
 msgid "Resolving address..."
-msgstr "Получение адреса..."
+msgstr "Поиск сервера"
 
 #: src/client/game.cpp
 msgid "Shutting down..."

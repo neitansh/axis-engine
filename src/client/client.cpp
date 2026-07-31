@@ -2072,7 +2072,7 @@ void Client::showUpdateProgressTexture(void *args, float progress)
 		return;
 
 	std::wostringstream strm;
-	strm << targs->text_base << L" " << cur_percent << L"%...";
+	strm << targs->text_base << L" " << cur_percent << L"%";
 	// 70% -> 99%
 	int shown_progress = 70 + std::ceil(0.29f * cur_percent);
 	m_rendering_engine->draw_load_screen(strm.str(), guienv, m_tsrc,

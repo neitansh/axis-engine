@@ -300,20 +300,36 @@ void RenderingEngine::draw_load_screen(const std::wstring &text,
 {
 	v2u32 screensize = getWindowSize();
 
-	v2s32 textsize(g_fontengine->getTextWidth(text), g_fontengine->getLineHeight());
-	v2s32 center(screensize.X / 2, screensize.Y / 2);
-	core::rect<s32> textrect(center - textsize / 2, center + textsize / 2);
+	const float density = g_settings->getFloat("gui_scaling", 0.5f, 20.0f) *
+			getDisplayDensity();
 
+	// The bar sits a little below the middle so the status line above it lands
+	// on the optical centre rather than on top of the bar.
+	const s32 bar_w = rangelim((s32)(screensize.X * 0.34f),
+			(s32)(280 * density), (s32)(720 * density));
+	const s32 bar_h = std::max<s32>((s32)(10 * density), 6);
+	const s32 bar_x = ((s32)screensize.X - bar_w) / 2;
+	const s32 bar_y = (s32)(screensize.Y * 0.58f);
+
+	const s32 line_h = g_fontengine->getLineHeight();
+	const s32 gap = std::max<s32>((s32)(14 * density), 8);
+
+	// Status line, centred over the bar
+	core::rect<s32> textrect(bar_x, bar_y - gap - line_h,
+			bar_x + bar_w, bar_y - gap);
 	gui::IGUIStaticText *guitext =
 			gui::StaticText::add(guienv, text, textrect, false, false);
-	guitext->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_UPPERLEFT);
+	guitext->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_LOWERRIGHT);
 
+	// Details, centred under the bar
 	gui::IGUIStaticText *gui_bottom_text = nullptr;
 	if (!bottom_text.empty()) {
-		v2s32 size(240, g_fontengine->getLineHeight()*2);
-		v2s32 pos = center + v2s32{-120, 32};
-		core::rect<s32> rect(pos, pos + size);
+		core::rect<s32> rect(bar_x, bar_y + bar_h + gap,
+				bar_x + bar_w, bar_y + bar_h + gap + line_h * 2);
 		gui_bottom_text = gui::StaticText::add(guienv, bottom_text, rect, false, false);
+		gui_bottom_text->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_UPPERLEFT);
+		gui_bottom_text->setOverrideColor(
+				guienv->getSkin()->getColor(gui::EGDC_GRAY_TEXT));
 	}
 
 	auto *driver = get_video_driver();
@@ -333,44 +349,26 @@ void RenderingEngine::draw_load_screen(const std::wstring &text,
 		percent_max = std::min((int) *indef_pos, 100);
 		percent_min = std::max((int) *indef_pos - 40, 0);
 	}
-	// draw progress bar
+
 	if ((percent_min >= 0) && (percent_max <= 100)) {
 		video::ITexture *progress_img = tsrc->getTexture("progress_bar.png");
 		video::ITexture *progress_img_bg =
 				tsrc->getTexture("progress_bar_bg.png");
 
 		if (progress_img && progress_img_bg) {
-#ifndef __ANDROID__
-			const core::dimension2d<u32> &img_size =
-					progress_img_bg->getSize();
-			float density = g_settings->getFloat("gui_scaling", 0.5f, 20.0f) *
-					getDisplayDensity();
-			u32 imgW = rangelim(img_size.Width, 200, 600) * density;
-			u32 imgH = rangelim(img_size.Height, 24, 72) * density;
-#else
-			const core::dimension2d<u32> img_size(256, 48);
-			float imgRatio = (float)img_size.Height / img_size.Width;
-			u32 imgW = screensize.X / 2.2f;
-			u32 imgH = floor(imgW * imgRatio);
-#endif
-			v2s32 img_pos((screensize.X - imgW) / 2,
-					(screensize.Y - imgH) / 2);
+			const core::dimension2d<u32> &bg_size = progress_img_bg->getSize();
+			const core::dimension2d<u32> &fg_size = progress_img->getSize();
 
-			draw2DImageFilterScaled(get_video_driver(), progress_img_bg,
-					core::rect<s32>(img_pos.X, img_pos.Y,
-							img_pos.X + imgW,
-							img_pos.Y + imgH),
-					core::rect<s32>(0, 0, img_size.Width,
-							img_size.Height),
+			draw2DImageFilterScaled(driver, progress_img_bg,
+					core::rect<s32>(bar_x, bar_y, bar_x + bar_w, bar_y + bar_h),
+					core::rect<s32>(0, 0, bg_size.Width, bg_size.Height),
 					0, 0, true);
 
-			draw2DImageFilterScaled(get_video_driver(), progress_img,
-					core::rect<s32>(img_pos.X + (percent_min * imgW) / 100, img_pos.Y,
-							img_pos.X + (percent_max * imgW) / 100,
-							img_pos.Y + imgH),
-					core::rect<s32>(percent_min * img_size.Width / 100, 0,
-							percent_max * img_size.Width / 100,
-							img_size.Height),
+			draw2DImageFilterScaled(driver, progress_img,
+					core::rect<s32>(bar_x + (percent_min * bar_w) / 100, bar_y,
+							bar_x + (percent_max * bar_w) / 100, bar_y + bar_h),
+					core::rect<s32>(percent_min * fg_size.Width / 100, 0,
+							percent_max * fg_size.Width / 100, fg_size.Height),
 					0, 0, true);
 		}
 	}
