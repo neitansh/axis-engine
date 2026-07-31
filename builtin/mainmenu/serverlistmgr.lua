@@ -177,8 +177,7 @@ local function measure_pings()
 		end
 
 		for i, target in ipairs(list) do
-			local ms = core.ping_server(target.address, target.port, 2000)
-			result[i] = ms and ms / 1000 or nil
+			result[i] = core.ping_server(target.address, target.port, 2000)
 		end
 		return result
 	end, targets, function(result)
@@ -187,10 +186,13 @@ local function measure_pings()
 			return
 		end
 
-		for i, ping in pairs(result) do
+		for i, info in pairs(result) do
 			local server = serverlistmgr.servers[i]
-			if server then
-				server.ping = ping
+			if server and type(info) == "table" then
+				-- The list wants seconds, the engine reports milliseconds
+				server.ping = info.ping and info.ping / 1000 or nil
+				server.clients = info.clients
+				server.clients_max = info.clients_max
 			end
 		end
 		core.event_handler("Refresh")

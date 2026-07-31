@@ -245,6 +245,10 @@ public:
 	Address GetPeerAddress(session_t peer_id);
 	float getPeerStat(session_t peer_id, rtt_stat_type type);
 	float getLocalStat(rate_stat_type type);
+
+	void SetInfoProvider(InfoProvider provider);
+	//! Payload for a CONTROLTYPE_SERVER_INFO reply, empty when unanswered
+	std::string getInfoReply();
 	u32 GetProtocolID() const { return m_protocol_id; };
 	const std::string getDesc();
 	void DisconnectPeer(session_t peer_id);
@@ -272,6 +276,9 @@ protected:
 	u32 getActiveCount();
 
 	UDPSocket m_udpSocket;
+
+	std::mutex m_info_provider_mutex;
+	InfoProvider m_info_provider;
 	// Command queue: user -> SendThread
 	MutexedQueue<ConnectionCommandPtr> m_command_queue;
 

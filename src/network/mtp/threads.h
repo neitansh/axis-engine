@@ -112,6 +112,9 @@ public:
 private:
 	void receive(SharedBuffer<u8> &packetdata, bool &packet_queued);
 
+	//! Answers CONTROLTYPE_QUERY_INFO without creating a peer
+	void replyToInfoQuery(const Address &sender);
+
 	// Returns next data from a buffer if possible
 	// If found, returns true; if not, false.
 	// If found, sets peer_id and dst

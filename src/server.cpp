@@ -609,6 +609,15 @@ void Server::start()
 	// Stop thread if already running
 	m_thread->stop();
 
+	// Answer server list queries with how busy we are. Runs on the connection's
+	// receive thread, so it only touches counters that are safe to read there.
+	m_con->SetInfoProvider([this]() -> std::string {
+		std::ostringstream os(std::ios_base::binary);
+		writeU16(os, (u16)std::min<size_t>(m_clients.getPlayerNames().size(), U16_MAX));
+		writeU16(os, (u16)std::min<u32>(g_settings->getU32("max_users"), U16_MAX));
+		return os.str();
+	});
+
 	// Initialize connection
 	m_con->Serve(m_bind_addr);
 

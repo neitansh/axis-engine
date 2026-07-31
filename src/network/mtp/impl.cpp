@@ -1569,6 +1569,20 @@ float Connection::getLocalStat(rate_stat_type type)
 	return retval;
 }
 
+void Connection::SetInfoProvider(InfoProvider provider)
+{
+	MutexAutoLock lock(m_info_provider_mutex);
+	m_info_provider = std::move(provider);
+}
+
+std::string Connection::getInfoReply()
+{
+	MutexAutoLock lock(m_info_provider_mutex);
+	if (!m_info_provider)
+		return "";
+	return m_info_provider();
+}
+
 session_t Connection::createPeer(const Address &sender, int fd)
 {
 	// Somebody wants to make a new connection

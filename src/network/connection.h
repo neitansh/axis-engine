@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <functional>
+#include <string>
+
 #include "irrlichttypes.h"
 #include "networkprotocol.h" // session_t
 #include "socket.h" // Address
@@ -65,6 +68,14 @@ public:
 	virtual Address GetPeerAddress(session_t peer_id) = 0;
 	virtual float getPeerStat(session_t peer_id, rtt_stat_type type) = 0;
 	virtual float getLocalStat(rate_stat_type type) = 0;
+
+	/*
+		Answers CONTROLTYPE_QUERY_INFO. The payload is appended to the reply as
+		is; an empty string means the query is ignored. Called from the receive
+		thread, so the callback has to be thread safe.
+	*/
+	using InfoProvider = std::function<std::string()>;
+	virtual void SetInfoProvider(InfoProvider provider) {}
 };
 
 // MTP = Minetest Protocol

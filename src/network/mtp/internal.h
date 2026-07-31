@@ -123,6 +123,13 @@ enum ControlType : u8 {
 	CONTROLTYPE_SET_PEER_ID = 1,
 	CONTROLTYPE_PING = 2,
 	CONTROLTYPE_DISCO = 3,
+	/*
+		the Axis extension. Sent with PEER_ID_INEXISTENT by a client that only
+		wants to know how busy a server is; answered with CONTROLTYPE_SERVER_INFO
+		and no peer created on either side.
+	*/
+	CONTROLTYPE_QUERY_INFO = 4,
+	CONTROLTYPE_SERVER_INFO = 5,
 };
 
 inline bool seqnum_higher(u16 totest, u16 base)

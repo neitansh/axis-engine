@@ -939,6 +939,27 @@ void *ConnectionReceiveThread::run()
 }
 
 // Receive packets from the network and buffers and create ConnectionEvents
+void ConnectionReceiveThread::replyToInfoQuery(const Address &sender)
+{
+	const std::string payload = m_connection->getInfoReply();
+	if (payload.empty())
+		return;
+
+	Buffer<u8> reply(BASE_HEADER_SIZE + 2 + payload.size());
+	writeU32(&reply[0], m_connection->GetProtocolID());
+	writeU16(&reply[4], PEER_ID_INEXISTENT);
+	reply[6] = 0; // channel
+	reply[7] = PACKET_TYPE_CONTROL;
+	reply[8] = CONTROLTYPE_SERVER_INFO;
+	memcpy(&reply[BASE_HEADER_SIZE + 2], payload.data(), payload.size());
+
+	try {
+		m_connection->m_udpSocket.Send(sender, *reply, reply.getSize());
+	} catch (const SendFailedException &) {
+		// A server list that misses one reply simply tries again
+	}
+}
+
 void ConnectionReceiveThread::receive(SharedBuffer<u8> &packetdata,
 		bool &packet_queued)
 {
@@ -985,6 +1006,16 @@ void ConnectionReceiveThread::receive(SharedBuffer<u8> &packetdata,
 		if (channelnum >= CHANNEL_COUNT) {
 			LOG(derr_con << m_connection->getDesc()
 				<< "Receive(): Invalid channel " << (int)channelnum << std::endl);
+			return;
+		}
+
+		// An info query is answered straight away: no peer is created, so a
+		// server list can poll without appearing as a connecting client.
+		if (peer_id == PEER_ID_INEXISTENT &&
+				received_size >= BASE_HEADER_SIZE + 2 &&
+				readU8(&packetdata[BASE_HEADER_SIZE]) == PACKET_TYPE_CONTROL &&
+				readU8(&packetdata[BASE_HEADER_SIZE + 1]) == CONTROLTYPE_QUERY_INFO) {
+			replyToInfoQuery(sender);
 			return;
 		}
 

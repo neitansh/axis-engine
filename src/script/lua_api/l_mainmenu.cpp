@@ -1238,46 +1238,81 @@ int ModApiMainMenu::l_ping_server(lua_State *L)
 		// An ephemeral port is best effort; sending still works without it
 	}
 
-	// The opening packet of the protocol: an empty reliable original sent with
-	// no peer id. The server answers it by handing out a peer id, which is the
-	// earliest reply we can measure. See doc/protocol.txt.
-	u8 packet[BASE_HEADER_SIZE + 3 + 1] = {};
-	writeU32(&packet[0], PROTOCOL_ID);
-	writeU16(&packet[4], PEER_ID_INEXISTENT);
-	packet[6] = 0; // channel
-	packet[7] = con::PACKET_TYPE_RELIABLE;
-	writeU16(&packet[8], SEQNUM_INITIAL);
-	packet[10] = con::PACKET_TYPE_ORIGINAL;
+	// Ask how busy the server is. A server that does not know the query stays
+	// silent, so an empty reliable original follows as a plain reachability
+	// probe: every server answers that one by handing out a peer id.
+	u8 query[BASE_HEADER_SIZE + 2] = {};
+	writeU32(&query[0], PROTOCOL_ID);
+	writeU16(&query[4], PEER_ID_INEXISTENT);
+	query[6] = 0; // channel
+	query[7] = con::PACKET_TYPE_CONTROL;
+	query[8] = con::CONTROLTYPE_QUERY_INFO;
+
+	u8 probe[BASE_HEADER_SIZE + 3 + 1] = {};
+	writeU32(&probe[0], PROTOCOL_ID);
+	writeU16(&probe[4], PEER_ID_INEXISTENT);
+	probe[6] = 0; // channel
+	probe[7] = con::PACKET_TYPE_RELIABLE;
+	writeU16(&probe[8], SEQNUM_INITIAL);
+	probe[10] = con::PACKET_TYPE_ORIGINAL;
 
 	u64 sent_at = porting::getTimeMs();
 
 	try {
-		socket.Send(dest, packet, sizeof(packet));
+		socket.Send(dest, query, sizeof(query));
+		socket.Send(dest, probe, sizeof(probe));
 	} catch (const SendFailedException &) {
 		return 0;
 	}
 
 	char buffer[1024];
 	Address sender;
+	u64 ping_ms = 0;
+	bool have_ping = false;
+	int clients = -1;
+	int clients_max = -1;
 
+	// Both packets are in flight; keep reading until the info reply shows up or
+	// the budget runs out, so the counts are not lost to ordering.
 	while (true) {
-		if (!socket.WaitData(timeout_ms))
-			return 0;
-
-		int received = socket.Receive(sender, buffer, sizeof(buffer));
-		if (received < 0)
-			return 0;
-
-		if (sender.getPort() == dest.getPort())
+		u64 elapsed = porting::getTimeMs() - sent_at;
+		if ((int)elapsed >= timeout_ms)
 			break;
 
-		u64 waited = porting::getTimeMs() - sent_at;
-		if ((int)waited >= timeout_ms)
-			return 0;
-		timeout_ms -= (int)waited;
+		if (!socket.WaitData(timeout_ms - (int)elapsed))
+			break;
+
+		int received = socket.Receive(sender, buffer, sizeof(buffer));
+		if (received < BASE_HEADER_SIZE)
+			continue;
+
+		const u8 *data = (const u8 *)buffer;
+		if (readU32(data) != PROTOCOL_ID || sender.getPort() != dest.getPort())
+			continue;
+
+		if (!have_ping) {
+			ping_ms = porting::getTimeMs() - sent_at;
+			have_ping = true;
+		}
+
+		if (received >= BASE_HEADER_SIZE + 6 &&
+				data[BASE_HEADER_SIZE] == con::PACKET_TYPE_CONTROL &&
+				data[BASE_HEADER_SIZE + 1] == con::CONTROLTYPE_SERVER_INFO) {
+			clients = readU16(data + BASE_HEADER_SIZE + 2);
+			clients_max = readU16(data + BASE_HEADER_SIZE + 4);
+			break;
+		}
 	}
 
-	lua_pushnumber(L, (double)(porting::getTimeMs() - sent_at));
+	if (!have_ping)
+		return 0;
+
+	lua_newtable(L);
+	setfloatfield(L, -1, "ping", (float)ping_ms);
+	if (clients >= 0) {
+		setintfield(L, -1, "clients", clients);
+		setintfield(L, -1, "clients_max", clients_max);
+	}
 	return 1;
 }
 
