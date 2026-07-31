@@ -42,45 +42,217 @@ local function add_page(page)
 end
 
 
-local function load_settingtypes()
-	local page = nil
-	local section = nil
-	local function ensure_page_started()
-		if not page then
-			page = add_page({
-				id = (section or "general"):lower():gsub(" ", "_"),
-				-- TRANSLATORS: Category for general settings
-				title = section or fgettext_ne("General"),
-				section = section,
-				content = {},
-			})
-		end
+-- Curated categories. Everything a category owns that is not listed under
+-- `basic` ends up behind the "Advanced settings" expander of that category,
+-- so the page opens with the handful of settings people actually change.
+local PAGES = {
+	{
+		id = "graphics",
+		title = fgettext_ne("Graphics"),
+		sources = { "Graphics and Audio|Graphics" },
+		basic = {
+			{ heading = fgettext_ne("Window") },
+			"fullscreen", "vsync", "fps_max", "fps_max_unfocused", "pause_on_lost_focus",
+			{ heading = fgettext_ne("World") },
+			"viewing_range", "fov", "enable_fog", "enable_3d_clouds",
+			{ heading = fgettext_ne("Quality") },
+			"smooth_lighting", "leaves_style", "antialiasing", "mip_map",
+			"performance_tradeoffs", "undersampling",
+			{ heading = fgettext_ne("Picture") },
+			"display_gamma",
+		},
+	},
+	{
+		id = "effects",
+		title = fgettext_ne("Effects"),
+		sources = { "Graphics and Audio|Effects" },
+		basic = {
+			{ heading = fgettext_ne("Shadows") },
+			"enable_dynamic_shadows", "shadow_map_max_distance", "shadow_filters",
+			{ heading = fgettext_ne("Lighting") },
+			"enable_post_processing", "enable_bloom", "enable_volumetric_lighting",
+			"enable_auto_exposure",
+			{ heading = fgettext_ne("Water and foliage") },
+			"enable_waving_leaves", "enable_waving_plants", "enable_waving_water",
+			"translucent_liquids", "enable_water_reflections", "connected_glass",
+		},
+	},
+	{
+		id = "audio",
+		title = fgettext_ne("Audio"),
+		sources = { "Graphics and Audio|Audio" },
+		basic = {
+			"sound_volume", "sound_volume_unfocused", "mute_sound",
+		},
+	},
+	{
+		id = "interface",
+		title = fgettext_ne("Interface"),
+		sources = { "Graphics and Audio|User Interfaces" },
+		basic = {
+			{ heading = fgettext_ne("General") },
+			"language", "font_size", "gui_scaling", "hud_scaling",
+			"menu_theme", "menu_clouds",
+			{ heading = fgettext_ne("Hints") },
+			"tooltip_show_delay", "tooltip_append_itemname", "show_nametag_backgrounds",
+			{ heading = fgettext_ne("Chat") },
+			"chat_font_size", "recent_chat_messages", "console_height", "console_alpha",
+			{ heading = fgettext_ne("Debugging") },
+			"show_debug",
+		},
+	},
+	{
+		id = "controls",
+		title = fgettext_ne("Controls"),
+		sources = {
+			"Controls|General", "Controls|Keyboard and Mouse",
+			"Controls|Touchscreen", "Controls|Gamepads and Joysticks",
+		},
+		basic = {
+			{ heading = fgettext_ne("Mouse") },
+			"mouse_sensitivity", "invert_mouse", "enable_hotbar_mouse_wheel",
+			{ heading = fgettext_ne("Movement") },
+			"autojump", "doubletap_jump", "always_fly_fast", "aux1_descends",
+			"toggle_sneak_key", "toggle_aux1_key",
+			{ heading = fgettext_ne("Interaction") },
+			"safe_dig_and_place", "enable_build_where_you_stand",
+			"repeat_place_time", "repeat_dig_time",
+			{ heading = fgettext_ne("Menus") },
+			"enable_esc_dialog",
+		},
+	},
+	{
+		id = "keys",
+		title = fgettext_ne("Keys"),
+		sources = { "Controls|Actions and Keybindings" },
+		basic = {
+			{ heading = fgettext_ne("Movement") },
+			"keymap_forward", "keymap_backward", "keymap_left", "keymap_right",
+			"keymap_jump", "keymap_sneak", "keymap_sprint", "keymap_aux1",
+			{ heading = fgettext_ne("Interaction") },
+			"keymap_dig", "keymap_place", "keymap_drop", "keymap_inventory",
+			{ heading = fgettext_ne("Interface") },
+			"keymap_chat", "keymap_cmd", "keymap_zoom", "keymap_screenshot",
+			"keymap_fullscreen", "keymap_pause",
+		},
+	},
+	{
+		id = "multiplayer",
+		title = fgettext_ne("Game and network"),
+		sources = {
+			"Client and Server|Client", "Client and Server|Server",
+			"Client and Server|Server Security", "Client and Server|Server Gameplay",
+		},
+		basic = {
+			{ heading = fgettext_ne("Player") },
+			"name",
+			{ heading = fgettext_ne("Hosting") },
+			"server_name", "server_description", "max_users", "port", "server_announce",
+			{ heading = fgettext_ne("Client") },
+			"enable_local_map_saving",
+		},
+	},
+	{
+		id = "worldgen",
+		title = fgettext_ne("World generation"),
+		sources = {
+			"Mapgen|", "Mapgen|Biome API", "Mapgen|Mapgen V5", "Mapgen|Mapgen V6",
+			"Mapgen|Mapgen V7", "Mapgen|Mapgen Carpathian", "Mapgen|Mapgen Flat",
+			"Mapgen|Mapgen Fractal", "Mapgen|Mapgen Valleys",
+		},
+		basic = {},
+	},
+	{
+		id = "developer",
+		title = fgettext_ne("Developer"),
+		sources = {
+			"Advanced|", "Advanced|Developer Options", "Advanced|Advanced",
+			"Advanced|Hide: Temporary Settings",
+		},
+		basic = {},
+	},
+}
+
+
+-- Groups every setting by the "Section|Subsection" it was declared under.
+local function collect_by_source()
+	local by_source = {}
+	local section, subsection = nil, nil
+
+	local function bucket()
+		local key = (section or "") .. "|" .. (subsection or "")
+		by_source[key] = by_source[key] or {}
+		return by_source[key]
 	end
 
 	for _, entry in ipairs(core.full_settingtypes) do
 		if entry.type == "category" then
 			if entry.level == 0 then
-				section = entry.name
-				page = nil
+				section, subsection = entry.name, nil
 			elseif entry.level == 1 then
-				page = {
-					id = ((section and section .. "_" or "") .. entry.name):lower():gsub(" ", "_"),
-					title = entry.readable_name or entry.name,
-					section = section,
-					content = {},
-				}
-
-				page = add_page(page)
-			elseif entry.level == 2 then
-				ensure_page_started()
-				page.content[#page.content + 1] = {
-					heading = fgettext_ne(entry.readable_name or entry.name),
-				}
+				subsection = entry.name
+			elseif entry.level == 2 and section then
+				local list = bucket()
+				list[#list + 1] = { heading = fgettext_ne(entry.readable_name or entry.name) }
 			end
-		else
-			ensure_page_started()
-			page.content[#page.content + 1] = entry.name
+		elseif section then
+			local list = bucket()
+			list[#list + 1] = entry.name
 		end
+	end
+
+	return by_source
+end
+
+
+local function load_settingtypes()
+	local by_source = collect_by_source()
+
+	-- A setting shown on one page must not turn up in another page's advanced list
+	local claimed = {}
+	for _, def in ipairs(PAGES) do
+		for _, item in ipairs(def.basic) do
+			if type(item) == "string" then
+				claimed[item] = true
+			end
+		end
+	end
+
+	for _, def in ipairs(PAGES) do
+		local basic = {}
+		for _, item in ipairs(def.basic) do
+			if type(item) ~= "string" then
+				basic[#basic + 1] = item
+			elseif get_setting_info(item) then
+				basic[#basic + 1] = item
+			else
+				core.log("warning", "Settings page " .. def.id ..
+					" lists unknown setting " .. item)
+			end
+		end
+
+		local advanced = {}
+		for _, source in ipairs(def.sources) do
+			local pending_heading = nil
+			for _, item in ipairs(by_source[source] or {}) do
+				if type(item) == "table" then
+					pending_heading = item
+				elseif not claimed[item] then
+					if pending_heading then
+						advanced[#advanced + 1] = pending_heading
+						pending_heading = nil
+					end
+					advanced[#advanced + 1] = item
+				end
+			end
+		end
+
+		add_page({
+			id = def.id,
+			title = def.title,
+			content = basic,
+			advanced = advanced,
+		})
 	end
 end
 
@@ -110,39 +282,19 @@ local function load()
 		end,
 	}
 
-	add_page({
-		id = "accessibility",
-		title = fgettext_ne("Accessibility"),
-		content = {
-			"language",
-			{ heading = fgettext_ne("General") },
-			"font_size",
-			"chat_font_size",
-			"gui_scaling",
-			"hud_scaling",
-			"show_nametag_backgrounds",
-			{ heading = fgettext_ne("Chat") },
-			"console_height",
-			"console_alpha",
-			"console_color",
-			{ heading = fgettext_ne("Controls") },
-			"autojump",
-			"safe_dig_and_place",
-			{ heading = fgettext_ne("Movement") },
-			"arm_inertia",
-			"view_bobbing_amount",
-			{ heading = fgettext_ne("Damage") },
-			"hurt_flash_enabled"
-		},
-	})
-
 	load_settingtypes()
 
 	-- insert after "touch_controls"
-	table.insert(page_by_id.controls_touchscreen.content, 2, touchscreen_layout)
+	do
+		local content = page_by_id.controls.advanced
+		local idx = table.indexof(content, "touch_controls")
+		if idx > 0 then
+			table.insert(content, idx + 1, touchscreen_layout)
+		end
+	end
 
 	do
-		local content = page_by_id.graphics_and_audio_effects.content
+		local content = page_by_id.effects.content
 		local idx = table.indexof(content, "enable_dynamic_shadows")
 		table.insert(content, idx, shadows_component)
 
@@ -289,10 +441,19 @@ local function filter_page_content(page, query_keywords)
 		return page.content, 0
 	end
 
+	-- While searching, advanced settings are searched too and shown inline
+	local searchable = {}
+	for _, item in ipairs(page.content) do
+		searchable[#searchable + 1] = item
+	end
+	for _, item in ipairs(page.advanced or {}) do
+		searchable[#searchable + 1] = item
+	end
+
 	local retval = {}
 	local i = 1
 	local max_weight = 0
-	for _, content in ipairs(page.content) do
+	for _, content in ipairs(searchable) do
 		if type(content) == "string" then
 			local setting = get_setting_info(content)
 			assert(setting, "Unknown setting: " .. content)
@@ -335,6 +496,9 @@ local function update_filtered_pages(query)
 		if page_has_contents(page, content) then
 			local new_page = table.copy(page)
 			new_page.content = content
+			if #query_keywords > 0 then
+				new_page.advanced = {}
+			end
 
 			filtered_pages[#filtered_pages + 1] = new_page
 			filtered_page_by_id[new_page.id] = new_page
@@ -406,13 +570,8 @@ end
 
 
 function page_has_contents(page, actual_content)
-	local is_advanced =
-			page.id:sub(1, #"client_and_server") == "client_and_server" or
-			page.id:sub(1, #"mapgen") == "mapgen" or
-			page.id:sub(1, #"advanced") == "advanced"
-	local show_advanced = core.settings:get_bool("show_advanced")
-	if is_advanced and not show_advanced then
-		return false
+	if page.advanced and #page.advanced > 0 then
+		return true
 	end
 
 	for _, item in ipairs(actual_content) do
@@ -427,12 +586,27 @@ function page_has_contents(page, actual_content)
 end
 
 
-local function build_page_components(page)
+local function build_page_components(page, expanded)
+	-- Everything the page owns beyond its curated list sits behind an expander
+	local page_content = page.content
+	if page.advanced and #page.advanced > 0 then
+		page_content = {}
+		for _, item in ipairs(page.content) do
+			page_content[#page_content + 1] = item
+		end
+		page_content[#page_content + 1] = component_funcs.expander(expanded)
+		if expanded then
+			for _, item in ipairs(page.advanced) do
+				page_content[#page_content + 1] = item
+			end
+		end
+	end
+
 	-- Filter settings based on requirements
 	local content = {}
 	local settings_off = {}
 	local last_heading
-	for _, item in ipairs(page.content) do
+	for _, item in ipairs(page_content) do
 		if item == false then --luacheck: ignore
 			-- skip
 		elseif item.heading then
@@ -496,7 +670,7 @@ local formspec_show_hack = false
 
 
 local function get_formspec(dialogdata)
-	local page_id = dialogdata.page_id or "accessibility"
+	local page_id = dialogdata.page_id or "graphics"
 	local page = filtered_page_by_id[page_id]
 
 	local extra_h = 1 -- not included in tabsize.height
@@ -512,9 +686,8 @@ local function get_formspec(dialogdata)
 	local search_width = left_pane_width + scrollbar_w - (0.75 * 2)
 
 	local back_w = 3
-	local checkbox_w = (tabsize.width - back_w - 2*0.2) / 2
+	local checkbox_w = tabsize.width - back_w - 2*0.2
 	local show_technical_names = core.settings:get_bool("show_technical_names")
-	local show_advanced = core.settings:get_bool("show_advanced")
 
 	formspec_show_hack = not formspec_show_hack
 
@@ -541,12 +714,6 @@ local function get_formspec(dialogdata)
 			-- TRANSLATORS: Checkbox that toggles displaying the technical setting names
 			fgettext("Show technical names"), tostring(show_technical_names)),
 
-		("box[%f,%f;%f,0.8;#0000008C]"):format(
-			back_w + 2*0.2 + checkbox_w, tabsize.height + 0.2, checkbox_w),
-		("checkbox[%f,%f;show_advanced;%s;%s]"):format(
-			back_w + 3*0.2 + checkbox_w, tabsize.height + 0.6,
-			fgettext("Show advanced settings"), tostring(show_advanced)),
-
 		"field[0.25,0.25;", tostring(search_width), ",0.75;search_query;;",
 			core.formspec_escape(dialogdata.query or ""), "]",
 		"field_enter_after_edit[search_query;true]",
@@ -565,19 +732,13 @@ local function get_formspec(dialogdata)
 	}
 
 	local y = 0
-	local last_section = nil
 	for _, other_page in ipairs(filtered_pages) do
-		if other_page.section ~= last_section then
-			fs[#fs + 1] = ("label[0.1,%f;%s]"):format(
-				y + 0.41, core.colorize("#ff0", fgettext(other_page.section)))
-			last_section = other_page.section
-			y = y + 0.82
-		end
-		fs[#fs + 1] = ("box[0,%f;%f,0.8;%s]"):format(
-			y, left_pane_width-left_pane_padding, other_page.id == page_id and "#467832FF" or "#3339")
-		fs[#fs + 1] = ("button[0,%f;%f,0.8;page_%s;%s]")
+		local selected = other_page.id == page_id
+		fs[#fs + 1] = ("box[0,%f;%f,0.9;%s]"):format(
+			y, left_pane_width-left_pane_padding, selected and "#4CAF50FF" or "#2a2a2aCC")
+		fs[#fs + 1] = ("button[0,%f;%f,0.9;page_%s;%s]")
 			:format(y, left_pane_width-left_pane_padding, other_page.id, fgettext(other_page.title))
-		y = y + 0.82
+		y = y + 0.98
 	end
 
 	if #filtered_pages == 0 then
@@ -596,8 +757,10 @@ local function get_formspec(dialogdata)
 
 	fs[#fs + 1] = "style_type[button;border=;bgcolor=]"
 
+	dialogdata.expanded = dialogdata.expanded or {}
 	if not dialogdata.components then
-		dialogdata.components = page and build_page_components(page) or {}
+		dialogdata.components = page and
+			build_page_components(page, dialogdata.expanded[page_id]) or {}
 	end
 
 	local right_pane_width = tabsize.width - left_pane_width - 0.375 - 2*scrollbar_w - 0.25
@@ -743,11 +906,11 @@ local function buttonhandler(this, fields)
 		return true
 	end
 
-	if fields.show_advanced ~= nil then
-		local value = core.is_yes(fields.show_advanced)
-		core.settings:set_bool("show_advanced", value)
-		write_settings_early()
-		regenerate_page_list(dialogdata)
+	if fields.toggle_advanced then
+		dialogdata.expanded = dialogdata.expanded or {}
+		local id = dialogdata.page_id
+		dialogdata.expanded[id] = not dialogdata.expanded[id]
+		dialogdata.components = nil
 
 		return true
 	end

@@ -114,6 +114,22 @@ function make.heading(text, info_text)
 end
 
 
+-- Reveals the settings a page keeps out of the way by default.
+function make.expander(expanded)
+	return {
+		full_width = true,
+		spacing = 0.5,
+		get_formspec = function(self, avail_w)
+			return ("style[toggle_advanced;bgcolor=#2c2c2c;border=false]" ..
+				"button[0,0;%f,0.8;toggle_advanced;%s]"):format(
+					avail_w,
+					(expanded and "▼  " or "▶  ") ..
+						fgettext("Advanced settings")), 0.8
+		end,
+	}
+end
+
+
 function make.unavail_list(settings)
 	return {
 		full_width = true,
