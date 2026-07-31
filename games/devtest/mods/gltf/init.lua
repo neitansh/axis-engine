@@ -1,0 +1,169 @@
+local function register_entity(name, textures, backface_culling)
+	core.register_entity("gltf:" .. name, {
+		initial_properties = {
+			visual = "mesh",
+			mesh = "gltf_" .. name .. ".gltf",
+			textures = textures,
+			backface_culling = backface_culling,
+		},
+	})
+end
+
+-- These do not have texture coordinates; they simple render as black surfaces.
+register_entity("minimal_triangle", {}, false)
+register_entity("triangle_with_vertex_stride", {}, false)
+register_entity("triangle_without_indices", {}, false)
+do
+	local cube_textures = {"gltf_cube.png"}
+	register_entity("blender_cube", cube_textures)
+	register_entity("blender_cube_scaled", cube_textures)
+	register_entity("blender_cube_matrix_transform", cube_textures)
+	core.register_entity("gltf:blender_cube_glb", {
+		initial_properties = {
+			visual = "mesh",
+			mesh = "gltf_blender_cube.glb",
+			textures = cube_textures,
+			backface_culling = true,
+		},
+	})
+end
+
+register_entity("snow_man", {"gltf_snow_man.png"})
+register_entity("spider", {"gltf_spider.png"})
+
+core.register_entity("gltf:spider_animated", {
+	initial_properties = {
+		visual = "mesh",
+		mesh = "gltf_spider_animated.gltf",
+		textures = {"gltf_spider.png"},
+	},
+	on_activate = function(self)
+		self.object:set_animation({x = 0, y = 140}, 1)
+	end
+})
+
+core.register_entity("gltf:simple_skin", {
+	initial_properties = {
+		visual = "mesh",
+		visual_size = vector.new(5, 5, 5),
+		mesh = "gltf_simple_skin.gltf",
+		textures = {},
+		backface_culling = false
+	},
+	on_activate = function(self)
+		self.object:set_animation({x = 0, y = 5.5}, 1)
+	end
+})
+
+core.register_entity("gltf:simple_skin_step", {
+	initial_properties = {
+		infotext = "Simple skin, but using STEP interpolation",
+		visual = "mesh",
+		visual_size = vector.new(5, 5, 5),
+		mesh = "gltf_simple_skin_step.gltf",
+		textures = {},
+		backface_culling = false
+	},
+	on_activate = function(self)
+		self.object:set_animation({x = 0, y = 5.5}, 1)
+	end
+})
+
+-- The claws rendering incorrectly from one side is expected behavior:
+-- They use an unsupported double-sided material.
+core.register_entity("gltf:frog", {
+	initial_properties = {
+		visual = "mesh",
+		mesh = "gltf_frog.gltf",
+		textures = {"gltf_frog.png"},
+		backface_culling = false
+	},
+	on_activate = function(self)
+		self.object:set_animation({x = 0, y = 0.75}, 1)
+	end
+})
+
+
+core.register_node("gltf:frog", {
+	description = "glTF frog, but it's a node",
+	tiles = {{name = "gltf_frog.png", backface_culling = false}},
+	drawtype = "mesh",
+	mesh = "gltf_frog.gltf",
+})
+
+core.register_chatcommand("show_model", {
+	params = "<model> [textures]",
+	description = "Show a model (defaults to gltf models, for example '/show_model frog').",
+	func = function(name, param)
+		local model, textures = param:match"^(.-)%s+(.+)$"
+		if not model then
+			model = "gltf_" .. param .. ".gltf"
+			textures = "gltf_" .. param .. ".png"
+		end
+		core.show_formspec(name, "gltf:model", table.concat{
+			"formspec_version[7]",
+			"size[10,10]",
+			"model[0,0;10,10;model;", model, ";", textures, ";0,0;true;true;0,0;0]",
+		})
+	end,
+})
+
+-- Stress test for skeletal animation
+core.register_chatcommand("spider_army", {
+	func = function(name)
+		local pos = core.get_player_by_name(name):get_pos()
+		local n = 10
+		for x = 1, n do
+			for y = 1, n do
+				for z = 1, n do
+					core.add_entity(pos + 3 * vector.new(x, y, z), "gltf:spider_animated")
+				end
+			end
+		end
+	end,
+})
+
+core.register_entity("gltf:multi_track", {
+	initial_properties = {
+		visual = "mesh",
+		mesh = "gltf_multi_track_1.glb",
+		textures = {"[fill:1x1:green"},
+		infotext = table.concat({
+			"Multi-track animation:",
+			"- Punch to (un)pause one track",
+			"- Right-click to (un)pause another track",
+			"- Sneak + punch to swap model",
+		}, "\n")
+	},
+	on_activate = function(self)
+		self.object:play_animation("bone1_spin")
+		self.object:play_animation("bone2_spin")
+		local animations = self.object:get_animations()
+		assert(animations.bone1_spin ~= nil)
+		assert(animations.bone2_spin ~= nil)
+		local anim1 = animations.bone1_spin
+		assert(anim1.min_frame == 0)
+		assert(anim1.max_frame == math.huge)
+		assert(anim1.speed == 1)
+		assert(anim1.blend == 0)
+		self._frame_speed = {1, 1}
+		self._mesh = 1
+		self.object:set_armor_groups({punch_operable = 1, immortal = 1})
+	end,
+	on_punch = function(self, puncher)
+		if puncher:get_player_control().sneak then
+			self._mesh = (self._mesh % 2) + 1
+			self.object:set_properties({
+				mesh = ("gltf_multi_track_%d.glb"):format(self._mesh),
+				visual_size = vector.new(self._mesh, self._mesh, self._mesh),
+			})
+		else
+			self._frame_speed[1] = 1 - self._frame_speed[1]
+			self.object:update_animation("bone1_spin", {speed = self._frame_speed[1]})
+		end
+	end,
+	on_rightclick = function(self)
+		self._frame_speed[2] = 1 - self._frame_speed[2]
+		self.object:update_animation("bone2_spin", {speed = self._frame_speed[2]})
+	end,
+})
