@@ -996,7 +996,7 @@ contentdb_max_concurrent_downloads (ContentDB Max Concurrent Downloads) int 3 1
 enable_local_map_saving (Saving map received from server) bool false
 
 #    URL to the server list displayed in the Multiplayer Tab.
-serverlist_url (Serverlist URL) [common] string https://servers.luanti.org
+serverlist_url (Serverlist URL) [common] string
 
 #    If enabled, server account registration is separate from login in the UI.
 #    If disabled, connecting to a server will automatically register a new account.
@@ -1030,7 +1030,7 @@ server_announce (Announce server) bool false
 server_announce_send_players (Send player names to the server list) bool true
 
 #    Announce to this serverlist.
-serverlist_url (Serverlist URL) [common] string https://servers.luanti.org
+serverlist_url (Serverlist URL) [common] string
 
 #    Message of the day displayed to players connecting.
 motd (Message of the day) string
@@ -2175,11 +2175,11 @@ font_size_divisible_by (Font size divisible by) int 1 1
 
 #    Path to the default font. Must be a TrueType font.
 #    The fallback font will be used if the font cannot be loaded.
-font_path (Regular font path) filepath fonts/Arimo-Regular.ttf
+font_path (Regular font path) filepath fonts/Inter-Regular.ttf
 
-font_path_bold (Bold font path) filepath fonts/Arimo-Bold.ttf
-font_path_italic (Italic font path) filepath fonts/Arimo-Italic.ttf
-font_path_bold_italic (Bold and italic font path) filepath fonts/Arimo-BoldItalic.ttf
+font_path_bold (Bold font path) filepath fonts/Inter-Bold.ttf
+font_path_italic (Italic font path) filepath fonts/Inter-Italic.ttf
+font_path_bold_italic (Bold and italic font path) filepath fonts/Inter-BoldItalic.ttf
 
 #    Font size of the monospace font where 1 unit = 1 pixel at 96 DPI
 mono_font_size (Monospace font size) int 16 5 72

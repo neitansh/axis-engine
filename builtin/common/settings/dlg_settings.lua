@@ -812,7 +812,8 @@ local function get_formspec(dialogdata)
 			-- ensure there's enough space for reset/info
 			used_h = math.max(used_h, 0.5)
 		end
-		local info_reset_y = used_h / 2 - 0.25
+		-- Line the reset button up with the control, not with the whole row
+		local info_reset_y = (comp.control_y or used_h / 2) - 0.25
 
 		if show_reset then
 			local default = comp.setting.default
@@ -862,6 +863,11 @@ local function get_formspec(dialogdata)
 		fs[#fs + 1] = "style_type[image_button;border=;padding=]"
 
 		fs[#fs + 1] = "container_end[]"
+
+		if comp.control_y then
+			fs[#fs + 1] = ("box[0,%f;%f,0.015;%s]"):format(
+				y + used_h + 0.05, right_pane_width - 0.25, menu_style.LINE)
+		end
 
 		if used_h > 0 then
 			local spacing = 0.1

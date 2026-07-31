@@ -117,6 +117,13 @@ local function layout(avail_w, has_desc)
 end
 
 
+-- Rows report where their control sits so the reset button can line up with it
+-- instead of floating in the middle of a two-line row.
+local function mark_control_line(comp)
+	comp.control_y = ROW_H / 2
+end
+
+
 local function render_label(l, label, desc)
 	local fs = {
 		"style_type[label;valign=center]",
@@ -212,6 +219,7 @@ local function make_text_entry(converter, validator, stringifier)
 
 				local desc = get_description(setting)
 				local l = layout(avail_w, desc ~= nil)
+				mark_control_line(self)
 				local field_w = CONTROL_W - 0.75
 
 				local fs = {
@@ -325,6 +333,7 @@ local function make_slider(is_int)
 
 				local desc = get_description(setting)
 				local l = layout(avail_w, desc ~= nil)
+				mark_control_line(self)
 				local value_w = 1.25
 				local slider_w = CONTROL_W - value_w - 0.15
 
@@ -398,6 +407,7 @@ function make.bool(setting)
 
 			local desc = get_description(setting)
 			local l = layout(avail_w, desc ~= nil)
+			mark_control_line(self)
 			local button = "toggle_" .. setting.name
 
 			local fs = {
@@ -441,6 +451,7 @@ function make.enum(setting)
 
 			local desc = get_description(setting)
 			local l = layout(avail_w, desc ~= nil)
+			mark_control_line(self)
 
 			local fs = {
 				render_label(l, get_label(setting), desc),

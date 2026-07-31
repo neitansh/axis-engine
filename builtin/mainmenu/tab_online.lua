@@ -260,7 +260,7 @@ local function get_formspec(tabview, name, tabdata)
 
 	local dividers = {
 		fav = "5,#ffff00," .. fgettext("Favorites") .. ",,,0,0,,",
-		public = "6,#4bdd42," .. fgettext("Public Servers") .. ",,,0,0,,",
+		public = "6,#7FD6C0," .. fgettext("Official Servers") .. ",,,0,0,,",
 		incompatible = "7,"..mt_color_grey.."," .. fgettext("Incompatible Servers") .. ",,,0,0,,"
 	}
 	local order = {"fav", "public", "incompatible"}

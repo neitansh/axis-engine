@@ -78,7 +78,7 @@ void set_default_settings()
 	settings->setDefault("language", "");
 	settings->setDefault("name", "");
 	settings->setDefault("bind_address", "");
-	settings->setDefault("serverlist_url", "https://servers.luanti.org");
+	settings->setDefault("serverlist_url", "");
 
 	// Client
 	settings->setDefault("address", "");
@@ -299,6 +299,24 @@ void set_default_settings()
 	settings->setDefault("recent_chat_messages", "6");
 	settings->setDefault("hud_scaling", "1.0");
 	settings->setDefault("gui_scaling", "1.0");
+
+	// Menu palette, see ClientLauncher::config_guienv
+	settings->setDefault("gui_color_symbol", "#FFFFFF");
+	settings->setDefault("gui_color_button_text", "#E8EAED");
+	settings->setDefault("gui_color_face", "#171A1F");
+	settings->setDefault("gui_color_light", "#00000000");
+	settings->setDefault("gui_color_high_light", "#FFFFFF1F");
+	settings->setDefault("gui_color_shadow", "#00000099");
+	settings->setDefault("gui_color_dark_shadow", "#000000CC");
+	settings->setDefault("gui_color_scrollbar", "#5A6068");
+	settings->setDefault("gui_color_selection", "#2C6255");
+	settings->setDefault("gui_color_selection_text", "#E8EAED");
+	settings->setDefault("gui_color_editable", "#0C0E11");
+	settings->setDefault("gui_color_editable_focused", "#14312B");
+	settings->setDefault("gui_color_editable_disabled", "#1A1D21");
+	settings->setDefault("gui_color_text_disabled", "#6E757E");
+	settings->setDefault("gui_color_tooltip_text", "#E8EAED");
+	settings->setDefault("gui_color_tooltip", "#0C0E11F2");
 	settings->setDefault("gui_scaling_filter", "false");
 	settings->setDefault("smooth_scrolling", "true");
 	settings->setDefault("hud_hotbar_max_width", "1.0");
@@ -393,10 +411,10 @@ void set_default_settings()
 	settings->setDefault("serverlist_file", "favoriteservers.json");
 
 	// General font settings
-	settings->setDefault("font_path", porting::getDataPath("fonts" DIR_DELIM "Arimo-Regular.ttf"));
-	settings->setDefault("font_path_italic", porting::getDataPath("fonts" DIR_DELIM "Arimo-Italic.ttf"));
-	settings->setDefault("font_path_bold", porting::getDataPath("fonts" DIR_DELIM "Arimo-Bold.ttf"));
-	settings->setDefault("font_path_bold_italic", porting::getDataPath("fonts" DIR_DELIM "Arimo-BoldItalic.ttf"));
+	settings->setDefault("font_path", porting::getDataPath("fonts" DIR_DELIM "Inter-Regular.ttf"));
+	settings->setDefault("font_path_italic", porting::getDataPath("fonts" DIR_DELIM "Inter-Italic.ttf"));
+	settings->setDefault("font_path_bold", porting::getDataPath("fonts" DIR_DELIM "Inter-Bold.ttf"));
+	settings->setDefault("font_path_bold_italic", porting::getDataPath("fonts" DIR_DELIM "Inter-BoldItalic.ttf"));
 	settings->setDefault("font_bold", "false");
 	settings->setDefault("font_italic", "false");
 	settings->setDefault("font_shadow", "1");

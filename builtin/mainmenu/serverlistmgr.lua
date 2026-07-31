@@ -139,74 +139,30 @@ local function fetch_geoip()
 	return type(retval.continent) == "string" and retval.continent
 end
 
+-- The public Luanti list is not used: the Axis only talks to its own servers.
+local OFFICIAL_SERVERS = {
+	{
+		name = "the Axis",
+		address = "135.106.173.139",
+		port = 30000,
+		description = fgettext_ne("Russia"),
+	},
+	{
+		name = "the Axis",
+		address = "65.109.68.114",
+		port = 30000,
+		description = fgettext_ne("Europe"),
+	},
+}
+
 function serverlistmgr.sync()
-	if not serverlistmgr.servers then
-		serverlistmgr.servers = {{
-			name = fgettext("Loading..."),
-			description = fgettext_ne("Try reenabling public serverlist and check your internet connection.")
-		}}
+	local servers = {}
+
+	for _, server in ipairs(OFFICIAL_SERVERS) do
+		servers[#servers + 1] = table.copy(server)
 	end
 
-	local serverlist_url = core.settings:get("serverlist_url") or ""
-	if not core.get_http_api or serverlist_url == "" then
-		serverlistmgr.servers = {{
-			name = fgettext("Public server list is disabled"),
-			description = ""
-		}}
-		return
-	end
-
-	if not serverlistmgr.my_continent and not geoip_downloading then
-		geoip_downloading = true
-		core.handle_async(fetch_geoip, nil, function(result)
-			geoip_downloading = false
-			if not result then
-				return
-			end
-			serverlistmgr.my_continent = result
-			cache_settings:set("geoip", result)
-			cache_settings:set("geoip_last_checked", tostring(os.time()))
-
-			-- re-sort list if applicable
-			if serverlistmgr.servers then
-				serverlistmgr.servers = order_server_list(serverlistmgr.servers)
-				core.event_handler("Refresh")
-			end
-		end)
-	end
-
-	if public_downloading then
-		return
-	end
-	public_downloading = true
-
-	-- note: this isn't cached because it's way too dynamic
-	core.handle_async(
-		function(param)
-			local http = core.get_http_api()
-			local url = ("%s/list?proto_version_min=%d&proto_version_max=%d"):format(
-				core.settings:get("serverlist_url"),
-				core.get_min_supp_proto(),
-				core.get_max_supp_proto())
-
-			local response = http.fetch_sync({ url = url })
-			if not response.succeeded then
-				return {}
-			end
-
-			local retval = core.parse_json(response.data)
-			return retval and retval.list or {}
-		end,
-		nil,
-		function(result)
-			public_downloading = false
-			local favs = order_server_list(result)
-			if favs[1] then
-				serverlistmgr.servers = favs
-			end
-			core.event_handler("Refresh")
-		end
-	)
+	serverlistmgr.servers = servers
 end
 
 --------------------------------------------------------------------------------

@@ -364,24 +364,30 @@ void ClientLauncher::config_guienv()
 {
 	gui::IGUISkin *skin = guienv->getSkin();
 
-	// Menu palette: dark slate panels, light controls, one green accent.
-	// Keep in sync with builtin/common/menu_style.lua.
-	skin->setColor(gui::EGDC_WINDOW_SYMBOL, video::SColor(255, 255, 255, 255));
-	skin->setColor(gui::EGDC_BUTTON_TEXT, video::SColor(255, 255, 255, 255));
-	skin->setColor(gui::EGDC_3D_FACE, video::SColor(255, 63, 64, 66));
-	skin->setColor(gui::EGDC_3D_LIGHT, video::SColor(0, 0, 0, 0));
-	skin->setColor(gui::EGDC_3D_HIGH_LIGHT, video::SColor(255, 30, 31, 32));
-	skin->setColor(gui::EGDC_3D_SHADOW, video::SColor(255, 10, 10, 11));
-	skin->setColor(gui::EGDC_3D_DARK_SHADOW, video::SColor(255, 0, 0, 0));
-	skin->setColor(gui::EGDC_SCROLLBAR, video::SColor(255, 198, 198, 198));
-	skin->setColor(gui::EGDC_HIGH_LIGHT, video::SColor(255, 60, 133, 39));
-	skin->setColor(gui::EGDC_HIGH_LIGHT_TEXT, video::SColor(255, 255, 255, 255));
-	skin->setColor(gui::EGDC_EDITABLE, video::SColor(255, 30, 31, 32));
-	skin->setColor(gui::EGDC_FOCUSED_EDITABLE, video::SColor(255, 60, 133, 39));
-	skin->setColor(gui::EGDC_GRAY_TEXT, video::SColor(255, 154, 160, 166));
-	skin->setColor(gui::EGDC_GRAY_EDITABLE, video::SColor(255, 40, 41, 42));
-	skin->setColor(gui::EGDC_TOOLTIP, video::SColor(255, 255, 255, 255));
-	skin->setColor(gui::EGDC_TOOLTIP_BACKGROUND, video::SColor(230, 30, 31, 32));
+	// Menu palette. Every entry is a setting so the look can be retuned from
+	// Lua or minetest.conf without touching the engine.
+	auto skin_color = [&](const char *name, gui::EGUI_DEFAULT_COLOR which) {
+		video::SColor color;
+		if (parseColorString(g_settings->get(name), color, false))
+			skin->setColor(which, color);
+	};
+
+	skin_color("gui_color_symbol", gui::EGDC_WINDOW_SYMBOL);
+	skin_color("gui_color_button_text", gui::EGDC_BUTTON_TEXT);
+	skin_color("gui_color_face", gui::EGDC_3D_FACE);
+	skin_color("gui_color_light", gui::EGDC_3D_LIGHT);
+	skin_color("gui_color_high_light", gui::EGDC_3D_HIGH_LIGHT);
+	skin_color("gui_color_shadow", gui::EGDC_3D_SHADOW);
+	skin_color("gui_color_dark_shadow", gui::EGDC_3D_DARK_SHADOW);
+	skin_color("gui_color_scrollbar", gui::EGDC_SCROLLBAR);
+	skin_color("gui_color_selection", gui::EGDC_HIGH_LIGHT);
+	skin_color("gui_color_selection_text", gui::EGDC_HIGH_LIGHT_TEXT);
+	skin_color("gui_color_editable", gui::EGDC_EDITABLE);
+	skin_color("gui_color_editable_focused", gui::EGDC_FOCUSED_EDITABLE);
+	skin_color("gui_color_editable_disabled", gui::EGDC_GRAY_EDITABLE);
+	skin_color("gui_color_text_disabled", gui::EGDC_GRAY_TEXT);
+	skin_color("gui_color_tooltip_text", gui::EGDC_TOOLTIP);
+	skin_color("gui_color_tooltip", gui::EGDC_TOOLTIP_BACKGROUND);
 
 	float density = rangelim(g_settings->getFloat("gui_scaling"), 0.5f, 20) *
 					RenderingEngine::getDisplayDensity();

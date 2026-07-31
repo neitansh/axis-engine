@@ -14,14 +14,14 @@
 menu_style = {}
 
 -- Text
-menu_style.TEXT = "#F2F4F6"
-menu_style.TEXT_MUTED = "#98A0AA"
+menu_style.TEXT = "#E8EAED"
+menu_style.TEXT_MUTED = "#8C949E"
 menu_style.TEXT_DIM = "#6E757E"
-menu_style.TEXT_ON_ACCENT = "#241A06"
+menu_style.TEXT_ON_ACCENT = "#08201B"
 
 -- Accents
-menu_style.ACCENT = "#D6A24A"
-menu_style.HEADING = "#D6A24A"
+menu_style.ACCENT = "#7FD6C0"
+menu_style.HEADING = "#7FD6C0"
 menu_style.DANGER = "#C05B4D"
 
 -- Hairlines drawn with box[]
@@ -42,13 +42,12 @@ menu_style.ROW = 0.9
 menu_style.ROW_LG = 1.1
 
 -- Corner size of the 9-sliced textures, in source pixels
--- Buttons are 48px art; the middle also becomes the button's inner padding,
--- so it has to stay small enough for short rows to still fit their caption.
-local BUTTON_MIDDLE = 10
-local PANEL_MIDDLE = 26
-local SURFACE_MIDDLE = 22
-local INSET_MIDDLE = 18
-local SHADOW_MIDDLE = 28
+-- Flat 32px art with a one pixel border; the middle also becomes the button's
+-- inner padding, so it stays at the border width.
+local BUTTON_MIDDLE = 2
+local PANEL_MIDDLE = 2
+local SURFACE_MIDDLE = 2
+local INSET_MIDDLE = 2
 
 local function tex(name)
 	return core.formspec_escape(defaulttexturedir .. name)
@@ -61,16 +60,9 @@ local function nine(name, middle)
 	end
 end
 
-local panel_face = nine("axis_panel.png", PANEL_MIDDLE)
-local panel_shadow = nine("axis_shadow.png", SHADOW_MIDDLE)
-
---- Deepest surface: the backdrop a screen sits on. Carries a soft shadow so it
---- reads as lying above the scene rather than being painted onto it.
-function menu_style.panel(x, y, w, h)
-	local bleed = 0.22
-	return panel_shadow(x - bleed, y - bleed + 0.06, w + bleed * 2, h + bleed * 2)
-		.. panel_face(x, y, w, h)
-end
+--- Deepest surface: the backdrop a screen sits on. Flat and translucent, so
+--- the world stays visible behind the menu.
+menu_style.panel = nine("axis_panel.png", PANEL_MIDDLE)
 --- Raised surface: cards, rows and side rails that sit on the panel.
 menu_style.surface = nine("axis_surface.png", SURFACE_MIDDLE)
 --- Sunken surface: lists, search bars and anything holding input.
@@ -109,9 +101,9 @@ end
 --- background because background9[] is not positioned inside scroll containers.
 function menu_style.selected(names)
 	return ("style[%s;bgimg=%s;bgimg_hovered=%s;bgimg_pressed=%s;bgimg_middle=%d;" ..
-			"border=false;textcolor=%s;font=bold]"):format(
+			"border=false;textcolor=%s]"):format(
 		names, tex("axis_surface.png"), tex("axis_surface.png"),
-		tex("axis_surface.png"), BUTTON_MIDDLE, menu_style.TEXT)
+		tex("axis_surface.png"), BUTTON_MIDDLE, menu_style.ACCENT)
 end
 
 --- Icon-only buttons: no 9-slice, which would eat the room the icon needs.
