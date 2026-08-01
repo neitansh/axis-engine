@@ -20,6 +20,7 @@
 #include "client/event_manager.h"
 #include "fontengine.h"
 #include "itemdef.h"
+#include "light.h"
 #include "gameparams.h"
 #include "gettext.h"
 #include <locale>
@@ -89,6 +90,9 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	CachedVertexShaderSetting<float, 3> m_camera_position_vertex{"cameraPosition"};
 	CachedPixelShaderSetting<float, MAX_DYN_LIGHTS * 4> m_dyn_lights{"u_dyn_lights"};
 	CachedPixelShaderSetting<float> m_dyn_light_count{"u_dyn_light_count"};
+	// The engine's lighting curve, handed to the shader so that light which
+	// does not come from the node grid passes through the very same curve
+	CachedPixelShaderSetting<float, LIGHT_SUN + 1> m_light_curve{"lightCurve"};
 	CachedVertexShaderSetting<float, 2> m_texel_size0_vertex{"texelSize0"};
 	CachedPixelShaderSetting<float, 2> m_texel_size0_pixel{"texelSize0"};
 	v2f m_texel_size0;
@@ -294,6 +298,7 @@ public:
 
 		m_dyn_lights.set(dyn_lights, services);
 		m_dyn_light_count.set(&light_count, services);
+		m_light_curve.set(get_light_curve_table(), services);
 		// ====================================================================
 	}
 

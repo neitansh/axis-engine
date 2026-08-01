@@ -6,6 +6,7 @@
 #include "util/pointedthing.h"
 #include "client.h"
 #include "clientenvironment.h"
+#include "light.h"
 #include "clientsimpleobject.h"
 #include "clientmap.h"
 #include "localplayer.h"
@@ -267,6 +268,20 @@ void ClientEnvironment::step(float dtime)
 		node_at_lplayer = m_map->getNode(p);
 
 		u16 light = getInteriorLight(node_at_lplayer, 0, m_client->ndef());
+
+		// What the player carries lights the player's own hand. The map holds
+		// no node in that cell to carry the level, so it is raised here to
+		// exactly what a torch standing in that very cell would have given.
+		const u8 carried = m_client->getCarriedLightSource();
+
+		if (carried > 0) {
+			const u8 lit = decode_light(carried);
+			const u8 day = MYMAX((u8)(light & 0xff), lit);
+			const u8 night = MYMAX((u8)(light >> 8), lit);
+
+			light = day | (night << 8);
+		}
+
 		lplayer->light_color = encode_light(light, 0); // this transfers light.alpha
 		final_color_blend(&lplayer->light_color, light, day_night_ratio);
 	}

@@ -445,6 +445,9 @@ public:
 	bool inhibit_inventory_revert = false;
 
 	DynamicLightManager& getDynamicLightManager() { return m_dynamic_light_manager; }
+
+	/// Light level of whatever the player is holding, zero if it does not glow
+	u8 getCarriedLightSource() const { return m_carried_light; }
 	void updateDynamicLights();
 
 private:
@@ -619,6 +622,7 @@ private:
 	MeshGrid m_mesh_grid;
 
 	DynamicLightManager m_dynamic_light_manager;
+	u8 m_carried_light = 0;
 
 	// Caches the light_source value of serialized wield items
 	std::unordered_map<std::string, u8> m_wield_light_cache;

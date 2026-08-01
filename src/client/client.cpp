@@ -470,6 +470,7 @@ void Client::connect(const Address &address, const std::string &address_name)
 void Client::updateDynamicLights()
 {
 	m_dynamic_light_manager.clear();
+	m_carried_light = 0;
 
 	LocalPlayer *local_player = m_env.getLocalPlayer();
 	if (!local_player) return;
@@ -480,9 +481,11 @@ void Client::updateDynamicLights()
 	const ContentFeatures &lf = ndef()->get(tool_item.name);
 
 	if (lf.light_source > 0) {
+		m_carried_light = lf.light_source;
+
 		v3f pos = local_player->getPosition();
 		pos.Y += 1.2f * BS; // Поднимаем на уровень рук
-		m_dynamic_light_manager.addLight(pos, v3f(1.04f, 1.04f, 1.04f), (float)lf.light_source * BS);
+		m_dynamic_light_manager.addLight(pos, (float)lf.light_source * BS);
 	}
 
 	// 2. Добавляем свет от окружающих игроков (CAO)
@@ -505,7 +508,7 @@ void Client::updateDynamicLights()
 			if (light_source > 0) {
 				v3f pos = gcao->getPosition();
 				pos.Y += 1.2f * BS;
-				m_dynamic_light_manager.addLight(pos, v3f(1.04f, 1.04f, 1.04f), (float)light_source * BS);
+				m_dynamic_light_manager.addLight(pos, (float)light_source * BS);
 			}
 		}
 	}

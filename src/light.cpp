@@ -15,6 +15,9 @@ static u8 light_LUT[LIGHT_SUN + 1];
 // The const ref to light_LUT is what is actually used in the code
 const u8 *light_decode_table = light_LUT;
 
+// The same curve, scaled for shaders. Kept in step with light_LUT below.
+static float light_curve_f[LIGHT_SUN + 1];
+
 namespace {
 
 struct LightCurve {
@@ -74,6 +77,14 @@ void set_light_curve(float gamma)
 			light_LUT[i] = std::min<u8>(254, light_LUT[i - 1]) + 1;
 		}
 	}
+
+	for (size_t i = 0; i <= LIGHT_SUN; i++)
+		light_curve_f[i] = light_LUT[i] / 255.0f;
+}
+
+const float *get_light_curve_table()
+{
+	return light_curve_f;
 }
 
 float decode_light_f(float light_f)

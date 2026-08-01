@@ -44,6 +44,9 @@ VARYING_ vec3 vNormal;
 // precision must be considered).
 VARYING_ vec3 worldPosition;
 VARYING_ lowp vec4 varColor;
+VARYING_ vec3 varTint;
+VARYING_ vec3 varDayPart;
+VARYING_ vec3 varNightPart;
 CENTROID_ VARYING_ mediump vec2 varTexCoord;
 #ifdef USE_ARRAY_TEXTURE
 flat VARYING_ uint varTexLayer;
@@ -367,6 +370,114 @@ float getShadow(sampler2D shadowsampler, vec2 smTexCoord, float realDistance)
 #endif
 
 
+
+// Light from sources that are not on the node grid.
+//
+// The map lights a face by taking the level of the node in front of it, losing
+// one level per node travelled, keeping the brightest source rather than
+// summing them, and only then turning that level into brightness through the
+// engine's lighting curve. A torch carried in someone's hand is the same kind
+// of light and is treated the same way here, so that the two are one quantity
+// and not an effect painted over the world.
+
+const float LIGHT_LEVELS = 15.0; // LIGHT_SUN
+const float NODE_SIZE = 10.0;    // BS
+
+// The engine's own lighting curve, table and all, so that player settings for
+// gamma, alpha, beta and boost reach this light exactly as they reach the map.
+uniform float lightCurve[16];
+
+float decodeLight(float level)
+{
+	float f = clamp(level, 0.0, LIGHT_LEVELS);
+
+	for (int i = 0; i < 15; i++) {
+		if (f < float(i + 1))
+			return mix(lightCurve[i], lightCurve[i + 1], f - float(i));
+	}
+
+	return lightCurve[15];
+}
+
+
+// The shade each face direction carries, from applyFacesShading() in mesh.cpp.
+// Map light is shaded this way when it is baked into the vertices, so light
+// arriving from elsewhere has to be shaded the same or it comes out brighter
+// than the very same torch standing in the ground.
+float faceShade(vec3 normal)
+{
+	float x2 = normal.x * normal.x;
+	float y2 = normal.y * normal.y;
+	float z2 = normal.z * normal.z;
+
+	// Some drawtypes carry no normal; those take full brightness
+	if (x2 + y2 + z2 < 1e-3)
+		return 1.0;
+
+	if (normal.y < 0.0)
+		return 0.670820 * x2 + 0.447213 * y2 + 0.836660 * z2;
+
+	if (x2 > 1e-3 || z2 > 1e-3)
+		return 0.670820 * x2 + 1.000000 * y2 + 0.836660 * z2;
+
+	return 1.0;
+}
+
+float dynamicLightLevel(vec3 surface_pos, vec3 normal)
+{
+	// A face is lit by the node in front of it, so the sample sits half a node
+	// out along the normal.
+	vec3 sample_pos = surface_pos + normal * (0.5 * NODE_SIZE);
+
+	float level = 0.0;
+
+	for (int i = 0; i < 4; i++) {
+		if (i >= int(u_dyn_light_count))
+			break;
+
+		vec3 to_light = u_dyn_lights[i].xyz - sample_pos;
+
+		// One level lost per node, exactly as the map propagates it
+		float reach = (u_dyn_lights[i].w - length(to_light)) / NODE_SIZE;
+
+		// Sources do not add up; the brightest one wins
+		level = max(level, reach);
+	}
+
+	return level;
+}
+
+const vec3 artificialLight = vec3(1.04, 1.04, 1.04);
+
+// Rebuilds the fragment colour the way the vertex shader does, with the
+// artificial part raised to whatever the dynamic sources contribute.
+void applyLight(vec3 normal, vec3 surface_pos, out vec3 light, out float night_share)
+{
+	float level = dynamicLightLevel(surface_pos, normal);
+	float dynamic = level > 0.0 ? decodeLight(level) * faceShade(normal) : 0.0;
+
+	vec3 day_part = varDayPart;
+	// Raised in brightness, unchanged in colour: grass lit by a torch stays
+	// grass, exactly as it does when the torch stands in the ground.
+	vec3 night_part = max(varNightPart, varTint * dynamic);
+
+	light = day_part * dayLight.rgb + night_part * artificialLight;
+
+	// Emphase blue a bit in darker places, as final_color_blend() does
+	float brightness = (light.r + light.g + light.b) / 3.0;
+	light.b += max(0.0, 0.021 - abs(0.2 * brightness - 0.021) +
+		0.07 * brightness);
+
+	light = clamp(light, 0.0, 1.0);
+
+	float day_level = (day_part.r + day_part.g + day_part.b) / 3.0;
+	float night_level = (night_part.r + night_part.g + night_part.b) / 3.0;
+	float total = day_level + night_level;
+
+	night_share = total > 0.0 ? night_level / total : 1.0;
+}
+
+
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
@@ -387,35 +498,18 @@ void main(void)
 		discard;
 #endif
 
-	vec4 col = vec4(base.rgb * varColor.rgb, 1.0);
-	// ====================================================================
-	// --- РАСЧЕТ ДИНАМИЧЕСКОГО СВЕТА ОТ ФАКЕЛОВ ---
-	// ====================================================================
-	float dyn_light_contribution = 0.0;
+	// The incoming light, with anything carried nearby folded into its
+	// artificial half before the colour is built from it.
+	vec3 incoming;
+	float night_share;
 
-	for (int i = 0; i < 4; i++) {
-		if (i >= int(u_dyn_light_count)) {
-			break;
-		}
+	float normal_length = length(vNormal);
+	vec3 lit_normal = normal_length > 1e-3 ? vNormal / normal_length : vec3(0.0);
 
-		vec3 light_pos = u_dyn_lights[i].xyz;
-		float max_radius = u_dyn_lights[i].w;
+	applyLight(lit_normal, worldPosition, incoming, night_share);
 
-		float dist = distance(worldPosition, light_pos);
-		if (dist < max_radius) {
-			float atten = clamp(1.0 - (dist / max_radius), 0.0, 1.0);
-			float intensity = atten * atten * 2.0;
+	vec4 col = vec4(base.rgb * incoming, 1.0);
 
-			dyn_light_contribution += intensity;
-		}
-	}
-
-	vec3 torch_color = vec3(1.04, 1.04, 1.04);
-
-	vec3 dyn_light = vec3(dyn_light_contribution) * torch_color;
-
-	col.rgb = base.rgb * clamp(varColor.rgb + dyn_light, vec3(0.0), vec3(1.0));
-	// ====================================================================
 	col.rgb *= vIDiff;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
@@ -453,7 +547,7 @@ void main(void)
 		// turns out that nightRatio falls off much faster than
 		// actual brightness of artificial light in relation to natual light.
 		// Power ratio was measured on torches in MTG (brightness = 14).
-		float adjusted_night_ratio = pow(max(0.0, nightRatio), 0.6);
+		float adjusted_night_ratio = pow(max(0.0, night_share), 0.6);
 
 		// Apply self-shadowing when light falls at a narrow angle to the surface
 		// Cosine of the cut-off angle.

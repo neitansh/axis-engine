@@ -53,6 +53,20 @@ float decode_light_f(float light_f);
 // Update light value table using the specified gamma
 void set_light_curve(float gamma);
 
+/**
+ * The lighting curve as the GPU needs it: one entry per light level, scaled to
+ * 0..1.
+ *
+ * Shaders that light a fragment from something other than the node grid have to
+ * use the very same curve as the map does, settings and all, or their light
+ * reads as a foreign effect pasted over the world. Handing them the table
+ * itself is exact by construction; approximating it with a formula would not
+ * be.
+ *
+ * Array size is #LIGHT_SUN + 1.
+ */
+const float *get_light_curve_table();
+
 #endif
 
 // 0 <= daylight_factor <= 1000

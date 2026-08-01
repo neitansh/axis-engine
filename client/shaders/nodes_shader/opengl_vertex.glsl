@@ -23,6 +23,22 @@ CENTROID_ VARYING_ mediump vec2 varTexCoord;
 flat VARYING_ uint varTexLayer;
 #endif
 CENTROID_ VARYING_ float nightRatio;
+// The node's own colour, kept apart from how brightly it is lit.
+//
+// The tile colour of grass, leaves and water is baked into the vertex colour
+// (see PreMeshBuffer::applyTileColor), so what arrives here is tint times
+// brightness, not brightness. Light that raises the brightness must keep the
+// tint, or lighting grass turns it grey. The tint survives however dark it
+// gets because the lighting curve never reaches zero — light_LUT[0] is 15, not
+// 0 — so the ratio between the channels is always there to be read.
+VARYING_ vec3 varTint;
+// The incoming light split into its two kinds, before either is given a
+// colour. A fragment that gains light from something outside the node grid has
+// to rebuild the colour from these, the same way the vertex shader does, so
+// that light from a torch in hand and light from a torch in the wall are the
+// same quantity and not two effects layered on each other.
+VARYING_ vec3 varDayPart;
+VARYING_ vec3 varNightPart;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	// shadow uniforms
@@ -211,9 +227,18 @@ void main(void)
 	// colors with the color of the incoming light.
 	// The pre-baked colors are halved to prevent overflow.
 	// The alpha gives the ratio of sunlight in the incoming light.
+
+	// Recovered from the channel ratio, which brightness cannot destroy
+	float tint_peak = max(color.r, max(color.g, color.b));
+	varTint = tint_peak > 0.0 ? color.rgb / tint_peak : vec3(1.0);
+
 	nightRatio = 1.0 - color.a;
-	color.rgb = color.rgb * (color.a * dayLight.rgb +
-		nightRatio * artificialLight.rgb) * 2.0;
+
+	// Halved when baked, so both parts are doubled back here
+	varDayPart = color.rgb * color.a * 2.0;
+	varNightPart = color.rgb * nightRatio * 2.0;
+
+	color.rgb = varDayPart * dayLight.rgb + varNightPart * artificialLight.rgb;
 	color.a = 1.0;
 
 	// Emphase blue a bit in darker places
