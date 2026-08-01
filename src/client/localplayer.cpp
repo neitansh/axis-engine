@@ -6,12 +6,14 @@
 #include <cmath>
 #include "mtevent.h"
 #include "collision.h"
+#include "log.h"
 #include "nodedef.h"
 #include "settings.h"
 #include "environment.h"
 #include "map.h"
 #include "client.h"
 #include "content_cao.h"
+#include "clientenvironment.h"
 #include "hud_element.h"
 
 /*
@@ -19,7 +21,7 @@
 */
 
 const static std::string PlayerSettings_names[] = {
-	"free_move", "pitch_move", "fast_move", "continuous_forward", "always_fly_fast",
+	"free_move", "pitch_move", "fast_move", "always_fly_fast",
 	"aux1_descends", "noclip", "autojump"};
 
 void PlayerSettings::readGlobalSettings()
@@ -27,7 +29,6 @@ void PlayerSettings::readGlobalSettings()
 	free_move = g_settings->getBool("free_move");
 	pitch_move = g_settings->getBool("pitch_move");
 	fast_move = g_settings->getBool("fast_move");
-	continuous_forward = g_settings->getBool("continuous_forward");
 	always_fly_fast = g_settings->getBool("always_fly_fast");
 	aux1_descends = g_settings->getBool("aux1_descends");
 	noclip = g_settings->getBool("noclip");
@@ -215,6 +216,86 @@ bool LocalPlayer::updateSneakNode(Map *map, const v3f &position,
 	return true;
 }
 
+/// How far a platform may move in one step and still carry the player, in
+/// blocks. Anything beyond this is the object being teleported, or the client
+/// catching up after the window was minimised — riding it would fling the
+/// player across the world.
+static constexpr float PLATFORM_CARRY_LIMIT = 3.0f;
+
+/// Moves the player by however much the thing they stand on has moved.
+void LocalPlayer::carryWithPlatform(Environment *env, v3f &position, f32 dtime)
+{
+	if (m_platform_id == 0)
+		return;
+
+	m_platform_logging = g_settings->getBool("debug_platform_ride");
+
+	ClientEnvironment *cenv = dynamic_cast<ClientEnvironment *>(env);
+	ClientActiveObject *platform = cenv ? cenv->getActiveObject(m_platform_id) : nullptr;
+
+	if (!platform) {
+		m_platform_id = 0;
+		return;
+	}
+
+	const v3f now = platform->getPosition();
+	const v3f delta = now - m_platform_position;
+	// Rotation lives on the generic object, not on the base interface
+	GenericCAO *turning = dynamic_cast<GenericCAO *>(platform);
+	const v3f spin = turning ? turning->getRotation() : v3f();
+
+	m_platform_position = now;
+
+	const float limit = PLATFORM_CARRY_LIMIT * BS;
+
+	if (delta.getLengthSQ() > limit * limit)
+		return;
+
+	position += delta;
+
+	// Measurement, off unless asked for: writes what the player and the deck
+	// did this step, so the shaking can be looked at instead of guessed at.
+	if (m_platform_logging && dtime > 0.0f) {
+		warningstream << "platform"
+			<< " dtime=" << dtime
+			<< " deck_y=" << (now.Y / BS)
+			<< " deck_dy=" << (delta.Y / BS)
+			<< " deck_dx=" << (delta.X / BS)
+			<< " deck_dz=" << (delta.Z / BS)
+			<< " player_y=" << (position.Y / BS)
+			<< " player_vy=" << (m_speed.Y / BS)
+			<< " gap=" << ((position.Y - now.Y) / BS)
+			<< " pitch=" << spin.X
+			<< " yaw=" << spin.Y
+			<< " roll=" << spin.Z
+			<< std::endl;
+	}
+}
+
+/// Notes what the player is standing on, so the next step can follow it.
+void LocalPlayer::rememberPlatform(const CollisionMoveResult &result)
+{
+	m_platform_id = 0;
+
+	if (!result.standing_on_object)
+		return;
+
+	for (const CollisionInfo &info : result.collisions) {
+		if (info.type != COLLISION_OBJECT || info.axis != COLLISION_AXIS_Y ||
+				!info.object)
+			continue;
+
+		ClientActiveObject *object = dynamic_cast<ClientActiveObject *>(info.object);
+
+		if (!object)
+			continue;
+
+		m_platform_id = object->getId();
+		m_platform_position = object->getPosition();
+		break;
+	}
+}
+
 void LocalPlayer::move(f32 dtime, Environment *env,
 					   std::vector<CollisionInfo> *collision_info)
 {
@@ -360,9 +441,17 @@ void LocalPlayer::move(f32 dtime, Environment *env,
 		step_up_mode = m_cao->getProperties().step_up_mode;
 	}
 
+	// Ride whatever holds the player up. Without this a moving entity simply
+	// slides out from under them: on an airship deck that reads as being
+	// thrown off and dropping through the floor, and the faster the deck
+	// moves the surer it is to happen.
+	carryWithPlatform(env, position, dtime);
+
 	CollisionMoveResult result = collisionMoveSimple(env, m_client,
 													 m_collisionbox, player_stepheight, dtime,
 													 &position, &m_speed, accel_f, m_cao, true, step_up_mode);
+
+	rememberPlatform(result);
 
 	bool could_sneak = control.sneak && !free_move && !in_liquid &&
 					   !is_climbing && physics_override.sneak;

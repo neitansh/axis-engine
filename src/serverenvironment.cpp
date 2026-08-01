@@ -1081,10 +1081,21 @@ void ServerEnvironment::step(float dtime)
 		ScopeProfiler sp(g_profiler, "ServerEnv: Run SAO::step()", SPT_AVG);
 
 		// This helps the objects to send data at the same time
+		//
+		// The send interval equals the server step, so comparing the timer
+		// against it with a strict "greater than" lands exactly on the
+		// boundary: a step a hair shorter than nominal — which is every other
+		// step under any load at all — skips a send, and the gaps between
+		// packets flip between one step and two. Clients reconstruct motion
+		// from those gaps, so the flipping arrives as a change of speed. Half
+		// a step of tolerance keeps the rhythm even without sending more
+		// often than asked.
 		bool send_recommended = false;
 		m_send_recommended_timer += dtime;
-		if (m_send_recommended_timer > getSendRecommendedInterval()) {
+		if (m_send_recommended_timer > getSendRecommendedInterval() - dtime * 0.5f) {
 			m_send_recommended_timer -= getSendRecommendedInterval();
+			if (m_send_recommended_timer < 0.0f)
+				m_send_recommended_timer = 0.0f;
 			send_recommended = true;
 		}
 

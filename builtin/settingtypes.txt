@@ -169,7 +169,6 @@ enable_esc_dialog (Confirmation dialog before closing) bool true
 
 keymap_forward (Move forward) key SYSTEM_SCANCODE_26|GAMEPAD_AXIS_MINUS_1
 
-#    Will also disable autoforward, when active.
 keymap_backward (Move backward) key SYSTEM_SCANCODE_22|GAMEPAD_AXIS_PLUS_1
 
 keymap_left (Move left) key SYSTEM_SCANCODE_4|GAMEPAD_AXIS_MINUS_0
@@ -192,14 +191,16 @@ keymap_dig (Dig/punch/use) key KEY_LBUTTON|GAMEPAD_AXIS_PLUS_5
 #    (Note: The actual meaning might vary on a per-game basis.)
 keymap_place (Place/use) key KEY_RBUTTON|GAMEPAD_AXIS_PLUS_4
 
-keymap_inventory (Open inventory) key SYSTEM_SCANCODE_12|GAMEPAD_BUTTON_3
+keymap_inventory (Open inventory) key SYSTEM_SCANCODE_8|GAMEPAD_BUTTON_3
 
 #    Key for opening the pause menu in-game.
 #    Pressing the escape key always opens the pause menu.
 keymap_pause (Open pause menu) key GAMEPAD_BUTTON_6
 
 #    Key for moving fast in fast mode.
-keymap_aux1 (Aux1) key SYSTEM_SCANCODE_8|GAMEPAD_BUTTON_2
+#    Key for using something: leaving a vehicle, opening a hatch, and
+#    whatever else the game hangs on it.
+keymap_aux1 (Use) key SYSTEM_SCANCODE_21|GAMEPAD_BUTTON_2
 
 keymap_chat (Open chat) key SYSTEM_SCANCODE_23
 
@@ -229,8 +230,6 @@ keymap_increase_volume (Increase volume) key
 
 keymap_decrease_volume (Decrease volume) key
 
-keymap_autoforward (Toggle automatic forward) key
-
 keymap_cinematic (Toggle cinematic mode) key
 
 keymap_minimap (Toggle minimap) key SYSTEM_SCANCODE_25|GAMEPAD_BUTTON_4
@@ -243,23 +242,29 @@ keymap_drop (Drop item) key SYSTEM_SCANCODE_20|GAMEPAD_BUTTON_12
 
 keymap_zoom (Zoom) key SYSTEM_SCANCODE_29|GAMEPAD_BUTTON_11
 
+#    Key for picking up the block you are looking at.
+#    See https://docs.luanti.org/for-players/controls/
+keymap_pickitem (Pick item) key MOUSE_BUTTON_2
+
 keymap_camera_yaw_left (Look left) key GAMEPAD_AXIS_MINUS_2
 keymap_camera_yaw_right (Look right) key GAMEPAD_AXIS_PLUS_2
 keymap_camera_pitch_up (Look up) key GAMEPAD_AXIS_MINUS_3
 keymap_camera_pitch_down (Look down) key GAMEPAD_AXIS_PLUS_3
 
-keymap_toggle_hud (Toggle HUD) key SYSTEM_SCANCODE_58
+keymap_help (Show controls) key SYSTEM_SCANCODE_58
+
+keymap_toggle_hud (Toggle HUD) key
 
 keymap_toggle_chat (Toggle chat log) key SYSTEM_SCANCODE_59
 
 keymap_console (Toggle large chat console) key SYSTEM_SCANCODE_67
 
-keymap_toggle_fog (Toggle fog) key SYSTEM_SCANCODE_60
+keymap_toggle_fog (Toggle fog) key
 
-keymap_toggle_debug (Toggle debug info) key SYSTEM_SCANCODE_62
+keymap_toggle_debug (Toggle debug info) key SYSTEM_SCANCODE_60
 
 #    Key for toggling the display of the profiler. Used for development.
-keymap_toggle_profiler (Toggle profiler) key SYSTEM_SCANCODE_63
+keymap_toggle_profiler (Toggle profiler) key
 
 #    Key for toggling the display of mapblock boundaries.
 keymap_toggle_block_bounds (Toggle block bounds) key
@@ -2548,10 +2553,6 @@ fast_move (Fast movement) bool false
 #    If enabled together with fly mode, player is able to fly through solid nodes.
 #    This requires the "noclip" privilege on the server.
 noclip (Noclip) bool false
-
-#    Continuous forward movement, toggled by autoforward key.
-#    Press the autoforward key again or the backwards movement to disable.
-continuous_forward (Continuous forward) bool false
 
 #    This can be bound to a key to toggle camera smoothing when looking around.
 #    Useful for recording videos

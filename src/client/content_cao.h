@@ -17,6 +17,7 @@
 #include "client/tile.h"
 #include <cassert>
 #include <memory>
+#include <deque>
 
 namespace scene {
 	class IMeshSceneNode;
@@ -41,6 +42,8 @@ struct SmoothTranslator
 	T val_old;
 	T val_current;
 	T val_target;
+	/// Current rate of change, kept between steps so that it stays continuous
+	T val_rate;
 	f32 anim_time = 0;
 	f32 anim_time_counter = 0;
 	bool aim_is_end = true;
@@ -113,6 +116,46 @@ private:
 	v3f m_rotation;
 	u16 m_hp = 1;
 	SmoothTranslator<v3f> pos_translator;
+	/// Diagnosis only: when the last position packet arrived
+	u64 m_last_packet_ms = 0;
+
+	/*
+		Playback buffer for network motion.
+
+		The server does not send at an even rhythm and cannot be made to: its
+		send timer is compared against a threshold equal to its own step, so
+		the smallest wobble in step time turns one gap into two, and the
+		distance threshold skips further packets for anything moving slowly.
+		Guessing the next gap from the last one therefore guesses wrong on
+		every change, and the error lands on the screen as a change of speed.
+
+		So we stop guessing. Packets are stamped onto a timeline built from
+		the intervals the server reports, and playback runs that timeline a
+		little behind the newest packet. Whatever the packets did on the way
+		here, the motion drawn is the motion the server produced.
+	*/
+	struct MotionSample
+	{
+		/// Stamp on the timeline rebuilt from the server's own intervals
+		f32 time;
+		/// When it actually reached us, by the local clock
+		f32 arrived;
+		v3f pos;
+		v3f rot;
+	};
+
+	std::deque<MotionSample> m_motion;
+	/// Server-timeline stamp of the newest sample
+	f32 m_motion_newest = 0.0f;
+	/// Where playback currently is on that timeline
+	f32 m_motion_clock = 0.0f;
+	bool m_motion_active = false;
+
+	/// Appends a packet to the timeline.
+	void pushMotion(f32 interval, v3f pos, v3f rot);
+	/// Advances playback and returns whether it produced a position.
+	bool playMotion(f32 dtime, v3f *pos, v3f *rot);
+	void resetMotion();
 	SmoothTranslatorWrappedv3f rot_translator;
 
 	// Spritesheet stuff

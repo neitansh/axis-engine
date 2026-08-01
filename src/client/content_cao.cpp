@@ -30,6 +30,8 @@
 #include "mesh.h"
 #include "nodedef.h"
 #include "settings.h"
+#include "porting.h"
+#include <limits>
 #include "tool.h"
 #include "wieldmesh.h"
 
@@ -55,6 +57,8 @@ void SmoothTranslator<T>::init(T current)
 	val_old = current;
 	val_current = current;
 	val_target = current;
+	// A teleport is not movement: start from a standstill
+	val_rate = T();
 	anim_time = 0;
 	anim_time_counter = 0;
 	aim_is_end = true;
@@ -81,15 +85,30 @@ template<typename T>
 void SmoothTranslator<T>::translate(f32 dtime)
 {
 	anim_time_counter = anim_time_counter + dtime;
-	T val_diff = val_target - val_old;
-	f32 moveratio = 1.0;
-	if (anim_time > 0.001)
-		moveratio = anim_time_counter / anim_time;
-	f32 move_end = aim_is_end ? 1.0 : 1.5;
 
-	// Move a bit less than should, to avoid oscillation
-	moveratio = std::min(moveratio * 0.8f, move_end);
-	val_current = val_old + val_diff * moveratio;
+	// Critically damped approach to the target: both the position and the
+	// rate it moves at stay continuous, with no overshoot.
+	//
+	// Running straight at the newest position instead — a fresh straight line
+	// on every packet — keeps the path smooth but makes the *speed* jump:
+	// measured on a rising airship it swung between a standstill and twice
+	// the real speed, ten times a second, because packets never arrive
+	// exactly when they are due. From outside the eye averages that away.
+	// Standing on the deck, with the camera bolted to it, there is nothing to
+	// average: it reads as shaking. Damping spends the jitter on a fraction
+	// of a block of lag instead.
+	const f32 tau = rangelim(anim_time, 0.05f, 0.5f);
+	const f32 omega = 2.0f / tau;
+	const f32 x = omega * dtime;
+
+	// Padé approximation of exp(-x); cheaper and stable for large steps
+	const f32 decay = 1.0f / (1.0f + x + 0.48f * x * x + 0.235f * x * x * x);
+
+	const T offset = val_current - val_target;
+	const T damped = (val_rate + offset * omega) * dtime;
+
+	val_rate = (val_rate - damped * omega) * decay;
+	val_current = val_target + (offset + damped) * decay;
 }
 
 void SmoothTranslatorWrapped::translate(f32 dtime)
@@ -1124,13 +1143,28 @@ void GenericCAO::step(float dtime, ClientEnvironment *env)
 
 			bool is_end_position = moveresult.collides;
 			pos_translator.update(m_position, is_end_position, dtime);
+			pos_translator.translate(dtime);
 		} else {
-			m_position += dtime * m_velocity + 0.5 * dtime * dtime * m_acceleration;
-			m_velocity += dtime * m_acceleration;
-			pos_translator.update(m_position, pos_translator.aim_is_end,
-					pos_translator.anim_time);
+			v3f played_pos;
+			v3f played_rot;
+
+			if (playMotion(dtime, &played_pos, &played_rot)) {
+				// Replaying the server's own timeline: nothing to predict,
+				// nothing to correct, and therefore nothing to jitter.
+				m_position = played_pos;
+				pos_translator.val_current = played_pos;
+				pos_translator.val_target = played_pos;
+				rot_translator.val_current = played_rot;
+				rot_translator.val_target = played_rot;
+				m_rotation = played_rot;
+			} else {
+				m_position += dtime * m_velocity + 0.5 * dtime * dtime * m_acceleration;
+				m_velocity += dtime * m_acceleration;
+				pos_translator.update(m_position, pos_translator.aim_is_end,
+						pos_translator.anim_time);
+				pos_translator.translate(dtime);
+			}
 		}
-		pos_translator.translate(dtime);
 		updateNodePos();
 
 		float moved = lastpos.getDistanceFrom(pos_translator.val_current);
@@ -1586,6 +1620,154 @@ void GenericCAO::applyTrackAnimation(scene::TrackId &&track_id, scene::TrackAnim
 	}
 }
 
+
+/*
+	Network motion playback
+*/
+
+/// How many samples the timeline keeps. Enough to cover a stall of a second
+/// at the usual packet rate, and bounded so a long session cannot grow it.
+static constexpr size_t MOTION_HISTORY = 24;
+
+void GenericCAO::resetMotion()
+{
+	m_motion.clear();
+	m_motion_active = false;
+	m_motion_newest = 0.0f;
+	m_motion_clock = 0.0f;
+}
+
+/// A gap this much larger than the going rate did not come from the network:
+/// the object stood still and the server had nothing to send. There is no path
+/// between the two places to play back, so the timeline starts afresh.
+static constexpr f32 MOTION_PAUSE_FACTOR = 4.0f;
+
+void GenericCAO::pushMotion(f32 interval, v3f pos, v3f rot)
+{
+	const f32 arrived = porting::getTimeMs() / 1000.0f;
+
+	// A pause is not slow movement. Carrying its length into the timeline
+	// would both stretch one step across it and leave the buffer sized for a
+	// gap that will not come again.
+	if (m_motion_active && m_motion.size() >= 2) {
+		const f32 usual = (m_motion.back().time - m_motion.front().time)
+			/ (m_motion.size() - 1);
+
+		if (interval > usual * MOTION_PAUSE_FACTOR)
+			resetMotion();
+	}
+
+	// The interval is what the server measured between this packet and the
+	// previous one, so stamping it forward rebuilds the server's own clock.
+	m_motion_newest += std::max(interval, 0.001f);
+
+	m_motion.push_back({m_motion_newest, arrived, pos, rot});
+
+	while (m_motion.size() > MOTION_HISTORY)
+		m_motion.pop_front();
+
+	if (!m_motion_active) {
+		m_motion_active = true;
+		m_motion_clock = m_motion_newest - interval;
+	}
+}
+
+bool GenericCAO::playMotion(f32 dtime, v3f *pos, v3f *rot)
+{
+	if (!m_motion_active || m_motion.size() < 2)
+		return false;
+
+	m_motion_clock += dtime;
+
+	// How far behind the newest packet playback must sit.
+	//
+	// The depth has to cover how unevenly packets *arrive*, which is not the
+	// same as how unevenly the server *sends*: measured on a live server the
+	// sending was steady to half a millisecond while one packet in five
+	// hundred arrived 130 ms late. Sizing the buffer by the sending rhythm
+	// left it dry exactly on those packets, and a dry buffer is a stall
+	// followed by a catch-up — the small, rare jerk that was left.
+	//
+	// So the depth is the spread between the earliest and latest a packet has
+	// arrived relative to its place on the timeline, plus one interval so
+	// there is always a sample ahead to interpolate towards.
+	f32 offset_min = std::numeric_limits<f32>::max();
+	f32 offset_max = std::numeric_limits<f32>::lowest();
+
+	for (const MotionSample &sample : m_motion) {
+		const f32 offset = sample.arrived - sample.time;
+
+		offset_min = std::min(offset_min, offset);
+		offset_max = std::max(offset_max, offset);
+	}
+
+	const f32 interval = (m_motion.back().time - m_motion.front().time)
+		/ (m_motion.size() - 1);
+
+	const f32 target = (offset_max - offset_min) + interval;
+
+	const f32 behind = m_motion_newest - m_motion_clock;
+
+	// Playback runs on the local clock, which drifts against the server's.
+	// Rather than snapping — a snap is a jump on screen — the clock is run a
+	// few percent fast or slow until the buffer is the right depth again.
+	if (behind > target * 2.0f)
+		m_motion_clock += dtime * 0.05f;
+	else if (behind < target * 0.5f)
+		m_motion_clock -= dtime * 0.05f;
+
+	// A gap far beyond anything normal means the connection stalled; picking
+	// up where the timeline left off would replay old motion in fast forward.
+	if (behind > target * 8.0f) {
+		m_motion_clock = m_motion_newest - target;
+	}
+
+	const MotionSample &oldest = m_motion.front();
+
+	if (m_motion_clock < oldest.time)
+		m_motion_clock = oldest.time;
+
+	for (size_t i = 1; i < m_motion.size(); i++) {
+		const MotionSample &a = m_motion[i - 1];
+		const MotionSample &b = m_motion[i];
+
+		if (m_motion_clock > b.time)
+			continue;
+
+		const f32 span = b.time - a.time;
+		const f32 t = span > 0.0001f ? (m_motion_clock - a.time) / span : 1.0f;
+
+		*pos = a.pos + (b.pos - a.pos) * t;
+
+		// Angles wrap, so each one takes the short way round
+		auto turn = [](f32 from, f32 to, f32 part) {
+			f32 diff = to - from;
+
+			while (diff > 180.0f)
+				diff -= 360.0f;
+			while (diff < -180.0f)
+				diff += 360.0f;
+
+			return from + diff * part;
+		};
+
+		rot->X = turn(a.rot.X, b.rot.X, t);
+		rot->Y = turn(a.rot.Y, b.rot.Y, t);
+		rot->Z = turn(a.rot.Z, b.rot.Z, t);
+
+		return true;
+	}
+
+	// Playback has run past the newest packet: hold the last known state
+	// rather than invent motion beyond it.
+	const MotionSample &last = m_motion.back();
+
+	*pos = last.pos;
+	*rot = last.rot;
+
+	return true;
+}
+
 void GenericCAO::processMessage(const std::string &data)
 {
 	//infostream<<"GenericCAO: Got message"<<std::endl;
@@ -1658,6 +1840,39 @@ void GenericCAO::processMessage(const std::string &data)
 
 		if(getParent() != NULL) // Just in case
 			return;
+
+		// Diagnosis: what arrived, and when. Lets the server's own motion be
+		// reconstructed from the packets and compared against what the
+		// interpolator finally puts on screen — the three candidate causes
+		// (uneven simulation, uneven delivery, interpolation artefact) look
+		// identical at the output and quite different here.
+		if (!m_prop.physical && !getParent() &&
+				g_settings->getBool("debug_platform_ride")) {
+			const u64 now = porting::getTimeMs();
+
+			warningstream << "recv"
+				<< " id=" << m_id
+				<< " t=" << now
+				<< " since=" << (m_last_packet_ms ? now - m_last_packet_ms : 0)
+				<< " y=" << (m_position.Y / BS)
+				<< " vy=" << (m_velocity.Y / BS)
+				<< " interval=" << update_interval
+				<< " end=" << (int)is_end_position
+				<< " render_y=" << (pos_translator.val_current.Y / BS)
+				<< std::endl;
+
+			m_last_packet_ms = now;
+		}
+
+		// Motion goes onto the playback timeline; a teleport clears it, since
+		// there is no path between the two places to play back.
+		const bool buffered = !m_prop.physical && !getParent();
+
+		if (buffered && do_interpolate) {
+			pushMotion(update_interval, m_position, m_rotation);
+		} else if (buffered) {
+			resetMotion();
+		}
 
 		if(do_interpolate)
 		{

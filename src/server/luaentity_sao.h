@@ -91,6 +91,8 @@ private:
 
 	v3f m_last_sent_position;
 	v3f m_last_sent_velocity;
+	// Speed we last told clients to carry the object forward with
+	v3f m_last_sent_smoothing_velocity;
 	v3f m_last_sent_rotation;
 	float m_last_sent_position_timer = 0.0f;
 	float m_last_sent_move_precision = 0.0f;

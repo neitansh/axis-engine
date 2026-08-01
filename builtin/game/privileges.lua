@@ -100,6 +100,14 @@ core.register_privilege("debug", {
 	give_to_singleplayer = false,
 })
 
+-- The seed tells anyone where every structure and ore vein sits, which is
+-- half the game on a fresh world. It is shown on the debug screen only to
+-- those the server trusts with it.
+core.register_privilege("seed", {
+	description = S("Can see the world seed on the debug screen"),
+	give_to_singleplayer = true,
+})
+
 core.register_can_bypass_userlimit(function(name, ip)
 	local privs = core.get_player_privs(name)
 	return privs["server"] or privs["ban"] or privs["privs"] or privs["password"]

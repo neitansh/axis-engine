@@ -46,7 +46,6 @@ void MyEventReceiver::reloadKeybindings()
 	keybindings[KeyType::ESC] = getKeySetting("keymap_pause");
 	keybindings[KeyType::ESC].keys.emplace_back(EscapeKey);
 
-	keybindings[KeyType::AUTOFORWARD] = getKeySetting("keymap_autoforward");
 
 	keybindings[KeyType::DROP] = getKeySetting("keymap_drop");
 	keybindings[KeyType::INVENTORY] = getKeySetting("keymap_inventory");
@@ -67,6 +66,7 @@ void MyEventReceiver::reloadKeybindings()
 	keybindings[KeyType::CINEMATIC] = getKeySetting("keymap_cinematic");
 	keybindings[KeyType::SCREENSHOT] = getKeySetting("keymap_screenshot");
 	keybindings[KeyType::TOGGLE_BLOCK_BOUNDS] = getKeySetting("keymap_toggle_block_bounds");
+	keybindings[KeyType::HELP] = getKeySetting("keymap_help");
 	keybindings[KeyType::TOGGLE_HUD] = getKeySetting("keymap_toggle_hud");
 	keybindings[KeyType::TOGGLE_CHAT] = getKeySetting("keymap_toggle_chat");
 	keybindings[KeyType::TOGGLE_FOG] = getKeySetting("keymap_toggle_fog");
@@ -80,6 +80,7 @@ void MyEventReceiver::reloadKeybindings()
 			getKeySetting("keymap_decrease_viewing_range_min");
 	keybindings[KeyType::RANGESELECT] = getKeySetting("keymap_rangeselect");
 	keybindings[KeyType::ZOOM] = getKeySetting("keymap_zoom");
+	keybindings[KeyType::PICKITEM] = getKeySetting("keymap_pickitem");
 
 	keybindings[KeyType::CAMERA_YAW_LEFT] = getKeySetting("keymap_camera_yaw_left");
 	keybindings[KeyType::CAMERA_YAW_RIGHT] = getKeySetting("keymap_camera_yaw_right");

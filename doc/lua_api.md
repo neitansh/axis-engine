@@ -9257,8 +9257,12 @@ You **must not** mix names and track numbers to refer to the same animation.
 * `get_formspec_prepend()`: returns a formspec string.
 * `get_player_control()`: returns table with player input
     * The table contains the following boolean fields representing the pressed
-      keys: `up`, `down`, `left`, `right`, `jump`, `aux1`, `sneak`, `dig`,
-      `place`, `sprint`, `LMB`, `RMB` and `zoom`.
+      keys: `up`, `down`, `left`, `right`, `jump`, `aux1`, `use`, `sneak`,
+      `dig`, `place`, `sprint`, `pickitem`, `LMB`, `RMB` and `zoom`.
+    * `use` is an alias of `aux1` under a name that says what the key is for.
+    * `pickitem` is the "pick item" key, bound to the middle mouse button by
+      default. The engine only reports it; what to put in the hand is up to
+      the game.
     * The fields `LMB` and `RMB` are equal to `dig` and `place` respectively,
       and exist only to preserve backwards compatibility.
     * The table also contains the fields `movement_x` and `movement_y`.
@@ -9282,6 +9286,7 @@ You **must not** mix names and track numbers to refer to the same animation.
         * 8 - place
         * 9 - zoom
         * 10 - sprint
+        * 11 - pickitem
     * Returns `0` (no bits set) if the object is not a player.
 * `set_physics_override(override_table)`
     * Overrides the physics attributes of the player

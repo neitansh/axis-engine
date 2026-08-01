@@ -22,6 +22,8 @@
 #include "itemdef.h"
 #include "gameparams.h"
 #include "gettext.h"
+#include <locale>
+#include <sstream>
 #include "gui/guiChatConsole.h"
 #include "texturesource.h"
 #include "gui/mainmenumanager.h"
@@ -1558,14 +1560,9 @@ void Game::processKeyInput()
 	{
 		dropSelectedItem(isKeyDown(KeyType::SNEAK));
 	}
-	else if (wasKeyDown(KeyType::AUTOFORWARD))
+	else if (wasKeyDown(KeyType::HELP))
 	{
-		toggleAutoforward();
-	}
-	else if (wasKeyDown(KeyType::BACKWARD))
-	{
-		if (g_settings->getBool("continuous_forward"))
-			toggleAutoforward();
+		showHelpMenu();
 	}
 	else if (wasKeyDown(KeyType::INVENTORY))
 	{
@@ -1984,18 +1981,6 @@ void Game::toggleBlockBounds()
 	}
 }
 
-// Autoforward by toggling continuous forward.
-void Game::toggleAutoforward()
-{
-	bool autorun_enabled = !g_settings->getBool("continuous_forward");
-	g_settings->set("continuous_forward", bool_to_cstr(autorun_enabled));
-
-	if (autorun_enabled)
-		m_game_ui->showTranslatedStatusText("Automatic forward enabled");
-	else
-		m_game_ui->showTranslatedStatusText("Automatic forward disabled");
-}
-
 void Game::toggleMinimap(bool shift_pressed)
 {
 	if (!mapper || !m_game_ui->m_flags.show_hud || !g_settings->getBool("enable_minimap"))
@@ -2038,6 +2023,78 @@ void Game::toggleFog()
 		m_game_ui->showTranslatedStatusText("Fog disabled");
 }
 
+// Список управления по F1. Клавиши читаются из настроек, поэтому окно
+// показывает то, что у игрока на самом деле, а не то, что было в поставке.
+void Game::showHelpMenu()
+{
+	static const struct
+	{
+		const char *setting;
+		const char *label;
+	} rows[] = {
+		{"keymap_forward", N_("Move forward")},
+		{"keymap_backward", N_("Move backward")},
+		{"keymap_left", N_("Move left")},
+		{"keymap_right", N_("Move right")},
+		{"keymap_jump", N_("Jump")},
+		{"keymap_sneak", N_("Sneak")},
+		{"keymap_sprint", N_("Sprint")},
+		{"keymap_dig", N_("Dig/punch/use")},
+		{"keymap_place", N_("Place/use")},
+		{"keymap_pickitem", N_("Pick item")},
+		{"keymap_aux1", N_("Use")},
+		{"keymap_inventory", N_("Open inventory")},
+		{"keymap_drop", N_("Drop item")},
+		{"keymap_hotbar_previous", N_("Previous item")},
+		{"keymap_hotbar_next", N_("Next item")},
+		{"keymap_zoom", N_("Zoom")},
+		{"keymap_chat", N_("Chat")},
+		{"keymap_cmd", N_("Command")},
+		{"keymap_minimap", N_("Minimap")},
+		{"keymap_screenshot", N_("Screenshot")},
+		{"keymap_fullscreen", N_("Fullscreen")},
+	};
+
+	const int half = (ARRLEN(rows) + 1) / 2;
+
+	std::ostringstream os(std::ios::binary);
+
+	// Координаты формы пишутся числами с точкой: под чужой локалью поток
+	// поставил бы запятую, и разбор формы развалился бы.
+	os.imbue(std::locale::classic());
+
+	os << "formspec_version[4]"
+	   << "size[13,10.5]"
+	   << "label[0.6,0.8;" << gettext("Controls") << "]"
+	   << "box[0.6,1.1;11.8,0.05;#4a4a4a]";
+
+	for (size_t i = 0; i < ARRLEN(rows); i++) {
+		const float x = i < (size_t)half ? 0.6f : 6.9f;
+		const float y = 1.8f + 0.42f * (i < (size_t)half ? i : i - half);
+
+		std::string bound = g_settings->exists(rows[i].setting)
+			? g_settings->get(rows[i].setting) : "";
+
+		// В настройке может стоять несколько кнопок через «|»: клавиша и
+		// кнопка геймпада. Игроку показываем первую, она с клавиатуры.
+		const size_t bar = bound.find('|');
+		if (bar != std::string::npos)
+			bound.resize(bar);
+
+		const std::string key = bound.empty()
+			? std::string(gettext("not bound")) : KeyPress(bound).name();
+
+		os << "label[" << x << "," << y << ";"
+		   << gettext(rows[i].label) << "]"
+		   << "label[" << (x + 4.0f) << "," << y << ";" << key << "]";
+	}
+
+	os << "label[0.6,9.4;" << gettext("Keys can be changed in the settings.") << "]"
+	   << "button_exit[10.4,9.1;2,0.8;close;" << gettext("Close") << "]";
+
+	m_game_formspec.showPauseMenuFormSpec(os.str(), "MT_HELP");
+}
+
 void Game::toggleDebug()
 {
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
@@ -2057,7 +2114,17 @@ void Game::toggleDebug()
 	// otherwise the Minimal mode is used.
 
 	auto &state = m_flags.debug_state;
-	state = (state + 1) % 5;
+
+	// Игроку от отладки нужны координаты и частота кадров, а не график
+	// профилировщика с сеткой поверх мира. Полный круг остаётся в отладочной
+	// сборке и у того, кому выдано право «debug».
+#ifdef NDEBUG
+	const int states = has_debug ? 5 : 2;
+#else
+	const int states = 5;
+#endif
+
+	state = (state + 1) % states;
 	if (state >= 3 && !has_debug)
 		state = 0;
 
@@ -2314,22 +2381,13 @@ void Game::updatePlayerControl(const CameraOrientation &cam)
 		getTogglableKeyState(KeyType::AUX1, m_cache_toggle_aux1_key, player->control.aux1),
 		getTogglableKeyState(KeyType::SNEAK, allow_sneak_toggle, player->control.sneak),
 		isKeyDown(KeyType::ZOOM),
+		isKeyDown(KeyType::PICKITEM),
 		isKeyDown(KeyType::DIG),
 		isKeyDown(KeyType::PLACE),
 		cam.camera_pitch,
 		cam.camera_yaw,
 		isKeyDown(KeyType::SPRINT));
 	control.setMovementFromKeys();
-
-	// autoforward if set: move at maximum speed
-	if (player->getPlayerSettings().continuous_forward &&
-		client->activeObjectsReceived() && !player->isDead())
-	{
-		control.movement_speed = 1.0f;
-		// sideways movement only
-		float dx = std::sin(control.movement_direction);
-		control.movement_direction = std::atan2(dx, 1.0f);
-	}
 
 	/* For touch, simulate holding down AUX1 (fast move) if the user has
 	 * the fast_move setting toggled on. If there is an aux1 key defined for

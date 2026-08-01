@@ -1899,6 +1899,10 @@ int ObjectRef::l_get_player_control(lua_State *L)
 	lua_setfield(L, -2, "jump");
 	lua_pushboolean(L, control.aux1);
 	lua_setfield(L, -2, "aux1");
+	// Та же кнопка под понятным именем: «использовать». Старое имя aux1
+	// остаётся, чтобы не ломать уже написанные моды.
+	lua_pushboolean(L, control.aux1);
+	lua_setfield(L, -2, "use");
 	lua_pushboolean(L, control.sneak);
 	lua_setfield(L, -2, "sneak");
 	lua_pushboolean(L, control.sprint);
@@ -1921,6 +1925,8 @@ int ObjectRef::l_get_player_control(lua_State *L)
 	lua_setfield(L, -2, "RMB");
 	lua_pushboolean(L, control.zoom);
 	lua_setfield(L, -2, "zoom");
+	lua_pushboolean(L, control.pickitem);
+	lua_setfield(L, -2, "pickitem");
 	return 1;
 }
 

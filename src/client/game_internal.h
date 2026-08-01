@@ -166,10 +166,10 @@ protected:
 	void toggleNoClip();
 	void toggleCinematic();
 	void toggleBlockBounds();
-	void toggleAutoforward();
 
 	void toggleMinimap(bool shift_pressed);
 	void toggleFog();
+	void showHelpMenu();
 	void toggleDebug();
 	void toggleUpdateCamera();
 

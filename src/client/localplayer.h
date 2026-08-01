@@ -22,7 +22,6 @@ struct PlayerSettings
 	bool free_move = false;
 	bool pitch_move = false;
 	bool fast_move = false;
-	bool continuous_forward = false;
 	bool always_fly_fast = false;
 	bool aux1_descends = false;
 	bool noclip = false;
@@ -60,6 +59,9 @@ public:
 	f32 gravity = 0; // total downwards acceleration
 
 	void move(f32 dtime, Environment *env);
+	void carryWithPlatform(Environment *env, v3f &position, f32 dtime);
+	void rememberPlatform(const CollisionMoveResult &result);
+
 	void move(f32 dtime, Environment *env,
 			std::vector<CollisionInfo> *collision_info);
 
@@ -177,6 +179,12 @@ private:
 	// Stores the top bounding box of m_sneak_node
 	aabb3f m_sneak_node_bb_top = aabb3f(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 	// Whether the player is allowed to sneak
+	// What the player stands on when it is a moving object, and where it stood
+	// last step. Zero means they stand on ordinary nodes.
+	u16 m_platform_id = 0;
+	v3f m_platform_position;
+	bool m_platform_logging = false;
+
 	bool m_sneak_node_exists = false;
 	// Whether a "sneak ladder" structure is detected at the players pos
 	// see detectSneakLadder() in the .cpp for more info (always false if disabled)

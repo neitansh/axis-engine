@@ -21,7 +21,14 @@
 #include "profiler.h"
 #include "renderingengine.h"
 #include "version.h"
+#include "itemdef.h"
+#include "util/numeric.h"
+#include "porting.h"
 #include <IGUIFont.h>
+#include <IGUIStaticText.h>
+#include <algorithm>
+#include <cmath>
+#include <locale>
 
 inline static const char *yawToDirectionString(int yaw)
 {
@@ -32,6 +39,96 @@ inline static const char *yawToDirectionString(int yaw)
 	yaw = (yaw + 45) % 360 / 90;
 
 	return direction[yaw];
+}
+
+/*
+	The debug screen is read by ordinary players, not only by engine
+	developers: it is the one place that answers "where am I", "is it dark
+	enough for monsters here" and "what am I standing on". So it names blocks
+	the way the game names them, spells the numbers out, and keeps anything
+	that gives an unfair advantage behind a privilege.
+*/
+
+/// Which way the player faces, in words rather than in axis names.
+inline static const char *yawToWords(int yaw)
+{
+	static const char *direction[4] = {
+		N_("north"), N_("west"), N_("south"), N_("east")};
+
+	yaw = wrapDegrees_0_360(yaw);
+
+	return direction[(yaw + 45) % 360 / 90];
+}
+
+/// The axis the player faces, for those who build by coordinates.
+inline static const char *yawToAxis(int yaw)
+{
+	static const char *axis[4] = {"+Z", "-X", "-Z", "+X"};
+
+	yaw = wrapDegrees_0_360(yaw);
+
+	return axis[(yaw + 45) % 360 / 90];
+}
+
+/// The name of a block as the player knows it, not its technical id.
+static std::string nodeLabel(Client *client, const MapNode &n)
+{
+	const ContentFeatures &f = client->getNodeDefManager()->get(n);
+
+	if (f.name == "air")
+		return gettext("nothing");
+	if (f.name == "unknown")
+		return gettext("unknown block");
+
+	const ItemDefinition &item = client->getItemDefManager()->get(f.name);
+
+	std::string label = item.short_description.empty()
+		? item.description : item.short_description;
+
+	// A description may run over several lines; the first one names the thing
+	const size_t line_end = label.find('\n');
+	if (line_end != std::string::npos)
+		label.resize(line_end);
+
+	return label.empty() ? f.name : label;
+}
+
+/// Time of day as a clock reading plus the part of the day it belongs to.
+static std::string timeOfDayText(u32 tod)
+{
+	const u32 hours = tod / 1000;
+	const u32 minutes = (tod % 1000) * 60 / 1000;
+
+	const char *part;
+	if (hours < 5)
+		part = N_("night");
+	else if (hours < 11)
+		part = N_("morning");
+	else if (hours < 17)
+		part = N_("daytime");
+	else if (hours < 20)
+		part = N_("evening");
+	else
+		part = N_("night");
+
+	char buf[16];
+	porting::mt_snprintf(buf, sizeof(buf), "%02u:%02u", hours, minutes);
+
+	return std::string(buf) + ", " + gettext(part);
+}
+
+/// Shrinks a debug panel to the text it holds and puts a dim panel behind it,
+/// so the lines stay readable over bright sky as well as over dark caves.
+static void fitDebugPanel(gui::IGUIStaticText *text, s32 top, const v2u32 &screensize)
+{
+	const s32 width = std::min<s32>(text->getTextWidth() + 12,
+			(s32)screensize.X - 10);
+	const s32 height = text->getTextHeight() + 8;
+
+	text->setRelativePosition(core::rect<s32>(5, top, 5 + width, top + height));
+	text->setBackgroundColor(video::SColor(140, 0, 0, 0));
+	text->setDrawBackground(true);
+	text->setTextAlignment(gui::EGUIA_UPPERLEFT, gui::EGUIA_CENTER);
 }
 
 void GameUI::init()
@@ -94,25 +191,33 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 		m_drawtime_avg += 0.05f * (stats.drawtime / 1000);
 
 		std::ostringstream os(std::ios_base::binary);
+		os.imbue(std::locale::classic());
 		os << std::fixed
-			<< PROJECT_NAME_C " " << g_version_hash
-			<< " | FPS: " << fps
+			<< PROJECT_NAME_C " " << g_version_hash << "\n"
+			<< gettext("Frames per second") << ": " << fps
 			<< std::setprecision(m_drawtime_avg < 10 ? 1 : 0)
-			<< " | drawtime: " << m_drawtime_avg << "ms"
+			<< "   " << gettext("Drawing") << ": " << m_drawtime_avg << " "
+			<< gettext("ms")
 			<< std::setprecision(1)
-			<< " | dtime jitter: "
-			<< (stats.dtime_jitter.max_fraction * 100.0f) << "%"
-			<< std::setprecision(1)
-			<< " | view range: "
-			<< (draw_control->range_all ? "All" : itos(draw_control->wanted_range))
-			<< std::setprecision(2)
-			<< " | RTT: " << (client->getRTT() * 1000.0f) << "ms";
+			<< "   " << gettext("Smoothness") << ": "
+			<< (100.0f - stats.dtime_jitter.max_fraction * 100.0f) << "%"
+			<< "   " << gettext("Seen distance") << ": "
+			<< (draw_control->range_all ? std::string(gettext("no limit"))
+				: (itos(draw_control->wanted_range) + " " + gettext("blocks")))
+			<< std::setprecision(0)
+			<< "   " << gettext("Ping to server") << ": "
+			<< (client->getRTT() * 1000.0f) << " " << gettext("ms");
 
+		// Text over open sky or snow is unreadable without something behind
+		// it. The panel is fitted to the text, so it never covers more of the
+		// view than the lines actually need.
 		m_guitext->setRelativePosition(core::rect<s32>(5, 5, screensize.X, screensize.Y));
 
 		setStaticText(m_guitext, utf8_to_wide(os.str()));
 
-		minimal_debug_height = m_guitext->getTextHeight();
+		fitDebugPanel(m_guitext, 5, screensize);
+
+		minimal_debug_height = m_guitext->getRelativePosition().getHeight() + 2;
 	}
 
 	// Finally set the guitext visible depending on the flag
@@ -120,37 +225,100 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 
 	// Basic debug text also shows info that might give a gameplay advantage
 	if (m_flags.show_basic_debug) {
-		v3f player_position = player->getPosition();
+		ClientMap &map = client->getEnv().getClientMap();
+		const NodeDefManager *nodedef = client->getNodeDefManager();
+
+		const v3f player_position = player->getPosition();
+		const v3s16 player_node = floatToInt(player_position, BS);
 
 		std::ostringstream os(std::ios_base::binary);
-		os << std::setprecision(1) << std::fixed
-			<< "pos: (" << (player_position.X / BS)
-			<< ", " << (player_position.Y / BS)
-			<< ", " << (player_position.Z / BS)
-			<< ") | yaw: " << (wrapDegrees_0_360(cam.camera_yaw)) << "° "
-			<< yawToDirectionString(cam.camera_yaw)
-			<< " | pitch: " << (-wrapDegrees_180(cam.camera_pitch)) << "°"
-			<< " | seed: " << ((u64)client->getMapSeed());
+		os.imbue(std::locale::classic());
+		os << std::setprecision(1) << std::fixed;
 
+		// Where the player stands, and which way they look
+		os << gettext("You are at") << ": "
+			<< (player_position.X / BS) << ", "
+			<< (player_position.Y / BS) << ", "
+			<< (player_position.Z / BS)
+			<< "   " << gettext("Facing") << ": "
+			<< gettext(yawToWords(cam.camera_yaw))
+			<< " (" << yawToAxis(cam.camera_yaw) << ", "
+			<< (wrapDegrees_0_360(cam.camera_yaw)) << "°, "
+			<< gettext("tilt") << " " << (-wrapDegrees_180(cam.camera_pitch)) << "°)";
+
+		// How fast, and how fast up or down: falling and flying both read here
+		const v3f speed = player->getSpeed() / BS;
+		const float ground_speed = v2f(speed.X, speed.Z).getLength();
+
+		os << "\n" << gettext("Speed") << ": " << ground_speed << " "
+			<< gettext("blocks per second");
+
+		if (std::fabs(speed.Y) >= 0.1f) {
+			os << " (" << (speed.Y > 0 ? gettext("going up") : gettext("going down")) << " "
+				<< std::fabs(speed.Y) << ")";
+		}
+
+		os << "   " << gettext("Time") << ": "
+			<< timeOfDayText(client->getEnv().getTimeOfDay());
+
+		// Light decides whether monsters can appear, so it is spelled out
+		{
+			const MapNode here = map.getNode(player_node);
+
+			if (here.getContent() != CONTENT_IGNORE) {
+				const ContentLightingFlags f = nodedef->getLightingFlags(here);
+				const u8 day = here.getLight(LIGHTBANK_DAY, f);
+				const u8 night = here.getLight(LIGHTBANK_NIGHT, f);
+				const u8 now = here.getLightBlend(
+					client->getEnv().getDayNightRatio(), f);
+
+				os << "\n" << gettext("Light here") << ": " << (u32)now
+					<< "/15 ("
+					<< gettext("from the sky") << " " << (u32)day << ", "
+					<< gettext("from lamps") << " " << (u32)night << ")";
+			}
+		}
+
+		// What holds the player up
+		{
+			const MapNode below = map.getNode(player_node + v3s16(0, -1, 0));
+
+			if (below.getContent() != CONTENT_IGNORE)
+				os << "   " << gettext("Standing on") << ": "
+					<< nodeLabel(client, below);
+		}
+
+		// What the crosshair rests on
 		if (pointed_old.type == POINTEDTHING_NODE) {
-			ClientMap &map = client->getEnv().getClientMap();
-			const NodeDefManager *nodedef = client->getNodeDefManager();
-			MapNode n = map.getNode(pointed_old.node_undersurface);
+			const v3s16 at = pointed_old.node_undersurface;
+			const MapNode n = map.getNode(at);
 
 			if (n.getContent() != CONTENT_IGNORE) {
-				if (nodedef->get(n).name == "unknown") {
-					os << ", pointed: <unknown node>";
-				} else {
-					os << ", pointed: " << nodedef->get(n).name;
+				os << "\n" << gettext("Looking at") << ": "
+					<< nodeLabel(client, n)
+					<< " (" << at.X << ", " << at.Y << ", " << at.Z << ")";
+
+				// Technical details are for those who work on the game
+				if (client->checkPrivilege("debug")) {
+					os << "   " << nodedef->get(n).name
+						<< ", param2: " << (u32)n.getParam2();
 				}
-				os << ", param2: " << (u64) n.getParam2();
 			}
+		}
+
+		// The world seed lets anyone look up where every structure and ore
+		// vein sits. It stays hidden unless the server hands out the right.
+		if (client->checkPrivilege("seed")) {
+			os << "\n" << gettext("World seed") << ": "
+				<< ((u64)client->getMapSeed());
 		}
 
 		m_guitext2->setRelativePosition(core::rect<s32>(5, 5 + minimal_debug_height,
 				screensize.X, screensize.Y));
 
 		setStaticText(m_guitext2, utf8_to_wide(os.str()).c_str());
+
+		fitDebugPanel(m_guitext2, 5 + minimal_debug_height, screensize);
 	}
 
 	m_guitext2->setVisible(m_flags.show_basic_debug);
@@ -199,10 +367,12 @@ void GameUI::updateChatSize()
 	// Update gui element size and position
 	s32 chat_y = 5;
 
+	// The debug panels carry padding around their text, so the chat has to
+	// step around the panel, not around the bare lines.
 	if (m_flags.show_minimal_debug)
-		chat_y += m_guitext->getTextHeight();
+		chat_y += m_guitext->getRelativePosition().getHeight() + 2;
 	if (m_flags.show_basic_debug)
-		chat_y += m_guitext2->getTextHeight();
+		chat_y += m_guitext2->getRelativePosition().getHeight() + 2;
 
 	const v2u32 window_size = RenderingEngine::getWindowSize();
 

@@ -8143,3 +8143,132 @@ msgstr "Официальный сервер the Axis, Россия"
 
 msgid "Official server of the Axis, Europe"
 msgstr "Официальный сервер the Axis, Европа"
+
+msgid "Frames per second"
+msgstr "Кадров в секунду"
+
+msgid "Drawing"
+msgstr "Отрисовка"
+
+msgid "ms"
+msgstr "мс"
+
+msgid "Smoothness"
+msgstr "Плавность"
+
+msgid "Seen distance"
+msgstr "Видно на"
+
+msgid "no limit"
+msgstr "без ограничения"
+
+msgid "blocks"
+msgstr "блоков"
+
+msgid "Ping to server"
+msgstr "Задержка до сервера"
+
+msgid "You are at"
+msgstr "Вы здесь"
+
+msgid "Facing"
+msgstr "Смотрите на"
+
+msgid "north"
+msgstr "север"
+
+msgid "west"
+msgstr "запад"
+
+msgid "south"
+msgstr "юг"
+
+msgid "east"
+msgstr "восток"
+
+msgid "tilt"
+msgstr "наклон"
+
+msgid "Speed"
+msgstr "Скорость"
+
+msgid "blocks per second"
+msgstr "блоков в секунду"
+
+msgid "going up"
+msgstr "вверх"
+
+msgid "going down"
+msgstr "вниз"
+
+msgid "Time"
+msgstr "Время"
+
+msgid "night"
+msgstr "ночь"
+
+msgid "morning"
+msgstr "утро"
+
+msgid "daytime"
+msgstr "день"
+
+msgid "evening"
+msgstr "вечер"
+
+msgid "Light here"
+msgstr "Света здесь"
+
+msgid "from the sky"
+msgstr "с неба"
+
+msgid "from lamps"
+msgstr "от ламп"
+
+msgid "Standing on"
+msgstr "Под ногами"
+
+msgid "Looking at"
+msgstr "Перед вами"
+
+msgid "World seed"
+msgstr "Зерно мира"
+
+msgid "nothing"
+msgstr "ничего"
+
+msgid "unknown block"
+msgstr "неизвестный блок"
+
+msgid "not bound"
+msgstr "не назначено"
+
+msgid "Use"
+msgstr "Использовать"
+
+msgid "Pick item"
+msgstr "Взять блок"
+
+msgid "Sprint"
+msgstr "Бежать"
+
+msgid "Previous item"
+msgstr "Предыдущий предмет"
+
+msgid "Next item"
+msgstr "Следующий предмет"
+
+msgid "Minimap"
+msgstr "Мини-карта"
+
+msgid "Fullscreen"
+msgstr "Во весь экран"
+
+msgid "Keys can be changed in the settings."
+msgstr "Клавиши можно поменять в настройках."
+
+msgid "Can see the world seed on the debug screen"
+msgstr "Может видеть зерно мира на экране отладки"
+
+msgid "Show controls"
+msgstr "Показать управление"

@@ -85,6 +85,31 @@ void ClientEnvironment::step(float dtime)
 	std::vector<CollisionInfo> player_collisions;
 
 	/*
+		Step active objects before the player moves.
+
+		The player collides with objects, so they must already be where this
+		frame puts them. Stepping them afterwards left the player standing on
+		last frame's deck: with even frames nobody notices, but the moment
+		frame time wavers the deck and the rider disagree by one frame's worth
+		of movement, and a rising airship shakes underfoot while looking
+		perfectly smooth from the outside.
+	*/
+	{
+		const u32 ratio = getDayNightRatio();
+		const bool update_lighting =
+			m_active_object_light_update_interval.step(dtime, 0.21);
+
+		auto cb_state = [this, dtime, update_lighting, ratio] (ClientActiveObject *cao) {
+			cao->step(dtime, this);
+
+			if (update_lighting)
+				cao->updateLight(ratio);
+		};
+
+		m_ao_manager.step(dtime, cb_state);
+	}
+
+	/*
 		Get the speed the player is going
 	*/
 	bool is_climbing = lplayer->is_climbing;
@@ -230,6 +255,7 @@ void ClientEnvironment::step(float dtime)
 
 	// Update lighting on local player (used for wield item)
 	u32 day_night_ratio = getDayNightRatio();
+	// Objects have already been stepped, above, before the player moved
 	{
 		// Get node at head
 
@@ -248,17 +274,6 @@ void ClientEnvironment::step(float dtime)
 	/*
 		Step active objects and update lighting of them
 	*/
-
-	bool update_lighting = m_active_object_light_update_interval.step(dtime, 0.21);
-	auto cb_state = [this, dtime, update_lighting, day_night_ratio] (ClientActiveObject *cao) {
-		// Step object
-		cao->step(dtime, this);
-
-		if (update_lighting)
-			cao->updateLight(day_night_ratio);
-	};
-
-	m_ao_manager.step(dtime, cb_state);
 
 	/*
 		Step and handle simple objects

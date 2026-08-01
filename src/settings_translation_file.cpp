@@ -45,7 +45,6 @@ fake_function() {
 	gettext("Keybindings");
 	gettext("Move forward");
 	gettext("Move backward");
-	gettext("Will also disable autoforward, when active.");
 	gettext("Move left");
 	gettext("Move right");
 	gettext("Jump");
@@ -56,7 +55,9 @@ fake_function() {
 	gettext("Place/use");
 	gettext("Key for placing an item/block or for using something.\n(Note: The actual meaning might vary on a per-game basis.)");
 	gettext("Open inventory");
-	gettext("Aux1");
+	gettext("Use");
+	gettext("Key for using something: leaving a vehicle, opening a hatch, and\nwhatever else the game hangs on it.");
+	gettext("Show controls");
 	gettext("Key for moving fast in fast mode.");
 	gettext("Open chat");
 	gettext("Command");
@@ -73,7 +74,6 @@ fake_function() {
 	gettext("Mute");
 	gettext("Increase volume");
 	gettext("Decrease volume");
-	gettext("Toggle automatic forward");
 	gettext("Toggle cinematic mode");
 	gettext("Toggle minimap");
 	gettext("Screenshot");

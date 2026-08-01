@@ -118,6 +118,8 @@ void set_default_settings()
 	settings->setDefault("client_unload_unused_data_timeout", "600");
 	settings->setDefault("client_mapblock_limit", "10000"); // about 160 MB
 	settings->setDefault("enable_build_where_you_stand", "false");
+	// Writes what the player and the deck under them do each step
+	settings->setDefault("debug_platform_ride", "false");
 	settings->setDefault("curl_timeout", "20000");
 	settings->setDefault("secure.curl_proxy", "");
 	settings->setDefault("curl_parallel_limit", "8");
@@ -135,7 +137,6 @@ void set_default_settings()
 
 	// Keymap
 	settings->setDefault("keymap_forward", "SYSTEM_SCANCODE_26|GAMEPAD_AXIS_MINUS_1"); // KEY_KEY_W|Left Joystick
-	settings->setDefault("keymap_autoforward", "");
 	settings->setDefault("keymap_backward", "SYSTEM_SCANCODE_22|GAMEPAD_AXIS_PLUS_1"); // KEY_KEY_S|Left Joystick
 	settings->setDefault("keymap_left", "SYSTEM_SCANCODE_4|GAMEPAD_AXIS_MINUS_0"); // KEY_KEY_A|Left Joystick
 	settings->setDefault("keymap_right", "SYSTEM_SCANCODE_7|GAMEPAD_AXIS_PLUS_0"); // KEY_KEY_D|Left Joystick
@@ -146,9 +147,10 @@ void set_default_settings()
 	settings->setDefault("keymap_place", "MOUSE_BUTTON_3|GAMEPAD_AXIS_PLUS_4"); // RMB|Gamepad LT
 	settings->setDefault("keymap_drop", "SYSTEM_SCANCODE_20|GAMEPAD_BUTTON_12"); // KEY_KEY_Q|D-Pad Down
 	settings->setDefault("keymap_zoom", "SYSTEM_SCANCODE_29|GAMEPAD_BUTTON_11"); // KEY_KEY_Z|D-Pad Up
-	settings->setDefault("keymap_inventory", "SYSTEM_SCANCODE_12|GAMEPAD_BUTTON_3"); // KEY_KEY_I|Gamepad North
+	settings->setDefault("keymap_pickitem", "MOUSE_BUTTON_2"); // MMB
+	settings->setDefault("keymap_inventory", "SYSTEM_SCANCODE_8|GAMEPAD_BUTTON_3"); // KEY_KEY_E|Gamepad North
 	settings->setDefault("keymap_pause", "GAMEPAD_BUTTON_6"); // Gamepad Start
-	settings->setDefault("keymap_aux1", "SYSTEM_SCANCODE_8|GAMEPAD_BUTTON_2"); // KEY_KEY_E|Gamepad West
+	settings->setDefault("keymap_aux1", "SYSTEM_SCANCODE_21|GAMEPAD_BUTTON_2"); // KEY_KEY_R|Gamepad West
 	settings->setDefault("keymap_chat", "SYSTEM_SCANCODE_23"); // KEY_KEY_T
 	settings->setDefault("keymap_cmd", "SYSTEM_SCANCODE_56"); // /
 	settings->setDefault("keymap_cmd_local", "SYSTEM_SCANCODE_55"); // .
@@ -156,7 +158,7 @@ void set_default_settings()
 	settings->setDefault("keymap_console", "SYSTEM_SCANCODE_67"); // KEY_F10
 
 	// see <https://github.com/luanti-org/luanti/issues/12792>
-	settings->setDefault("keymap_rangeselect", has_touch ? "SYSTEM_SCANCODE_21" : ""); // KEY_KEY_R
+	settings->setDefault("keymap_rangeselect", "");
 
 	settings->setDefault("keymap_freemove", "SYSTEM_SCANCODE_14|GAMEPAD_BUTTON_13"); // KEY_KEY_K|D-Pad Left
 	settings->setDefault("keymap_pitchmove", "");
@@ -169,16 +171,22 @@ void set_default_settings()
 	settings->setDefault("keymap_decrease_volume", "");
 	settings->setDefault("keymap_cinematic", "");
 	settings->setDefault("keymap_toggle_block_bounds", "");
-	settings->setDefault("keymap_toggle_hud", "SYSTEM_SCANCODE_58"); // KEY_F1
+	settings->setDefault("keymap_help", "SYSTEM_SCANCODE_58"); // KEY_F1
 	settings->setDefault("keymap_toggle_chat", "SYSTEM_SCANCODE_59"); // KEY_F2
-	settings->setDefault("keymap_toggle_fog", "SYSTEM_SCANCODE_60"); // KEY_F3
+	settings->setDefault("keymap_toggle_debug", "SYSTEM_SCANCODE_60"); // KEY_F3
+	// Инструменты разработчика. В сборке для игроков клавиш у них нет:
+	// случайное нажатие F5 или F6 не должно превращать экран в отладочный.
 #ifndef NDEBUG
 	settings->setDefault("keymap_toggle_update_camera", "SYSTEM_SCANCODE_61"); // KEY_F4
+	settings->setDefault("keymap_toggle_hud", "SYSTEM_SCANCODE_62"); // KEY_F5
+	settings->setDefault("keymap_toggle_profiler", "SYSTEM_SCANCODE_63"); // KEY_F6
+	settings->setDefault("keymap_toggle_fog", "SYSTEM_SCANCODE_64"); // KEY_F7
 #else
 	settings->setDefault("keymap_toggle_update_camera", "");
+	settings->setDefault("keymap_toggle_hud", "");
+	settings->setDefault("keymap_toggle_profiler", "");
+	settings->setDefault("keymap_toggle_fog", "");
 #endif
-	settings->setDefault("keymap_toggle_debug", "SYSTEM_SCANCODE_62"); // KEY_F5
-	settings->setDefault("keymap_toggle_profiler", "SYSTEM_SCANCODE_63"); // KEY_F6
 	settings->setDefault("keymap_camera_mode", "SYSTEM_SCANCODE_6"); // KEY_KEY_C
 	settings->setDefault("keymap_camera_yaw_left", "GAMEPAD_AXIS_MINUS_2"); // Right Joystick
 	settings->setDefault("keymap_camera_yaw_right", "GAMEPAD_AXIS_PLUS_2"); // Right Joystick
@@ -403,7 +411,6 @@ void set_default_settings()
 	settings->setDefault("toggle_aux1_key", "false");
 	settings->setDefault("autojump", bool_to_cstr(has_touch));
 	settings->setDefault("enable_esc_dialog", "true");
-	settings->setDefault("continuous_forward", "false");
 	settings->setDefault("repeat_joystick_button_time", "0.17");
 	settings->setDefault("joystick_frustum_sensitivity", "170");
 	settings->setDefault("joystick_inner_deadzone", "0.25");

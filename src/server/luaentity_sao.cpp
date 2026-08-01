@@ -13,6 +13,10 @@
 #include "scripting_server.h"
 #include "serverenvironment.h"
 #include "util/serialize.h"
+#include "util/numeric.h"
+#include "log.h"
+#include "porting.h"
+#include "settings.h"
 
 LuaEntitySAO::LuaEntitySAO(ServerEnvironment *env, v3f pos, const std::string &data)
 	: UnitSAO(env, pos)
@@ -223,16 +227,30 @@ void LuaEntitySAO::step(float dtime, bool send_recommended)
 	if(!isAttached())
 	{
 		// TODO: force send when acceleration changes enough?
-		float minchange = 0.2*BS;
-		if(m_last_sent_position_timer > 1.0){
-			minchange = 0.01*BS;
-		} else if(m_last_sent_position_timer > 0.2){
-			minchange = 0.05*BS;
-		}
+
+		// An object that moved at all is sent on every send tick.
+		//
+		// Holding packets back until the object has travelled far enough
+		// saves bandwidth, but it makes the gaps between packets depend on
+		// speed: a slow airship was sent every second or third tick, at no
+		// fixed rhythm. The client rebuilds motion from those gaps and has to
+		// hold a playback buffer as deep as the largest of them, so irregular
+		// sending is paid for twice — once in jitter, once in latency. A
+		// standing object still sends nothing.
+		float minchange = 0.001*BS;
 		float move_d = getBasePosition().getDistanceFrom(m_last_sent_position);
 		move_d += m_last_sent_move_precision;
 		float vel_d = m_velocity.getDistanceFrom(m_last_sent_velocity);
-		if (move_d > minchange || vel_d > minchange ||
+		// An object that has come to a stop has to say so. The client is
+		// carrying it forward on the speed we last reported, and without a
+		// closing packet it would keep drifting: standing still produces no
+		// movement, and no movement used to mean nothing to send.
+		const bool stopped = move_d < 0.01f * BS &&
+			m_last_sent_smoothing_velocity.getLengthSQ() > 0.001f;
+
+		if (stopped) {
+			sendPosition(true, true);
+		} else if (move_d > minchange || vel_d > minchange ||
 				std::fabs(m_rotation.X - m_last_sent_rotation.X) > 1.0f ||
 				std::fabs(m_rotation.Y - m_last_sent_rotation.Y) > 1.0f ||
 				std::fabs(m_rotation.Z - m_last_sent_rotation.Z) > 1.0f) {
@@ -384,11 +402,33 @@ void LuaEntitySAO::rightClick(ServerActiveObject *clicker)
 	m_env->getScriptIface()->luaentity_Rightclick(m_id, clicker);
 }
 
+/// How far an object may be moved in one set_pos() call and still count as
+/// movement rather than teleportation, in blocks. A step this small cannot be
+/// meant as a jump across the world; even a fast vehicle covers less per tick.
+static constexpr float POSITION_SMOOTHING_LIMIT = 1.5f;
+
+/// The fastest the client may be told to carry an object on its own, in blocks
+/// per second. A guess beyond this is worse than no guess at all.
+static constexpr float OBSERVED_SPEED_LIMIT = 40.0f;
+
 void LuaEntitySAO::setPos(const v3f &pos)
 {
 	if(isAttached())
 		return;
+
+	// A mod that runs its own physics calls set_pos every single step. Such a
+	// "jump" of a fraction of a block is movement, not teleportation, and
+	// sending it as teleportation is what makes mod-driven vehicles stutter:
+	// the client is told to snap, ten times a second, with the network jitter
+	// on top. Below the threshold we let the regular periodic update carry
+	// the position, which the client interpolates.
+	const float step = getBasePosition().getDistanceFrom(pos);
+
 	setBasePosition(pos);
+
+	if (step < POSITION_SMOOTHING_LIMIT * BS)
+		return;
+
 	sendPosition(false, true);
 }
 
@@ -535,17 +575,69 @@ void LuaEntitySAO::sendPosition(bool do_interpolate, bool is_movement_end)
 
 	m_last_sent_move_precision = getBasePosition().getDistanceFrom(
 			m_last_sent_position);
+
+	// The client stretches the movement over exactly the span we name here.
+	// That span has to be the real gap between packets: a slow object does
+	// not move far enough to be sent every recommended tick, and if we still
+	// claimed the recommended interval, the object would rush to its new
+	// place and then stand still until the next packet — which is precisely
+	// what the eye reads as stuttering.
+	const float elapsed = m_last_sent_position_timer;
+	const float recommended = m_env->getSendRecommendedInterval();
+
+	float update_interval = rangelim(elapsed, recommended, 1.0f);
+
+	// The observed speed lets the client keep the object going while the next
+	// packet is in flight. A mod that drives the object by hand never sets a
+	// velocity, so we work it out from how far the object actually travelled.
+	//
+	// Only for movement: after a teleport the "speed" would be the length of
+	// the jump divided by a tick, and the client would happily fly off with
+	// it.
+	v3f smoothing_velocity = m_velocity;
+
+	if (do_interpolate && elapsed > 0.001f &&
+			smoothing_velocity.getLengthSQ() < 0.001f) {
+		smoothing_velocity = (getBasePosition() - m_last_sent_position) / elapsed;
+
+		const float speed = smoothing_velocity.getLength();
+		if (speed > OBSERVED_SPEED_LIMIT * BS)
+			smoothing_velocity *= OBSERVED_SPEED_LIMIT * BS / speed;
+
+		// The measurement is noisy: the server step is not perfectly even, so
+		// the same steady flight yields a slightly different speed every
+		// packet, and the client dutifully reproduces the wobble. Leaning on
+		// the previous estimate costs a little response and buys a lot of
+		// steadiness.
+		if (m_last_sent_smoothing_velocity.getLengthSQ() > 0.001f)
+			smoothing_velocity = smoothing_velocity * 0.7f
+				+ m_last_sent_smoothing_velocity * 0.3f;
+	}
+
+	m_last_sent_smoothing_velocity = smoothing_velocity;
+
 	m_last_sent_position_timer = 0;
 	m_last_sent_position = getBasePosition();
 	m_last_sent_velocity = m_velocity;
 	//m_last_sent_acceleration = m_acceleration;
 	m_last_sent_rotation = m_rotation;
 
-	float update_interval = m_env->getSendRecommendedInterval();
+	if (g_settings->getBool("debug_platform_ride")) {
+		warningstream << "send"
+			<< " id=" << getId()
+			<< " t=" << porting::getTimeMs()
+			<< " elapsed=" << elapsed
+			<< " y=" << (getBasePosition().Y / BS)
+			<< " vy=" << (smoothing_velocity.Y / BS)
+			<< " interval=" << update_interval
+			<< " interp=" << (int)do_interpolate
+			<< " end=" << (int)is_movement_end
+			<< std::endl;
+	}
 
 	std::string str = generateUpdatePositionCommand(
 		getBasePosition(),
-		m_velocity,
+		smoothing_velocity,
 		m_acceleration,
 		m_rotation,
 		do_interpolate,

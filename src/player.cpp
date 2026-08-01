@@ -180,7 +180,8 @@ u32 PlayerControl::getKeysPressed() const
 		( (u32)(dig   & 1) << 7) |
 		( (u32)(place & 1) << 8) |
 		( (u32)(zoom  & 1) << 9) |
-		( (u32)(sprint & 1) << 10);
+		( (u32)(sprint & 1) << 10) |
+		( (u32)(pickitem & 1) << 11);
 
 	return keypress_bits;
 }
@@ -199,6 +200,7 @@ void PlayerControl::unpackKeysPressed(u32 keypress_bits)
 	place = keypress_bits & (1 << 8);
 	zoom  = keypress_bits & (1 << 9);
 	sprint = keypress_bits & (1 << 10);
+	pickitem = keypress_bits & (1 << 11);
 }
 
 v2f PlayerControl::getMovement() const
