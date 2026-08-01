@@ -148,3 +148,7 @@ deploy.sh
 # Временный архив деплоя
 /axis_content.tar.gz
 /axis_server_image.tar.gz
+
+# Правила работы с Claude Code — личные, не для репозитория
+/CLAUDE.md
+/.claude/
