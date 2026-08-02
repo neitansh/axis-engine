@@ -849,6 +849,10 @@ void *ConnectionReceiveThread::run()
 	LOG(dout_con << m_connection->getDesc()
 		<< "ConnectionReceive thread started" << std::endl);
 
+	// Built here rather than in the constructor: the settings are what decide
+	// whether there is one at all, and they are read once per run
+	m_impairment = NetImpairment::create();
+
 	PROFILE(std::stringstream
 	ThreadIdentifier);
 	PROFILE(ThreadIdentifier << "ConnectionReceive: [" << m_connection->getDesc() << "]");
@@ -960,6 +964,34 @@ void ConnectionReceiveThread::replyToInfoQuery(const Address &sender)
 	}
 }
 
+s32 ConnectionReceiveThread::receiveDatagram(Address &sender,
+		SharedBuffer<u8> &packetdata)
+{
+	if (!m_impairment)
+		return m_connection->m_udpSocket.Receive(sender, *packetdata,
+				packetdata.getSize());
+
+	// Anything whose delay has run out goes first, or a quiet moment on the
+	// wire would hold it back further than it was meant to be held
+	if (u32 due = m_impairment->release(sender, *packetdata, packetdata.getSize()))
+		return (s32)due;
+
+	if (!m_connection->m_udpSocket.WaitData(m_impairment->waitMs()))
+		return -1;
+
+	Address from;
+	const s32 size = m_connection->m_udpSocket.Receive(from, *packetdata,
+			packetdata.getSize());
+
+	if (size < 0)
+		return -1;
+
+	m_impairment->hold(from, *packetdata, (u32)size);
+
+	// Nothing to process this time round: what just arrived is not due yet
+	return -1;
+}
+
 void ConnectionReceiveThread::receive(SharedBuffer<u8> &packetdata,
 		bool &packet_queued)
 {
@@ -984,8 +1016,7 @@ void ConnectionReceiveThread::receive(SharedBuffer<u8> &packetdata,
 
 		// Call Receive() to wait for incoming data
 		Address sender;
-		s32 received_size = m_connection->m_udpSocket.Receive(sender,
-			*packetdata, packetdata.getSize());
+		s32 received_size = receiveDatagram(sender, packetdata);
 		if (received_size < 0)
 			return;
 

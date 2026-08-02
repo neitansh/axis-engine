@@ -3,6 +3,7 @@
 // Copyright (C) 2010-2013 celeron55, Perttu Ahola <celeron55@gmail.com>
 
 #include "content_cao.h"
+#include "net_diagnostics.h"
 #include <IBillboardSceneNode.h>
 #include <ICameraSceneNode.h>
 #include <IMeshManipulator.h>
@@ -1006,6 +1007,25 @@ void GenericCAO::updateNodePos()
 	}
 }
 
+void GenericCAO::followLocalPlayer()
+{
+	if (!m_is_local_player)
+		return;
+
+	LocalPlayer *player = m_env->getLocalPlayer();
+	if (!player)
+		return;
+
+	m_position = player->getPosition();
+	pos_translator.val_current = m_position;
+	pos_translator.val_target = m_position;
+	m_rotation.Y = wrapDegrees_0_360(player->getYaw());
+	rot_translator.val_current = m_rotation;
+	rot_translator.val_target = m_rotation;
+
+	updateNodePos();
+}
+
 void GenericCAO::step(float dtime, ClientEnvironment *env)
 {
 	// Handle model animations and update positions instantly to prevent lags
@@ -1121,6 +1141,13 @@ void GenericCAO::step(float dtime, ClientEnvironment *env)
 		m_acceleration = v3f(0,0,0);
 		pos_translator.val_current = m_position;
 		pos_translator.val_target = m_position;
+
+		// An attached object is what a player actually stands on, so it is
+		// what the instrument has to watch: its motion is the parent's, seen
+		// through the scene graph
+		if (g_netdiag)
+			g_netdiag->objectDrawn(getId(), m_position, dtime,
+				m_is_player && !m_is_local_player);
 	} else {
 		rot_translator.translate(dtime);
 		v3f lastpos = pos_translator.val_current;
@@ -1164,8 +1191,13 @@ void GenericCAO::step(float dtime, ClientEnvironment *env)
 						pos_translator.anim_time);
 				pos_translator.translate(dtime);
 			}
+
 		}
 		updateNodePos();
+
+		if (g_netdiag)
+			g_netdiag->objectDrawn(getId(), pos_translator.val_current, dtime,
+					m_is_player && !m_is_local_player);
 
 		float moved = lastpos.getDistanceFrom(pos_translator.val_current);
 		m_step_distance_counter += moved;
@@ -1631,6 +1663,9 @@ static constexpr size_t MOTION_HISTORY = 24;
 
 void GenericCAO::resetMotion()
 {
+	if (g_netdiag && m_motion_active)
+		g_netdiag->objectReset(getId());
+
 	m_motion.clear();
 	m_motion_active = false;
 	m_motion_newest = 0.0f;
@@ -1641,6 +1676,28 @@ void GenericCAO::resetMotion()
 /// the object stood still and the server had nothing to send. There is no path
 /// between the two places to play back, so the timeline starts afresh.
 static constexpr f32 MOTION_PAUSE_FACTOR = 4.0f;
+
+/**
+ * How far past the newest packet playback may carry an object on, in intervals.
+ *
+ * Beyond this the object is guessing, and a guess that runs long has to be
+ * taken back visibly. One interval covers the ordinary case of a packet a
+ * little late; a server that went quiet leaves the object standing, which is
+ * the honest thing to show.
+ */
+static constexpr f32 MOTION_COAST_LIMIT = 1.0f;
+
+/**
+ * How many lost packets in a row the timeline will account for.
+ *
+ * Past this the arrival is no longer evidence of a few dropped packets but of
+ * a connection that stopped; stretching one step across it would replay the
+ * whole silence as slow motion.
+ */
+static constexpr int MOTION_MAX_MISSED = 4;
+
+/// How many recent gaps between arrivals the jitter estimate is drawn from
+static constexpr size_t MOTION_JITTER_WINDOW = 8;
 
 void GenericCAO::pushMotion(f32 interval, v3f pos, v3f rot)
 {
@@ -1659,7 +1716,49 @@ void GenericCAO::pushMotion(f32 interval, v3f pos, v3f rot)
 
 	// The interval is what the server measured between this packet and the
 	// previous one, so stamping it forward rebuilds the server's own clock.
-	m_motion_newest += std::max(interval, 0.001f);
+	f32 step = std::max(interval, 0.001f);
+
+	// A packet that never arrived still took its time. The server knows
+	// nothing of the loss and keeps reporting one interval per packet, so
+	// stamping that blindly moves playback one interval closer to the end of
+	// the data with every packet lost - the buffer then drains for good and
+	// what is left is a stall and a jump. Counting the missing steps by how
+	// long it has actually been puts the gap back in the timeline, where
+	// interpolation crosses it as movement.
+	if (m_motion_active && m_motion.size() >= 2) {
+		// A late packet and a lost one look alike in a single gap. What tells
+		// them apart is how unevenly this connection has been delivering:
+		// anything the observed jitter can account for is treated as late,
+		// because counting it as lost would stretch a step that was never
+		// missed and set playback drifting the other way.
+		//
+		// Jitter is measured from below - the middle of the gaps against the
+		// shortest of them. Loss only ever makes gaps longer, so it moves the
+		// top of that range and leaves this estimate alone; an estimate that
+		// grew with the loss would hide the very thing it is here to find.
+		std::array<f32, MOTION_JITTER_WINDOW> gaps;
+		size_t count = 0;
+
+		for (size_t i = m_motion.size() - 1; i > 0 && count < gaps.size(); i--)
+			gaps[count++] = m_motion[i].arrived - m_motion[i - 1].arrived;
+
+		std::sort(gaps.begin(), gaps.begin() + count);
+
+		const f32 jitter = count >= 3
+				? std::max(0.0f, gaps[count / 2] - gaps[0]) : 0.0f;
+		const f32 since = arrived - m_motion.back().arrived;
+
+		if (since > step * 1.5f + jitter) {
+			const int missed = std::min(
+					(int)std::floor((since - jitter) / step + 0.5f) - 1,
+					MOTION_MAX_MISSED);
+
+			if (missed > 0)
+				step += step * missed;
+		}
+	}
+
+	m_motion_newest += step;
 
 	m_motion.push_back({m_motion_newest, arrived, pos, rot});
 
@@ -1704,9 +1803,22 @@ bool GenericCAO::playMotion(f32 dtime, v3f *pos, v3f *rot)
 	const f32 interval = (m_motion.back().time - m_motion.front().time)
 		/ (m_motion.size() - 1);
 
-	const f32 target = (offset_max - offset_min) + interval;
+	// The spread of the window alone leaves the buffer living on the edge:
+	// measured on a live server it came to about one interval of slack, while
+	// one packet in a hundred arrived half an interval late. The buffer then
+	// ran dry more than once a second, and every dry frame is a stop followed
+	// by a catch-up. Half an interval of headroom costs that much latency once
+	// and buys back those stops.
+	const f32 target = (offset_max - offset_min) + interval * 1.5f;
 
 	const f32 behind = m_motion_newest - m_motion_clock;
+
+	if (g_netdiag) {
+		// Playback that has run past the newest packet is holding still: the
+		// buffer is dry, which is what a stall on screen is made of
+		const bool dry = m_motion_clock >= m_motion.back().time;
+		g_netdiag->objectPlayback(getId(), behind, target, m_motion.size(), dry);
+	}
 
 	// Playback runs on the local clock, which drifts against the server's.
 	// Rather than snapping — a snap is a jump on screen — the clock is run a
@@ -1758,11 +1870,26 @@ bool GenericCAO::playMotion(f32 dtime, v3f *pos, v3f *rot)
 		return true;
 	}
 
-	// Playback has run past the newest packet: hold the last known state
-	// rather than invent motion beyond it.
+	// Playback has run past the newest packet. Holding the last known state
+	// stops the object dead for a frame and then jumps it when the next packet
+	// lands, which is exactly what the eye picks out as a stutter. Carrying it
+	// on at the speed it last had keeps the motion continuous; the error that
+	// buys is bounded by how long we do it, so it is only done for a short
+	// while and then it does stop.
 	const MotionSample &last = m_motion.back();
+	const MotionSample &before = m_motion[m_motion.size() - 2];
 
-	*pos = last.pos;
+	const f32 span = last.time - before.time;
+	const f32 ahead = m_motion_clock - last.time;
+
+	if (span > 0.0001f && ahead < MOTION_COAST_LIMIT * span) {
+		const v3f speed = (last.pos - before.pos) / span;
+
+		*pos = last.pos + speed * ahead;
+	} else {
+		*pos = last.pos;
+	}
+
 	*rot = last.rot;
 
 	return true;
@@ -1873,6 +2000,9 @@ void GenericCAO::processMessage(const std::string &data)
 		} else if (buffered) {
 			resetMotion();
 		}
+
+		if (g_netdiag)
+			g_netdiag->objectPacket(getId(), m_name, update_interval);
 
 		if(do_interpolate)
 		{

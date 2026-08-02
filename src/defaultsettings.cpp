@@ -89,6 +89,11 @@ void set_default_settings()
 	// Waiting out a server that went quiet instead of dropping the world
 	settings->setDefault("wait_for_server", "true");
 	settings->setDefault("wait_for_server_timeout", "0");
+	// A deliberately worse network, for measuring motion under one
+	settings->setDefault("net_emulate_latency", "0");
+	settings->setDefault("net_emulate_jitter", "0");
+	settings->setDefault("net_emulate_loss", "0.0");
+	settings->setDefault("net_emulate_seed", "1234");
 #if defined(__unix__) && !defined(__APPLE__) && !defined (__ANDROID__)
 	// On Linux+X11 (not Linux+Wayland or Linux+XWayland), I've encountered a bug
 	// where fake mouse events were generated from touch events if in relative
@@ -123,6 +128,10 @@ void set_default_settings()
 	settings->setDefault("enable_build_where_you_stand", "false");
 	// Writes what the player and the deck under them do each step
 	settings->setDefault("debug_platform_ride", "false");
+	// Measures network motion: packet rhythm, playback buffer and the change
+	// of speed that reaches the screen. See src/client/net_diagnostics.h
+	settings->setDefault("netsync_diagnostics", "false");
+	settings->setDefault("netsync_diagnostics_log", "false");
 	settings->setDefault("curl_timeout", "20000");
 	settings->setDefault("secure.curl_proxy", "");
 	settings->setDefault("curl_parallel_limit", "8");

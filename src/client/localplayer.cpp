@@ -14,6 +14,7 @@
 #include "client.h"
 #include "content_cao.h"
 #include "clientenvironment.h"
+#include "net_diagnostics.h"
 #include "hud_element.h"
 
 /*
@@ -253,6 +254,9 @@ void LocalPlayer::carryWithPlatform(Environment *env, v3f &position, f32 dtime)
 
 	position += delta;
 
+	m_platform_delta = delta;
+	m_platform_gap = (position.Y - now.Y) / BS;
+
 	// Measurement, off unless asked for: writes what the player and the deck
 	// did this step, so the shaking can be looked at instead of guessed at.
 	if (m_platform_logging && dtime > 0.0f) {
@@ -452,6 +456,14 @@ void LocalPlayer::move(f32 dtime, Environment *env,
 													 &position, &m_speed, accel_f, m_cao, true, step_up_mode);
 
 	rememberPlatform(result);
+
+	// Measurement of what the player actually did this step, whether or not
+	// anything was carrying them
+	if (g_netdiag) {
+		g_netdiag->playerStep(position, m_speed, m_platform_delta,
+				m_platform_gap, m_platform_id, dtime);
+		m_platform_delta = v3f();
+	}
 
 	bool could_sneak = control.sneak && !free_move && !in_liquid &&
 					   !is_climbing && physics_override.sneak;

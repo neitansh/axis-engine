@@ -206,6 +206,16 @@ private:
 	IntervalLimiter m_node_hurt_interval;
 
 	bool m_position_not_sent = false;
+	/**
+	 * Seconds since the last position packet went out.
+	 *
+	 * Clients rebuild motion from the interval each packet carries, so the
+	 * interval has to be the real gap between packets. A player is only sent
+	 * when they moved, which is not every send tick, and claiming the
+	 * recommended interval regardless makes the client replay the timeline
+	 * faster than packets arrive - its buffer empties and the model stutters.
+	 */
+	float m_last_sent_position_timer = 0.0f;
 
 	// Cached privileges for enforcement
 	std::set<std::string> m_privs;

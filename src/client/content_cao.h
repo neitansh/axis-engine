@@ -119,6 +119,7 @@ private:
 	/// Diagnosis only: when the last position packet arrived
 	u64 m_last_packet_ms = 0;
 
+
 	/*
 		Playback buffer for network motion.
 
@@ -329,6 +330,19 @@ public:
 	void updateMarker();
 
 	void updateNodePos();
+
+	/**
+	 * Places the model of the local player where the player now is.
+	 *
+	 * The player is simulated by the client and the model is drawn from it, so
+	 * the order within a frame decides what is seen: copied before the player
+	 * moves, the model trails by one frame - by speed times frame time - and
+	 * that trail grows and shrinks with every frame that runs long or short.
+	 * Against a camera that sits exactly on the player, the model then shakes.
+	 * Called at the end of ClientEnvironment::step(), once the player is where
+	 * this frame leaves them.
+	 */
+	void followLocalPlayer();
 
 	void step(float dtime, ClientEnvironment *env) override;
 

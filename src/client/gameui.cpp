@@ -4,6 +4,7 @@
 // Copyright (C) 2018 nerzhul, Loic Blot <loic.blot@unix-experience.fr>
 
 #include "gameui.h"
+#include "net_diagnostics.h"
 #include <irrlicht_changes/static_text.h>
 #include <gettext.h>
 #include "gui/mainmenumanager.h"
@@ -335,6 +336,17 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 
 	setStaticText(m_guitext_info, m_infotext.c_str());
 	m_guitext_info->setVisible(m_flags.show_hud && g_menumgr.menuCount() == 0);
+
+	// Measurements of network motion, when asked for
+	if (m_guitext_profiler && g_netdiag) {
+		const std::string text = g_netdiag->panel();
+		if (!text.empty()) {
+			setStaticText(m_guitext_profiler, utf8_to_wide(text).c_str());
+			m_guitext_profiler->setRelativePosition(core::rect<s32>(
+				screensize.X - 480, 20, screensize.X - 10, screensize.Y - 20));
+			m_guitext_profiler->setVisible(true);
+		}
+	}
 
 	if (m_guitext_link) {
 		const bool show_link = !m_link_status.empty();

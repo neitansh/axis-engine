@@ -127,6 +127,8 @@ BY_NAME = {
     # Not listed in settingtypes.txt at all.
     "curl_verify_cert": "SharedEngine",
     "debug_platform_ride": "SharedLogging",
+    "netsync_diagnostics": "SharedLogging",
+    "netsync_diagnostics_log": "SharedLogging",
     "disable_anticheat": "ServerSecurity",
     "dpi_change_notifier": "ClientGraphics",
     "enable_touch": "ClientInput",

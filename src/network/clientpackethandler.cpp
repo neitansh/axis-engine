@@ -3,6 +3,7 @@
 // Copyright (C) 2015 nerzhul, Loic Blot <loic.blot@unix-experience.fr>
 
 #include "client/client.h"
+#include "client/net_diagnostics.h"
 
 #include "exceptions.h"
 #include "irr_v2d.h"
@@ -595,6 +596,9 @@ void Client::handleCommand_MovePlayer(NetworkPacket* pkt)
 	f32 pitch, yaw;
 
 	*pkt >> pos >> pitch >> yaw;
+
+	if (g_netdiag)
+		g_netdiag->serverMovedPlayer(player->getPosition(), pos);
 
 	player->setPosition(pos);
 

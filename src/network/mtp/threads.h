@@ -10,8 +10,10 @@
 /********************************************/
 
 #include <cassert>
+#include <memory>
 #include "threading/thread.h"
 #include "network/mtp/internal.h"
+#include "network/net_impairment.h"
 
 namespace con
 {
@@ -112,6 +114,13 @@ public:
 private:
 	void receive(SharedBuffer<u8> &packetdata, bool &packet_queued);
 
+	/*!
+	 * One datagram, either straight off the socket or out of the emulated
+	 * bad network when one is switched on. Returns its size, or -1 when
+	 * there is nothing to work on this time round.
+	 */
+	s32 receiveDatagram(Address &sender, SharedBuffer<u8> &packetdata);
+
 	//! Answers CONTROLTYPE_QUERY_INFO without creating a peer
 	void replyToInfoQuery(const Address &sender);
 
@@ -175,5 +184,8 @@ private:
 	Connection *m_connection = nullptr;
 
 	RateLimitHelper m_new_peer_ratelimit;
+
+	/// A deliberately worse network, when one was asked for; null otherwise
+	std::unique_ptr<NetImpairment> m_impairment;
 };
 }

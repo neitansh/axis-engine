@@ -7,6 +7,7 @@
 #include <cmath>
 #include <csignal>
 #include "client/gameui.h"
+#include "client/net_diagnostics.h"
 #include "client/inputhandler.h"
 #include "client/texturepaths.h"
 #include "client/keys.h"
@@ -657,6 +658,18 @@ void Game::run()
 		processPlayerInteraction(dtime, m_game_ui->m_flags.show_hud);
 		updateFrame(&graph, &stats, dtime, cam_view);
 		updateProfilerGraphs(&graph);
+
+		if (g_netdiag) {
+			LocalPlayer *diag_player = client->getEnv().getLocalPlayer();
+			GenericCAO *diag_model = diag_player ? diag_player->getCAO() : nullptr;
+
+			if (diag_model) {
+				g_netdiag->localModel(diag_player->getPosition(),
+						diag_model->getPosition(), camera->getPosition());
+			}
+
+			g_netdiag->frame(dtime, client);
+		}
 
 		if (m_does_lost_focus_pause_game && !device->isWindowFocused() && !isMenuActive())
 		{
@@ -4400,6 +4413,9 @@ void Game::settingChangedCallback(const std::string &setting_name, void *data)
 
 void Game::readSettings()
 {
+	// The instrument follows its setting, so it can be switched on mid-game
+	update_net_diagnostics();
+
 	LogLevel chat_log_level = Logger::stringToLevel(g_settings->get("chat_log_level"));
 	if (chat_log_level == LL_MAX)
 	{

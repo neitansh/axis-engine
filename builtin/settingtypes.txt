@@ -1008,6 +1008,16 @@ serverlist_url (Serverlist URL) [common] string
 #    Turn this off to let each world pick its mods again.
 enable_all_mods (Load all installed mods) bool true
 
+#    Show what network motion is doing: how evenly packets arrive, how deep the
+#    playback buffer runs, and how much the speed of what you see changes from
+#    frame to frame - which is what shaking is.
+netsync_diagnostics (Network motion diagnostics) bool false
+
+#    Also write the measurements to netsync/frames.csv and netsync/packets.csv
+#    in the user directory, for looking at afterwards.
+#    Requires "Network motion diagnostics".
+netsync_diagnostics_log (Log network motion to CSV) bool false
+
 #    When a server stops answering, keep the world on screen and wait for it to
 #    come back instead of returning to the main menu. Restarts and short
 #    outages are then barely noticeable.
@@ -1022,6 +1032,24 @@ wait_for_server_timeout (Give up waiting after) int 0 0 86400
 #    If enabled, server account registration is separate from login in the UI.
 #    If disabled, connecting to a server will automatically register a new account.
 enable_split_login_register (Enable split login/register) bool true
+
+#    Hold incoming packets back by this many milliseconds, as a distant server
+#    would. For measuring how motion looks on a worse connection than the one
+#    you have; 0 turns the whole emulation off.
+#    Only affects what this client receives. Nothing is done to what it sends,
+#    and no server is affected.
+net_emulate_latency (Emulated network latency) int 0 0 2000
+
+#    Vary the emulated latency by up to this many milliseconds either way,
+#    which is what reorders packets on a real link.
+net_emulate_jitter (Emulated network jitter) int 0 0 1000
+
+#    Throw away this percentage of incoming packets.
+net_emulate_loss (Emulated packet loss) float 0.0 0.0 100.0
+
+#    Seed for the emulated network, so that two measurements meet the same
+#    pattern of jitter and loss and can be compared.
+net_emulate_seed (Emulated network seed) int 1234 0 65535
 
 [*Server] [server]
 

@@ -271,12 +271,22 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 			m_player->setSpeed(v3f());
 	}
 
+	m_last_sent_position_timer += dtime;
+
 	if (!send_recommended)
 		return;
 
 	if (m_position_not_sent) {
 		m_position_not_sent = false;
-		float update_interval = m_env->getSendRecommendedInterval();
+
+		// The client stretches the movement over exactly the span named here,
+		// so it has to be the span that really passed. A player standing
+		// still sends nothing, and the next packet after that is further away
+		// than the recommended interval.
+		const float update_interval = rangelim(m_last_sent_position_timer,
+				m_env->getSendRecommendedInterval(), 1.0f);
+
+		m_last_sent_position_timer = 0.0f;
 		v3f pos;
 		// When attached, the position is only sent to clients where the
 		// parent isn't known

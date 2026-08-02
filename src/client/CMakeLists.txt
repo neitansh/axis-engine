@@ -64,6 +64,7 @@ set(client_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/mapblock_mesh.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/mesh.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/mesh_generator_thread.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/net_diagnostics.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/minimap.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/node_visuals.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/particles.cpp

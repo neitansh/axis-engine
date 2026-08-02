@@ -212,6 +212,13 @@ void ClientEnvironment::step(float dtime)
 		lplayer->move(dtime_part, this, &player_collisions);
 	}
 
+	// The model of the local player is drawn from the player, so it is placed
+	// once the player has finished moving. Doing it in the object step above
+	// would draw them where they were a frame ago, and against a camera that
+	// sits on the player that difference is exactly what shakes.
+	if (GenericCAO *player_model = lplayer->getCAO())
+		player_model->followLocalPlayer();
+
 	bool player_immortal = false;
 	f32 player_fall_factor = 1.0f;
 	GenericCAO *playercao = lplayer->getCAO();

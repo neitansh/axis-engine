@@ -192,6 +192,9 @@ private:
 	// last step. Zero means they stand on ordinary nodes.
 	u16 m_platform_id = 0;
 	v3f m_platform_position;
+	// Diagnosis only: what the deck did this step, see net_diagnostics.h
+	v3f m_platform_delta;
+	f32 m_platform_gap = 0.0f;
 	bool m_platform_logging = false;
 
 	bool m_sneak_node_exists = false;
