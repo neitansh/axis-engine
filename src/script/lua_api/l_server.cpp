@@ -143,6 +143,51 @@ int ModApiServer::l_get_player_ip(lua_State *L)
 }
 
 // get_player_information(name)
+// send_chat_commands(name, {{name=, params=, description=}, ...})
+int ModApiServer::l_send_chat_commands(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+
+	const char *name = luaL_checkstring(L, 1);
+	luaL_checktype(L, 2, LUA_TTABLE);
+
+	Server *server = getServer(L);
+	RemotePlayer *player = server->getEnv().getPlayer(name);
+
+	if (!player)
+		return 0;
+
+	std::vector<std::tuple<std::string, std::string, std::string>> commands;
+
+	lua_pushnil(L);
+	while (lua_next(L, 2) != 0) {
+		std::string command_name, params, description;
+
+		lua_getfield(L, -1, "name");
+		if (lua_isstring(L, -1))
+			command_name = lua_tostring(L, -1);
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "params");
+		if (lua_isstring(L, -1))
+			params = lua_tostring(L, -1);
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "description");
+		if (lua_isstring(L, -1))
+			description = lua_tostring(L, -1);
+		lua_pop(L, 1);
+
+		if (!command_name.empty())
+			commands.emplace_back(command_name, params, description);
+
+		lua_pop(L, 1);
+	}
+
+	server->SendChatCommands(player->getPeerId(), commands);
+	return 0;
+}
+
 int ModApiServer::l_get_player_information(lua_State *L)
 {
 	GET_ENV_PTR_NO_MAP_LOCK;
@@ -706,6 +751,7 @@ void ModApiServer::Initialize(lua_State *L, int top)
 	API_FCT(dynamic_add_media);
 
 	API_FCT(get_player_information);
+	API_FCT(send_chat_commands);
 	API_FCT(get_player_window_information);
 	API_FCT(get_player_privs);
 	API_FCT(get_player_ip);

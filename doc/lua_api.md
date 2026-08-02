@@ -6264,6 +6264,15 @@ Utilities
     * `arg`: string or table in format `{foo=true, bar=true}`
     * `missing_features`: `{foo=true, bar=true}`
 
+* `core.send_chat_commands(player_name, commands)`
+    * Tells the client which commands it may complete as they are typed.
+    * `commands` is a list of tables with `name`, `params` and `description`.
+    * Called for you on join and when privileges change; a mod only needs this
+      when it changes what a player may run at some other moment.
+* `core.update_chat_commands(player_name)`
+    * Works the set out from `core.registered_chatcommands` and the player's
+      privileges, then sends it. Use this rather than the above unless the list
+      has to be something other than what the player can actually run.
 * `core.get_player_information(player_name)`: Table containing information
   about a player. Example return value:
 

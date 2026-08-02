@@ -126,6 +126,14 @@ private:
 class Client : public con::PeerHandler, public InventoryManager, public IGameDef
 {
 public:
+	/// One chat command this player may use, as the server described it
+	struct ChatCommand
+	{
+		std::string name;
+		std::string params;
+		std::string description;
+	};
+
 	/*
 		NOTE: Nothing is thread-safe here.
 	*/
@@ -208,6 +216,10 @@ public:
 	void handleCommand_ShowFormSpec(NetworkPacket* pkt);
 	void handleCommand_SpawnParticle(NetworkPacket* pkt);
 	void handleCommand_SpawnParticleBatch(NetworkPacket *pkt);
+	void handleCommand_ChatCommands(NetworkPacket *pkt);
+
+	/// Commands the server said this player may use, for completing them
+	std::vector<ChatCommand> m_chat_commands;
 	void handleCommand_AddParticleSpawner(NetworkPacket* pkt);
 	void handleCommand_DeleteParticleSpawner(NetworkPacket* pkt);
 	void handleCommand_HudAdd(NetworkPacket* pkt);
@@ -293,6 +305,11 @@ public:
 	const std::set<std::string> &getConnectedPlayerNames()
 	{
 		return m_env.getPlayerNames();
+	}
+
+	const std::vector<ChatCommand> &getChatCommands() const
+	{
+		return m_chat_commands;
 	}
 
 	float getAnimationTime() const

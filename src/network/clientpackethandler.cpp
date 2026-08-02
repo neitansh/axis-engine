@@ -1950,3 +1950,25 @@ void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 		*pkt >> lighting.shadow_direction;
 	} while (0);
 }
+
+void Client::handleCommand_ChatCommands(NetworkPacket *pkt)
+{
+	u16 count;
+	*pkt >> count;
+
+	m_chat_commands.clear();
+	m_chat_commands.reserve(count);
+
+	for (u16 i = 0; i < count; i++) {
+		ChatCommand command;
+
+		*pkt >> command.name;
+		*pkt >> command.params;
+		*pkt >> command.description;
+
+		m_chat_commands.push_back(std::move(command));
+	}
+
+	infostream << "Client: " << m_chat_commands.size()
+		<< " chat commands available" << std::endl;
+}

@@ -1360,3 +1360,56 @@ core.register_chatcommand("kill", {
 		return handle_kill_command(name, param == "" and name or param)
 	end,
 })
+
+--
+-- Список команд для дополнения на клиенте
+--
+-- Клиент сам не знает, какие команды есть: они живут в модах и зависят от
+-- прав игрока. Поэтому сервер называет их сам — при входе и всякий раз, когда
+-- права меняются, — а клиент дополняет по ним ввод.
+
+local function commands_for(name)
+	local granted = core.get_player_privs(name)
+	local commands = {}
+
+	for command, def in pairs(core.registered_chatcommands) do
+		local allowed = true
+
+		for priv in pairs(def.privs or {}) do
+			if not granted[priv] then
+				allowed = false
+				break
+			end
+		end
+
+		if allowed then
+			commands[#commands + 1] = {
+				name = command,
+				params = def.params or "",
+				description = def.description or "",
+			}
+		end
+	end
+
+	table.sort(commands, function(a, b) return a.name < b.name end)
+	return commands
+end
+
+--- Рассказывает игроку, что он может набрать.
+function core.update_chat_commands(name)
+	if core.get_player_by_name(name) then
+		core.send_chat_commands(name, commands_for(name))
+	end
+end
+
+core.register_on_joinplayer(function(player)
+	core.update_chat_commands(player:get_player_name())
+end)
+
+core.register_on_priv_grant(function(name)
+	core.update_chat_commands(name)
+end)
+
+core.register_on_priv_revoke(function(name)
+	core.update_chat_commands(name)
+end)

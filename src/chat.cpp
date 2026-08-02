@@ -647,6 +647,197 @@ void ChatPrompt::nickCompletion(const std::set<std::string> &names)
 	clampView();
 }
 
+
+namespace
+{
+
+/// Word boundaries of the token the cursor sits in
+std::pair<u32, u32> tokenAroundCursor(std::wstring_view line, u32 cursor)
+{
+	u32 start = cursor;
+	u32 end = cursor;
+
+	while (start > 0 && line[start - 1] != L' ')
+		--start;
+	while (end < line.size() && line[end] != L' ')
+		++end;
+
+	return {start, end};
+}
+
+/// Which argument the cursor is on, counting from one. Zero means the command
+u32 argumentIndex(std::wstring_view line, u32 token_start)
+{
+	u32 index = 0;
+
+	for (u32 i = 1; i < token_start; i++) {
+		if (line[i - 1] != L' ' && line[i] == L' ')
+			index++;
+	}
+
+	return index;
+}
+
+/// The word of a parameter list that describes the given argument
+std::wstring parameterAt(std::wstring_view params, u32 index)
+{
+	u32 seen = 0;
+	size_t start = 0;
+
+	while (start < params.size()) {
+		size_t end = params.find(L' ', start);
+		if (end == std::wstring::npos)
+			end = params.size();
+
+		if (++seen == index)
+			return std::wstring(params.substr(start, end - start));
+
+		start = end + 1;
+	}
+
+	return L"";
+}
+
+/// Longest prefix shared by every candidate, starting from what is typed
+std::wstring commonPrefix(const std::vector<std::wstring> &candidates,
+		size_t from)
+{
+	if (candidates.empty())
+		return L"";
+
+	std::wstring shortest = candidates.front();
+
+	for (const std::wstring &candidate : candidates) {
+		for (size_t i = from; i < std::min(shortest.size(), candidate.size()); i++) {
+			if (my_tolower(shortest[i]) != my_tolower(candidate[i])) {
+				shortest.resize(i);
+				break;
+			}
+		}
+
+		if (candidate.size() < shortest.size() &&
+				str_starts_with(shortest, candidate, true))
+			shortest = candidate;
+	}
+
+	return shortest;
+}
+
+} // namespace
+
+bool ChatPrompt::commandCompletion(const std::vector<CommandInfo> &commands,
+		const std::set<std::string> &names)
+{
+	const std::wstring_view line(getLineRef());
+
+	if (line.empty() || line[0] != L'/')
+		return false;
+
+	auto [token_start, token_end] = tokenAroundCursor(line, m_cursor);
+	const std::wstring typed(line.substr(token_start, token_end - token_start));
+	const u32 argument = argumentIndex(line, token_start);
+
+	std::vector<std::wstring> candidates;
+	std::wstring note;
+
+	if (argument == 0) {
+		// The command itself: "/tel" -> "/teleport"
+		const std::wstring prefix = typed.substr(1);
+
+		for (const CommandInfo &command : commands) {
+			if (str_starts_with(command.name, prefix, true))
+				candidates.push_back(L"/" + command.name);
+		}
+	} else {
+		// An argument: what it should be is written in the command's own
+		// parameter list, so that is what decides how to complete it
+		const std::wstring name = std::wstring(line.substr(1,
+				line.find(L' ') == std::wstring::npos
+					? line.size() - 1 : line.find(L' ') - 1));
+
+		const CommandInfo *command = nullptr;
+		for (const CommandInfo &candidate : commands) {
+			if (str_equal(candidate.name, name, true)) {
+				command = &candidate;
+				break;
+			}
+		}
+
+		if (!command)
+			return true;
+
+		std::wstring wanted = parameterAt(command->params, argument);
+
+		for (wchar_t &c : wanted)
+			c = my_tolower(c);
+
+		const bool wants_player = wanted.find(L"player") != std::wstring::npos
+				|| wanted.find(L"name") != std::wstring::npos;
+		const bool wants_command = wanted.find(L"command") != std::wstring::npos;
+
+		if (wants_player) {
+			for (const std::string &player : names) {
+				std::wstring candidate = utf8_to_wide(player);
+				if (str_starts_with(candidate, typed, true))
+					candidates.push_back(candidate);
+			}
+		} else if (wants_command) {
+			for (const CommandInfo &entry : commands) {
+				if (str_starts_with(entry.name, typed, true))
+					candidates.push_back(entry.name);
+			}
+		}
+
+		if (candidates.empty() && !command->params.empty()) {
+			// Nothing to fill in, but the shape of the command is itself
+			// what the player is missing
+			note = L"/" + command->name + L" " + command->params;
+			if (!command->description.empty())
+				note += L" - " + command->description;
+		}
+	}
+
+	auto show = [&](const std::wstring &text) {
+		if (m_chat_buffer) {
+			m_chat_buffer->addLine(EnrichedString(L""),
+				EnrichedString(text, video::SColor(255, 200, 200, 200)));
+		} else {
+			rawstream << wide_to_utf8(text) << std::endl;
+		}
+	};
+
+	if (!note.empty()) {
+		show(note);
+		return true;
+	}
+
+	if (candidates.empty())
+		return true;
+
+	std::sort(candidates.begin(), candidates.end());
+
+	std::wstring completion = commonPrefix(candidates, typed.size());
+
+	if (candidates.size() > 1 && completion.size() == typed.size()) {
+		// Already as far as they all agree: name them instead
+		std::wstring options;
+		for (const std::wstring &candidate : candidates)
+			options.append(candidate).append(L", ");
+		options.resize(options.size() - 2);
+		show(options);
+		return true;
+	}
+
+	if (candidates.size() == 1 && token_end == line.size())
+		completion.append(L" ");
+
+	makeLineRef().replace(token_start, token_end - token_start, completion);
+	m_cursor = token_start + completion.size();
+	m_cursor_len = 0;
+	clampView();
+	return true;
+}
+
 void ChatPrompt::reformat(u32 cols)
 {
 	if (cols <= m_prompt.size())

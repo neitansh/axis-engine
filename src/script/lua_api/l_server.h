@@ -76,6 +76,9 @@ private:
 	// get_player_information(name)
 	static int l_get_player_information(lua_State *L);
 
+	// send_chat_commands(name, commands)
+	static int l_send_chat_commands(lua_State *L);
+
 	// get_player_window_information(name)
 	static int l_get_player_window_information(lua_State *L);
 

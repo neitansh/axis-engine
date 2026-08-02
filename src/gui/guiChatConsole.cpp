@@ -651,10 +651,22 @@ bool GUIChatConsole::OnEvent(const SEvent& event)
 		}
 		else if(event.KeyInput.Key == KEY_TAB)
 		{
-			// Tab or Shift-Tab pressed
-			// Nick completion
+			// Tab or Shift-Tab pressed: complete a command if one is being
+			// typed, and a nickname otherwise
 			auto names = m_client->getConnectedPlayerNames();
-			prompt.nickCompletion(names);
+
+			std::vector<ChatPrompt::CommandInfo> commands;
+			for (const auto &command : m_client->getChatCommands()) {
+				commands.push_back({
+					utf8_to_wide(command.name),
+					utf8_to_wide(command.params),
+					utf8_to_wide(command.description),
+				});
+			}
+
+			if (!prompt.commandCompletion(commands, names))
+				prompt.nickCompletion(names);
+
 			return true;
 		}
 

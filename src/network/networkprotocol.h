@@ -710,7 +710,19 @@ enum ToClientCommand : u16
 			u8[len] serialized ParticleParameters
 	*/
 
-	TOCLIENT_NUM_MSG_TYPES = 0x65,
+	TOCLIENT_CHAT_COMMANDS = 0x65,
+	/*
+		The commands this player may use, so that the client can complete
+		them as they are typed. Sent on join and whenever the set changes.
+
+		u16 count
+		for each command:
+			std::string name
+			std::string parameters
+			std::string description
+	*/
+
+	TOCLIENT_NUM_MSG_TYPES = 0x66,
 };
 
 enum ToServerCommand : u16

@@ -20,6 +20,7 @@
 #include <atomic>
 #include <csignal>
 #include <string>
+#include <tuple>
 #include <list>
 #include <vector>
 #include <unordered_map>
@@ -415,6 +416,8 @@ public:
 
 	void HandlePlayerHPChange(PlayerSAO *sao, const PlayerHPChangeReason &reason);
 	void SendPlayerHP(PlayerSAO *sao, bool effect);
+	void SendChatCommands(session_t peer_id,
+			const std::vector<std::tuple<std::string, std::string, std::string>> &commands);
 	void SendPlayerBreath(PlayerSAO *sao);
 	void SendInventory(RemotePlayer *player, bool incremental, bool skip_wield_anim = false);
 	void SendMovePlayer(PlayerSAO *sao);

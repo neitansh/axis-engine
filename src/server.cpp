@@ -1509,6 +1509,21 @@ void Server::HandlePlayerHPChange(PlayerSAO *playersao, const PlayerHPChangeReas
 		HandlePlayerDeath(playersao, reason);
 }
 
+void Server::SendChatCommands(session_t peer_id,
+		const std::vector<std::tuple<std::string, std::string, std::string>> &commands)
+{
+	NetworkPacket pkt(TOCLIENT_CHAT_COMMANDS, 0, peer_id);
+
+	pkt << (u16)commands.size();
+
+	for (const auto &command : commands) {
+		pkt << std::get<0>(command) << std::get<1>(command)
+			<< std::get<2>(command);
+	}
+
+	Send(&pkt);
+}
+
 void Server::SendPlayerHP(PlayerSAO *playersao, bool effect)
 {
 	SendHP(playersao->getPeerID(), playersao->getHP(), effect);

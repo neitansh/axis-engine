@@ -179,6 +179,29 @@ public:
 	// Nick completion
 	void nickCompletion(const std::set<std::string> &names);
 
+	/// One command the player may use, as far as completion is concerned
+	struct CommandInfo
+	{
+		std::wstring name;
+		std::wstring params;
+		std::wstring description;
+	};
+
+	/**
+	 * Completes a chat command being typed, or its arguments.
+	 *
+	 * Which one depends on where the cursor is: on the command itself the
+	 * name is completed, past it the argument under the cursor is - by
+	 * player name where the command asks for one, by command name where it
+	 * asks for that. What cannot be completed is described instead, since
+	 * knowing what the next word should be is most of the help there is.
+	 *
+	 * Returns false when the line is not a command at all, so the caller can
+	 * fall back to completing nicknames.
+	 */
+	bool commandCompletion(const std::vector<CommandInfo> &commands,
+			const std::set<std::string> &names);
+
 	// Update console size and reformat the visible portion of the prompt
 	void reformat(u32 cols);
 	// Get visible portion of the prompt.
