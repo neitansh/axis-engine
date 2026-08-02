@@ -678,24 +678,52 @@ u32 argumentIndex(std::wstring_view line, u32 token_start)
 	return index;
 }
 
-/// The word of a parameter list that describes the given argument
-std::wstring parameterAt(std::wstring_view params, u32 index)
+/// Words of a parameter list that describe the given argument.
+///
+/// A command may take more than one shape - "/teleport" accepts coordinates
+/// or a player, and either of them after a name - and the shapes are written
+/// one after another, divided by "|". So the same position can mean different
+/// things, and all of them are worth knowing about.
+std::vector<std::wstring> parametersAt(std::wstring_view params, u32 index)
 {
-	u32 seen = 0;
-	size_t start = 0;
+	std::vector<std::wstring> found;
+	size_t form_start = 0;
 
-	while (start < params.size()) {
-		size_t end = params.find(L' ', start);
-		if (end == std::wstring::npos)
-			end = params.size();
+	while (form_start <= params.size()) {
+		size_t form_end = params.find(L'|', form_start);
+		if (form_end == std::wstring::npos)
+			form_end = params.size();
 
-		if (++seen == index)
-			return std::wstring(params.substr(start, end - start));
+		std::wstring_view form = params.substr(form_start, form_end - form_start);
 
-		start = end + 1;
+		u32 seen = 0;
+		size_t start = 0;
+
+		while (start < form.size()) {
+			while (start < form.size() && form[start] == L' ')
+				++start;
+
+			size_t end = form.find(L' ', start);
+			if (end == std::wstring::npos)
+				end = form.size();
+
+			if (start < end && ++seen == index) {
+				std::wstring word(form.substr(start, end - start));
+
+				if (!word.empty() && std::find(found.begin(), found.end(), word)
+						== found.end())
+					found.push_back(std::move(word));
+
+				break;
+			}
+
+			start = end + 1;
+		}
+
+		form_start = form_end + 1;
 	}
 
-	return L"";
+	return found;
 }
 
 /// Longest prefix shared by every candidate, starting from what is typed
@@ -766,14 +794,22 @@ bool ChatPrompt::commandCompletion(const std::vector<CommandInfo> &commands,
 		if (!command)
 			return true;
 
-		std::wstring wanted = parameterAt(command->params, argument);
+		const std::vector<std::wstring> wanted =
+				parametersAt(command->params, argument);
 
-		for (wchar_t &c : wanted)
-			c = my_tolower(c);
+		bool wants_player = false;
+		bool wants_command = false;
 
-		const bool wants_player = wanted.find(L"player") != std::wstring::npos
-				|| wanted.find(L"name") != std::wstring::npos;
-		const bool wants_command = wanted.find(L"command") != std::wstring::npos;
+		for (const std::wstring &word : wanted) {
+			std::wstring lowered = word;
+
+			for (wchar_t &c : lowered)
+				c = my_tolower(c);
+
+			wants_player |= lowered.find(L"player") != std::wstring::npos
+					|| lowered.find(L"name") != std::wstring::npos;
+			wants_command |= lowered.find(L"command") != std::wstring::npos;
+		}
 
 		if (wants_player) {
 			for (const std::string &player : names) {
@@ -908,20 +944,32 @@ void ChatPrompt::updateSuggestions(const std::vector<CommandInfo> &commands,
 	if (!command)
 		return;
 
-	std::wstring wanted = parameterAt(command->params, argument);
-	std::wstring lowered = wanted;
+	const std::vector<std::wstring> wanted =
+			parametersAt(command->params, argument);
 
-	for (wchar_t &c : lowered)
-		c = my_tolower(c);
+	bool wants_player = false;
+	bool wants_command = false;
 
-	if (lowered.find(L"player") != std::wstring::npos ||
-			lowered.find(L"name") != std::wstring::npos) {
+	for (const std::wstring &word : wanted) {
+		std::wstring lowered = word;
+
+		for (wchar_t &c : lowered)
+			c = my_tolower(c);
+
+		wants_player |= lowered.find(L"player") != std::wstring::npos
+				|| lowered.find(L"name") != std::wstring::npos;
+		wants_command |= lowered.find(L"command") != std::wstring::npos;
+	}
+
+	if (wants_player) {
 		for (const std::string &player : names) {
 			std::wstring candidate = utf8_to_wide(player);
 			if (str_starts_with(candidate, typed, true))
 				m_suggestions.options.push_back(candidate);
 		}
-	} else if (lowered.find(L"command") != std::wstring::npos) {
+	}
+
+	if (wants_command) {
 		for (const CommandInfo &entry : commands) {
 			if (str_starts_with(entry.name, typed, true))
 				m_suggestions.options.push_back(entry.name);
@@ -930,10 +978,17 @@ void ChatPrompt::updateSuggestions(const std::vector<CommandInfo> &commands,
 
 	std::sort(m_suggestions.options.begin(), m_suggestions.options.end());
 
-	if (m_suggestions.options.empty()) {
-		// Nothing to choose from, but the command did say what it wants
-		m_suggestions.hint = wanted.empty() ? command->params : wanted;
+	// The shapes this position can take are shown whether or not any of them
+	// can be listed: a player may still mean to type coordinates.
+	for (const std::wstring &word : wanted) {
+		if (!m_suggestions.hint.empty())
+			m_suggestions.hint += L" | ";
+
+		m_suggestions.hint += word;
 	}
+
+	if (m_suggestions.hint.empty())
+		m_suggestions.hint = command->params;
 
 	keepChoice(previous);
 }

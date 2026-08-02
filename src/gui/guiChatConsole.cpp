@@ -379,31 +379,16 @@ void GUIChatConsole::drawSuggestions(s32 prompt_y, u32 font_height)
 	const ChatPrompt::Suggestions &suggestions =
 			m_chat_backend->getPrompt().getSuggestions();
 
-	if (suggestions.empty())
+	if (suggestions.options.empty())
 		return;
 
 	// Muted, because this is not what the player wrote - it is what they
 	// could write
-	const video::SColor muted(255, 140, 140, 140);
-	const video::SColor picked(255, 235, 235, 235);
+	const video::SColor muted(255, 150, 150, 150);
+	const video::SColor picked(255, 245, 245, 245);
 
-	const u32 font_width = m_fontsize.X;
-	s32 y = prompt_y + font_height;
-
-	if (suggestions.options.empty()) {
-		// Only the shape of the argument is known: say it and no more
-		const std::wstring text = L"  " + suggestions.hint;
-		core::rect<s32> where(font_width, y,
-				font_width + m_font->getDimension(text.c_str()).Width,
-				y + font_height);
-
-		m_font->draw(text.c_str(), where, muted, false, false,
-				&AbsoluteClippingRect);
-		return;
-	}
-
-	// A few at a time, with the chosen one in the middle where it can be
-	// seen without reading the whole list
+	// Above the prompt rather than below it: below is the edge of the screen,
+	// and what is drawn there is simply cut off
 	constexpr size_t SHOWN = 3;
 	const size_t count = suggestions.options.size();
 	const size_t shown = std::min(SHOWN, count);
@@ -413,22 +398,43 @@ void GUIChatConsole::drawSuggestions(s32 prompt_y, u32 font_height)
 	if (first + shown > count)
 		first = count - shown;
 
+	const u32 font_width = m_fontsize.X;
+	const s32 top = prompt_y - (s32)(shown * font_height);
+
+	std::vector<std::wstring> lines;
+	u32 widest = 0;
+
 	for (size_t i = 0; i < shown; i++) {
 		const size_t index = first + i;
-		std::wstring text = (index == suggestions.chosen ? L"> " : L"  ")
+		std::wstring text = (index == suggestions.chosen ? L"\u203a " : L"  ")
 				+ suggestions.options[index];
 
 		if (index == suggestions.chosen && count > 1) {
-			text += L"   (" + std::to_wstring(suggestions.chosen + 1) + L"/"
-					+ std::to_wstring(count) + L")";
+			text += L"  " + std::to_wstring(suggestions.chosen + 1) + L"/"
+					+ std::to_wstring(count);
 		}
 
+		widest = std::max(widest, m_font->getDimension(text.c_str()).Width);
+		lines.push_back(std::move(text));
+	}
+
+	// A backing, so the chat behind stays readable behind the list
+	video::IVideoDriver *driver = Environment->getVideoDriver();
+	core::rect<s32> backing(font_width / 2, top,
+			font_width + widest + font_width, prompt_y);
+
+	driver->draw2DRectangle(video::SColor(190, 20, 20, 20), backing,
+			&AbsoluteClippingRect);
+
+	s32 y = top;
+
+	for (size_t i = 0; i < lines.size(); i++) {
 		core::rect<s32> where(font_width, y,
-				font_width + m_font->getDimension(text.c_str()).Width,
+				font_width + m_font->getDimension(lines[i].c_str()).Width,
 				y + font_height);
 
-		m_font->draw(text.c_str(), where,
-				index == suggestions.chosen ? picked : muted,
+		m_font->draw(lines[i].c_str(), where,
+				first + i == suggestions.chosen ? picked : muted,
 				false, false, &AbsoluteClippingRect);
 
 		y += font_height;
@@ -465,6 +471,35 @@ void GUIChatConsole::drawPrompt()
 		&AbsoluteClippingRect);
 
 	refreshSuggestions();
+
+	// What would be typed if the offer were taken, written faintly right where
+	// it would go - so that taking it holds no surprises
+	const ChatPrompt::Suggestions &suggestions = prompt.getSuggestions();
+	std::wstring ghost;
+
+	if (!suggestions.options.empty()) {
+		const std::wstring &chosen = suggestions.options[suggestions.chosen];
+
+		if (chosen.size() > suggestions.typed.size() &&
+				str_starts_with(chosen, suggestions.typed, true))
+			ghost = chosen.substr(suggestions.typed.size());
+	} else if (!suggestions.hint.empty() && suggestions.typed.empty()) {
+		// Nothing to take, but the command did say what it is waiting for
+		ghost = suggestions.hint;
+	}
+
+	// Only where the text ends, since that is where the writing continues
+	if (!ghost.empty() && prompt.getCursorLength() == 0 &&
+			(u32)prompt.getVisibleCursorPosition() == prompt_text.size()) {
+		core::rect<s32> where(font_width + text_width, y,
+				font_width + text_width
+					+ m_font->getDimension(ghost.c_str()).Width,
+				y + font_height);
+
+		m_font->draw(ghost.c_str(), where, video::SColor(255, 130, 130, 130),
+				false, false, &AbsoluteClippingRect);
+	}
+
 	drawSuggestions(y, font_height);
 
 	// Draw the cursor during on periods
