@@ -52,8 +52,10 @@ fi
 cmake .. "${cmake_args[@]}"
 
 if [ "$USE_XCODE" == "yes" ]; then
-	xcodebuild -project luanti.xcodeproj -scheme luanti -configuration Release build
-	xcodebuild -project luanti.xcodeproj -scheme luanti -archivePath ./luanti.xcarchive archive
+	# CMake names the generated project after project() in CMakeLists.txt
+	project_name=${PROJECT_NAME:-axis}
+	xcodebuild -project $project_name.xcodeproj -scheme $project_name -configuration Release build
+	xcodebuild -project $project_name.xcodeproj -scheme $project_name -archivePath ./$project_name.xcarchive archive
 else
 	cmake --build . -j$(sysctl -n hw.logicalcpu)
 	make install

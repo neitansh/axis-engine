@@ -33,7 +33,10 @@ on:
       - 'util/helper_mod/**'
       - '.github/workflows/linux.yml'
 
+# Name of what the build produces, follows project() in CMakeLists.txt.
+# The executables are ${PROJECT_NAME} and ${PROJECT_NAME}server.
 env:
+  PROJECT_NAME: axis
   MINETEST_POSTGRESQL_CONNECT_STRING: 'host=localhost user=minetest password=minetest dbname=minetest'
 
 jobs:
@@ -57,7 +60,7 @@ jobs:
 
       - name: Unittest
         run: |
-          ./bin/luanti --run-unittests
+          ./bin/${{ env.PROJECT_NAME }} --run-unittests
 
       # Do this here because we have ASan and error paths are sensitive to dangling pointers.
       # Skips itself when no game is installed, which is the case in CI: games
@@ -90,7 +93,7 @@ jobs:
           mkdir nowrite
           chmod a-w nowrite
           cd nowrite
-          ../bin/luanti --run-unittests
+          ../bin/${{ env.PROJECT_NAME }} --run-unittests
 
   # Older clang version (should be close to our minimum supported version)
   clang_11:
@@ -113,7 +116,7 @@ jobs:
 
       - name: Test
         run: |
-          ./bin/luanti --run-unittests
+          ./bin/${{ env.PROJECT_NAME }} --run-unittests
 
   # Current clang version
   clang_20:
@@ -134,7 +137,7 @@ jobs:
 
       - name: Test
         run: |
-          ./bin/luanti --run-unittests
+          ./bin/${{ env.PROJECT_NAME }} --run-unittests
 
   # Build with prometheus-cpp (server-only), also runs on ARM64
   clang_prometheus_arm:
@@ -160,4 +163,4 @@ jobs:
 
       - name: Test
         run: |
-          ./bin/luantiserver --run-unittests
+          ./bin/${{ env.PROJECT_NAME }}server --run-unittests

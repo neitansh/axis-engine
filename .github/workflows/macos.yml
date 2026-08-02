@@ -31,6 +31,11 @@ on:
       - 'util/ci/**'
       - '.github/workflows/macos.yml'
 
+# Name of what the build produces, follows project() in CMakeLists.txt.
+# The executables are ${PROJECT_NAME} and ${PROJECT_NAME}server.
+env:
+  PROJECT_NAME: axis
+
 jobs:
   build-older-macos:
     strategy:
@@ -90,19 +95,19 @@ jobs:
 
       - name: Test GNU Make build
         run: |
-          ./build/macos/luanti.app/Contents/MacOS/luanti --run-unittests
+          ./build/macos/${{ env.PROJECT_NAME }}.app/Contents/MacOS/${{ env.PROJECT_NAME }} --run-unittests
 
       - name: Test XCode build
         if: ${{matrix.xcode == 'yes'}}
         run: |
-          ./build_xcode/build/${build_type}/luanti.app/Contents/MacOS/luanti --run-unittests
-          ./build_xcode/luanti.xcarchive/Products/Applications/luanti.app/Contents/MacOS/luanti --run-unittests
+          ./build_xcode/build/${build_type}/${{ env.PROJECT_NAME }}.app/Contents/MacOS/${{ env.PROJECT_NAME }} --run-unittests
+          ./build_xcode/${{ env.PROJECT_NAME }}.xcarchive/Products/Applications/${{ env.PROJECT_NAME }}.app/Contents/MacOS/${{ env.PROJECT_NAME }} --run-unittests
 
       - name: Diff Resources
         if: ${{matrix.xcode == 'yes'}}
         run: |
-          diff -rd ./build/macos/luanti.app/Contents/Resources ./build_xcode/build/${build_type}/luanti.app/Contents/Resources || exit 1
-          diff -rd ./build/macos/luanti.app/Contents/Resources ./build_xcode/luanti.xcarchive/Products/Applications/luanti.app/Contents/Resources || exit 1
+          diff -rd ./build/macos/${{ env.PROJECT_NAME }}.app/Contents/Resources ./build_xcode/build/${build_type}/${{ env.PROJECT_NAME }}.app/Contents/Resources || exit 1
+          diff -rd ./build/macos/${{ env.PROJECT_NAME }}.app/Contents/Resources ./build_xcode/${{ env.PROJECT_NAME }}.xcarchive/Products/Applications/${{ env.PROJECT_NAME }}.app/Contents/Resources || exit 1
       # Zipping the built .app preserves permissions on the contained files,
       #   which the GitHub artifact pipeline would otherwise strip away.
       - name: CPack
