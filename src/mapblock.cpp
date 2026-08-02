@@ -211,6 +211,21 @@ std::string MapBlock::getModifiedReasonString()
 }
 
 
+void MapBlock::remapContentIds(const std::vector<content_t> &mapping)
+{
+	if (!data)
+		return;
+
+	// A block of a single node only stores that one node
+	const u32 count = m_is_mono_block ? 1 : nodecount;
+
+	for (u32 i = 0; i < count; i++) {
+		const content_t old_id = data[i].getContent();
+		data[i].setContent(old_id < mapping.size()
+				? mapping[old_id] : CONTENT_UNKNOWN);
+	}
+}
+
 void MapBlock::copyTo(VoxelManipulator &dst)
 {
 	v3s16 data_size(MAP_BLOCKSIZE, MAP_BLOCKSIZE, MAP_BLOCKSIZE);

@@ -100,14 +100,20 @@ void ClientEnvironment::step(float dtime)
 		const bool update_lighting =
 			m_active_object_light_update_interval.step(dtime, 0.21);
 
-		auto cb_state = [this, dtime, update_lighting, ratio] (ClientActiveObject *cao) {
-			cao->step(dtime, this);
+		// Objects of the server are told what to do by the server. With the
+		// link down nothing tells them anything, and stepping them would send
+		// everyone walking off on their last known speed, so they hold still
+		// until the server speaks again.
+		const float object_dtime = m_client->isLinkLive() ? dtime : 0.0f;
+
+		auto cb_state = [this, object_dtime, update_lighting, ratio] (ClientActiveObject *cao) {
+			cao->step(object_dtime, this);
 
 			if (update_lighting)
 				cao->updateLight(ratio);
 		};
 
-		m_ao_manager.step(dtime, cb_state);
+		m_ao_manager.step(object_dtime, cb_state);
 	}
 
 	/*
@@ -394,6 +400,20 @@ void ClientEnvironment::removeActiveObject(u16 id)
 		if (ClientActiveObject *child = getActiveObject(c_id))
 			child->updateAttachments();
 	}
+}
+
+void ClientEnvironment::clearActiveObjects()
+{
+	// The local player is ours and outlives the session, but the object the
+	// server gave it does not, and nothing must point at it afterwards
+	if (LocalPlayer *player = getLocalPlayer())
+		player->detachCAO();
+
+	m_ao_manager.clear();
+
+	for (auto &simple : m_simple_objects)
+		delete simple;
+	m_simple_objects.clear();
 }
 
 void ClientEnvironment::processActiveObjectMessage(u16 id, const std::string &data)

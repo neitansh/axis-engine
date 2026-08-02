@@ -96,6 +96,14 @@ public:
 	void addActiveObject(u16 id, u8 type, const std::string &init_data);
 	void removeActiveObject(u16 id);
 
+	/**
+	 * Removes every object of the server, keeping the local player.
+	 *
+	 * Used when a session ends but the client stays in the world, see
+	 * Client::resetWorld().
+	 */
+	void clearActiveObjects();
+
 	void processActiveObjectMessage(u16 id, const std::string &data);
 
 	/*

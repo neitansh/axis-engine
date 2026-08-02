@@ -613,6 +613,8 @@ constexpr SettingDomainEntry SETTING_DOMAIN_TABLE[] = {
 	{"viewing_range", ConfigDomain::ClientGraphics},
 	{"virtual_joystick_triggers_aux1", ConfigDomain::ClientInput},
 	{"vsync", ConfigDomain::ClientGraphics},
+	{"wait_for_server", ConfigDomain::ClientNetwork},
+	{"wait_for_server_timeout", ConfigDomain::ClientNetwork},
 	{"water_level", ConfigDomain::ServerWorldgen},
 	{"water_wave_height", ConfigDomain::ClientGraphics},
 	{"water_wave_length", ConfigDomain::ClientGraphics},

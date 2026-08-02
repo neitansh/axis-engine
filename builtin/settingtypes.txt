@@ -1008,6 +1008,17 @@ serverlist_url (Serverlist URL) [common] string
 #    Turn this off to let each world pick its mods again.
 enable_all_mods (Load all installed mods) bool true
 
+#    When a server stops answering, keep the world on screen and wait for it to
+#    come back instead of returning to the main menu. Restarts and short
+#    outages are then barely noticeable.
+#    The world is reloaded once the server answers again.
+wait_for_server (Wait for the server to return) bool true
+
+#    Give up waiting for a silent server after this many seconds and return to
+#    the main menu. 0 waits for as long as the player lets it.
+#    Requires "Wait for the server to return".
+wait_for_server_timeout (Give up waiting after) int 0 0 86400
+
 #    If enabled, server account registration is separate from login in the UI.
 #    If disabled, connecting to a server will automatically register a new account.
 enable_split_login_register (Enable split login/register) bool true

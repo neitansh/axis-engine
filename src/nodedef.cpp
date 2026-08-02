@@ -1107,6 +1107,18 @@ void NodeDefManager::applyFunction(const std::function<void(ContentFeatures&)> &
 		function(f);
 }
 
+#if CHECK_CLIENT_BUILD()
+void NodeDefManager::detachVisuals(std::vector<NodeVisuals *> &out)
+{
+	for (ContentFeatures &f : m_content_features) {
+		if (f.visuals) {
+			out.push_back(f.visuals);
+			f.visuals = nullptr;
+		}
+	}
+}
+#endif
+
 void NodeDefManager::serialize(std::ostream &os, u16 protocol_version) const
 {
 	writeU8(os, 1); // version

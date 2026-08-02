@@ -111,6 +111,15 @@ public:
 		m_cao = toset;
 	}
 
+	/**
+	 * Forgets the object the server gave us.
+	 *
+	 * The player outlives a session, its object does not: it is removed with
+	 * everything else the server owned, and a new one arrives with the next
+	 * session. See ClientEnvironment::clearActiveObjects().
+	 */
+	void detachCAO() { m_cao = nullptr; }
+
 	u16 getBreath() const { return m_breath; }
 	void setBreath(u16 breath) { m_breath = breath; }
 

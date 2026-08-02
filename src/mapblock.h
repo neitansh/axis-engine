@@ -281,6 +281,18 @@ public:
 		setNodeNoCheck(p.X, p.Y, p.Z, n);
 	}
 
+	/**
+	 * Renames every node of this block from one set of content IDs to another.
+	 *
+	 * Content IDs are handed out per session, and a block that outlives the
+	 * session it arrived in still says what it always said - just in the old
+	 * words. The mapping translates them, so the block keeps its meaning
+	 * instead of having to be thrown away. See Client::remapWorldContent().
+	 *
+	 * @param mapping Old content ID -> new content ID
+	 */
+	void remapContentIds(const std::vector<content_t> &mapping);
+
 	// Copies data to VoxelManipulator to getPosRelative()
 	void copyTo(VoxelManipulator &dst);
 

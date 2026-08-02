@@ -96,6 +96,27 @@ public:
 	/// @brief clears m_drawlist and m_keeplist
 	void clearDrawList();
 
+	/**
+	 * Throws away every loaded block.
+	 *
+	 * Blocks name their nodes by content IDs, which the server hands out per
+	 * session, so they cannot outlive the session they arrived in. Used when
+	 * the client logs in again without leaving the world, see
+	 * Client::resetWorld().
+	 */
+	void dropAllBlocks();
+
+	/**
+	 * Translates every loaded block from one set of content IDs to another.
+	 *
+	 * Used when a new session hands out different numbers for the same nodes,
+	 * which is what happens whenever a server restarts: the world stays, only
+	 * its vocabulary is rewritten. See Client::remapWorldContent().
+	 *
+	 * @param mapping Old content ID -> new content ID
+	 */
+	void remapContentIds(const std::vector<content_t> &mapping);
+
 	/// @brief Calculate statistics about the map and keep the blocks alive
 	void touchMapBlocks();
 

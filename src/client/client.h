@@ -44,6 +44,7 @@ class ModChannelMgr;
 class MtEventManager;
 class NetworkPacket;
 class NodeDefManager;
+struct NodeVisuals;
 class ParticleManager;
 class RenderingEngine;
 class SingleMediaDownloader;
@@ -72,6 +73,23 @@ enum LocalClientState {
 	LC_Created,
 	LC_Init,
 	LC_Ready
+};
+
+/**
+ * State of the link to the server, which is a different thing from how far
+ * the login got (LocalClientState).
+ *
+ * A server that stops answering is not necessarily gone for good: it may be
+ * restarting for an update. The client then keeps the world it has and waits
+ * instead of throwing everything away, see Game::updateLimbo().
+ */
+enum class LinkState {
+	/// Packets are going both ways
+	Live,
+	/// The server went quiet, the world is kept and we wait for it to return
+	Lost,
+	/// Logging in again, on top of the world we kept
+	Rejoining,
 };
 
 /*
@@ -313,6 +331,85 @@ public:
 
 	bool reconnectRequested() const { return m_access_denied_reconnect; }
 
+	/*
+		The link to the server, see LinkState.
+	*/
+
+	LinkState getLinkState() const { return m_link_state; }
+	bool isLinkLive() const { return m_link_state == LinkState::Live; }
+
+	/// Why the link was lost, ready to be shown to the player
+	const std::string &linkLostReason() const { return m_link_lost_reason; }
+
+	/// AccessDeniedCode of the last refusal by the server
+	u8 accessDeniedCode() const { return m_access_denied_code; }
+
+	/**
+	 * The server stopped answering, but may well come back.
+	 *
+	 * The world, the local player and everything else the client holds stay
+	 * as they are; only the session with the server ends.
+	 */
+	void loseLink(const std::string &reason);
+
+	/**
+	 * Logs in again over the world we kept.
+	 *
+	 * Forgets everything that belonged to the old session - definitions,
+	 * privileges, inventories, sounds - and starts the login from the top.
+	 * The world is only dropped once the new session is up, see resetWorld().
+	 */
+	void beginRejoin();
+
+	/**
+	 * Drops the map and the objects of the old session.
+	 *
+	 * Content IDs are handed out by the server and only mean anything within
+	 * one session, so blocks from before cannot outlive the definitions they
+	 * were described with. Called the moment the new definitions arrive, not
+	 * later: between the two the map would name nodes that no longer exist.
+	 */
+	void resetWorld(bool keep_map = false);
+
+	/**
+	 * Decides what of the old world can stay, at the first definitions of a
+	 * new session.
+	 *
+	 * A server that merely restarted hands out the same content IDs as before,
+	 * because the same games and mods register the same nodes in the same
+	 * order. The map then still means what it says and is kept, so the player
+	 * never sees the world go away. Only when the IDs actually differ - a
+	 * changed set of mods, a different game - is the map dropped.
+	 */
+	void takeOverWorldOfPreviousSession();
+
+	/// The new session is up: packets flow again
+	void linkRestored();
+
+	/**
+	 * Whether the world may be drawn this frame.
+	 *
+	 * Between the definitions of a new session arriving and being turned into
+	 * textures and node visuals there is nothing to draw the map with: the
+	 * visuals of every node are gone and the new ones do not exist yet.
+	 */
+	bool worldIsRenderable() const
+	{
+		return m_link_state == LinkState::Live || m_world_of_previous_session;
+	}
+
+	/**
+	 * True once a new session started replacing the old one.
+	 *
+	 * From the first definitions of the new session there is no way back:
+	 * the world of the old one is gone. Giving up on the attempt now would
+	 * leave the player with nothing to look at, so it has to run to the end.
+	 */
+	bool sessionIsBeingReplaced() const
+	{
+		return m_link_state == LinkState::Rejoining && !m_world_of_previous_session;
+	}
+
 	void setFatalError(const std::string &reason)
 	{
 		m_access_denied = true;
@@ -350,7 +447,28 @@ public:
 	bool mediaReceiveProgress(s32 &received, s32 &total, size_t &received_size) const;
 
 	void drawLoadScreen(const std::wstring &text, float dtime, int percent);
-	void afterContentReceived();
+	/**
+	 * Turns the received definitions into something the client can draw with.
+	 *
+	 * @param quiet No loading screens and no rebuilding of media that did not
+	 *              change. Used when a new session takes over a running game,
+	 *              where a loading screen would be the only thing the player
+	 *              notices about it.
+	 */
+	void afterContentReceived(bool quiet = false);
+
+	/// True if the map outlived the change of session, see takeOverWorld...()
+	bool mapSurvivedSession() const { return m_map_survived_session; }
+
+	/**
+	 * Puts the definitions of a new session into effect.
+	 *
+	 * While a session is being replaced the new definitions are held back:
+	 * the moment they are applied the old world stops meaning anything, so
+	 * that moment is delayed until everything else has arrived and the change
+	 * can happen within a single frame. Nothing is drawn in between.
+	 */
+	void applyPendingContent();
 	void showUpdateProgressTexture(void *args, float progress);
 
 	float getRTT();
@@ -557,6 +675,31 @@ private:
 	bool m_access_denied = false;
 	bool m_access_denied_reconnect = false;
 	std::string m_access_denied_reason = "";
+	// AccessDeniedCode of the last refusal, SERVER_ACCESSDENIED_MAX if none
+	u8 m_access_denied_code = 255;
+
+	// Link to the server, see LinkState
+	LinkState m_link_state = LinkState::Live;
+	std::string m_link_lost_reason;
+	// Set while rejoining, until the new session took the world over
+	bool m_world_of_previous_session = false;
+	// The map survived the change of session, so no content has to be rebuilt
+	bool m_map_survived_session = false;
+
+	/// Content IDs by name, as the previous session handed them out
+	std::vector<std::string> m_previous_node_names;
+	/// Definitions of a new session, held back until they can be applied
+	std::string m_pending_nodedef;
+	/**
+	 * Visuals of sessions that ended, kept alive for the meshes built from
+	 * them. Those meshes are what the player is looking at while the world
+	 * carries over, and they point into these. Freed when the client leaves.
+	 */
+	std::vector<NodeVisuals *> m_retired_visuals;
+	/// Reads the names the current definitions give to each content ID
+	void rememberNodeIds();
+	// Kept so the address stays known while there is no peer to ask
+	Address m_server_address;
 	std::queue<ClientEvent *> m_client_event_queue;
 	bool m_itemdef_received = false;
 	bool m_nodedef_received = false;

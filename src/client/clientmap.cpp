@@ -360,6 +360,39 @@ private:
 	v3s16 volume;
 };
 
+void ClientMap::remapContentIds(const std::vector<content_t> &mapping)
+{
+	u32 blocks = 0;
+
+	MapBlockVect sector_blocks;
+	for (auto &sector : m_sectors) {
+		sector_blocks.clear();
+		sector.second->getBlocks(sector_blocks);
+		for (MapBlock *block : sector_blocks) {
+			block->remapContentIds(mapping);
+			blocks++;
+		}
+	}
+
+	infostream << "ClientMap: renamed the nodes of " << blocks
+			<< " blocks to the content IDs of the new session" << std::endl;
+}
+
+void ClientMap::dropAllBlocks()
+{
+	clearDrawList();
+	clearDrawListShadow();
+
+	std::vector<v2s16> sectors;
+	sectors.reserve(m_sectors.size());
+	for (const auto &sector : m_sectors)
+		sectors.push_back(sector.first);
+
+	deleteSectors(sectors);
+
+	m_needs_update_drawlist = true;
+}
+
 void ClientMap::clearDrawList()
 {
 	for (auto &i : m_drawlist) {
@@ -402,7 +435,8 @@ void ClientMap::updateDrawList()
 	bool occlusion_culling_enabled = mesh_grid.cell_size < 4;
 	if (m_control.allow_noclip) {
 		MapNode n = getNode(cam_pos_nodes);
-		if (n.getContent() == CONTENT_IGNORE || m_nodedef->get(n).visuals->solidness == 2)
+		const NodeVisuals *visuals = m_nodedef->get(n).visuals;
+		if (n.getContent() == CONTENT_IGNORE || !visuals || visuals->solidness == 2)
 			occlusion_culling_enabled = false;
 	}
 
@@ -1383,6 +1417,15 @@ void ClientMap::renderPostFx(CameraMode cam_mode)
 	MapNode n = getNode(floatToInt(m_camera_position, BS));
 
 	const ContentFeatures& features = m_nodedef->get(n);
+	if (!features.visuals) {
+		// Node definitions without visuals mean a session is being replaced
+		// and the new visuals are not built yet. Nothing to shade the screen
+		// with, and in a frame or two there will be.
+		warningstream << "ClientMap::renderPostFx(): node " << n.getContent()
+				<< " has no visuals yet" << std::endl;
+		return;
+	}
+
 	video::SColor post_color = features.post_effect_color;
 
 	if (features.post_effect_color_shaded) {

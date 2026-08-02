@@ -660,6 +660,20 @@ public:
 	 */
 	void applyFunction(const std::function<void(ContentFeatures&)> &function);
 
+#if CHECK_CLIENT_BUILD()
+	/**
+	 * Hands the visuals of every node over to the caller.
+	 *
+	 * Meshes that were built from these visuals keep pointing at the frames
+	 * of their animated tiles, so the visuals cannot be destroyed while such
+	 * a mesh is still on screen. Used when a new session replaces the
+	 * definitions under a world that stays, see Client::applyPendingContent().
+	 *
+	 * @param out Receives the visuals, which the caller then owns
+	 */
+	void detachVisuals(std::vector<NodeVisuals *> &out);
+#endif
+
 	/*!
 	 * Returns the amount of managed content IDs.
 	 * Invalid and removed IDs are also counted.

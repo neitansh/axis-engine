@@ -113,6 +113,8 @@ BY_NAME = {
     "main_menu_script": "ClientInterface",
     "enable_split_login_register": "ClientInterface",
     "enable_local_map_saving": "ClientNetwork",
+    "wait_for_server": "ClientNetwork",
+    "wait_for_server_timeout": "ClientNetwork",
     "language": "SharedEngine",
     # State the main menu remembers between runs. Not listed in
     # settingtypes.txt, as none of it is meant to be edited by hand.

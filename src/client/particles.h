@@ -240,6 +240,14 @@ public:
 		return m_next_particle_spawner_id++;
 	}
 
+	/**
+	 * Drops every particle and spawner.
+	 *
+	 * Spawners are owned by the server and attach to its objects, so they
+	 * cannot outlive the session that created them. Also used at shutdown.
+	 */
+	void clearAll();
+
 protected:
 	static bool getNodeParticleParams(Client *client, const MapNode &n,
 		ParticleParameters &p, video::ITexture **texture, v2f &texpos,
@@ -256,8 +264,6 @@ private:
 	void stepParticles(float dtime);
 	void stepSpawners(float dtime);
 	void stepBuffers(float dtime);
-
-	void clearAll();
 
 	std::vector<std::unique_ptr<Particle>> m_particles;
 	std::unordered_map<u64, std::unique_ptr<ParticleSpawner>> m_particle_spawners;

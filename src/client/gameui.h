@@ -59,6 +59,15 @@ public:
 	inline void setInfoText(const std::wstring &str) { m_infotext = str; }
 	inline void clearInfoText() { m_infotext.clear(); }
 
+	/**
+	 * Banner shown while the link to the server is down, see Game::updateLimbo().
+	 *
+	 * Unlike the status text this stays up as long as it is set: it is not a
+	 * notification but the answer to "why is nothing happening".
+	 */
+	inline void setLinkStatus(const std::wstring &str) { m_link_status = str; }
+	inline void clearLinkStatus() { m_link_status.clear(); }
+
 	inline void showStatusText(const std::wstring &str)
 	{
 		if (m_status_text)
@@ -96,6 +105,9 @@ private:
 
 	gui::IGUIStaticText *m_guitext_info = nullptr; // At the middle of the screen
 	std::wstring m_infotext;
+
+	gui::IGUIStaticText *m_guitext_link = nullptr; // State of the server link
+	std::wstring m_link_status;
 
 	std::unique_ptr<StatusTextHelper> m_status_text = nullptr;
 

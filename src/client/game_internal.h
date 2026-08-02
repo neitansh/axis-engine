@@ -145,6 +145,12 @@ protected:
 
 	void updateInteractTimers(f32 dtime);
 	bool checkConnection();
+
+	// Limbo: the server went quiet, the world stays up and we wait for it
+	void enterLimbo();
+	void updateLimbo(f32 dtime);
+	void finishRejoin();
+	bool inLimbo() const { return m_limbo.active; }
 	void processQueues();
 	void updateProfilers(const RunStats &stats, const FpsControl &draw_times, f32 dtime);
 	void updateDebugState();
@@ -342,6 +348,29 @@ private:
 
 	GameRunData runData;
 	Flags m_flags;
+
+	/**
+	 * Limbo: the server stopped answering, but the world is still here.
+	 *
+	 * The game keeps running on what the client already has - the map, the
+	 * camera, the player - while logging in again in the background. Nothing
+	 * the player does reaches the server until it answers again.
+	 */
+	struct LimboState {
+		bool active = false;
+		/// Waiting for the next attempt, or an attempt is under way
+		bool attempting = false;
+		/// Seconds until the next attempt
+		f32 retry_in = 0.0f;
+		/// Grows with every failed attempt, so a dead server is not hammered
+		f32 retry_delay = 0.0f;
+		u32 attempts = 0;
+		/// Seconds spent in limbo, shown to the player
+		f32 waited = 0.0f;
+		std::string reason;
+	};
+
+	LimboState m_limbo;
 
 	/* 'cache'
 	   This class does take ownership/responsibily for cleaning up etc of any of

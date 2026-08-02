@@ -440,14 +440,21 @@ Client::~Client()
 	for (auto &csp : m_sounds_client_to_server)
 		m_sound->freeId(csp.first);
 	m_sounds_client_to_server.clear();
+
+	// Visuals of earlier sessions, see m_retired_visuals
+	for (NodeVisuals *visuals : m_retired_visuals)
+		delete visuals;
+	m_retired_visuals.clear();
 }
 
 void Client::connect(const Address &address, const std::string &address_name)
 {
 	if (m_con)
 	{
-		// can't do this if the connection has entered auth phase
-		sanity_check(m_state == LC_Created && m_proto_ver == 0);
+		// can't do this if the connection has entered auth phase, unless we
+		// deliberately ended the old session to log in again
+		sanity_check((m_state == LC_Created && m_proto_ver == 0) ||
+				m_link_state == LinkState::Rejoining);
 		infostream << "Client connection will be recreated" << std::endl;
 
 		m_access_denied = false;
@@ -456,6 +463,7 @@ void Client::connect(const Address &address, const std::string &address_name)
 	}
 
 	m_address_name = address_name;
+	m_server_address = address;
 	m_con.reset(con::createMTP(CONNECTION_TIMEOUT, address.isIPv6(), this));
 
 	infostream << "Connecting to server at ";
@@ -584,7 +592,15 @@ void Client::step(float dtime)
 			sendInit(myplayer->getName());
 		}
 
-		// Not connected, return
+		// A world the player is standing in has to keep running whether we
+		// are between attempts or in the middle of one, or they would be
+		// frozen in place for as long as the server is away. Once the new
+		// definitions arrive that world is gone, and there is nothing left to
+		// stand on until the server sends the map again.
+		if (m_world_of_previous_session) {
+			m_env.step(dtime);
+			m_sound->step(dtime);
+		}
 		return;
 	}
 
@@ -597,7 +613,11 @@ void Client::step(float dtime)
 	*/
 	constexpr float map_timer_and_unload_dtime = 5.25f;
 	constexpr s32 mapblock_limit_enforce_distance = 200;
-	if (m_map_timer_and_unload_interval.step(dtime, map_timer_and_unload_dtime))
+	// While the link is down the loaded blocks are all the world there is:
+	// unloading them would eat away at the very thing the player is standing
+	// on, and nothing could bring them back.
+	if (isLinkLive() &&
+			m_map_timer_and_unload_interval.step(dtime, map_timer_and_unload_dtime))
 	{
 		std::vector<v3s16> deleted_blocks;
 
@@ -1076,11 +1096,213 @@ void Client::deletingPeer(con::IPeer *peer, bool timeout)
 				  "Server Peer is getting deleted "
 			<< "(timeout=" << timeout << ")" << std::endl;
 
+	// A server that went quiet may just be restarting. Keep the world and let
+	// the game decide whether to wait for it, see Game::checkConnection().
+	if (timeout && m_link_state == LinkState::Live)
+	{
+		loseLink(gettext("The server stopped answering."));
+		return;
+	}
+
+	if (m_link_state != LinkState::Live)
+	{
+		// An attempt to log in again ran into the same silence
+		loseLink(m_link_lost_reason);
+		return;
+	}
+
 	m_access_denied = true;
 	if (timeout)
 		m_access_denied_reason = gettext("Connection timed out.");
 	else if (m_access_denied_reason.empty())
 		m_access_denied_reason = gettext("Connection aborted (protocol error?).");
+}
+
+void Client::loseLink(const std::string &reason)
+{
+	if (m_link_state == LinkState::Lost)
+		return;
+
+	actionstream << "Client: link to the server lost (" << reason << ")" << std::endl;
+
+	m_link_state = LinkState::Lost;
+	m_link_lost_reason = reason;
+	// What the player is looking at belongs to the session that just ended.
+	// It stays on screen, and keeps running, until a new session replaces it.
+	m_world_of_previous_session = true;
+
+	// Whatever we were about to say is addressed to a session that is over
+	m_out_chat_queue = {};
+}
+
+void Client::beginRejoin()
+{
+	actionstream << "Client: logging in again" << std::endl;
+
+	m_link_state = LinkState::Rejoining;
+	m_map_survived_session = false;
+	m_pending_nodedef.clear();
+
+	// Everything below belonged to the session that ended. The world, the
+	// local player and the loaded media stay: the first two are what the
+	// player is looking at, and media is content-addressed, so the server
+	// will only send what actually changed.
+	m_state = LC_Created;
+	m_proto_ver = 0;
+	m_server_ser_ver = SER_FMT_VER_INVALID;
+	m_itemdef_received = false;
+	m_nodedef_received = false;
+	m_activeobjects_received = false;
+	m_media_downloader = std::make_unique<ClientMediaDownloader>();
+	m_pending_media_downloads.clear();
+
+	// The mesh thread is started again by afterContentReceived(), and the
+	// meshes it holds describe blocks that are about to be dropped
+	m_mesh_update_manager->stop();
+	m_mesh_update_manager->wait();
+	m_mesh_update_manager->clearAllQueues(true);
+
+	// Media arrives again, and every model would otherwise be reported as a
+	// duplicate of the one from the session before
+	m_mesh_data.clear();
+
+	deleteAuthData();
+	m_chosen_auth_mech = AUTH_MECHANISM_NONE;
+	m_sudo_auth_methods = 0;
+
+	m_access_denied = false;
+	m_access_denied_reconnect = false;
+	m_access_denied_reason.clear();
+
+	m_privileges.clear();
+	m_inventory_from_server.reset();
+	m_inventory_from_server_age = 0.0f;
+
+	for (auto &inv : m_detached_inventories)
+		delete inv.second;
+	m_detached_inventories.clear();
+
+	// Sound ids were handed out by the old server
+	for (auto &csp : m_sounds_client_to_server)
+		m_sound->freeId(csp.first);
+	m_sounds_client_to_server.clear();
+	m_sounds_server_to_client.clear();
+	m_sounds_to_objects.clear();
+
+	m_out_chat_queue = {};
+	while (!m_chat_queue.empty())
+	{
+		delete m_chat_queue.front();
+		m_chat_queue.pop();
+	}
+
+	connect(m_server_address, m_address_name);
+}
+
+void Client::applyPendingContent()
+{
+	if (m_pending_nodedef.empty())
+		return;
+
+	// What the map means is decided by these definitions, so the names the old
+	// ones gave to each content ID have to be read before they are gone
+	rememberNodeIds();
+
+	// The meshes of the world we are carrying over were built from the current
+	// visuals and point into them, so those have to outlive the definitions
+	// they belonged to. They are freed when the client leaves the world.
+	m_nodedef->detachVisuals(m_retired_visuals);
+
+	std::istringstream is(m_pending_nodedef, std::ios::binary);
+	m_nodedef->deSerialize(is, m_proto_ver);
+	m_pending_nodedef.clear();
+
+	takeOverWorldOfPreviousSession();
+}
+
+void Client::rememberNodeIds()
+{
+	m_previous_node_names.clear();
+	m_previous_node_names.reserve(m_nodedef->size());
+
+	for (content_t i = 0; i < m_nodedef->size(); i++)
+		m_previous_node_names.push_back(m_nodedef->get(i).name);
+}
+
+void Client::takeOverWorldOfPreviousSession()
+{
+	if (!m_world_of_previous_session)
+		return;
+
+	m_world_of_previous_session = false;
+
+	// The map describes itself with content IDs, and a new session hands out
+	// its own: the same node can be number 66 in one and number 412 in the
+	// next, which is what happens on every restart of the same server. The
+	// nodes themselves did not change though, so instead of throwing the
+	// world away it is enough to rewrite the numbers it uses.
+	std::vector<content_t> mapping;
+	size_t lost = 0;
+	mapping.reserve(m_previous_node_names.size());
+
+	for (const std::string &name : m_previous_node_names) {
+		content_t id;
+		if (m_nodedef->getId(name, id)) {
+			mapping.push_back(id);
+		} else {
+			// The new session does not have this node at all
+			mapping.push_back(CONTENT_UNKNOWN);
+			lost++;
+		}
+	}
+
+	// If most of the world would turn into unknown nodes the set of nodes
+	// really did change - a different game, or mods that came and went. Then
+	// there is nothing worth keeping.
+	const size_t known = m_previous_node_names.size() - lost;
+	m_map_survived_session = !m_previous_node_names.empty() &&
+			known * 2 >= m_previous_node_names.size();
+
+	if (m_map_survived_session) {
+		actionstream << "Client: keeping the world, renaming its nodes ("
+				<< lost << " of " << m_previous_node_names.size()
+				<< " are gone from the new session)" << std::endl;
+		m_env.getClientMap().remapContentIds(mapping);
+	} else {
+		actionstream << "Client: the set of nodes changed too much, "
+				"the world has to be loaded again" << std::endl;
+	}
+
+	// Objects belong to the session either way: the server sends its own with
+	// IDs of its own, and ours would be duplicates that never move again.
+	resetWorld(m_map_survived_session);
+}
+
+void Client::resetWorld(bool keep_map)
+{
+	actionstream << "Client: dropping the "
+			<< (keep_map ? "objects" : "world")
+			<< " of the previous session" << std::endl;
+
+	m_env.clearActiveObjects();
+	m_particle_manager->clearAll();
+
+	if (!keep_map) {
+		// Content IDs only mean something within one session: a block kept
+		// from before would name whatever node holds its number now.
+		m_env.getClientMap().dropAllBlocks();
+	}
+
+	m_crack_level = -1;
+	m_crack_pos = v3s16();
+	m_last_chat_message_sent = time(NULL);
+}
+
+void Client::linkRestored()
+{
+	m_link_state = LinkState::Live;
+	m_link_lost_reason.clear();
+	m_world_of_previous_session = false;
 }
 
 void Client::request_media(const std::vector<std::string> &file_requests)
@@ -1246,6 +1468,11 @@ void Client::ProcessData(NetworkPacket *pkt)
 
 void Client::Send(NetworkPacket *pkt)
 {
+	// There is nobody to talk to while the link is down. Dropping the packet
+	// here keeps every caller from having to know about it.
+	if (m_link_state == LinkState::Lost)
+		return;
+
 	auto &scf = serverCommandFactoryTable[pkt->getCommand()];
 	FATAL_ERROR_IF(!scf.name, "packet type missing in table");
 	m_con->Send(PEER_ID_SERVER, scf.channel, pkt, scf.reliable);
@@ -1537,6 +1764,14 @@ bool Client::canSendChatMessage() const
 
 void Client::sendChatMessage(const std::wstring &message)
 {
+	if (!isLinkLive()) {
+		// Saying it into a dead line and queueing it for a session that will
+		// never see it would both look like it was sent
+		pushToChatQueue(new ChatMessage(CHATMESSAGE_TYPE_SYSTEM,
+				wstrgettext("Not connected: the message was not sent.")));
+		return;
+	}
+
 	const s16 max_queue_size = g_settings->getS16("max_out_chat_queue_size");
 	if (canSendChatMessage())
 	{
@@ -2031,6 +2266,12 @@ void Client::setFatalError(const LuaError &e)
 
 const Address Client::getServerAddress()
 {
+	// Asking the connection would throw once the peer is gone, and the
+	// address of the server is exactly what we still need while waiting for
+	// it to come back.
+	if (m_link_state != LinkState::Live)
+		return m_server_address;
+
 	return m_con ? m_con->GetPeerAddress(PEER_ID_SERVER) : Address();
 }
 
@@ -2082,34 +2323,42 @@ void Client::showUpdateProgressTexture(void *args, float progress)
 										 0, shown_progress);
 }
 
-void Client::afterContentReceived()
+void Client::afterContentReceived(bool quiet)
 {
 	infostream << "Client::afterContentReceived() started" << std::endl;
 	assert(m_itemdef_received); // pre-condition
 	assert(m_nodedef_received); // pre-condition
 	assert(mediaReceived());	// pre-condition
 
+	// A loading screen is the one thing the player would notice about a
+	// session being replaced under a running game, so a quiet run draws none
+	auto progress = [&] (const wchar_t *text, int percent) {
+		if (!quiet)
+			m_rendering_engine->draw_load_screen(text, guienv, m_tsrc, 0, percent);
+	};
+
 	// Clear cached pre-scaled 2D GUI images, as this cache
 	// might have images with the same name but different
 	// content from previous sessions.
 	guiScalingCacheClear();
 
-	// Rebuild inherited images and recreate textures
-	infostream << "- Rebuilding images and textures" << std::endl;
-	m_rendering_engine->draw_load_screen(wstrgettext("Loading textures..."),
-										 guienv, m_tsrc, 0, 66);
-	m_tsrc->rebuildImagesAndTextures();
+	// Rebuild inherited images and recreate textures. Textures that are in use
+	// by meshes of a world we are keeping must not be recreated under them,
+	// and media that did not change needs no rebuilding anyway.
+	if (!quiet) {
+		infostream << "- Rebuilding images and textures" << std::endl;
+		progress(wstrgettext("Loading textures...").c_str(), 66);
+		m_tsrc->rebuildImagesAndTextures();
 
-	// Rebuild shaders
-	infostream << "- Rebuilding shaders" << std::endl;
-	m_rendering_engine->draw_load_screen(wstrgettext("Rebuilding shaders..."),
-										 guienv, m_tsrc, 0, 68);
-	m_shsrc->rebuildShaders();
+		// Rebuild shaders
+		infostream << "- Rebuilding shaders" << std::endl;
+		progress(wstrgettext("Rebuilding shaders...").c_str(), 68);
+		m_shsrc->rebuildShaders();
+	}
 
 	// Update node aliases
 	infostream << "- Updating node aliases" << std::endl;
-	m_rendering_engine->draw_load_screen(wstrgettext("Initializing nodes..."),
-										 guienv, m_tsrc, 0, 70);
+	progress(wstrgettext("Initializing nodes...").c_str(), 70);
 	m_nodedef->updateAliases(m_itemdef);
 	for (const auto &path : getTextureDirs())
 	{
@@ -2128,8 +2377,10 @@ void Client::afterContentReceived()
 	NodeVisuals::fillNodeVisuals(m_nodedef, this, &tu_args);
 
 	// Start mesh update thread after setting up content definitions
-	infostream << "- Starting mesh update thread" << std::endl;
-	m_mesh_update_manager->start();
+	if (!m_mesh_update_manager->isRunning()) {
+		infostream << "- Starting mesh update thread" << std::endl;
+		m_mesh_update_manager->start();
+	}
 
 	m_state = LC_Ready;
 	sendReady();
@@ -2137,7 +2388,7 @@ void Client::afterContentReceived()
 	if (m_mods_loaded)
 		m_script->on_client_ready(m_env.getLocalPlayer());
 
-	m_rendering_engine->draw_load_screen(wstrgettext("Done!"), guienv, m_tsrc, 0, 100);
+	progress(wstrgettext("Done!").c_str(), 100);
 	infostream << "Client::afterContentReceived() done" << std::endl;
 }
 

@@ -606,6 +606,7 @@ void Game::run()
 
 		if (!checkConnection())
 			break;
+		updateLimbo(dtime);
 		if (!m_game_formspec.handleCallbacks())
 			break;
 
@@ -1349,7 +1350,177 @@ bool Game::checkConnection()
 		return false;
 	}
 
+	// A silent server is not a lost world: hold on to what we have and wait.
+	// In singleplayer the server lives in this very process, so there is
+	// nothing to wait for and the old behaviour is the honest one.
+	if (!client->isLinkLive() && !m_limbo.active && !simple_singleplayer_mode &&
+			g_settings->getBool("wait_for_server"))
+		enterLimbo();
+
+	if (!client->isLinkLive() && !m_limbo.active)
+	{
+		// Waiting is off, or this is singleplayer: report it the old way
+		errordata->setError(client->linkLostReason().empty()
+				? std::string(gettext("Connection timed out."))
+				: client->linkLostReason(), true);
+		return false;
+	}
+
 	return true;
+}
+
+void Game::enterLimbo()
+{
+	m_limbo = LimboState();
+	m_limbo.active = true;
+	m_limbo.reason = client->linkLostReason();
+	// The first attempt is soon: a server that is merely restarting is often
+	// back within seconds, and an attempt that goes nowhere costs nothing.
+	m_limbo.retry_delay = 2.0f;
+	m_limbo.retry_in = m_limbo.retry_delay;
+
+	actionstream << "Game: entering limbo (" << m_limbo.reason << ")" << std::endl;
+
+	// Nothing the player does from here reaches the server, so let go of what
+	// was in flight and take the hands off the controls of the world
+	client->getEnv().getLocalPlayer()->control = PlayerControl();
+	m_game_formspec.reset();
+
+	if (chat_backend)
+	{
+		chat_backend->addMessage(L"", utf8_to_wide(
+			std::string("# ") + m_limbo.reason + " " +
+			gettext("Waiting for it to come back.")));
+	}
+}
+
+void Game::updateLimbo(f32 dtime)
+{
+	if (!m_limbo.active)
+		return;
+
+	m_limbo.waited += dtime;
+
+	// Waiting forever is a choice, not the only option
+	const f32 give_up_after = g_settings->getS32("wait_for_server_timeout");
+	if (give_up_after > 0 && m_limbo.waited > give_up_after)
+	{
+		actionstream << "Game: giving up on the server after "
+				<< m_limbo.waited << " s" << std::endl;
+		client->setFatalError(m_limbo.reason.empty()
+				? std::string(gettext("The server did not come back."))
+				: m_limbo.reason);
+		return;
+	}
+
+	if (client->getLinkState() == LinkState::Rejoining)
+	{
+		// An attempt is running. Waiting for the connection to time out on its
+		// own would take half a minute, which is far too long between tries,
+		// so the same countdown that spaced the attempts also bounds this one.
+		m_limbo.retry_in -= dtime;
+
+		if (client->itemdefReceived() && client->nodedefReceived() &&
+				client->mediaReceived())
+		{
+			finishRejoin();
+			return;
+		}
+
+		if (client->accessDenied())
+		{
+			// The server answered, but turned us away. Some reasons pass:
+			// right after a restart it may still believe we are connected.
+			const u8 code = client->accessDeniedCode();
+			const bool worth_retrying =
+					code == SERVER_ACCESSDENIED_ALREADY_CONNECTED ||
+					code == SERVER_ACCESSDENIED_TOO_MANY_USERS ||
+					code == SERVER_ACCESSDENIED_SERVER_FAIL ||
+					code == SERVER_ACCESSDENIED_SHUTDOWN ||
+					code == SERVER_ACCESSDENIED_CRASH;
+
+			if (!worth_retrying)
+				return; // checkConnection() ends the game on the next frame
+
+			client->loseLink(wide_to_utf8(unescape_translate(
+					utf8_to_wide(client->accessDeniedReason()))));
+			m_limbo.retry_in = m_limbo.retry_delay;
+		}
+		else if (client->sessionIsBeingReplaced())
+		{
+			// The server answered and its definitions replaced the world we
+			// were holding. There is nothing to go back to, so this attempt
+			// runs to the end however long the content takes.
+			m_game_ui->setLinkStatus(wstrgettext("Loading the world again..."));
+			return;
+		}
+		else if (m_limbo.retry_in <= 0.0f)
+		{
+			actionstream << "Game: attempt to log in again timed out" << std::endl;
+			client->loseLink(m_limbo.reason);
+			m_limbo.retry_in = m_limbo.retry_delay;
+		}
+		else
+		{
+			m_game_ui->setLinkStatus(wstrgettext("Reconnecting to the server..."));
+			return;
+		}
+	}
+
+	// Waiting for the next attempt
+	m_limbo.retry_in -= dtime;
+
+	if (m_limbo.retry_in <= 0.0f)
+	{
+		m_limbo.attempts++;
+		// Back off, but stay in a range where a returning server is picked up
+		// quickly: 2, 4, 8, 15, 30 seconds and then every 30.
+		m_limbo.retry_delay = std::min(m_limbo.retry_delay * 2.0f, 30.0f);
+		m_limbo.retry_in = std::max(m_limbo.retry_delay, 12.0f);
+
+		actionstream << "Game: attempt " << m_limbo.attempts
+				<< " to log in again" << std::endl;
+
+		client->beginRejoin();
+		m_game_ui->setLinkStatus(wstrgettext("Reconnecting to the server..."));
+		return;
+	}
+
+	std::wstring status = utf8_to_wide(m_limbo.reason);
+	status.append(L"\n");
+	status.append(fwgettext("Waiting for the server, next attempt in %d s",
+			(int)std::ceil(m_limbo.retry_in)));
+	if (m_limbo.attempts > 0)
+	{
+		status.append(L"\n");
+		status.append(fwgettext("Attempts: %d", (int)m_limbo.attempts));
+	}
+	m_game_ui->setLinkStatus(status);
+}
+
+void Game::finishRejoin()
+{
+	actionstream << "Game: logged in again after " << m_limbo.waited
+			<< " s in limbo" << std::endl;
+
+	// Everything of the new session has arrived. Putting it into effect,
+	// deciding the fate of the world and building what it is drawn with all
+	// happens here, within one frame, so the player never sees a half state.
+	client->applyPendingContent();
+	client->linkRestored();
+	client->afterContentReceived(client->mapSurvivedSession());
+
+	const bool seamless = client->mapSurvivedSession();
+
+	m_limbo = LimboState();
+	m_game_ui->clearLinkStatus();
+
+	if (chat_backend) {
+		chat_backend->addMessage(L"", seamless
+				? wstrgettext("# Connection restored.")
+				: wstrgettext("# Connection restored, the world changed and is "
+						"being loaded again."));
+	}
 }
 
 void Game::processQueues()
@@ -3013,6 +3184,18 @@ void Game::processPlayerInteraction(f32 dtime, bool show_hud)
 {
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
 
+	// Digging, placing and hitting are requests to the server. With the link
+	// down there is nobody to ask, and pretending otherwise would show the
+	// player a world that snaps back the moment the server returns.
+	if (inLimbo())
+	{
+		runData.digging = false;
+		runData.punching = false;
+		runData.pointed_old = PointedThing();
+		hud->updateSelectionMesh(camera->getOffset());
+		return;
+	}
+
 	const v3f camera_direction = camera->getDirection();
 	const v3s16 camera_offset = camera->getOffset();
 
@@ -4109,6 +4292,17 @@ void Game::updateShadows()
 void Game::drawScene(ProfilerGraph *graph, RunStats *stats)
 {
 	ZoneScoped;
+
+	if (!client->worldIsRenderable())
+	{
+		// A session is being taken over by the next one: the node definitions
+		// the map was drawn with are gone and their replacements are not ready.
+		// Only what does not depend on them is drawn until they are.
+		this->driver->beginScene(true, true, video::SColor(255, 0, 0, 0));
+		guienv->drawAll();
+		this->driver->endScene();
+		return;
+	}
 
 	const video::SColor fog_color = this->sky->getFogColor();
 	const video::SColor sky_color = this->sky->getSkyColor();

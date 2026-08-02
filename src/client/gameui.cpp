@@ -162,6 +162,16 @@ void GameUI::init()
 			(g_settings->getU16("recent_chat_messages") + 3)),
 			false, true, guiroot);
 
+	// State of the link to the server. Sits above the middle of the screen so
+	// it is impossible to miss, and stays there until the link is back.
+	m_guitext_link = gui::StaticText::add(guienv, L"",
+		core::rect<s32>(0, 0, 0, 0), false, true, guiroot);
+	m_guitext_link->setOverrideFont(g_fontengine->getFont(
+		g_fontengine->getDefaultFontSize() * 1.2f, FM_Unspecified));
+	m_guitext_link->setOverrideColor(video::SColor(255, 255, 225, 160));
+	m_guitext_link->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_CENTER);
+	m_guitext_link->setVisible(false);
+
 	// Status message for in-game notifications (fly/fast mode, volume changes, etc.)
 	m_status_text = std::make_unique<StatusTextHelper>(guienv, guiroot);
 	m_status_text->setGameStyle();
@@ -326,6 +336,17 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 	setStaticText(m_guitext_info, m_infotext.c_str());
 	m_guitext_info->setVisible(m_flags.show_hud && g_menumgr.menuCount() == 0);
 
+	if (m_guitext_link) {
+		const bool show_link = !m_link_status.empty();
+		if (show_link) {
+			setStaticText(m_guitext_link, m_link_status.c_str());
+			const s32 height = g_fontengine->getTextHeight() * 4;
+			m_guitext_link->setRelativePosition(core::rect<s32>(
+				0, screensize.Y / 4, screensize.X, screensize.Y / 4 + height));
+		}
+		m_guitext_link->setVisible(show_link);
+	}
+
 	// Update status message element
 	if (m_status_text) {
 		// Handle touch control override if needed
@@ -480,6 +501,11 @@ void GameUI::clearText()
 	if (m_guitext2) {
 		m_guitext2->remove();
 		m_guitext2 = nullptr;
+	}
+
+	if (m_guitext_link) {
+		m_guitext_link->remove();
+		m_guitext_link = nullptr;
 	}
 
 	if (m_guitext_info) {

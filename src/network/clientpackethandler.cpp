@@ -240,6 +240,21 @@ void Client::handleCommand_AccessDenied(NetworkPacket* pkt)
 	} else {
 		m_access_denied_reconnect = reconnect & 1;
 	}
+
+	m_access_denied_code = denyCode;
+
+	// A server that is going down for a restart, or that just crashed, is
+	// expected back. Rather than dropping the player out of the world we hold
+	// on to it and wait, see Game::updateLimbo(). Being turned away for any
+	// other reason - a wrong password, a ban - is final and handled above.
+	if (m_state == LC_Ready && isLinkLive() &&
+			(denyCode == SERVER_ACCESSDENIED_SHUTDOWN ||
+			denyCode == SERVER_ACCESSDENIED_CRASH)) {
+		m_access_denied = false;
+		loseLink(m_access_denied_reason.empty()
+				? std::string(gettext("The server is restarting."))
+				: m_access_denied_reason);
+	}
 }
 
 void Client::handleCommand_RemoveNode(NetworkPacket* pkt)
@@ -743,6 +758,10 @@ void Client::handleCommand_Media(NetworkPacket* pkt)
 
 void Client::handleCommand_NodeDef(NetworkPacket* pkt)
 {
+	// What the map means is decided by these definitions, so the names the
+	// old ones gave to each content ID have to be read before they are gone
+	rememberNodeIds();
+
 	infostream << "Client: Received node definitions: packet size: "
 			<< pkt->getSize() << std::endl;
 
@@ -757,6 +776,15 @@ void Client::handleCommand_NodeDef(NetworkPacket* pkt)
 		decompressZstd(tmp_is, tmp_os);
 	else
 		decompressZlib(tmp_is, tmp_os);
+
+	if (m_link_state == LinkState::Rejoining) {
+		// Applying these would strip every block of its meaning, and the
+		// player is looking at those blocks right now. Hold them back until
+		// the rest of the session arrived, see applyPendingContent().
+		m_pending_nodedef = tmp_os.str();
+		m_nodedef_received = true;
+		return;
+	}
 
 	// Deserialize node definitions
 	m_nodedef->deSerialize(tmp_os, m_proto_ver);
