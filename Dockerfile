@@ -39,8 +39,8 @@ FROM dev AS builder
 
 COPY .git /usr/src/axis/.git
 COPY CMakeLists.txt /usr/src/axis/CMakeLists.txt
+COPY config.example /usr/src/axis/config.example
 COPY README.md /usr/src/axis/README.md
-COPY minetest.conf.example /usr/src/axis/minetest.conf.example
 COPY builtin /usr/src/axis/builtin
 COPY cmake /usr/src/axis/cmake
 COPY doc /usr/src/axis/doc
@@ -82,7 +82,7 @@ ENV LD_LIBRARY_PATH=/app/libs
 USER axis:axis
 
 EXPOSE 30000/udp 30000/tcp
-VOLUME /app/worlds/ /app/games/ /app/mods/
+VOLUME /app/worlds/ /app/games/ /app/mods/ /app/config/
 
 ENTRYPOINT ["/app/bin/axisserver"]
-CMD ["--config", "/app/minetest.conf"]
+CMD ["--config-dir", "/app/config"]

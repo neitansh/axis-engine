@@ -278,7 +278,7 @@ make.string = make_text_entry(tostring, nil)
 
 
 -- Bounded numbers get a slider, which is the whole point of having a settings
--- menu instead of editing minetest.conf by hand.
+-- menu instead of editing the configuration files by hand.
 local SLIDER_STEPS = 1000
 
 local function make_slider(is_int)

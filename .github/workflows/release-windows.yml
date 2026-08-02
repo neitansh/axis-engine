@@ -104,6 +104,11 @@ jobs:
           cp -r textures axis_windows/
           cp -r fonts axis_windows/
 
+          # Template of the configuration. The engine writes its own
+          # config directory next to the executable on first run; this
+          # is the documented copy players can read and copy lines from.
+          cp -r config.example axis_windows/
+
           if [ -d locale ]; then
             cp -r locale axis_windows/
           else
@@ -147,6 +152,23 @@ jobs:
 
           if (-not (Test-Path (Join-Path $root 'axis.cmd'))) {
             throw 'The axis.cmd launcher is missing from the package.'
+          }
+
+          # The configuration template must survive packaging, otherwise a
+          # player has no documentation of the settings at hand.
+          $expected = @(
+            'shared\engine.conf', 'client\graphics.conf', 'client\keybindings.conf',
+            'server\server.conf', 'server\worldgen.conf'
+          )
+          foreach ($rel in $expected) {
+            $path = Join-Path $root (Join-Path 'config.example' $rel)
+            if (-not (Test-Path $path)) {
+              throw "config.example\$rel is missing from the package."
+            }
+          }
+
+          if (Test-Path (Join-Path $root 'minetest.conf.example')) {
+            throw 'A stale minetest.conf.example found its way into the package.'
           }
 
           # Resolve DLLs exactly the way axis.cmd does. A missing dependency

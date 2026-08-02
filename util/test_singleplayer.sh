@@ -5,7 +5,9 @@ dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 gameid=${gameid:-devtest}
 executable=$dir/../bin/luanti
 testspath=$dir/../tests
-conf_client=$testspath/client.conf
+# The engine reads a directory of config files; a test only needs one of them.
+conf_dir=$testspath/config-client
+conf_client=$conf_dir/client/custom.conf
 worldpath=$testspath/world
 
 [ -e "$executable" ] || { echo "executable $executable missing"; exit 1; }
@@ -22,6 +24,7 @@ opts=(
 	enable_{auto_exposure,bloom,dynamic_shadows,translucent_foliage,volumetric_lighting,water_reflections}=true
 	shadow_map_color=true
 )
+mkdir -p "$(dirname "$conf_client")"
 printf '%s\n' "${opts[@]}" "${clientconf:-}" >"$conf_client"
 
 ln -s "$dir/helper_mod" "$worldpath/worldmods/"
@@ -29,7 +32,7 @@ ln -s "$dir/helper_mod" "$worldpath/worldmods/"
 export ALSOFT_DRIVERS=null
 export LIBGL_ALWAYS_SOFTWARE=true
 export MESA_DEBUG=1
-timeout 25 "$executable" --config "$conf_client" --go --world "$worldpath" --gameid "$gameid" --info
+timeout 25 "$executable" --config-dir "$conf_dir" --go --world "$worldpath" --gameid "$gameid" --info
 r=$?
 echo "Exit status: $r"
 [ $r -eq 124 ] && echo "(timed out)"

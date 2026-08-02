@@ -3,7 +3,9 @@ dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 gameid=${gameid:-devtest}
 executable=$dir/../bin/luanti
 testspath=$dir/../tests
-conf_server=$testspath/server.conf
+# The engine reads a directory of config files; a test only needs one of them.
+conf_dir=$testspath/config-server
+conf_server=$conf_dir/server/custom.conf
 worldpath=$testspath/world
 
 run () {
@@ -21,10 +23,11 @@ mkdir -p "$worldpath/worldmods"
 
 settings=(sqlite_synchronous=0 helper_mode=mapgen)
 [ -n "$PROFILER" ] && settings+=(profiler_print_interval=15)
-printf '%s\n' "${settings[@]}" >"$testspath/server.conf" \
+mkdir -p "$(dirname "$conf_server")"
+printf '%s\n' "${settings[@]}" >"$conf_server" \
 
 ln -s "$dir/helper_mod" "$worldpath/worldmods/"
 
-args=(--config "$conf_server" --world "$worldpath" --gameid $gameid)
+args=(--config-dir "$conf_dir" --world "$worldpath" --gameid $gameid)
 [ -n "$PROFILER" ] && args+=(--verbose)
 run "$executable" --server "${args[@]}"

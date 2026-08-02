@@ -204,7 +204,7 @@ if(NOT CUSTOM_MANDIR STREQUAL "")
 	message(STATUS "Using MANDIR=${MANDIR}")
 endif()
 
-set(CUSTOM_EXAMPLE_CONF_DIR "" CACHE STRING "Directory to install example config file into")
+set(CUSTOM_EXAMPLE_CONF_DIR "" CACHE STRING "Directory to install the example configuration into")
 if(NOT CUSTOM_EXAMPLE_CONF_DIR STREQUAL "")
 	set(EXAMPLE_CONF_DIR "${CUSTOM_EXAMPLE_CONF_DIR}")
 	message(STATUS "Using EXAMPLE_CONF_DIR=${EXAMPLE_CONF_DIR}")
@@ -257,7 +257,10 @@ install(FILES "doc/client_lua_api.md" DESTINATION "${DOCDIR}" COMPONENT "Docs")
 install(FILES "doc/menu_lua_api.md" DESTINATION "${DOCDIR}" COMPONENT "Docs")
 install(FILES "doc/texture_packs.md" DESTINATION "${DOCDIR}" COMPONENT "Docs")
 install(FILES "doc/world_format.md" DESTINATION "${DOCDIR}" COMPONENT "Docs")
-install(FILES "minetest.conf.example" DESTINATION "${EXAMPLE_CONF_DIR}")
+install(FILES "doc/configuration.md" DESTINATION "${DOCDIR}" COMPONENT "Docs")
+# Example configuration, one file per domain. Mirrors the layout the engine
+# creates in the user directory, see src/config/config_domains.h.
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/config.example" DESTINATION "${EXAMPLE_CONF_DIR}")
 
 if(UNIX AND NOT APPLE)
 	install(FILES "doc/luanti.6" "doc/luantiserver.6" DESTINATION "${MANDIR}/man6")

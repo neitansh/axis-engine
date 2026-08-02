@@ -4,6 +4,7 @@
 
 #include "gui/mainmenumanager.h"
 #include "clouds.h"
+#include "config/config_manager.h"
 #include "gui/touchcontrols.h"
 #include "filesys.h"
 #include "gui/guiMainMenu.h"
@@ -265,8 +266,8 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 		 * "Recents screen" results in an unclean exit.
 		 * Caveat: This means that the settings are saved twice when exiting Minetest.
 		 */
-		if (!g_settings_path.empty())
-			g_settings->updateConfigFile(g_settings_path.c_str());
+		if (g_config)
+			g_config->save();
 
 		// If no main menu, show error and exit
 		if (skip_main_menu)
@@ -365,7 +366,7 @@ void ClientLauncher::config_guienv()
 	gui::IGUISkin *skin = guienv->getSkin();
 
 	// Menu palette. Every entry is a setting so the look can be retuned from
-	// Lua or minetest.conf without touching the engine.
+	// Lua or the configuration files without touching the engine.
 	auto skin_color = [&](const char *name, gui::EGUI_DEFAULT_COLOR which) {
 		video::SColor color;
 		if (parseColorString(g_settings->get(name), color, false))
@@ -628,6 +629,6 @@ void ClientLauncher::main_menu(MainMenuData *menudata)
 	 * "Recents screen" results in an unclean exit.
 	 * Caveat: This means that the settings are saved twice when exiting Luanti.
 	 */
-	if (!g_settings_path.empty())
-		g_settings->updateConfigFile(g_settings_path.c_str());
+	if (g_config)
+		g_config->save();
 }

@@ -75,7 +75,7 @@ body:
         Describe your problem here.
 
         Make sure to include the all error messages you see and/or screenshots in case of visual bugs.
-        Attaching a copy of your `debug.txt` and `minetest.conf` can be helpful as well.
+        Attaching a copy of your `debug.txt` and of the files in `config/` can be helpful as well.
     validations:
       required: true
   - type: textarea

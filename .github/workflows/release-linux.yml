@@ -156,6 +156,11 @@ jobs:
           cp -r textures axis_linux/
           cp -r fonts axis_linux/
 
+          # Template of the configuration. The engine writes its own config/
+          # directory next to the executable on first run; this is the
+          # documented copy players can read and copy lines from.
+          cp -r config.example axis_linux/
+
           if [ -d locale ]; then
             cp -r locale axis_linux/
           else
@@ -184,6 +189,21 @@ jobs:
 
           if [ -z "$(ls -A axis_linux/libs)" ]; then
             echo "::error::No libraries were bundled into libs/."
+            exit 1
+          fi
+
+          # The configuration template must survive packaging, otherwise a
+          # player has no documentation of the settings at hand.
+          for f in shared/engine.conf client/graphics.conf client/keybindings.conf \
+                   server/server.conf server/worldgen.conf; do
+            if [ ! -f "axis_linux/config.example/$f" ]; then
+              echo "::error::config.example/$f is missing from the package."
+              exit 1
+            fi
+          done
+
+          if [ -e axis_linux/minetest.conf ] || [ -e axis_linux/minetest.conf.example ]; then
+            echo "::error::A stale minetest.conf found its way into the package."
             exit 1
           fi
 

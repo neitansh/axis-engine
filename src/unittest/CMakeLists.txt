@@ -10,6 +10,7 @@ set(unittest_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/test_ban.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/test_collision.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/test_compression.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/test_configmanager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/test_connection.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/test_craft.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/test_datastructures.cpp

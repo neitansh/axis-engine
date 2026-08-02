@@ -142,7 +142,7 @@ See [Player File Format](#player-file-format) below.
 
 World metadata. This file is created and updated by Luanti when creating a
 world, changing per-world settings in the main menu, configuring world mods, or
-migrating database backends. It is not a per-world `minetest.conf` replacement,
+migrating database backends. It is not a per-world configuration replacement,
 Worlds launched from the main menu using managed ContentDB content usually do
 not require manual edits. Headless servers, advanced settings, custom mod paths,
 and database migrations may require editing this file directly.

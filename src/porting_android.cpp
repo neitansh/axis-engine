@@ -11,6 +11,7 @@
 #include "porting_android.h"
 #include "threading/thread.h"
 #include "config.h"
+#include "config/config_manager.h"
 #include "filesys.h"
 #include "log.h"
 #include "settings.h"
@@ -31,8 +32,8 @@ extern int main(int argc, char *argv[]);
 
 extern "C" JNIEXPORT void JNICALL
 Java_net_minetest_minetest_GameActivity_saveSettings(JNIEnv* env, jobject /* this */) {
-	if (!g_settings_path.empty())
-		g_settings->updateConfigFile(g_settings_path.c_str());
+	if (g_config)
+		g_config->save();
 }
 
 namespace porting {

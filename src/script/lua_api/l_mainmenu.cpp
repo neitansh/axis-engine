@@ -3,6 +3,7 @@
 // Copyright (C) 2013 sapier
 
 #include "lua_api/l_mainmenu.h"
+#include "config/config_manager.h"
 #include "lua_api/l_internal.h"
 #include "common/c_content.h"
 #include "config.h"
@@ -1200,7 +1201,7 @@ void ModApiMainMenu::Initialize(lua_State *L, int top)
 	API_FCT(copy_to_clipboard);
 	API_FCT(ping_server);
 
-	lua_pushboolean(L, g_first_run);
+	lua_pushboolean(L, g_config && g_config->isFirstRun());
 	lua_setfield(L, top, "is_first_run");
 }
 

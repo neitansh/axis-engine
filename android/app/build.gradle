@@ -67,7 +67,10 @@ task prepareAssets() {
 	}
 	doLast {
 		copy {
-			from "${projRoot}/minetest.conf.example", "${projRoot}/README.md" into assetsFolder
+			from "${projRoot}/README.md" into assetsFolder
+		}
+		copy {
+			from "${projRoot}/config.example" into "${assetsFolder}/config.example"
 		}
 		copy {
 			from "${projRoot}/doc/lgpl-2.1.txt" into assetsFolder

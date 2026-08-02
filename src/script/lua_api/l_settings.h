@@ -63,6 +63,9 @@ private:
 	std::string m_filename;
 	bool m_is_own_settings = false;
 	bool m_write_allowed = true;
+	// The configuration of the engine is spread over several files, so writing
+	// it goes through ConfigManager rather than to a filename of our own.
+	bool m_is_global = false;
 
 public:
 	LuaSettings(Settings *settings, const std::string &filename);
@@ -70,6 +73,9 @@ public:
 	~LuaSettings();
 
 	static void create(lua_State *L, Settings *settings, const std::string &filename);
+
+	/// Pushes the settings of the engine itself, i.e. core.settings
+	static void createGlobal(lua_State *L);
 
 	// LuaSettings(filename)
 	// Creates a LuaSettings and leaves it on top of the stack

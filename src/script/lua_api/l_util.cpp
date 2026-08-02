@@ -789,7 +789,7 @@ void ModApiUtil::Initialize(lua_State *L, int top)
 	API_FCT(is_valid_player_name);
 	API_FCT(strip_escapes);
 
-	LuaSettings::create(L, g_settings, g_settings_path);
+	LuaSettings::createGlobal(L);
 	lua_setfield(L, top, "settings");
 }
 
@@ -824,7 +824,7 @@ void ModApiUtil::InitializeClient(lua_State *L, int top)
 	API_FCT(urlencode);
 	API_FCT(strip_escapes);
 
-	LuaSettings::create(L, g_settings, g_settings_path);
+	LuaSettings::createGlobal(L);
 	lua_setfield(L, top, "settings");
 }
 
@@ -906,6 +906,6 @@ void ModApiUtil::InitializeAsync(lua_State *L, int top)
 	API_FCT(urlencode);
 	API_FCT(strip_escapes);
 
-	LuaSettings::create(L, g_settings, g_settings_path);
+	LuaSettings::createGlobal(L);
 	lua_setfield(L, top, "settings");
 }

@@ -1,4 +1,6 @@
 ## Editors and development environments
+__pycache__/
+*.pyc
 *~
 .cmake
 CMakeUserPresets.json
@@ -75,6 +77,9 @@ AppDir
 /mod_data
 
 ## Configuration/log files
+# Configuration the engine writes at runtime (RUN_IN_PLACE puts it here).
+# The committed template lives in config.example/.
+/config/
 minetest.conf
 debug.txt
 debug.txt.1

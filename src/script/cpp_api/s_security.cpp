@@ -3,6 +3,7 @@
 // Copyright (C) 2013 celeron55, Perttu Ahola <celeron55@gmail.com>
 
 #include "cpp_api/s_security.h"
+#include "config/config_manager.h"
 #include "lua_api/l_base.h"
 #include "filesys.h"
 #include "util/hashing.h"
@@ -832,10 +833,10 @@ bool ScriptApiSecurity::checkPathWithGamedef(lua_State *L,
 
 	assert(!abs_path.empty());
 
-	if (!g_settings_path.empty()) {
-		// Don't allow accessing the settings file
-		str = fs::AbsolutePathPartial(g_settings_path);
-		if (str == abs_path)
+	if (g_config && !g_config->getDir().empty()) {
+		// Don't allow accessing the configuration of the engine
+		str = fs::AbsolutePathPartial(g_config->getDir());
+		if (!str.empty() && (str == abs_path || fs::PathStartsWith(abs_path, str)))
 			return false;
 	}
 

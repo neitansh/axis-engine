@@ -43,3 +43,15 @@ jobs:
     - name: Run clang-tidy
       run: |
         ./util/ci/clang-tidy.sh
+
+  settings_domains:
+    name: "Settings domain table"
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v7
+    # Every setting belongs to exactly one configuration file. The table the
+    # engine uses is generated from builtin/settingtypes.txt, so a new setting
+    # without a regenerated table would end up in custom.conf unnoticed.
+    - name: Check the table matches settingtypes.txt
+      run: |
+        python3 util/generate_settings_domains.py --check

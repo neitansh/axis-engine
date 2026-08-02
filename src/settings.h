@@ -7,6 +7,7 @@
 #include "irrlichttypes_bloated.h"
 #include "util/string.h"
 #include "util/basic_macros.h"
+#include <functional>
 #include <string>
 #include <map>
 #include <mutex>
@@ -16,12 +17,12 @@ struct NoiseParams;
 
 // Global objects
 extern Settings *g_settings; // Same as Settings::getLayer(SL_GLOBAL);
-extern std::string g_settings_path;
-/// Is set to true if the engine runs for the first time
-extern bool g_first_run;
 
 // Type for a settings changed callback function
 typedef void (*SettingsChangedCallback)(const std::string &name, void *data);
+
+// Decides whether a setting is written to a file, see updateConfigFile()
+typedef std::function<bool(const std::string &name)> SettingsFilter;
 
 typedef std::vector<
 	std::pair<
@@ -130,6 +131,19 @@ public:
 	bool readConfigFile(const char *filename);
 	//Updates configuration file.  Returns success.
 	bool updateConfigFile(const char *filename);
+	/**
+	 * Updates a configuration file with the settings the filter accepts.
+	 *
+	 * Settings it rejects are left out and dropped from the file if they are
+	 * in there, which is how a configuration split across several files keeps
+	 * every setting in exactly one of them.
+	 *
+	 * @param filename File to write
+	 * @param filter Called with a setting name, returns whether it belongs
+	 *               into this file
+	 * @return success
+	 */
+	bool updateConfigFile(const char *filename, const SettingsFilter &filter);
 	// NOTE: Types of allowed_options are ignored.  Returns success.
 	bool parseCommandLine(int argc, char *argv[],
 			const std::map<std::string, ValueSpec> &allowed_options);
@@ -239,8 +253,9 @@ private:
 
 	SettingsParseEvent parseConfigObject(const std::string &line,
 		std::string &name, std::string &value);
+	// A filter of nullptr lets every setting through
 	bool updateConfigObject(std::istream &is, std::ostream &os,
-		u32 tab_depth=0);
+		const SettingsFilter *filter = nullptr, u32 tab_depth=0);
 
 	static bool checkNameValid(std::string_view name);
 	static bool checkValueValid(std::string_view value);

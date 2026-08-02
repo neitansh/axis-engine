@@ -25,7 +25,13 @@ namespace
 
 bool getGameConfig(const std::string &game_path, Settings &conf)
 {
-	std::string conf_path = game_path + DIR_DELIM + "minetest.conf";
+	// Settings a game wants on top of the engine defaults. "minetest.conf" is
+	// what games have been shipping for years, so it is still read.
+	std::string conf_path = game_path + DIR_DELIM + "game_defaults.conf";
+	if (conf.readConfigFile(conf_path.c_str()))
+		return true;
+
+	conf_path = game_path + DIR_DELIM + "minetest.conf";
 	return conf.readConfigFile(conf_path.c_str());
 }
 

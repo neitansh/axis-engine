@@ -52,7 +52,7 @@ public:
 	KeyPress(const SEvent::SGamepadAxisEvent &in);
 	KeyPress(GameKeyType key) : value(key) {}
 
-	// Get a string representation that is suitable for use in minetest.conf
+	// Get a string representation that is suitable for use in a config file
 	std::string sym() const;
 
 	// Get a human-readable string representation

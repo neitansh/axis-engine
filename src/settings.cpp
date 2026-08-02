@@ -21,8 +21,6 @@
 
 Settings *g_settings = nullptr;
 static SettingsHierarchy g_hierarchy;
-std::string g_settings_path;
-bool g_first_run = false;
 
 std::unordered_map<std::string, const FlagDesc *> Settings::s_flags;
 
@@ -279,13 +277,23 @@ void Settings::printEntry(std::ostream &os, const std::string &name,
 }
 
 
-bool Settings::updateConfigObject(std::istream &is, std::ostream &os, u32 tab_depth)
+bool Settings::updateConfigObject(std::istream &is, std::ostream &os,
+	const SettingsFilter *filter, u32 tab_depth)
 {
 	SettingEntries::const_iterator it;
 	std::set<std::string> present_entries;
 	std::string line, name, value;
 	bool was_modified = false;
 	bool end_found = false;
+
+	// A setting the filter rejects is treated as if the object did not have
+	// it, which drops it from this file. Groups are written as a whole, so
+	// only their name is ever put to the filter.
+	const auto wanted = [&](SettingEntries::const_iterator i) {
+		if (i == m_settings.end())
+			return false;
+		return !filter || (*filter)(i->first);
+	};
 
 	// Add any settings that exist in the config file with the current value
 	// in the object if existing
@@ -303,6 +311,8 @@ bool Settings::updateConfigObject(std::istream &is, std::ostream &os, u32 tab_de
 			/* FALLTHROUGH */
 		case SPE_KVPAIR:
 			it = m_settings.find(name);
+			if (!wanted(it))
+				it = m_settings.end();
 			if (it != m_settings.end() &&
 					(it->second.is_group || it->second.value != value)) {
 				printEntry(os, name, it->second, tab_depth);
@@ -320,16 +330,19 @@ bool Settings::updateConfigObject(std::istream &is, std::ostream &os, u32 tab_de
 			break;
 		case SPE_GROUP:
 			it = m_settings.find(name);
+			if (!wanted(it))
+				it = m_settings.end();
 			if (it != m_settings.end() && it->second.is_group) {
 				os << line << "\n";
 				sanity_check(it->second.group != NULL);
-				was_modified |= it->second.group->updateConfigObject(is, os, tab_depth + 1);
+				was_modified |= it->second.group->updateConfigObject(is, os,
+						nullptr, tab_depth + 1);
 			} else if (it == m_settings.end()) {
 				// Remove by skipping
 				was_modified = true;
 				Settings removed_group("}"); // Move 'is' to group end
 				std::stringstream ss;
-				removed_group.updateConfigObject(is, ss, tab_depth + 1);
+				removed_group.updateConfigObject(is, ss, nullptr, tab_depth + 1);
 				break;
 			} else {
 				printEntry(os, name, it->second, tab_depth);
@@ -350,6 +363,8 @@ bool Settings::updateConfigObject(std::istream &is, std::ostream &os, u32 tab_de
 	for (it = m_settings.begin(); it != m_settings.end(); ++it) {
 		if (present_entries.find(it->first) != present_entries.end())
 			continue;
+		if (!wanted(it))
+			continue;
 
 		printEntry(os, it->first, it->second, tab_depth);
 		was_modified = true;
@@ -367,12 +382,18 @@ bool Settings::updateConfigObject(std::istream &is, std::ostream &os, u32 tab_de
 
 bool Settings::updateConfigFile(const char *filename)
 {
+	return updateConfigFile(filename, SettingsFilter());
+}
+
+
+bool Settings::updateConfigFile(const char *filename, const SettingsFilter &filter)
+{
 	MutexAutoLock lock(m_mutex);
 
 	std::ifstream is(filename);
 	std::ostringstream os(std::ios_base::binary);
 
-	bool was_modified = updateConfigObject(is, os);
+	bool was_modified = updateConfigObject(is, os, filter ? &filter : nullptr);
 	is.close();
 
 	if (!was_modified)

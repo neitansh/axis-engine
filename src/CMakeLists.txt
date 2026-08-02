@@ -417,6 +417,7 @@ add_custom_target(GenerateBuiltinFilesCpp
 
 
 add_subdirectory(threading)
+add_subdirectory(config)
 add_subdirectory(content)
 add_subdirectory(database)
 add_subdirectory(mapgen)
@@ -471,6 +472,7 @@ set(independent_SRCS
 	tool.cpp
 	${PROJECT_BINARY_DIR}/builtin_files.cpp
 	${common_network_SRCS}
+	${config_SRCS}
 	${content_SRCS}
 	${database_SRCS}
 	${threading_SRCS}

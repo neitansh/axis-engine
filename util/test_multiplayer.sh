@@ -5,8 +5,11 @@ dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 gameid=${gameid:-devtest}
 executable=$dir/../bin/luanti
 testspath=$dir/../tests
-conf_client1=$testspath/client1.conf
-conf_server=$testspath/server.conf
+# The engine reads a directory of config files; a test only needs one of them.
+conf_dir_client1=$testspath/config-client1
+conf_dir_server=$testspath/config-server
+conf_client1=$conf_dir_client1/client/custom.conf
+conf_server=$conf_dir_server/server/custom.conf
 worldpath=$testspath/world
 
 waitfor () {
@@ -27,11 +30,13 @@ rm -f "$testspath/log.txt"
 rm -rf "$worldpath"
 mkdir -p "$worldpath/worldmods"
 
-printf '%s\n' >"$testspath/client1.conf" \
+mkdir -p "$(dirname "$conf_client1")" "$(dirname "$conf_server")"
+
+printf '%s\n' >"$conf_client1" \
 	video_driver=null name=client1 viewing_range=10 \
 	enable_{minimap,post_processing}=false enable_client_modding=true
 
-printf '%s\n' >"$testspath/server.conf" \
+printf '%s\n' >"$conf_server" \
 	max_block_send_distance=1 active_block_range=1 \
 	devtest_unittests_autostart=true helper_mode=devtest \
 	"${serverconf:-}"
@@ -39,13 +44,13 @@ printf '%s\n' >"$testspath/server.conf" \
 ln -s "$dir/helper_mod" "$worldpath/worldmods/"
 
 echo "Starting server"
-"$executable" --debugger --server --config "$conf_server" --world "$worldpath" --gameid $gameid 2>&1 \
+"$executable" --debugger --server --config-dir "$conf_dir_server" --world "$worldpath" --gameid $gameid 2>&1 \
 	| sed -u 's/^/(server) /' | tee -a "$testspath/log.txt" &
 waitfor "$worldpath/startup"
 
 echo "Starting client"
 export ALSOFT_DRIVERS=null
-"$executable" --debugger --config "$conf_client1" --go --address 127.0.0.1 2>&1 \
+"$executable" --debugger --config-dir "$conf_dir_client1" --go --address 127.0.0.1 2>&1 \
 	| sed -u 's/^/(client) /' | tee -a "$testspath/log.txt" &
 waitfor "$worldpath/done"
 

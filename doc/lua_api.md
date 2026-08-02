@@ -191,7 +191,7 @@ The game directory can contain the following files:
       e.g. `aliases = foo, bar` (where "foo" and "bar" are the legacy names)
       This allows automatic loading of worlds using a gameid from this list.
       This is intended to allow a full rename of a game, including its id.
-* `minetest.conf`:
+* `game_defaults.conf` (`minetest.conf` is still read for compatibility):
   Used to set default settings when running this game.
 * `screenshot.{png,jpg,jpeg}`:
   Preview image, shown in the main menu.
@@ -6553,7 +6553,7 @@ Call these functions only at load time!
     * If it is a description, the priv will be granted to singleplayer and admin
       by default.
     * To allow players with `basic_privs` to grant, see the `basic_privs`
-      minetest.conf setting.
+      setting.
 * `core.register_authentication_handler(authentication handler definition)`
     * Registers an auth handler that overrides the builtin one.
     * This function can be called by a single mod once only.
@@ -6801,7 +6801,7 @@ Setting-related
 ---------------
 
 * `core.settings`: Settings object containing all of the settings from the
-  main config file (`minetest.conf`). See [`Settings`](#settings).
+  configuration of the engine. See [`Settings`](#settings).
 * `core.setting_get_pos(name)`: Loads a setting from the main settings and
   parses it as a position (in the format `(1,2,3)`). Returns a position or nil. **Deprecated: use `core.settings:get_pos()` instead**
 
@@ -7096,7 +7096,7 @@ Environment access
     * `flags` contains a comma-delimited string of flags to set, or if the
       prefix `"no"` is attached, clears instead.
     * `flags` is in the same format and has the same options as `mg_flags` in
-      `minetest.conf`.
+      the configuration.
     * You may only provide `seed` values in the [ulua] range,
       which is only a part of the full [u64] range that Luanti internally
       uses for seeds
@@ -7116,7 +7116,7 @@ Environment access
         1) Settings loaded from map_meta.txt or overrides set during mod
            execution.
         2) Settings set by mods without a metafile override
-        3) Settings explicitly set in the user config file, minetest.conf
+        3) Settings explicitly set in the user configuration
         4) Settings set as the user config default
     * Note: to get the seed, use `"seed"`, not `"fixed_map_seed"`.
     * Note: The seed is returned as a string, converted from the [u64] integer
@@ -9330,7 +9330,7 @@ You **must not** mix names and track numbers to refer to the same animation.
           is used for the specific old sneak behavior (default: `true`)
     * Note: All numeric fields above modify a corresponding `movement_*` setting.
     * For games, we recommend for simpler code to first modify the `movement_*`
-      settings (e.g. via the game's `minetest.conf`) to set a global base value
+      settings (e.g. via the game's `game_defaults.conf`) to set a global base value
       for all players and only use `set_physics_override` when you need to change
       from the base value on a per-player basis
     * Note: Some of the fields don't exist in old API versions, see feature
@@ -9805,11 +9805,12 @@ secure random device cannot be found on the system.
 `Settings`
 ----------
 
-An interface to read config files in the format of `minetest.conf`.
+An interface to read config files in the `key = value` format the engine uses.
 
 `core.settings` is a `Settings` instance that can be used to access the
-main config file (`minetest.conf`). Instances for other config files can be
-created via `Settings(filename)`.
+configuration of the engine, which is spread over the files in `config/`.
+Writing it puts every setting into the file of its subject. Instances for other
+config files can be created via `Settings(filename)`.
 
 Engine settings on the `core.settings` object have internal defaults that
 will be returned if a setting is unset.

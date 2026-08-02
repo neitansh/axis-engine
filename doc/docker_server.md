@@ -44,6 +44,6 @@ services:
       - "127.0.0.1:30000:30000/tcp"
 ```
 
-Data will be written to `/home/minetest/data` on the host, and configuration will be read from `/home/minetest/conf/minetest.conf`.
+Data will be written to `/home/minetest/data` on the host, and the configuration directory is `/home/minetest/conf/`, which holds `shared/`, `server/` and the files inside them.
 
 **Note:** If you don't understand the previous commands please read the [official Docker documentation](https://docs.docker.com) before use.

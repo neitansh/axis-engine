@@ -38,7 +38,8 @@ Contributions are welcome! Here's how you can help:
     - Check your code works as expected and document any changes to the Lua API.
     - To avoid conflicting changes between contributions, do not do the following manually. They will be done before each release.
       - Run `updatepo.sh` or update `luanti.po{,t}` even if your code adds new translatable strings.
-      - Update `minetest.conf.example` and `settings_translation_file.cpp` even if your code adds new core settings.
+      - Regenerate `config.example/` and the settings domain table with `util/generate_settings_domains.py`,
+        and update `settings_translation_file.cpp`, even if your code adds new core settings.
 
 4. Commit & [push](https://help.github.com/articles/pushing-to-a-remote/) your changes to a new branch (not `master`, one change per branch)
     - Commit messages should:

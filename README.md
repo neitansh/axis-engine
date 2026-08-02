@@ -104,15 +104,31 @@ Where each location is on each platform:
 
 Worlds can be found as separate folders in: `user/worlds/`
 
-Configuration file
-------------------
+Configuration
+-------------
 - Default location:
-    `user/minetest.conf`
-- This file is created by closing Luanti for the first time.
-- A specific file can be specified on the command line:
-    `--config <path-to-file>`
-- A run-in-place build will look for the configuration file in
-    `location_of_exe/../minetest.conf` and also `location_of_exe/../../minetest.conf`
+    `user/config/`
+- The configuration is a directory of files rather than a single one. Each file
+  holds one subject, inside a section that says who reads it:
+
+    ```
+    config/shared/    engine.conf  logging.conf
+    config/client/    graphics.conf  audio.conf  input.conf  keybindings.conf
+                      interface.conf  network.conf  session.conf  custom.conf
+    config/server/    server.conf  network.conf  gameplay.conf  security.conf
+                      performance.conf  worldgen.conf  custom.conf
+    ```
+
+- A dedicated server reads and writes `shared/` and `server/` only. A client
+  reads all three, because it hosts the server of a single player game, but it
+  writes every value into the file of its own subject.
+- The files are created on the first run, empty apart from a comment saying what
+  belongs in them. `config.example/` documents every setting with its default.
+- A specific directory can be specified on the command line:
+    `--config-dir <path-to-directory>`
+- Settings of games and mods, which the engine does not know, go to
+  `custom.conf` of the running side.
+- Details, and how to add a setting: [doc/configuration.md](doc/configuration.md)
 
 Command-line options
 --------------------

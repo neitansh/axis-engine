@@ -3,6 +3,7 @@
 // Copyright (C) 2013 PilzAdam <pilzadam@minetest.net>
 
 #include "lua_api/l_settings.h"
+#include "config/config_manager.h"
 #include "lua_api/l_internal.h"
 #include "cpp_api/s_security.h"
 #include "threading/mutex_auto_lock.h"
@@ -84,6 +85,16 @@ void LuaSettings::create(lua_State *L, Settings *settings,
 		const std::string &filename)
 {
 	LuaSettings *o = new LuaSettings(settings, filename);
+	*(void **)(lua_newuserdata(L, sizeof(void *))) = o;
+	luaL_getmetatable(L, className);
+	lua_setmetatable(L, -2);
+}
+
+
+void LuaSettings::createGlobal(lua_State *L)
+{
+	LuaSettings *o = new LuaSettings(g_settings, g_config ? g_config->getDir() : "");
+	o->m_is_global = true;
 	*(void **)(lua_newuserdata(L, sizeof(void *))) = o;
 	luaL_getmetatable(L, className);
 	lua_setmetatable(L, -2);
@@ -315,6 +326,12 @@ int LuaSettings::l_write(lua_State* L)
 	if (!o->m_write_allowed) {
 		throw LuaError("Settings: writing " + o->m_filename +
 				" not allowed with mod security on.");
+	}
+
+	if (o->m_is_global) {
+		// Every setting goes into the file of its domain
+		lua_pushboolean(L, g_config && g_config->save());
+		return 1;
 	}
 
 	bool success = o->m_settings->updateConfigFile(o->m_filename.c_str());

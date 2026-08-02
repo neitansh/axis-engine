@@ -5,6 +5,7 @@
 #include <map>
 #include "irrlichttypes_bloated.h"
 #include "chat_interface.h"
+#include "config/config_manager.h"
 #include "debug.h"
 #include "unittest/test.h"
 #include "server.h"
@@ -66,8 +67,8 @@ extern "C" {
 #error ==================================
 #endif
 
-// TODO: luanti.conf with migration
-#define CONFIGFILE "minetest.conf"
+// Directory holding the configuration files, see src/config/config_domains.h
+#define CONFIGDIR "config"
 #define DEBUGFILE "debug.txt"
 #define DEFAULT_SERVER_PORT 30000
 
@@ -103,6 +104,7 @@ static bool init_common(const Settings &cmd_args, int argc, char *argv[]);
 static void uninit_common();
 static void startup_message();
 static bool read_config_file(const Settings &cmd_args);
+static bool wants_dedicated_server(const Settings &cmd_args);
 static void init_log_streams(const Settings &cmd_args);
 
 static bool game_configure(GameParams *game_params, const Settings &cmd_args);
@@ -263,15 +265,9 @@ int main(int argc, char *argv[])
 	}
 
 	GameParams game_params;
-#if !CHECK_CLIENT_BUILD()
-	porting::attachOrCreateConsole();
-	game_params.is_dedicated_server = true;
-#else
-	const bool isServer = cmd_args.getFlag("server");
-	if (isServer)
+	game_params.is_dedicated_server = wants_dedicated_server(cmd_args);
+	if (game_params.is_dedicated_server)
 		porting::attachOrCreateConsole();
-	game_params.is_dedicated_server = isServer;
-#endif
 
 	if (!game_configure(&game_params, cmd_args))
 		return 1;
@@ -287,9 +283,9 @@ int main(int argc, char *argv[])
 	retval = 0;
 #endif
 
-	// Update configuration file
-	if (!g_settings_path.empty())
-		g_settings->updateConfigFile(g_settings_path.c_str());
+	// Update configuration files
+	if (g_config)
+		g_config->save();
 
 	print_modified_quicktune_values();
 
@@ -368,8 +364,8 @@ static void set_allowed_options(OptionList *allowed_options)
 			_("Show allowed options"))));
 	allowed_options->insert(std::make_pair("version", ValueSpec(VALUETYPE_FLAG,
 			_("Show version information"))));
-	allowed_options->insert(std::make_pair("config", ValueSpec(VALUETYPE_STRING,
-			_("Load configuration from specified file"))));
+	allowed_options->insert(std::make_pair("config-dir", ValueSpec(VALUETYPE_STRING,
+			_("Load configuration from specified directory"))));
 	allowed_options->insert(std::make_pair("port", ValueSpec(VALUETYPE_STRING,
 			_("Set network port (UDP)"))));
 	allowed_options->insert(std::make_pair("run-unittests", ValueSpec(VALUETYPE_FLAG,
@@ -778,7 +774,7 @@ static bool init_common(const Settings &cmd_args, int argc, char *argv[])
 		std::ostringstream oss;
 		// stuff that's somewhat unpredictable:
 		oss << time(nullptr) << porting::getTimeUs() << argc
-			<< g_settings_path << reinterpret_cast<intptr_t>(argv);
+			<< g_config->getDir() << reinterpret_cast<intptr_t>(argv);
 		print_version(oss);
 		std::string data = oss.str();
 		seed = murmur_hash_64_ua(data.c_str(), data.size(), 0xc0ffee);
@@ -795,11 +791,23 @@ static bool init_common(const Settings &cmd_args, int argc, char *argv[])
 	return true;
 }
 
+static bool wants_dedicated_server(const Settings &cmd_args)
+{
+#if CHECK_CLIENT_BUILD()
+	return cmd_args.getFlag("server");
+#else
+	return true;
+#endif
+}
+
 static void uninit_common()
 {
 	httpfetch_cleanup();
 
 	sockets_cleanup();
+
+	delete g_config;
+	g_config = nullptr;
 
 	// It'd actually be okay to leak these but we want to please valgrind...
 	for (int i = 0; i < (int)SL_TOTAL_COUNT; i++)
@@ -816,47 +824,27 @@ static void startup_message()
 
 static bool read_config_file(const Settings &cmd_args)
 {
-	// Path of configuration file in use
-	sanity_check(g_settings_path.empty());	// Sanity check
+	sanity_check(!g_config);	// Sanity check
 
-	if (cmd_args.exists("config")) {
-		bool r = g_settings->readConfigFile(cmd_args.get("config").c_str());
-		if (!r) {
-			errorstream << "Could not read configuration from \""
-			            << cmd_args.get("config") << "\"" << std::endl;
-			return false;
-		}
-		g_settings_path = cmd_args.get("config");
-	} else {
-		std::vector<std::string> filenames;
-		filenames.push_back(porting::path_user + DIR_DELIM + CONFIGFILE);
-		// Legacy configuration file location
-		filenames.push_back(porting::path_user +
-				DIR_DELIM + ".." + DIR_DELIM + CONFIGFILE);
+	std::string dir = porting::path_user + DIR_DELIM + CONFIGDIR;
+	if (cmd_args.exists("config-dir"))
+		dir = cmd_args.get("config-dir");
 
-#if RUN_IN_PLACE
-		// Try also from a lower level (to aid having the same configuration
-		// for many RUN_IN_PLACE installs)
-		filenames.push_back(porting::path_user +
-				DIR_DELIM + ".." + DIR_DELIM + ".." + DIR_DELIM + CONFIGFILE);
-#endif
+	// The section decides which files are read and written: a dedicated
+	// server has no business touching client settings, and it must not
+	// inherit them either.
+	const ConfigSection section = wants_dedicated_server(cmd_args)
+			? ConfigSection::Server : ConfigSection::Client;
 
-		for (const std::string &filename : filenames) {
-			bool r = g_settings->readConfigFile(filename.c_str());
-			if (r) {
-				g_settings_path = filename;
-				break;
-			}
-		}
+	g_config = new ConfigManager(dir, section, g_settings);
+	g_config->load();
 
-		// If no path found, use the first one (menu creates the file)
-		if (g_settings_path.empty()) {
-			g_settings_path = filenames[0];
-			g_first_run = true;
-		}
+	if (g_config->isFirstRun()) {
+		// Lay the files out right away instead of at the first save. A server
+		// never gets that far, and an empty file that says what belongs in it
+		// is what makes the configuration discoverable at all.
+		g_config->save();
 	}
-	infostream << "Global configuration file: " << g_settings_path
-		<< (g_first_run ? " (first run)" : "") << std::endl;
 
 	return true;
 }
