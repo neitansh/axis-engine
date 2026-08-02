@@ -379,7 +379,9 @@ void GUIChatConsole::drawSuggestions(s32 prompt_y, u32 font_height)
 	const ChatPrompt::Suggestions &suggestions =
 			m_chat_backend->getPrompt().getSuggestions();
 
-	if (suggestions.options.empty())
+	// One option is no choice: it is already written faintly into the line,
+	// and a list of a single item only takes up room
+	if (suggestions.options.size() < 2)
 		return;
 
 	video::IVideoDriver *driver = Environment->getVideoDriver();
@@ -401,7 +403,9 @@ void GUIChatConsole::drawSuggestions(s32 prompt_y, u32 font_height)
 		first = count - shown;
 
 	const u32 font_width = m_fontsize.X;
-	const s32 top = prompt_y + (s32)font_height;
+
+	// A gap, so the list reads as its own thing rather than as more chat
+	const s32 top = prompt_y + (s32)font_height + (s32)font_height / 2;
 
 	std::vector<std::wstring> lines;
 	u32 widest = 0;
@@ -425,9 +429,9 @@ void GUIChatConsole::drawSuggestions(s32 prompt_y, u32 font_height)
 			left + (s32)widest + padding,
 			top + (s32)(shown * font_height));
 
-	// Nearly opaque: this is a thing to read, not a thing to see through
-	driver->draw2DRectangle(video::SColor(240, 22, 22, 22), backing,
-			&whole_screen);
+	// The same backing as the console above it: two shades of dark, one over
+	// the other, only look like a mistake
+	driver->draw2DRectangle(m_background_color, backing, &whole_screen);
 
 	s32 y = top;
 
