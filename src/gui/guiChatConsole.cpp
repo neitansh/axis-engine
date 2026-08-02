@@ -382,60 +382,65 @@ void GUIChatConsole::drawSuggestions(s32 prompt_y, u32 font_height)
 	if (suggestions.options.empty())
 		return;
 
-	// Muted, because this is not what the player wrote - it is what they
-	// could write
-	const video::SColor muted(255, 150, 150, 150);
-	const video::SColor picked(255, 245, 245, 245);
+	video::IVideoDriver *driver = Environment->getVideoDriver();
 
-	// Above the prompt rather than below it: below is the edge of the screen,
-	// and what is drawn there is simply cut off
-	constexpr size_t SHOWN = 3;
+	// Drawn below the prompt, which is past the console itself, so the
+	// clipping has to be the screen rather than this element
+	const core::dimension2du screen = driver->getScreenSize();
+	const core::rect<s32> whole_screen(0, 0, screen.Width, screen.Height);
+
+	constexpr size_t SHOWN = 6;
 	const size_t count = suggestions.options.size();
 	const size_t shown = std::min(SHOWN, count);
-	size_t first = suggestions.chosen >= shown / 2
-			? suggestions.chosen - shown / 2 : 0;
+
+	// The list runs downwards from what is typed, so the choice stays where
+	// the eye already is: at the top, next to the cursor
+	size_t first = suggestions.chosen >= shown ? suggestions.chosen - shown + 1 : 0;
 
 	if (first + shown > count)
 		first = count - shown;
 
 	const u32 font_width = m_fontsize.X;
-	const s32 top = prompt_y - (s32)(shown * font_height);
+	const s32 top = prompt_y + (s32)font_height;
 
 	std::vector<std::wstring> lines;
 	u32 widest = 0;
 
 	for (size_t i = 0; i < shown; i++) {
-		const size_t index = first + i;
-		std::wstring text = (index == suggestions.chosen ? L"\u203a " : L"  ")
-				+ suggestions.options[index];
+		// Without the slash: it is already typed, and repeating it only makes
+		// the names harder to read against each other
+		std::wstring text = suggestions.options[first + i];
 
-		if (index == suggestions.chosen && count > 1) {
-			text += L"  " + std::to_wstring(suggestions.chosen + 1) + L"/"
-					+ std::to_wstring(count);
-		}
+		if (!text.empty() && text[0] == L'/')
+			text.erase(0, 1);
 
 		widest = std::max(widest, m_font->getDimension(text.c_str()).Width);
 		lines.push_back(std::move(text));
 	}
 
-	// A backing, so the chat behind stays readable behind the list
-	video::IVideoDriver *driver = Environment->getVideoDriver();
-	core::rect<s32> backing(font_width / 2, top,
-			font_width + widest + font_width, prompt_y);
+	const s32 left = font_width;
+	const s32 padding = font_width / 2;
 
-	driver->draw2DRectangle(video::SColor(190, 20, 20, 20), backing,
-			&AbsoluteClippingRect);
+	core::rect<s32> backing(left - padding, top,
+			left + (s32)widest + padding,
+			top + (s32)(shown * font_height));
+
+	// Nearly opaque: this is a thing to read, not a thing to see through
+	driver->draw2DRectangle(video::SColor(240, 22, 22, 22), backing,
+			&whole_screen);
 
 	s32 y = top;
 
 	for (size_t i = 0; i < lines.size(); i++) {
-		core::rect<s32> where(font_width, y,
-				font_width + m_font->getDimension(lines[i].c_str()).Width,
-				y + font_height);
+		core::rect<s32> where(left, y,
+				left + (s32)m_font->getDimension(lines[i].c_str()).Width,
+				y + (s32)font_height);
 
 		m_font->draw(lines[i].c_str(), where,
-				first + i == suggestions.chosen ? picked : muted,
-				false, false, &AbsoluteClippingRect);
+				first + i == suggestions.chosen
+					? video::SColor(255, 255, 225, 70)
+					: video::SColor(255, 225, 225, 225),
+				false, false, &whole_screen);
 
 		y += font_height;
 	}

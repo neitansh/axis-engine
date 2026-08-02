@@ -961,7 +961,7 @@ console_height (Console height) float 0.6 0.1 1.0
 console_color (Console color) string (0,0,0)
 
 #    In-game chat console background alpha (opaqueness, between 0 and 255).
-console_alpha (Console alpha) int 200 0 255
+console_alpha (Console alpha) int 140 0 255
 
 #    Optional override for chat weblink color.
 chat_weblink_color (Weblink color) string #8888FF
