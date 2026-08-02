@@ -115,6 +115,44 @@ void ModConfiguration::addGameMods(const SubgameSpec &gamespec)
 	m_last_mod = gamespec.last_mod;
 }
 
+void ModConfiguration::addModsFromPaths(
+		const std::unordered_map<std::string, std::string> &modPaths)
+{
+	std::vector<ModSpec> addon_mods;
+
+	for (const auto &modPath : modPaths) {
+		std::vector<ModSpec> addon_mods_in_path =
+			flattenMods(getModsInPath(modPath.second, modPath.first), true);
+		addon_mods.insert(addon_mods.end(),
+				addon_mods_in_path.begin(), addon_mods_in_path.end());
+	}
+
+	addMods(addon_mods);
+}
+
+/**
+ * Drops every "load_mod_*" line from a world, as the mod folders are in charge
+ */
+static void clearModList(Settings &conf, const std::string &settings_path)
+{
+	std::vector<std::string> stale;
+
+	for (const std::string &name : conf.getNames()) {
+		if (name.compare(0, 9, "load_mod_") == 0)
+			stale.push_back(name);
+	}
+
+	if (stale.empty())
+		return;
+
+	for (const std::string &name : stale)
+		conf.remove(name);
+
+	actionstream << "Dropped the mod list of the world: the mod folders decide "
+			"what is loaded" << std::endl;
+	conf.updateConfigFile(settings_path.c_str());
+}
+
 void ModConfiguration::addModsFromConfig(
 		const std::string &settings_path,
 		const std::unordered_map<std::string, std::string> &modPaths)
@@ -123,6 +161,16 @@ void ModConfiguration::addModsFromConfig(
 	std::unordered_map<std::string, std::string> load_mod_names;
 
 	conf.readConfigFile(settings_path.c_str());
+
+	// With this on, the mod folders alone decide what runs: a mod that is there
+	// gets loaded, a mod that is gone does not. The world keeps no list at all,
+	// so an old one is thrown away when we meet it.
+	if (g_settings->getBool("enable_all_mods")) {
+		addModsFromPaths(modPaths);
+		clearModList(conf, settings_path);
+		return;
+	}
+
 	std::vector<std::string> names = conf.getNames();
 	for (const std::string &name : names) {
 		const auto &value = conf.get(name);
@@ -130,11 +178,6 @@ void ModConfiguration::addModsFromConfig(
 				value != "nil")
 			load_mod_names[name.substr(9)] = value;
 	}
-
-	// With this on, an installed mod is loaded unless the world says otherwise.
-	// A world then only has to record what is switched *off*, so dropping a mod
-	// into the folder is enough to have it running.
-	const bool enable_all = g_settings->getBool("enable_all_mods");
 
 	// List of enabled non-game non-world mods
 	std::vector<ModSpec> addon_mods;
@@ -163,18 +206,9 @@ void ModConfiguration::addModsFromConfig(
 				} else {
 					candidates[pair->first].emplace_back(mod.virtual_path);
 				}
-			} else if (enable_all && !conf.exists("load_mod_" + mod.name)) {
-				// The world has never seen this mod: take it along and write
-				// the choice down, so the list stays readable afterwards.
-				addon_mods.push_back(mod);
-				conf.set("load_mod_" + mod.name, mod.virtual_path);
-			} else if (!enable_all) {
-				conf.remove("load_mod_" + mod.name);
 			}
-			// Otherwise the world disabled it on purpose; leave that line alone
 		}
 	}
-	conf.updateConfigFile(settings_path.c_str());
 
 	addMods(addon_mods);
 
@@ -183,26 +217,41 @@ void ModConfiguration::addModsFromConfig(
 	for (const ModSpec &mod : m_unsatisfied_mods)
 		load_mod_names.erase(mod.name);
 
-	// Complain about mods declared to be loaded, but not found
+	// Deal with mods declared to be loaded, but not found
 	if (!load_mod_names.empty()) {
-		errorstream << "The following mods could not be found:";
-		for (const auto &pair : load_mod_names)
-			errorstream << " \"" << pair.first << "\"";
-		errorstream << std::endl;
+		std::vector<std::string> uninstalled;
 
 		for (const auto &pair : load_mod_names) {
 			const auto &candidate = candidates.find(pair.first);
-			if (candidate != candidates.end()) {
-				errorstream << "Unable to load " << pair.first << " as the specified path "
-							<< pair.second << " could not be found. "
-							<< "However, it is available in the following locations:"
-							<< std::endl;
-				for (const auto &path : candidate->second) {
-					errorstream << " - " << path << std::endl;
-				}
+			if (candidate == candidates.end()) {
+				// Nowhere to be found: the mod was removed from the mod folder,
+				// so its line in the world is stale. Drop it instead of
+				// complaining about it on every start.
+				uninstalled.push_back(pair.first);
+				continue;
+			}
+
+			errorstream << "Unable to load " << pair.first << " as the specified path "
+						<< pair.second << " could not be found. "
+						<< "However, it is available in the following locations:"
+						<< std::endl;
+			for (const auto &path : candidate->second) {
+				errorstream << " - " << path << std::endl;
 			}
 		}
+
+		if (!uninstalled.empty()) {
+			actionstream << "The following mods are no longer installed and were "
+					"removed from the world:";
+			for (const std::string &name : uninstalled) {
+				actionstream << " \"" << name << "\"";
+				conf.remove("load_mod_" + name);
+			}
+			actionstream << std::endl;
+		}
 	}
+
+	conf.updateConfigFile(settings_path.c_str());
 }
 
 void ModConfiguration::checkConflictsAndDeps()

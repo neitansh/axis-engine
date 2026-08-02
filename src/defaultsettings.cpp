@@ -454,6 +454,8 @@ void set_default_settings()
 #endif
 
 	// Server
+	// The world a dedicated server runs; created if it is not there yet
+	settings->setDefault("main_world_name", "world");
 	settings->setDefault("strip_color_codes", "true");
 #ifndef NDEBUG
 	settings->setDefault("random_mod_load_order", "true");

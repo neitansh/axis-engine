@@ -991,8 +991,19 @@ static bool get_world_from_config(GameParams *game_params, const Settings &cmd_a
 	// World directory
 	std::string commanded_world;
 
-	if (g_settings->exists("map-dir"))
+	if (g_settings->exists("map-dir")) {
 		commanded_world = g_settings->get("map-dir");
+	} else if (game_params->is_dedicated_server) {
+		// A server runs the one world named in its configuration file. The
+		// world does not have to exist yet: a missing one is created on start.
+		const std::string &name = g_settings->get("main_world_name");
+		if (!name.empty()) {
+			commanded_world = porting::path_user + DIR_DELIM + "worlds" +
+					DIR_DELIM + name;
+			dstream << "Using main world [" << commanded_world << "]"
+			        << std::endl;
+		}
+	}
 
 	game_params->world_path = get_clean_world_path(commanded_world);
 

@@ -1003,8 +1003,9 @@ enable_local_map_saving (Saving map received from server) bool false
 #    URL to the server list displayed in the Multiplayer Tab.
 serverlist_url (Serverlist URL) [common] string
 
-#    Load every mod found in the mods folder, without listing it in the world.
-#    A world can still switch a mod off with "load_mod_<name> = false".
+#    Load every mod found in the mods folder and nothing else: a mod that is
+#    there runs, a mod that is gone does not. Worlds keep no mod list at all.
+#    Turn this off to let each world pick its mods again.
 enable_all_mods (Load all installed mods) bool true
 
 #    If enabled, server account registration is separate from login in the UI.
@@ -1017,6 +1018,11 @@ enable_split_login_register (Enable split login/register) bool true
 #    When running a server, a client connecting with this name is admin.
 #    When starting from the main menu, this is overridden.
 name (Admin name) string
+
+#    World a dedicated server runs, taken from the worlds folder.
+#    A world of that name is created if it does not exist yet.
+#    The "--worldname" and "--world" arguments take precedence over this.
+main_world_name (Main world name) string world
 
 [**Serverlist and MOTD]
 

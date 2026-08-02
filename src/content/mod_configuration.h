@@ -73,6 +73,13 @@ public:
 	void checkConflictsAndDeps();
 
 private:
+	/**
+	 * Adds every mod found in the given paths, no questions asked
+	 *
+	 * @param modPaths Map from virtual name to mod path
+	 */
+	void addModsFromPaths(const std::unordered_map<std::string, std::string> &modPaths);
+
 	std::string m_first_mod; // "" <=> no mod
 	std::string m_last_mod; // "" <=> no mod
 
