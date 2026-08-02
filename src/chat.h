@@ -202,6 +202,44 @@ public:
 	bool commandCompletion(const std::vector<CommandInfo> &commands,
 			const std::set<std::string> &names);
 
+	/**
+	 * What could be typed next, worked out from what is typed already.
+	 *
+	 * Kept between frames so the console can show it and the player can pick
+	 * from it, rather than having to remember every command and its arguments.
+	 */
+	struct Suggestions
+	{
+		/// What could go where the cursor is, in full
+		std::vector<std::wstring> options;
+		/// Which one is picked; wraps around when scrolled
+		size_t chosen = 0;
+		/// Part of the current token already typed, to know what to append
+		std::wstring typed;
+		/// Shown greyed out when there is nothing to choose from: usually the
+		/// shape of the argument the command is waiting for
+		std::wstring hint;
+		/// Where the token being completed starts, for redrawing it
+		u32 token_start = 0;
+
+		bool empty() const { return options.empty() && hint.empty(); }
+	};
+
+	/// Keeps the picked option across a rebuild when the offer is the same
+	void keepChoice(const Suggestions &previous);
+
+	/// Works out the suggestions for the current line and cursor
+	void updateSuggestions(const std::vector<CommandInfo> &commands,
+			const std::set<std::string> &names);
+
+	const Suggestions &getSuggestions() const { return m_suggestions; }
+
+	/// Moves the choice by the given number of steps, wrapping around
+	void cycleSuggestion(s32 by);
+
+	/// Puts the chosen suggestion into the line. Returns false if there is none
+	bool applySuggestion();
+
 	// Update console size and reformat the visible portion of the prompt
 	void reformat(u32 cols);
 	// Get visible portion of the prompt.
@@ -281,6 +319,9 @@ private:
 	// Start of visible portion (index into m_line)
 	s32 m_view = 0;
 	// Cursor (index into m_line)
+	// What could be typed next, see updateSuggestions()
+	Suggestions m_suggestions;
+
 	s32 m_cursor = 0;
 	// Cursor length (length of selected portion of line)
 	s32 m_cursor_len = 0;

@@ -356,6 +356,85 @@ void GUIChatConsole::drawText()
 	updateScrollbar();
 }
 
+void GUIChatConsole::refreshSuggestions()
+{
+	if (!m_client)
+		return;
+
+	std::vector<ChatPrompt::CommandInfo> commands;
+	for (const auto &command : m_client->getChatCommands()) {
+		commands.push_back({
+			utf8_to_wide(command.name),
+			utf8_to_wide(command.params),
+			utf8_to_wide(command.description),
+		});
+	}
+
+	m_chat_backend->getPrompt().updateSuggestions(commands,
+			m_client->getConnectedPlayerNames());
+}
+
+void GUIChatConsole::drawSuggestions(s32 prompt_y, u32 font_height)
+{
+	const ChatPrompt::Suggestions &suggestions =
+			m_chat_backend->getPrompt().getSuggestions();
+
+	if (suggestions.empty())
+		return;
+
+	// Muted, because this is not what the player wrote - it is what they
+	// could write
+	const video::SColor muted(255, 140, 140, 140);
+	const video::SColor picked(255, 235, 235, 235);
+
+	const u32 font_width = m_fontsize.X;
+	s32 y = prompt_y + font_height;
+
+	if (suggestions.options.empty()) {
+		// Only the shape of the argument is known: say it and no more
+		const std::wstring text = L"  " + suggestions.hint;
+		core::rect<s32> where(font_width, y,
+				font_width + m_font->getDimension(text.c_str()).Width,
+				y + font_height);
+
+		m_font->draw(text.c_str(), where, muted, false, false,
+				&AbsoluteClippingRect);
+		return;
+	}
+
+	// A few at a time, with the chosen one in the middle where it can be
+	// seen without reading the whole list
+	constexpr size_t SHOWN = 3;
+	const size_t count = suggestions.options.size();
+	const size_t shown = std::min(SHOWN, count);
+	size_t first = suggestions.chosen >= shown / 2
+			? suggestions.chosen - shown / 2 : 0;
+
+	if (first + shown > count)
+		first = count - shown;
+
+	for (size_t i = 0; i < shown; i++) {
+		const size_t index = first + i;
+		std::wstring text = (index == suggestions.chosen ? L"> " : L"  ")
+				+ suggestions.options[index];
+
+		if (index == suggestions.chosen && count > 1) {
+			text += L"   (" + std::to_wstring(suggestions.chosen + 1) + L"/"
+					+ std::to_wstring(count) + L")";
+		}
+
+		core::rect<s32> where(font_width, y,
+				font_width + m_font->getDimension(text.c_str()).Width,
+				y + font_height);
+
+		m_font->draw(text.c_str(), where,
+				index == suggestions.chosen ? picked : muted,
+				false, false, &AbsoluteClippingRect);
+
+		y += font_height;
+	}
+}
+
 void GUIChatConsole::drawPrompt()
 {
 	if (!m_font)
@@ -384,6 +463,9 @@ void GUIChatConsole::drawPrompt()
 		false,
 		false,
 		&AbsoluteClippingRect);
+
+	refreshSuggestions();
+	drawSuggestions(y, font_height);
 
 	// Draw the cursor during on periods
 	if ((m_cursor_blink & 0x8000) != 0)
@@ -651,27 +733,31 @@ bool GUIChatConsole::OnEvent(const SEvent& event)
 		}
 		else if(event.KeyInput.Key == KEY_TAB)
 		{
-			// Tab or Shift-Tab pressed: complete a command if one is being
-			// typed, and a nickname otherwise
-			auto names = m_client->getConnectedPlayerNames();
+			// Tab takes what is on offer; without an offer it falls back to
+			// the older behaviour of completing as far as everything agrees
+			if (!prompt.applySuggestion()) {
+				auto names = m_client->getConnectedPlayerNames();
 
-			std::vector<ChatPrompt::CommandInfo> commands;
-			for (const auto &command : m_client->getChatCommands()) {
-				commands.push_back({
-					utf8_to_wide(command.name),
-					utf8_to_wide(command.params),
-					utf8_to_wide(command.description),
-				});
+				std::vector<ChatPrompt::CommandInfo> commands;
+				for (const auto &command : m_client->getChatCommands()) {
+					commands.push_back({
+						utf8_to_wide(command.name),
+						utf8_to_wide(command.params),
+						utf8_to_wide(command.description),
+					});
+				}
+
+				if (!prompt.commandCompletion(commands, names))
+					prompt.nickCompletion(names);
 			}
 
-			if (!prompt.commandCompletion(commands, names))
-				prompt.nickCompletion(names);
-
+			refreshSuggestions();
 			return true;
 		}
 
 		if (has_char) {
 			prompt.input(event.KeyInput.Char);
+			refreshSuggestions();
 			return true;
 		}
 	}
@@ -679,8 +765,16 @@ bool GUIChatConsole::OnEvent(const SEvent& event)
 	{
 		if (event.MouseInput.Event == EMIE_MOUSE_WHEEL)
 		{
-			s32 rows = myround(-3.0 * event.MouseInput.Wheel);
-			m_chat_backend->scroll(rows);
+			ChatPrompt &prompt = m_chat_backend->getPrompt();
+
+			// While something is on offer the wheel picks between the
+			// options; the history is still there to scroll once it is gone
+			if (prompt.getSuggestions().options.size() > 1) {
+				prompt.cycleSuggestion(event.MouseInput.Wheel > 0 ? -1 : 1);
+			} else {
+				s32 rows = myround(-3.0 * event.MouseInput.Wheel);
+				m_chat_backend->scroll(rows);
+			}
 		}
 		// Middle click or ctrl-click opens weblink, if enabled in config
 		// Otherwise, middle click pastes primary selection

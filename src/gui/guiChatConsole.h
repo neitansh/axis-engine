@@ -68,6 +68,10 @@ private:
 	void drawBackground();
 	void drawText();
 	void drawPrompt();
+	/// Draws what could be typed next, under the prompt
+	void drawSuggestions(s32 prompt_y, u32 font_height);
+	/// Rebuilds the suggestions from the current line
+	void refreshSuggestions();
 
 	// If clicked fragment has a web url, send it to the system default web browser.
 	// Returns true if, and only if a web url was pressed.

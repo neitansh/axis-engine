@@ -838,6 +838,145 @@ bool ChatPrompt::commandCompletion(const std::vector<CommandInfo> &commands,
 	return true;
 }
 
+void ChatPrompt::updateSuggestions(const std::vector<CommandInfo> &commands,
+		const std::set<std::string> &names)
+{
+	// Worked out afresh every time, so it can never lag behind what is typed.
+	// The choice survives when the offer has not changed, or scrolling through
+	// it would be undone by the next keystroke.
+	const Suggestions previous = std::move(m_suggestions);
+
+	m_suggestions = Suggestions();
+
+	const std::wstring_view line(getLineRef());
+
+	if (line.empty())
+		return;
+
+	auto [token_start, token_end] = tokenAroundCursor(line, m_cursor);
+	const std::wstring typed(line.substr(token_start, token_end - token_start));
+
+	m_suggestions.typed = typed;
+	m_suggestions.token_start = token_start;
+
+	if (line[0] != L'/') {
+		// A nickname, then. Only worth suggesting once something is typed:
+		// listing everyone present on an empty word helps nobody.
+		if (typed.empty())
+			return;
+
+		for (const std::string &player : names) {
+			std::wstring candidate = utf8_to_wide(player);
+			if (str_starts_with(candidate, typed, true))
+				m_suggestions.options.push_back(candidate);
+		}
+
+		std::sort(m_suggestions.options.begin(), m_suggestions.options.end());
+		keepChoice(previous);
+		return;
+	}
+
+	const u32 argument = argumentIndex(line, token_start);
+
+	if (argument == 0) {
+		const std::wstring prefix = typed.substr(1);
+
+		for (const CommandInfo &command : commands) {
+			if (str_starts_with(command.name, prefix, true))
+				m_suggestions.options.push_back(L"/" + command.name);
+		}
+
+		std::sort(m_suggestions.options.begin(), m_suggestions.options.end());
+		keepChoice(previous);
+		return;
+	}
+
+	const size_t first_space = line.find(L' ');
+	const std::wstring name(line.substr(1,
+			first_space == std::wstring::npos
+				? line.size() - 1 : first_space - 1));
+
+	const CommandInfo *command = nullptr;
+	for (const CommandInfo &candidate : commands) {
+		if (str_equal(std::wstring_view(candidate.name),
+				std::wstring_view(name), true)) {
+			command = &candidate;
+			break;
+		}
+	}
+
+	if (!command)
+		return;
+
+	std::wstring wanted = parameterAt(command->params, argument);
+	std::wstring lowered = wanted;
+
+	for (wchar_t &c : lowered)
+		c = my_tolower(c);
+
+	if (lowered.find(L"player") != std::wstring::npos ||
+			lowered.find(L"name") != std::wstring::npos) {
+		for (const std::string &player : names) {
+			std::wstring candidate = utf8_to_wide(player);
+			if (str_starts_with(candidate, typed, true))
+				m_suggestions.options.push_back(candidate);
+		}
+	} else if (lowered.find(L"command") != std::wstring::npos) {
+		for (const CommandInfo &entry : commands) {
+			if (str_starts_with(entry.name, typed, true))
+				m_suggestions.options.push_back(entry.name);
+		}
+	}
+
+	std::sort(m_suggestions.options.begin(), m_suggestions.options.end());
+
+	if (m_suggestions.options.empty()) {
+		// Nothing to choose from, but the command did say what it wants
+		m_suggestions.hint = wanted.empty() ? command->params : wanted;
+	}
+
+	keepChoice(previous);
+}
+
+void ChatPrompt::keepChoice(const Suggestions &previous)
+{
+	if (previous.options == m_suggestions.options &&
+			previous.typed == m_suggestions.typed)
+		m_suggestions.chosen = previous.chosen;
+
+	if (m_suggestions.chosen >= m_suggestions.options.size())
+		m_suggestions.chosen = 0;
+}
+
+void ChatPrompt::cycleSuggestion(s32 by)
+{
+	const size_t count = m_suggestions.options.size();
+
+	if (count < 2)
+		return;
+
+	const s32 chosen = ((s32)m_suggestions.chosen + by) % (s32)count;
+	m_suggestions.chosen = chosen < 0 ? chosen + (s32)count : chosen;
+}
+
+bool ChatPrompt::applySuggestion()
+{
+	if (m_suggestions.options.empty())
+		return false;
+
+	const std::wstring &chosen = m_suggestions.options[m_suggestions.chosen];
+	const u32 start = m_suggestions.token_start;
+	const u32 end = start + m_suggestions.typed.size();
+
+	makeLineRef().replace(start, end - start, chosen);
+	m_cursor = start + chosen.size();
+	m_cursor_len = 0;
+	clampView();
+
+	m_suggestions = Suggestions();
+	return true;
+}
+
 void ChatPrompt::reformat(u32 cols)
 {
 	if (cols <= m_prompt.size())
