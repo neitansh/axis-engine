@@ -839,13 +839,6 @@ static bool read_config_file(const Settings &cmd_args)
 	g_config = new ConfigManager(dir, section, g_settings);
 	g_config->load();
 
-	if (g_config->isFirstRun()) {
-		// Lay the files out right away instead of at the first save. A server
-		// never gets that far, and an empty file that says what belongs in it
-		// is what makes the configuration discoverable at all.
-		g_config->save();
-	}
-
 	return true;
 }
 

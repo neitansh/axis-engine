@@ -15,10 +15,11 @@ ConfigManager *g_config = nullptr;
 namespace
 {
 
-/// Turns "client/graphics.conf" into a path of this platform
+/// Turns "client/graphics.conf" into a path of this platform, below dir
 std::string toNativePath(const std::string &dir, const char *relative)
 {
 	std::string path = dir;
+	path += DIR_DELIM;
 
 	for (const char *c = relative; *c; c++)
 		path += (*c == '/') ? DIR_DELIM[0] : *c;
@@ -94,6 +95,46 @@ void ConfigManager::load()
 
 	infostream << "Configuration directory: " << m_dir
 		<< (m_first_run ? " (first run)" : "") << std::endl;
+
+	// Lay out what is not there yet. A file that exists and says what belongs
+	// in it is what makes the configuration editable without a manual, and a
+	// server would otherwise never write one: it only saves when a mod asks.
+	createMissingFiles();
+}
+
+void ConfigManager::createMissingFiles()
+{
+	if (!fs::CreateAllDirs(m_dir)) {
+		warningstream << "Could not create the configuration directory "
+			<< m_dir << std::endl;
+		return;
+	}
+
+	for (const ConfigDomainSpec &spec : getConfigDomainSpecs()) {
+		if (handles(spec.domain))
+			createFile(spec);
+	}
+}
+
+bool ConfigManager::createFile(const ConfigDomainSpec &spec)
+{
+	const std::string path = toNativePath(m_dir, spec.path);
+
+	if (fs::PathExists(path))
+		return true;
+
+	const std::string dir = fs::RemoveLastPathComponent(path);
+	if (!dir.empty() && !fs::CreateAllDirs(dir)) {
+		warningstream << "Could not create " << dir << std::endl;
+		return false;
+	}
+
+	if (!fs::safeWriteToFile(path, fileHeader(spec))) {
+		warningstream << "Could not create " << path << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 void ConfigManager::loadFile(const ConfigDomainSpec &spec)
@@ -147,20 +188,8 @@ bool ConfigManager::writeFile(const ConfigDomainSpec &spec)
 {
 	const std::string path = toNativePath(m_dir, spec.path);
 
-	if (!fs::PathExists(path)) {
-		// A fresh file explains itself, and the empty ones make the layout of
-		// the configuration visible without having to consult the manual.
-		const std::string dir = fs::RemoveLastPathComponent(path);
-		if (!dir.empty() && !fs::CreateAllDirs(dir)) {
-			errorstream << "Could not create " << dir << std::endl;
-			return false;
-		}
-
-		if (!fs::safeWriteToFile(path, fileHeader(spec))) {
-			errorstream << "Could not create " << path << std::endl;
-			return false;
-		}
-	}
+	if (!createFile(spec))
+		return false;
 
 	const auto belongs_here = [&](const std::string &name) {
 		return domainOf(name) == spec.domain;

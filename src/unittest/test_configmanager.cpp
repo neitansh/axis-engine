@@ -19,6 +19,7 @@ public:
 	void runTests(IGameDef *gamedef);
 
 	void testDomainLookup();
+	void testLayoutOnLoad();
 	void testSplitsBySubject();
 	void testRoundTrip();
 	void testServerIgnoresClientFiles();
@@ -35,6 +36,7 @@ static TestConfigManager g_test_instance;
 void TestConfigManager::runTests(IGameDef *gamedef)
 {
 	TEST(testDomainLookup);
+	TEST(testLayoutOnLoad);
 	TEST(testSplitsBySubject);
 	TEST(testRoundTrip);
 	TEST(testServerIgnoresClientFiles);
@@ -98,6 +100,39 @@ void TestConfigManager::testDomainLookup()
 	UASSERTEQ(size_t, paths.size(), (size_t)ConfigDomain::Count);
 }
 
+void TestConfigManager::testLayoutOnLoad()
+{
+	// Loading lays the files out, whether or not the directory is already
+	// there. A dedicated server relies on this: it does not save on exit.
+	const std::string fresh = makeDir("config_layout_fresh");
+	const std::string existing = makeDir("config_layout_existing");
+	UASSERT(fs::CreateAllDirs(existing));
+
+	{
+		Settings settings;
+		ConfigManager config(fresh, ConfigSection::Client, &settings);
+		config.load();
+		UASSERT(config.isFirstRun());
+		UASSERT(fs::PathExists(config.getPath(ConfigDomain::ClientGraphics)));
+		UASSERT(fs::PathExists(config.getPath(ConfigDomain::ServerServer)));
+	}
+
+	Settings settings;
+	ConfigManager config(existing, ConfigSection::Server, &settings);
+	config.load();
+
+	UASSERT(fs::PathExists(config.getPath(ConfigDomain::ServerServer)));
+	UASSERT(fs::PathExists(config.getPath(ConfigDomain::SharedEngine)));
+	// Still nothing of the other side
+	UASSERT(!fs::PathExists(config.getPath(ConfigDomain::ClientGraphics)));
+	UASSERT(!fs::IsDir(existing + DIR_DELIM + "client"));
+
+	// Nothing next to the directory either, the files go inside it
+	UASSERT(!fs::PathExists(existing + "client"));
+	UASSERT(!fs::PathExists(existing + "server"));
+	UASSERT(!fs::PathExists(existing + "shared"));
+}
+
 void TestConfigManager::testSplitsBySubject()
 {
 	const std::string dir = makeDir("config_split");
@@ -109,7 +144,17 @@ void TestConfigManager::testSplitsBySubject()
 	settings.set("debug_log_level", "verbose");
 
 	ConfigManager config(dir, ConfigSection::Client, &settings);
+
+	// A file sits in the section directory, below the configuration directory
+	UASSERTEQ(std::string, config.getPath(ConfigDomain::ClientGraphics),
+			dir + DIR_DELIM + "client" + DIR_DELIM + "graphics.conf");
+	UASSERTEQ(std::string, config.getPath(ConfigDomain::SharedEngine),
+			dir + DIR_DELIM + "shared" + DIR_DELIM + "engine.conf");
+
 	UASSERT(config.save());
+	UASSERT(fs::IsDir(dir + DIR_DELIM + "client"));
+	UASSERT(fs::IsDir(dir + DIR_DELIM + "server"));
+	UASSERT(fs::IsDir(dir + DIR_DELIM + "shared"));
 
 	const std::string graphics = readFile(config.getPath(ConfigDomain::ClientGraphics));
 	const std::string audio = readFile(config.getPath(ConfigDomain::ClientAudio));

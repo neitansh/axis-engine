@@ -44,7 +44,12 @@ public:
 
 	DISABLE_CLASS_COPY(ConfigManager)
 
-	/// Reads every file this side is responsible for
+	/**
+	 * Reads every file this side is responsible for.
+	 *
+	 * Files that do not exist yet are created empty, so the layout of the
+	 * configuration is visible and editable right after the first start.
+	 */
 	void load();
 
 	/// Writes every setting into the file of its domain, creating what is missing
@@ -68,6 +73,9 @@ public:
 private:
 	void loadFile(const ConfigDomainSpec &spec);
 	bool writeFile(const ConfigDomainSpec &spec);
+	/// Creates the files this side owns, without touching those that exist
+	void createMissingFiles();
+	bool createFile(const ConfigDomainSpec &spec);
 
 	std::string m_dir;
 	ConfigSection m_side;
