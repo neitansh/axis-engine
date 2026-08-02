@@ -144,6 +144,9 @@ public:
 
 	v3f getPosition() const { return m_position; }
 
+	/// The moving object the player is standing on, or 0 for solid ground
+	u16 getPlatformId() const { return m_platform_id; }
+
 	// Non-transformed eye offset getters
 	// For accurate positions, use the Camera functions
 	v3f getEyePosition() const { return m_position + getEyeOffset(); }

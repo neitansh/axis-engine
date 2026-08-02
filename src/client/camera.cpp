@@ -355,7 +355,14 @@ void Camera::update(LocalPlayer *player, f32 frametime, f32 tool_reload_ratio)
 	// The smoothing usually continues until the camera position reaches the player position.
 	// ПАТЧ 2: Полностью отключаем сглаживание ступенек, если игрок сидит в транспорте.
 	// Это убирает задержку камеры по оси Y и полностью решает проблему тряски при наборе высоты.
-	if (player->getParent())
+	// Standing on something that moves lifts the player a little every frame,
+	// which is what this smoothing looks for. But the amount is around the
+	// threshold below, so it switches on and off from one frame to the next
+	// and the camera keeps falling behind its own feet and catching up: that
+	// is the shaking felt while a deck rises, and why there is none while it
+	// descends - a fall never reads as a step. Nothing is being stepped over
+	// here, so there is nothing to smooth.
+	if (player->getParent() || player->getPlatformId() != 0)
 	{
 		m_stepheight_smooth_active = false;
 	}
