@@ -428,7 +428,8 @@ std::string UnitSAO::generateUpdateArmorGroupsCommand() const
 
 std::string UnitSAO::generateUpdatePositionCommand(const v3f &position,
 		const v3f &velocity, const v3f &acceleration, const v3f &rotation,
-		bool do_interpolate, bool is_movement_end, f32 update_interval)
+		bool do_interpolate, bool is_movement_end, f32 update_interval,
+		u16 ride_id, const v3f &ride_offset)
 {
 	std::ostringstream os(std::ios::binary);
 	// command
@@ -447,6 +448,12 @@ std::string UnitSAO::generateUpdatePositionCommand(const v3f &position,
 	writeU8(os, is_movement_end);
 	// update_interval (for interpolation)
 	writeF32(os, update_interval);
+	// the Axis: what carries this object and where on it, appended last so a
+	// client that knows nothing of it simply stops reading here
+	if (ride_id != 0) {
+		writeU16(os, ride_id);
+		writeV3F32(os, ride_offset);
+	}
 	return os.str();
 }
 

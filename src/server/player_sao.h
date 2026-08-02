@@ -97,6 +97,18 @@ public:
 	void setCameraInverted(bool camera_inverted) { m_camera_inverted = camera_inverted; }
 	bool getCameraInverted() const { return m_camera_inverted; }
 
+	/**
+	 * Notes the moving object the player says they stand on, and where on it.
+	 *
+	 * Taken on the client's word, so it is checked before use: the object has
+	 * to exist and the offset has to describe standing on something.
+	 */
+	void setRide(u16 ride_id, v3f ride_offset)
+	{
+		m_ride_id = ride_id;
+		m_ride_offset = ride_offset;
+	}
+
 	/*
 		Interaction interface
 	*/
@@ -206,6 +218,9 @@ private:
 	IntervalLimiter m_node_hurt_interval;
 
 	bool m_position_not_sent = false;
+	/// What the player claims to stand on, 0 for none, and where on it
+	u16 m_ride_id = 0;
+	v3f m_ride_offset;
 	/**
 	 * Seconds since the last position packet went out.
 	 *

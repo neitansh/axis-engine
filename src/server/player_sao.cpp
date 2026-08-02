@@ -12,6 +12,11 @@
 #include "settings.h"
 #include "util/serialize.h"
 
+/// How far from an object a player may sit and still be said to stand on it,
+/// in blocks. A deck is wide, so this is generous; what it rules out is a
+/// client naming something across the map to have their model drawn there.
+static constexpr float PLAYER_RIDE_RANGE = 8.0f;
+
 PlayerSAO::PlayerSAO(ServerEnvironment *env_, RemotePlayer *player_, session_t peer_id_,
 		bool is_singleplayer):
 	UnitSAO(env_, v3f(0,0,0)),
@@ -295,6 +300,21 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 		else
 			pos = getBasePosition();
 
+		// Where they sit on what carries them. Their world position is that
+		// object's past; the offset is not, because it barely changes while
+		// they stand there.
+		u16 ride_id = 0;
+		v3f ride_offset;
+
+		if (m_ride_id != 0 && !isAttached()) {
+			ServerActiveObject *ride = m_env->getActiveObject(m_ride_id);
+
+			if (ride && m_ride_offset.getLength() < PLAYER_RIDE_RANGE * BS) {
+				ride_id = m_ride_id;
+				ride_offset = m_ride_offset;
+			}
+		}
+
 		std::string str = generateUpdatePositionCommand(
 			pos,
 			v3f(0.0f, 0.0f, 0.0f),
@@ -302,7 +322,9 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 			m_rotation,
 			true,
 			false,
-			update_interval
+			update_interval,
+			ride_id,
+			ride_offset
 		);
 		// create message and add to list
 		m_messages_out.emplace(getId(), false, str);

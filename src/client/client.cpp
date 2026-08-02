@@ -1510,6 +1510,7 @@ void writePlayerPos(LocalPlayer *myplayer, ClientMap *clientMap, NetworkPacket *
 	*pkt << fov << wanted_range;
 	*pkt << camera_inverted;
 	*pkt << movement_speed << movement_dir;
+	*pkt << myplayer->getPlatformId() << myplayer->getPlatformOffset();
 }
 
 void Client::interact(InteractAction action, const PointedThing &pointed)

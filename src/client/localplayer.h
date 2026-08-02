@@ -147,6 +147,16 @@ public:
 	/// The moving object the player is standing on, or 0 for solid ground
 	u16 getPlatformId() const { return m_platform_id; }
 
+	/**
+	 * Where the player stands on that object.
+	 *
+	 * Both terms are this client's own view of the same moment, so the delay
+	 * it took to learn where the deck is cancels out. Worked out anywhere else
+	 * - on the server, where the player's position has travelled but the
+	 * deck's has not - the difference would carry that delay instead.
+	 */
+	v3f getPlatformOffset() const { return m_position - m_platform_position; }
+
 	// Non-transformed eye offset getters
 	// For accurate positions, use the Camera functions
 	v3f getEyePosition() const { return m_position + getEyeOffset(); }

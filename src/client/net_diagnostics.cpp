@@ -119,7 +119,7 @@ void NetDiagnostics::openLogs()
 				"platform_id,platform_dx,platform_dy,platform_dz,platform_gap,"
 				"object_id,object_x,object_y,object_z,object_speed,object_jerk,"
 				"buffer_behind,buffer_target,buffer_samples,frames_since_packet,"
-				"peer_id,peer_x,peer_y,peer_z\n";
+				"peer_id,peer_x,peer_y,peer_z,peer_ride\n";
 	}
 
 	if (m_packet_log.is_open())
@@ -178,7 +178,8 @@ void NetDiagnostics::objectReset(u16 id)
 	object(id, "").resets++;
 }
 
-void NetDiagnostics::objectDrawn(u16 id, v3f pos, f32 dtime, bool is_player)
+void NetDiagnostics::objectDrawn(u16 id, v3f pos, f32 dtime, bool is_player,
+		u16 ride_id)
 {
 	if (dtime <= 0.0f)
 		return;
@@ -186,6 +187,7 @@ void NetDiagnostics::objectDrawn(u16 id, v3f pos, f32 dtime, bool is_player)
 	NetDiagObject &obj = object(id, "");
 
 	obj.is_player = is_player;
+	obj.ride_id = ride_id;
 
 	if (obj.has_drawn) {
 		const v3f speed = (pos - obj.drawn_pos) / dtime;
@@ -364,9 +366,9 @@ void NetDiagnostics::writeFrameLog(f32 dtime, Client *client)
 	if (peer) {
 		m_frame_log << "," << peer->id << ","
 			<< (peer->drawn_pos.X / BS) << "," << (peer->drawn_pos.Y / BS) << ","
-			<< (peer->drawn_pos.Z / BS);
+			<< (peer->drawn_pos.Z / BS) << "," << peer->ride_id;
 	} else {
-		m_frame_log << ",0,0,0,0";
+		m_frame_log << ",0,0,0,0,0";
 	}
 
 	m_frame_log << "\n";

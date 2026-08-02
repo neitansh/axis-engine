@@ -1026,6 +1026,9 @@ void GenericCAO::followLocalPlayer()
 	updateNodePos();
 }
 
+/// Seconds over which a change of ride is eased out, see m_ride_blend
+static constexpr f32 RIDE_BLEND_TIME = 0.25f;
+
 void GenericCAO::step(float dtime, ClientEnvironment *env)
 {
 	// Handle model animations and update positions instantly to prevent lags
@@ -1193,11 +1196,49 @@ void GenericCAO::step(float dtime, ClientEnvironment *env)
 			}
 
 		}
+		// Someone standing on something moving is drawn against it rather
+		// than against the world: their world position describes the deck as
+		// they saw it, which is not the deck this client is drawing.
+		if (m_ride_id != 0) {
+			if (ClientActiveObject *ride = m_env->getActiveObject(m_ride_id)) {
+				const v3f carried = ride->getPosition() + m_ride_offset;
+
+				m_position = carried;
+				pos_translator.val_current = carried;
+				pos_translator.val_target = carried;
+			}
+		}
+
+		// Stepping on or off swaps which position is drawn, and the two are
+		// apart by however far the deck moved since the world one was true.
+		// Left alone that lands as a jump, so it is paid off over a moment.
+		v3f drawn = pos_translator.val_current;
+
+		if (m_ride_id != m_ride_previous) {
+			if (m_ride_has_last)
+				m_ride_blend = m_ride_last_drawn - drawn;
+
+			m_ride_blend_left = RIDE_BLEND_TIME;
+			m_ride_previous = m_ride_id;
+		}
+
+		if (m_ride_blend_left > 0.0f) {
+			m_ride_blend_left = std::max(0.0f, m_ride_blend_left - dtime);
+
+			drawn += m_ride_blend * (m_ride_blend_left / RIDE_BLEND_TIME);
+			m_position = drawn;
+			pos_translator.val_current = drawn;
+			pos_translator.val_target = drawn;
+		}
+
+		m_ride_last_drawn = drawn;
+		m_ride_has_last = true;
+
 		updateNodePos();
 
 		if (g_netdiag)
 			g_netdiag->objectDrawn(getId(), pos_translator.val_current, dtime,
-					m_is_player && !m_is_local_player);
+					m_is_player && !m_is_local_player, m_ride_id);
 
 		float moved = lastpos.getDistanceFrom(pos_translator.val_current);
 		m_step_distance_counter += moved;
@@ -1964,6 +2005,14 @@ void GenericCAO::processMessage(const std::string &data)
 		bool do_interpolate = readU8(is);
 		bool is_end_position = readU8(is);
 		float update_interval = readF32(is);
+
+		// the Axis: what carries this object, when something does. Optional
+		// and last in the message, so its absence just means nothing does.
+		m_ride_id = 0;
+		if (is.rdbuf()->in_avail() > 0) {
+			m_ride_id = readU16(is);
+			m_ride_offset = readV3F32(is);
+		}
 
 		if(getParent() != NULL) // Just in case
 			return;

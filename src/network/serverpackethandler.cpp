@@ -465,6 +465,8 @@ void Server::process_PlayerPos(RemotePlayer *player, PlayerSAO *playersao,
 	*pkt >> wanted_range;
 
 	bool have_movement_data = false;
+	u16 ride_id = 0;
+	v3f ride_offset;
 	do {
 		if (!pkt->hasRemainingBytes())
 			break;
@@ -481,6 +483,17 @@ void Server::process_PlayerPos(RemotePlayer *player, PlayerSAO *playersao,
 		player->control.movement_speed = std::clamp(movement_speed, 0.0f, 1.0f);
 		*pkt >> player->control.movement_direction;
 		have_movement_data = true;
+
+		if (!pkt->hasRemainingBytes())
+			break;
+		// the Axis: what the player stands on, and where on it. The offset is
+		// worked out by the client because only there are both halves of it
+		// seen at the same moment.
+		*pkt >> ride_id;
+
+		if (!pkt->hasRemainingBytes())
+			break;
+		*pkt >> ride_offset;
 	} while (0);
 
 	if (!have_movement_data) {
@@ -506,6 +519,7 @@ void Server::process_PlayerPos(RemotePlayer *player, PlayerSAO *playersao,
 	playersao->setFov(fov);
 	playersao->setWantedRange(wanted_range);
 	playersao->setCameraInverted(bits & 0x01);
+	playersao->setRide(ride_id, ride_offset);
 
 	if (playersao->checkMovementCheat()) {
 		// Call callbacks

@@ -61,6 +61,8 @@ struct NetDiagObject
 	bool has_drawn = false;
 	/// Another player, as opposed to a mob or a contraption
 	bool is_player = false;
+	/// What the server says this object stands on, 0 for nothing
+	u16 ride_id = 0;
 	/// |Δspeed| per frame, in blocks per second, over a window
 	std::deque<f32> jerk;
 	f32 jerk_max = 0.0f;
@@ -88,7 +90,8 @@ public:
 	void objectReset(u16 id);
 
 	/// Where an object ended up on screen this frame
-	void objectDrawn(u16 id, v3f pos, f32 dtime, bool is_player = false);
+	void objectDrawn(u16 id, v3f pos, f32 dtime, bool is_player = false,
+			u16 ride_id = 0);
 
 	/// What the local player and the thing they stand on did this step
 	void playerStep(v3f pos, v3f speed, v3f platform_delta, f32 gap,

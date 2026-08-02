@@ -119,6 +119,29 @@ private:
 	/// Diagnosis only: when the last position packet arrived
 	u64 m_last_packet_ms = 0;
 
+	/**
+	 * The moving object this one stands on, and where on it.
+	 *
+	 * Not an attachment: nothing is glued and the server keeps sending world
+	 * coordinates as before. But those coordinates were true of the deck as
+	 * the standing client saw it, while this client sees the deck at a
+	 * different moment, so drawing them straight puts the two out of step by
+	 * however far the deck travelled in between. The offset does not have
+	 * that problem: standing still on a deck is exactly what it describes.
+	 */
+	u16 m_ride_id = 0;
+	v3f m_ride_offset;
+	/// Ride the object had last frame, to notice when it changes
+	u16 m_ride_previous = 0;
+	/// Distance the change of ride would have jumped, and time left to
+	/// swallow it: stepping on or off a moving deck switches which of two
+	/// positions is drawn, and they differ by however far the deck has
+	/// travelled since the world position was true.
+	v3f m_ride_blend;
+	f32 m_ride_blend_left = 0.0f;
+	v3f m_ride_last_drawn;
+	bool m_ride_has_last = false;
+
 
 	/*
 		Playback buffer for network motion.

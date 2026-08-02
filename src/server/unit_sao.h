@@ -107,7 +107,8 @@ public:
 	std::string generateUpdateArmorGroupsCommand() const;
 	static std::string generateUpdatePositionCommand(const v3f &position,
 			const v3f &velocity, const v3f &acceleration, const v3f &rotation,
-			bool do_interpolate, bool is_movement_end, f32 update_interval);
+			bool do_interpolate, bool is_movement_end, f32 update_interval,
+			u16 ride_id = 0, const v3f &ride_offset = v3f());
 	std::string generateSetPropertiesCommand(const ObjectProperties &prop) const;
 	static std::string generateUpdateBoneOverrideCommand(
 			const std::string &bone, const BoneOverride &props);
