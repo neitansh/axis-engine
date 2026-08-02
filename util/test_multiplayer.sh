@@ -1,9 +1,10 @@
 #!/bin/bash
-# Runs a multiplayer server and connects a headless client, devtest unittests are executed.
+# Runs a multiplayer server and connects a headless client. Tests the game
+# provides are executed if it has any.
 
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-gameid=${gameid:-devtest}
-executable=$dir/../bin/luanti
+gameid=${gameid:-mineclonia}
+executable=$dir/../bin/axis
 testspath=$dir/../tests
 # The engine reads a directory of config files; a test only needs one of them.
 conf_dir_client1=$testspath/config-client1
@@ -26,6 +27,13 @@ waitfor () {
 
 [ -e "$executable" ] || { echo "executable $executable missing"; exit 1; }
 
+# The scripts need a game to run. It is not part of this repository, so say
+# what is missing instead of failing halfway through.
+if [ ! -d "$dir/../games/$gameid" ]; then
+	echo "Game '$gameid' is not installed, skipping."
+	exit 0
+fi
+
 rm -f "$testspath/log.txt"
 rm -rf "$worldpath"
 mkdir -p "$worldpath/worldmods"
@@ -38,7 +46,7 @@ printf '%s\n' >"$conf_client1" \
 
 printf '%s\n' >"$conf_server" \
 	max_block_send_distance=1 active_block_range=1 \
-	devtest_unittests_autostart=true helper_mode=devtest \
+	helper_mode=smoke \
 	"${serverconf:-}"
 
 ln -s "$dir/helper_mod" "$worldpath/worldmods/"

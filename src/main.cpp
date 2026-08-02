@@ -1088,8 +1088,6 @@ static bool determine_subgame(GameParams *game_params)
 		} else {
 			auto games = getAvailableGameIds();
 			// If there's exactly one obvious choice then do the right thing
-			if (games.size() > 1)
-				games.erase("devtest");
 			if (games.size() == 1) {
 				gamespec = findSubgame(*games.begin());
 				infostream << "Automatically selecting gameid [" << gamespec.id << "]" << std::endl;

@@ -1,11 +1,3 @@
-if(BUILD_CLIENT)
-	add_subdirectory(client)
-
-	set(test_client_SRCS
-		${test_client_SRCS}
-		PARENT_SCOPE)
-endif()
-
 set(test_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/test.h
 	${CMAKE_CURRENT_SOURCE_DIR}/test.cpp

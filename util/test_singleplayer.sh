@@ -2,8 +2,8 @@
 # Runs a singleplayer session with software-rendering.
 
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-gameid=${gameid:-devtest}
-executable=$dir/../bin/luanti
+gameid=${gameid:-mineclonia}
+executable=$dir/../bin/axis
 testspath=$dir/../tests
 # The engine reads a directory of config files; a test only needs one of them.
 conf_dir=$testspath/config-client
@@ -12,13 +12,20 @@ worldpath=$testspath/world
 
 [ -e "$executable" ] || { echo "executable $executable missing"; exit 1; }
 
+# The scripts need a game to run. It is not part of this repository, so say
+# what is missing instead of failing halfway through.
+if [ ! -d "$dir/../games/$gameid" ]; then
+	echo "Game '$gameid' is not installed, skipping."
+	exit 0
+fi
+
 rm -rf "$worldpath"
 mkdir -p "$worldpath/worldmods"
 
 # enable a lot of visual effects so we can catch shader errors and other obvious bugs
 opts=(
 	screen_w=384 screen_h=256 fps_max=5
-	active_block_range=1 viewing_range=40 helper_mode=devtest
+	active_block_range=1 viewing_range=40 helper_mode=smoke
 	opengl_debug=true mip_map=true enable_waving_{leaves,plants,water}=true
 	antialiasing=ssaa node_highlighting=halo
 	enable_{auto_exposure,bloom,dynamic_shadows,translucent_foliage,volumetric_lighting,water_reflections}=true

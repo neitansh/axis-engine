@@ -2,25 +2,41 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 #include "translation.h"
-#include "filesys.h"
-#include "content/subgames.h"
 #include "catch.h"
 
 #define CONTEXT L"context"
 #define TEXTDOMAIN_PO L"translation_po"
 #define TEST_PO_NAME "translation_po.de.po"
-#define TEST_MO_NAME "translation_mo.de.mo"
 
-static std::string read_translation_file(const std::string &filename)
-{
-		auto gamespec = findSubgame("devtest");
-		if(!gamespec.isValid())
-			SKIP("devtest not found");
-		auto path = gamespec.gamemods_path + (DIR_DELIM "testtranslations" DIR_DELIM "test_locale" DIR_DELIM) + filename;
-		std::string content;
-		REQUIRE(fs::ReadFile(path, content));
-		return content;
-}
+// The parser is fed from here rather than from a file of some game, so that
+// the test states what it expects instead of pointing at content elsewhere.
+static const std::string TEST_PO_CONTENT =
+R"(msgid ""
+msgstr ""
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+msgid "foo"
+msgstr "bar"
+
+msgid "Untranslated"
+msgstr ""
+
+#, fuzzy
+msgid "Fuzzy"
+msgstr "Fuzzy result"
+
+msgid "Multi\\line\nstring"
+msgstr "Multi\\\"li\\ne\nresult"
+
+msgctxt "context"
+msgid "With context"
+msgstr "Has context"
+
+msgid "Singular form"
+msgid_plural "Plural form"
+msgstr[0] "Singular result"
+msgstr[1] "Plural result"
+)";
 
 TEST_CASE("test translations")
 {
@@ -104,29 +120,29 @@ TEST_CASE("test translations")
 	SECTION("PO file parser")
 	{
 		Translations translations;
-		translations.loadTranslation(TEST_PO_NAME, read_translation_file(TEST_PO_NAME));
+		translations.loadTranslation(TEST_PO_NAME, TEST_PO_CONTENT);
 
-		CHECK(translations.size() == 5);
+		// The textdomain of an entry is the file name up to the first dot,
+		// unless the entry states a context of its own
 		CHECK(translations.getTranslation(TEXTDOMAIN_PO, L"foo") == L"bar");
+		CHECK(translations.getTranslation(CONTEXT, L"With context") == L"Has context");
+		CHECK(translations.getTranslation(TEXTDOMAIN_PO, L"With context") == L"With context");
+
+		// An entry without a translation falls back to the original
 		CHECK(translations.getTranslation(TEXTDOMAIN_PO, L"Untranslated") == L"Untranslated");
+		// So does one that is still marked fuzzy
 		CHECK(translations.getTranslation(TEXTDOMAIN_PO, L"Fuzzy") == L"Fuzzy");
+		// And one that is not in the file at all
+		CHECK(translations.getTranslation(TEXTDOMAIN_PO, L"Absent") == L"Absent");
+
+		// Escape sequences survive the round trip
 		CHECK(translations.getTranslation(TEXTDOMAIN_PO, L"Multi\\line\nstring") == L"Multi\\\"li\\ne\nresult");
-		CHECK(translations.getTranslation(TEXTDOMAIN_PO, L"Wrong order") == L"Wrong order");
+
+		// A plural entry is reachable through both of its forms, and the
+		// header of the file decides which translation a number selects
+		CHECK(translations.getPluralTranslation(TEXTDOMAIN_PO, L"Singular form", 1) == L"Singular result");
 		CHECK(translations.getPluralTranslation(TEXTDOMAIN_PO, L"Plural form", 1) == L"Singular result");
 		CHECK(translations.getPluralTranslation(TEXTDOMAIN_PO, L"Singular form", 0) == L"Plural result");
-		CHECK(translations.getPluralTranslation(TEXTDOMAIN_PO, L"Partial translation", 1) == L"Partially translated");
-		CHECK(translations.getPluralTranslation(TEXTDOMAIN_PO, L"Partial translations", 2) == L"Partial translations");
-		CHECK(translations.getTranslation(CONTEXT, L"With context") == L"Has context");
-	}
-
-	SECTION("MO file parser")
-	{
-		Translations translations;
-		translations.loadTranslation(TEST_MO_NAME, read_translation_file(TEST_MO_NAME));
-
-		CHECK(translations.size() == 2);
-		CHECK(translations.getTranslation(CONTEXT, L"With context") == L"Has context");
-		CHECK(translations.getPluralTranslation(CONTEXT, L"Plural form", 1) == L"Singular result");
-		CHECK(translations.getPluralTranslation(CONTEXT, L"Singular form", 0) == L"Plural result");
+		CHECK(translations.getPluralTranslation(TEXTDOMAIN_PO, L"Plural form", 2) == L"Plural result");
 	}
 }

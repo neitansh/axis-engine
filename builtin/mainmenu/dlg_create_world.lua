@@ -294,17 +294,6 @@ local function create_world_formspec(dialogdata)
 		"label[0,2;" .. fgettext("Mapgen") .. "]"..
 		"dropdown[0,2.5;6.3;dd_mapgen;" .. mglist .. ";" .. selindex .. "]"
 
-	-- Warning when making a devtest world
-	if game.id == "devtest" then
-		retval = retval ..
-			"container[0,3.5]" ..
-			"box[0,0;5.8,1.7;#ff8800]" ..
-			"textarea[0.4,0.1;6,1.8;;;"..
-			fgettext("Development Test is meant for developers.") .. "]" ..
-			"button[1,1;4,0.5;world_create_open_cdb;" .. fgettext("Install another game") .. "]" ..
-			"container_end[]"
-	end
-
 	retval = retval ..
 		"container_end[]" ..
 
@@ -325,15 +314,6 @@ local function create_world_formspec(dialogdata)
 end
 
 local function create_world_buttonhandler(this, fields)
-
-	if fields["world_create_open_cdb"] then
-		local dlg = create_contentdb_dlg("game")
-		dlg:set_parent(this.parent)
-		this:delete()
-		this.parent:hide()
-		dlg:show()
-		return true
-	end
 
 	if fields["world_create_confirm"] or
 		fields["key_enter"] then

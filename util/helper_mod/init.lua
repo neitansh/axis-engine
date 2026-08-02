@@ -1,6 +1,6 @@
 local mode = core.settings:get("helper_mode")
 
-if mode == "devtest" then
+if mode == "smoke" then
 
 	-- Provide feedback to script by creating files in world path
 	core.after(0, function()
@@ -13,8 +13,9 @@ if mode == "devtest" then
 		io.close(io.open(core.get_worldpath() .. "/done", "w"))
 		core.request_shutdown("", false, 2)
 	end
-	-- If tests are enabled exit when they're done, otherwise exit on player join
-	if core.settings:get_bool("devtest_unittests_autostart") and core.global_exists("unittests") then
+	-- If the game runs tests of its own, exit when they are done. Otherwise
+	-- the run is over as soon as a player got in.
+	if core.global_exists("unittests") then
 		unittests.on_finished = callback
 	else
 		core.register_on_joinplayer(function() callback(true) end)

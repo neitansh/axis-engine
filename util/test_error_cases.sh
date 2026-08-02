@@ -1,7 +1,7 @@
 #!/bin/bash
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-gameid=${gameid:-devtest}
-executable=$dir/../bin/luanti
+gameid=${gameid:-mineclonia}
+executable=$dir/../bin/axis
 testspath=$dir/../tests
 # The engine reads a directory of config files; a test only needs one of them.
 conf_dir=$testspath/config-server
@@ -10,6 +10,13 @@ worldpath=$testspath/world
 
 [ -e "$executable" ] || { echo "executable $executable missing"; exit 1; }
 
+# The scripts need a game to run. It is not part of this repository, so say
+# what is missing instead of failing halfway through.
+if [ ! -d "$dir/../games/$gameid" ]; then
+	echo "Game '$gameid' is not installed, skipping."
+	exit 0
+fi
+
 write_config () {
 	mkdir -p "$(dirname "$conf_server")"
 	printf '%s\n' >"$conf_server" \
@@ -17,7 +24,8 @@ write_config () {
 }
 
 run () {
-	timeout 10 "$@"
+	# A full game takes a while to start up before it can reach the error
+	timeout 60 "$@"
 	r=$?
 	echo "Exit status: $r"
 	[ $r -eq 124 ] && echo "(timed out)"

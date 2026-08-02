@@ -1,7 +1,7 @@
 #!/bin/bash
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-gameid=${gameid:-devtest}
-executable=$dir/../bin/luanti
+gameid=${gameid:-mineclonia}
+executable=$dir/../bin/axis
 testspath=$dir/../tests
 # The engine reads a directory of config files; a test only needs one of them.
 conf_dir=$testspath/config-server
@@ -17,6 +17,13 @@ run () {
 }
 
 [ -e "$executable" ] || { echo "executable $executable missing"; exit 1; }
+
+# The scripts need a game to run. It is not part of this repository, so say
+# what is missing instead of failing halfway through.
+if [ ! -d "$dir/../games/$gameid" ]; then
+	echo "Game '$gameid' is not installed, skipping."
+	exit 0
+fi
 
 rm -rf "$worldpath"
 mkdir -p "$worldpath/worldmods"

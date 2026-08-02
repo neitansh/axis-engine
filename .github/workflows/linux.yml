@@ -59,7 +59,9 @@ jobs:
         run: |
           ./bin/luanti --run-unittests
 
-      # Do this here because we have ASan and error paths are sensitive to dangling pointers
+      # Do this here because we have ASan and error paths are sensitive to dangling pointers.
+      # Skips itself when no game is installed, which is the case in CI: games
+      # are not part of this repository.
       - name: Test error cases
         run: |
           ./util/test_error_cases.sh

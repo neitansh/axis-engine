@@ -76,6 +76,9 @@ AppDir
 /client/mod_storage/
 /mod_data
 
+# Working directory of the scripts in util/
+/tests/
+
 ## Configuration/log files
 # Configuration the engine writes at runtime (RUN_IN_PLACE puts it here).
 # The committed template lives in config.example/.
