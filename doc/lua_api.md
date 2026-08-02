@@ -6682,13 +6682,19 @@ Call these functions only at load time!
         * a different tab was selected,
         * selection was changed in a textlist or table,
         * an entry was double-clicked in a textlist or table,
-        * a scrollbar was moved, or
+        * a scrollbar was moved,
+        * an empty inventory slot was shift-clicked with an empty hand, or
         * the form was actively closed by the player.
     * This is not called for node metadata formspecs. These use the callback
       `on_receive_fields` specified in the node definition.
     * `formname` is the name passed to `core.show_formspec`.
       Special case: The empty string refers to the player inventory
       (the formspec set by the `set_inventory_formspec` player method).
+    * A shift-click on an empty inventory slot, made with nothing on the
+      cursor, sends `fields.slot_click` as `"<list name>:<index>"`, with the
+      index counted from one. Such a click moves no items, so the engine has
+      nothing else to report it by; this lets a slot that is meant to be acted
+      on rather than filled - a bin, for instance - be given a meaning.
     * Fields are sent for formspec elements which define a field. `fields`
       is a table containing each formspecs element value (as string), with
       the `name` parameter as index for each. The value depends on the

@@ -390,6 +390,17 @@ protected:
 	ButtonEventType m_held_mouse_button = BET_OTHER;
 	bool m_shift_move_after_craft = false;
 
+	/**
+	 * Slot a shift-click landed on while nothing was being carried.
+	 *
+	 * Clicking a slot normally tells the server nothing: it hears about items
+	 * moving, and a shift-click on an empty slot moves nothing. That leaves a
+	 * slot with no items in it unable to mean anything, which is inconvenient
+	 * for the ones that are meant to be acted on rather than filled - a bin,
+	 * say. Empty and formatted as "list:index" when there is one to report.
+	 */
+	std::string m_clicked_slot;
+
 	u16 m_left_drag_amount = 0;
 	ItemStack m_left_drag_stack;
 	std::vector<std::pair<GUIInventoryList::ItemSpec, ItemStack>> m_left_drag_stacks;

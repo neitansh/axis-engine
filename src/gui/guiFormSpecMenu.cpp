@@ -4282,6 +4282,13 @@ void GUIFormSpecMenu::acceptInput(FormspecQuitMode quitmode)
 			fields["try_quit"] = "true";
 		}
 
+		// A shift-click that moved nothing, so that an empty slot can still
+		// be told apart from no click at all
+		if (!m_clicked_slot.empty()) {
+			fields["slot_click"] = m_clicked_slot;
+			m_clicked_slot.clear();
+		}
+
 		if (current_keys_pending.key_down) {
 			fields["key_down"] = "true";
 			current_keys_pending.key_down = false;
@@ -4777,6 +4784,14 @@ bool GUIFormSpecMenu::OnEvent(const SEvent& event)
 
 				// Holding shift moves the crafted item to the inventory
 				m_shift_move_after_craft = mouse_shift;
+
+			} else if (!m_selected_item && empty && mouse_shift &&
+					button == BET_LEFT) {
+				// Shift-click on an empty slot with an empty hand: nothing to
+				// move, so the click would be lost. Report it instead, and
+				// let whoever built the form decide what it means.
+				m_clicked_slot = s.listname + ":" + itos(s.i + 1);
+				acceptInput(quit_mode_no);
 
 			} else if (!m_selected_item && button != BET_WHEEL_UP && !empty) {
 				// Non-empty stack has been clicked: select or shift-move it
