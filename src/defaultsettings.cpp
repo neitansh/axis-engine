@@ -362,10 +362,21 @@ void set_default_settings()
 	settings->setDefault("post_processing_texture_bits", "8");
 	settings->setDefault("directional_colored_fog", "true");
 	settings->setDefault("inventory_items_animations", "false");
-	settings->setDefault("mip_map", "false");
+	/*
+	 * Вдалеке на текстуру приходится больше текселей, чем пикселей, и без
+	 * уменьшенных копий выбирается один тексель из многих - какой именно,
+	 * решает дрожание камеры. Отсюда рябь и мельтешение на дальних блоках,
+	 * которое игроки и замечают.
+	 *
+	 * Мельчение эту рябь убирает, а анизотропия возвращает чёткость
+	 * поверхностям, уходящим вдаль под углом, - земле под ногами прежде всего.
+	 * Сглаживание же остаётся выключенным: оно размыло бы картинку вблизи, а
+	 * пиксель должен оставаться пикселем.
+	 */
+	settings->setDefault("mip_map", "true");
 	settings->setDefault("bilinear_filter", "false");
 	settings->setDefault("trilinear_filter", "false");
-	settings->setDefault("anisotropic_filter", "false");
+	settings->setDefault("anisotropic_filter", "true");
 	settings->setDefault("tone_mapping", "false");
 	settings->setDefault("enable_waving_water", "false");
 	settings->setDefault("water_wave_height", "1.0");

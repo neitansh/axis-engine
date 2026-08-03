@@ -646,7 +646,9 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 			mat.MaterialType = m_material_type;
 		mat.FogEnable = true;
 		mat.forEachTexture([] (auto &tex) {
-			tex.MinFilter = video::ETMINF_NEAREST_MIPMAP_NEAREST;
+			// Как и у блоков карты: тексель берётся один, а между уровнями
+			// мельчения идёт переход, см. setMaterialFilters()
+			tex.MinFilter = video::ETMINF_NEAREST_MIPMAP_LINEAR;
 			tex.MagFilter = video::ETMAGF_NEAREST;
 		});
 	};

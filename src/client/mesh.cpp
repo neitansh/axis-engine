@@ -474,7 +474,15 @@ void setMaterialFilters(video::SMaterialLayer &tex, bool bilinear, bool trilinea
 	else if (bilinear)
 		tex.MinFilter = video::ETMINF_LINEAR_MIPMAP_NEAREST;
 	else
-		tex.MinFilter = video::ETMINF_NEAREST_MIPMAP_NEAREST;
+		/*
+		 * Тексель берётся один - картинка остаётся пиксельной, как ей и
+		 * положено, - но между двумя уровнями мельчения идёт переход.
+		 *
+		 * Без него уровень сменяется разом, по кругу с центром под ногами, и
+		 * круг этот ползёт по земле вслед за игроком. Мипмапов может не быть
+		 * вовсе - тогда драйвер просто возьмёт ближайший тексель, как и раньше.
+		 */
+		tex.MinFilter = video::ETMINF_NEAREST_MIPMAP_LINEAR;
 
 	tex.MagFilter = (trilinear || bilinear) ? video::ETMAGF_LINEAR : video::ETMAGF_NEAREST;
 
