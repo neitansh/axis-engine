@@ -104,6 +104,11 @@ jobs:
           cp -r textures axis_windows/
           cp -r fonts axis_windows/
 
+          # Content directories the engine looks for next to the executable.
+          # They ship empty on purpose: neither the game nor the mods live in
+          # this repository, so the package only provides the place for them.
+          mkdir -p axis_windows/games axis_windows/mods
+
           # Template of the configuration. The engine writes its own
           # config directory next to the executable on first run; this
           # is the documented copy players can read and copy lines from.
@@ -200,6 +205,27 @@ jobs:
 
           echo "Package size:"
           du -h axis_client_windows.zip
+
+      - name: Verify Empty Content Directories
+        shell: pwsh
+        run: |
+          # An empty directory carries no files to pull it into the archive,
+          # so its own entry is the only thing that recreates it on unpacking.
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [System.IO.Compression.ZipFile]::OpenRead((Join-Path $PWD 'axis_client_windows.zip'))
+          try {
+            $names = $zip.Entries | ForEach-Object { $_.FullName }
+          } finally {
+            $zip.Dispose()
+          }
+
+          foreach ($d in @('games/', 'mods/')) {
+            if ($names -notcontains $d) {
+              throw "$d did not survive into the archive."
+            }
+          }
+
+          Write-Host 'Empty content directories are present in the archive.'
 
       # ================================================================
       # GitHub Release

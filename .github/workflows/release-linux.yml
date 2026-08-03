@@ -156,6 +156,11 @@ jobs:
           cp -r textures axis_linux/
           cp -r fonts axis_linux/
 
+          # Content directories the engine looks for next to the executable.
+          # They ship empty on purpose: neither the game nor the mods live in
+          # this repository, so the package only provides the place for them.
+          mkdir -p axis_linux/games axis_linux/mods
+
           # Template of the configuration. The engine writes its own config/
           # directory next to the executable on first run; this is the
           # documented copy players can read and copy lines from.
@@ -259,6 +264,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tar -czf axis_client_linux.tar.gz axis_linux
+
+          # An empty directory carries no files to pull it into the archive,
+          # so its own entry is the only thing that recreates it on unpacking.
+          for d in games mods; do
+            if ! tar -tzf axis_client_linux.tar.gz | grep -qx "axis_linux/$d/"; then
+              echo "::error::$d/ did not survive into the archive."
+              exit 1
+            fi
+          done
 
           gh release create "${{ github.event.inputs.tag_name }}" axis_client_linux.tar.gz \
             --title "Release ${{ github.event.inputs.tag_name }}" \
