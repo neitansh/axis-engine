@@ -23,9 +23,12 @@ struct CreatePipelineResult
 void createPipeline(const std::string &stereo_mode, IrrlichtDevice *device, Client *client, Hud *hud, CreatePipelineResult &result);
 
 RenderingCore *createRenderingCore(const std::string &stereo_mode, IrrlichtDevice *device,
-		Client *client, Hud *hud)
+		Client *client, Hud *hud, std::unique_ptr<ShadowRenderer> shadow_renderer)
 {
 	CreatePipelineResult created_pipeline;
+	// Пришедший со стороны переживает пересборку конвейера вместе со своим
+	// списком объектов, см. RenderingCore::takeShadowRenderer()
+	created_pipeline.shadow_renderer = std::move(shadow_renderer);
 	createPipeline(stereo_mode, device, client, hud, created_pipeline);
 	return new RenderingCore(device, client, hud,
 			std::move(created_pipeline.shadow_renderer),
@@ -35,7 +38,8 @@ RenderingCore *createRenderingCore(const std::string &stereo_mode, IrrlichtDevic
 
 void createPipeline(const std::string &stereo_mode, IrrlichtDevice *device, Client *client, Hud *hud, CreatePipelineResult &result)
 {
-	result.shadow_renderer = createShadowRenderer(device, client);
+	if (!result.shadow_renderer)
+		result.shadow_renderer = createShadowRenderer(device, client);
 	result.virtual_size_scale = v2f(1.0f);
 	result.pipeline = std::make_unique<RenderPipeline>();
 

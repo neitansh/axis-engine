@@ -2393,6 +2393,47 @@ void Client::afterContentReceived(bool quiet)
 	infostream << "Client::afterContentReceived() done" << std::endl;
 }
 
+void Client::rebuildAllMeshes()
+{
+	if (m_state != LC_Ready)
+		return;
+
+	// Что именно меш возьмёт из настроек, решается при постановке в очередь
+	m_mesh_update_manager->readSettings();
+
+	// Позиции собираются заранее: постановка в очередь трогает карту, а
+	// перебирать её в этот же момент - напрашиваться на неприятности
+	std::vector<v3s16> positions;
+	m_env.getClientMap().getAllBlockPositions(positions);
+
+	for (v3s16 p : positions)
+		addUpdateMeshTask(p, false, false);
+
+	infostream << "Client: queued " << positions.size()
+			<< " blocks for rebuilding" << std::endl;
+}
+
+void Client::rebuildNodeVisuals()
+{
+	if (m_state != LC_Ready)
+		return;
+
+	infostream << "Client: rebuilding node visuals" << std::endl;
+
+	// Меши, которые сейчас на экране, построены по прежним визуалам и ссылаются
+	// внутрь них, поэтому те доживают до выхода из мира, а не умирают здесь.
+	// Тот же приём, что и при смене сессии, см. applyPendingContent().
+	m_nodedef->detachVisuals(m_retired_visuals);
+
+	TextureUpdateArgs tu_args;
+	tu_args.last_time_ms = porting::getTimeMs();
+	tu_args.text_base = wstrgettext("Initializing nodes");
+	NodeVisuals::fillNodeVisuals(m_nodedef, this, &tu_args);
+
+	// Старые меши ещё описывают листву так, как её рисовали до переключения
+	rebuildAllMeshes();
+}
+
 float Client::getRTT()
 {
 	assert(m_con);

@@ -240,6 +240,19 @@ protected:
 	}
 
 	static void settingChangedCallback(const std::string &setting_name, void *data);
+	static void pipelineSettingChangedCallback(const std::string &setting_name, void *data);
+	static void shaderSettingChangedCallback(const std::string &setting_name, void *data);
+	static void meshSettingChangedCallback(const std::string &setting_name, void *data);
+	static void nodeVisualSettingChangedCallback(const std::string &setting_name, void *data);
+
+	/**
+	 * Доводит до дела настройки картинки, изменённые в меню.
+	 *
+	 * Ничего из этого нельзя делать посреди отрисовки, поэтому обработчики
+	 * настроек только поднимают флаги, а разбирается с ними начало кадра.
+	 */
+	void applyGraphicsSettings();
+
 	void readSettings();
 
 	inline float getAxisValue(GameKeyType k)
@@ -399,6 +412,10 @@ private:
 	bool m_cache_toggle_sneak_key;
 	bool m_cache_toggle_aux1_key;
 	bool m_cache_enable_fog;
+	/// Объёмные облака включены - плоские тогда не рисуются, см. updateClouds()
+	bool m_cache_volumetric_clouds;
+	/// Секунд до снимка экрана, после которого клиент закрывается. 0 - не снимать
+	f32 m_screenshot_after = 0.0f;
 	bool m_cache_enable_noclip;
 	bool m_cache_enable_free_move;
 	f32  m_cache_mouse_sensitivity;
@@ -413,6 +430,12 @@ private:
 	bool m_first_loop_after_window_activation = false;
 	bool m_camera_offset_changed = false;
 	bool m_game_focused = false;
+
+	/// Настройки картинки поменялись, см. applyGraphicsSettings()
+	bool m_needs_pipeline_rebuild = false;
+	bool m_needs_shader_rebuild = false;
+	bool m_needs_mesh_rebuild = false;
+	bool m_needs_node_visual_rebuild = false;
 
 	bool m_does_lost_focus_pause_game = false;
 

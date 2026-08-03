@@ -56,6 +56,8 @@
 #include "util/tracy_wrapper.h"
 #include "item_visuals_manager.h"
 #include "clientenvironment.h"
+#include "filesys.h"
+#include <fstream>
 
 #if USE_SOUND
 #include "client/sound/sound_openal.h"
@@ -65,6 +67,134 @@ typedef s32 SamplerLayer_t;
 
 // Must match the size of "u_dyn_lights" in the node and object fragment shaders
 static constexpr size_t MAX_DYN_LIGHTS = 4;
+
+namespace
+{
+	/**
+	 * Значения, одинаковые для всей отрисовки одного кадра.
+	 *
+	 * Uniform'ы шейдеров устанавливаются не на смену материала, а перед каждым
+	 * вызовом отрисовки - при обычной сцене это без малого тысяча раз за кадр.
+	 * Ближайшие источники света и экранные положения светил от вызова к вызову
+	 * не меняются: камера за кадр стоит на месте, солнце тоже. Считаются они
+	 * один раз, тем, кто обратился первым, и до конца кадра только читаются.
+	 */
+	struct FrameShaderValues
+	{
+		/// Номер кадра, для которого всё посчитано
+		u64 serial = 0;
+
+		float dyn_lights[MAX_DYN_LIGHTS * 4] = {0.0f};
+		float dyn_light_count = 0.0f;
+
+		/// Отрицательный Z означает "за камерой", то есть светила не видно
+		v3f sun_position{0.0f, 0.0f, -1.0f};
+		float sun_brightness = 0.0f;
+		v3f moon_position{0.0f, 0.0f, -1.0f};
+		float moon_brightness = 0.0f;
+
+		/// Куда светит солнце, в мировых осях: объёмным облакам нужно знать,
+		/// с какой стороны они освещены
+		v3f sun_direction{0.0f, 1.0f, 0.0f};
+		/// Обращённое произведение проекции и вида. По нему полноэкранный
+		/// проход восстанавливает луч взгляда через пиксель и мировую точку,
+		/// в которую этот луч упёрся.
+		float inv_view_proj[16] = {0.0f};
+	};
+
+	FrameShaderValues g_frame_values;
+
+	/// Растёт на каждый кадр, см. Game::drawScene()
+	u64 g_frame_serial = 0;
+
+	const FrameShaderValues &getFrameShaderValues(Client *client, Sky *sky)
+	{
+		FrameShaderValues &v = g_frame_values;
+
+		if (v.serial == g_frame_serial)
+			return v;
+		v.serial = g_frame_serial;
+
+		Camera *camera = client->getCamera();
+
+		// Источники света, которых нет в сетке нод: факел в руке, чужой факел
+		const v3f camera_position = camera->getPosition();
+		const v3f camera_offset = intToFloat(camera->getOffset(), BS);
+
+		auto closest = client->getDynamicLightManager().getClosestLights(
+				camera_position, MAX_DYN_LIGHTS);
+
+		v.dyn_light_count = 0.0f;
+		for (const auto &light : closest)
+		{
+			const v3f rel_pos = light.position - camera_offset;
+
+			int idx = (int)v.dyn_light_count * 4;
+			v.dyn_lights[idx + 0] = rel_pos.X;
+			v.dyn_lights[idx + 1] = rel_pos.Y;
+			v.dyn_lights[idx + 2] = rel_pos.Z;
+			v.dyn_lights[idx + 3] = light.radius;
+			v.dyn_light_count += 1.0f;
+		}
+		for (size_t i = (size_t)v.dyn_light_count * 4; i < MAX_DYN_LIGHTS * 4; i++)
+			v.dyn_lights[i] = 0.0f;
+
+		// Куда на экране приходятся солнце и луна - нужно объёмному свету.
+		// Матрица вида готова: камера отрисовалась в начале drawAll(), а сюда
+		// мы попадаем уже из вызовов отрисовки.
+		v.sun_position = v3f(0.0f, 0.0f, -1.0f);
+		v.sun_brightness = 0.0f;
+		v.moon_position = v3f(0.0f, 0.0f, -1.0f);
+		v.moon_brightness = 0.0f;
+
+		{
+			// Обращение произведения проекции и вида: из точки на экране в луч
+			auto camera_node = camera->getCameraNode();
+			core::matrix4 view_proj = camera_node->getProjectionMatrix();
+			view_proj *= camera_node->getViewMatrix();
+
+			core::matrix4 inverted;
+			if (!view_proj.getInverse(inverted))
+				inverted = core::IdentityMatrix; // вырожденная - лучей не будет
+			memcpy(v.inv_view_proj, inverted.pointer(), sizeof(v.inv_view_proj));
+		}
+
+		if (sky)
+		{
+			v.sun_direction = sky->getSunDirection();
+
+			auto camera_node = camera->getCameraNode();
+			core::matrix4 transform = camera_node->getProjectionMatrix();
+			transform *= camera_node->getViewMatrix();
+
+			if (sky->getSunVisible())
+			{
+				v3f sun_position = camera_node->getAbsolutePosition() +
+								   10000.f * sky->getSunDirection();
+				transform.transformVect(sun_position);
+				sun_position.normalize();
+
+				v.sun_position = sun_position;
+				v.sun_brightness = core::clamp(
+						107.143f * sky->getSunDirection().Y, 0.f, 1.f);
+			}
+
+			if (sky->getMoonVisible())
+			{
+				v3f moon_position = camera_node->getAbsolutePosition() +
+									10000.f * sky->getMoonDirection();
+				transform.transformVect(moon_position);
+				moon_position.normalize();
+
+				v.moon_position = moon_position;
+				v.moon_brightness = core::clamp(
+						107.143f * sky->getMoonDirection().Y, 0.f, 1.f);
+			}
+		}
+
+		return v;
+	}
+}
 
 class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 {
@@ -120,15 +250,83 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	CachedPixelShaderSetting<float>
 		m_volumetric_light_strength_pixel{"volumetricLightStrength"};
 
-	static constexpr std::array<const char *, 1> SETTING_CALLBACKS = {
+	/*
+	 * Качание жидкостей, листвы и растений.
+	 *
+	 * Раньше это были константы сборки шейдера, поэтому переключатель в меню
+	 * начинал действовать только со следующего входа в мир: шейдеры собираются
+	 * один раз, когда мир открывается. Отсюда они уезжают значениями и
+	 * применяются тем же кадром, в котором игрок щёлкнул настройку.
+	 */
+	float m_waving_flags[3] = {0.0f, 0.0f, 0.0f};
+	float m_water_wave[3] = {1.0f, 20.0f, 5.0f};
+	CachedVertexShaderSetting<float, 3> m_waving_flags_vertex{"wavingFlags"};
+	CachedPixelShaderSetting<float, 3> m_waving_flags_pixel{"wavingFlags"};
+	CachedVertexShaderSetting<float, 3> m_water_wave_vertex{"waterWaveParams"};
+	CachedPixelShaderSetting<float, 3> m_water_wave_pixel{"waterWaveParams"};
+
+	// Объёмные облака: луч взгляда, сторона света и вид самих облаков
+	CachedPixelShaderSetting<float, 16> m_inv_view_proj{"mInvViewProj"};
+	CachedPixelShaderSetting<float, 3> m_sun_direction{"sunDirection"};
+	CachedPixelShaderSetting<float, 4> m_cloud_params{"cloudParams"};
+	CachedPixelShaderSetting<float> m_cloud_time{"cloudTime"};
+	CachedPixelShaderSetting<float, 4> m_cloud_shape{"cloudShape"};
+	float m_cloud_shape_value[4] = {60.0f, 24.0f, 0.15f, 12.0f};
+	float m_cloud_params_value[4] = {192.0f, 0.5f, 1.0f, 1000.0f};
+
+	static constexpr std::array<const char *, 15> SETTING_CALLBACKS = {
 		"exposure_compensation",
+		"enable_waving_water",
+		"enable_waving_leaves",
+		"enable_waving_plants",
+		"water_wave_height",
+		"water_wave_length",
+		"water_wave_speed",
+		"volumetric_clouds_height",
+		"volumetric_clouds_density",
+		"volumetric_clouds_speed",
+		"volumetric_clouds_distance",
+		"volumetric_clouds_size",
+		"volumetric_clouds_thickness",
+		"volumetric_clouds_roundness",
+		"volumetric_clouds_pixel",
 	};
+
+	void readWavingSettings()
+	{
+		m_waving_flags[0] = g_settings->getBool("enable_waving_water") ? 1.0f : 0.0f;
+		m_waving_flags[1] = g_settings->getBool("enable_waving_leaves") ? 1.0f : 0.0f;
+		m_waving_flags[2] = g_settings->getBool("enable_waving_plants") ? 1.0f : 0.0f;
+
+		m_water_wave[0] = g_settings->getFloat("water_wave_height");
+		// Длина волны стоит в знаменателе, ноль там всё обнулил бы
+		m_water_wave[1] = std::max(0.001f, g_settings->getFloat("water_wave_length"));
+		m_water_wave[2] = g_settings->getFloat("water_wave_speed");
+
+		m_cloud_params_value[0] = g_settings->getFloat("volumetric_clouds_height");
+		m_cloud_params_value[1] = rangelim(
+				g_settings->getFloat("volumetric_clouds_density"), 0.0f, 1.0f);
+		m_cloud_params_value[2] = g_settings->getFloat("volumetric_clouds_speed");
+		m_cloud_params_value[3] = std::max(1.0f,
+				g_settings->getFloat("volumetric_clouds_distance"));
+
+		m_cloud_shape_value[0] = std::max(1.0f,
+				g_settings->getFloat("volumetric_clouds_size"));
+		m_cloud_shape_value[1] = std::max(1.0f,
+				g_settings->getFloat("volumetric_clouds_thickness"));
+		m_cloud_shape_value[2] = rangelim(
+				g_settings->getFloat("volumetric_clouds_roundness"), 0.0f, 0.5f);
+		m_cloud_shape_value[3] = std::max(0.5f,
+				g_settings->getFloat("volumetric_clouds_pixel"));
+	}
 
 public:
 	void onSettingsChange(const std::string &name)
 	{
 		if (name == "exposure_compensation")
 			m_user_exposure_compensation = g_settings->getFloat("exposure_compensation", -1.0f, 1.0f);
+		else
+			readWavingSettings();
 	}
 
 	static void settingsCallback(const std::string &name, void *userdata)
@@ -148,6 +346,7 @@ public:
 		m_bloom_enabled = g_settings->getBool("enable_bloom");
 		m_volumetric_light_enabled = g_settings->getBool("enable_volumetric_lighting") && m_bloom_enabled;
 		m_crack_animation_length_i = game->crack_animation_length;
+		readWavingSettings();
 	}
 
 	~GameGlobalShaderUniformSetter()
@@ -188,6 +387,13 @@ public:
 		m_texel_size0_vertex.set(m_texel_size0, services);
 		m_texel_size0_pixel.set(m_texel_size0, services);
 
+		// Настройки качания. Кэш не пускает их в драйвер, пока они не менялись,
+		// а шейдер, где их нет, тихо пропустит установку
+		m_waving_flags_vertex.set(m_waving_flags, services);
+		m_waving_flags_pixel.set(m_waving_flags, services);
+		m_water_wave_vertex.set(m_water_wave, services);
+		m_water_wave_pixel.set(m_water_wave, services);
+
 		{
 			float tmp = m_crack_animation_length_i;
 			m_crack_animation_length.set(&tmp, services);
@@ -223,52 +429,30 @@ public:
 		float saturation = lighting.saturation;
 		m_saturation_pixel.set(&saturation, services);
 
+		// Всё, что за кадр не меняется, считает первый обратившийся, а
+		// остальные вызовы отрисовки только читают готовое
+		const FrameShaderValues &frame = getFrameShaderValues(m_client, m_sky);
+
+		// Нужно только шагу объёмных облаков; у остальных шейдеров этих
+		// uniform'ов нет, и установка тихо пройдёт мимо
+		m_inv_view_proj.set(frame.inv_view_proj, services);
+		m_sun_direction.set(frame.sun_direction, services);
+		m_cloud_params.set(m_cloud_params_value, services);
+		m_cloud_shape.set(m_cloud_shape_value, services);
+		{
+			// Секунды с начала игры. Обрезано так, чтобы точности float хватало
+			// на доли секунды: облака ползут медленно, дёрганья быть не должно.
+			float seconds = std::fmod(
+					m_client->getEnv().getFrameTime() / 1000.0, 100000.0);
+			m_cloud_time.set(&seconds, services);
+		}
+
 		if (m_volumetric_light_enabled)
 		{
-			// Map directional light to screen space
-			auto camera_node = m_client->getCamera()->getCameraNode();
-			core::matrix4 transform = camera_node->getProjectionMatrix();
-			transform *= camera_node->getViewMatrix();
-
-			if (m_sky->getSunVisible())
-			{
-				v3f sun_position = camera_node->getAbsolutePosition() +
-								   10000.f * m_sky->getSunDirection();
-				transform.transformVect(sun_position);
-				sun_position.normalize();
-
-				m_sun_position_pixel.set(sun_position, services);
-
-				float sun_brightness = core::clamp(107.143f * m_sky->getSunDirection().Y, 0.f, 1.f);
-				m_sun_brightness_pixel.set(&sun_brightness, services);
-			}
-			else
-			{
-				m_sun_position_pixel.set(v3f(0.f, 0.f, -1.f), services);
-
-				float sun_brightness = 0.f;
-				m_sun_brightness_pixel.set(&sun_brightness, services);
-			}
-
-			if (m_sky->getMoonVisible())
-			{
-				v3f moon_position = camera_node->getAbsolutePosition() +
-									10000.f * m_sky->getMoonDirection();
-				transform.transformVect(moon_position);
-				moon_position.normalize();
-
-				m_moon_position_pixel.set(moon_position, services);
-
-				float moon_brightness = core::clamp(107.143f * m_sky->getMoonDirection().Y, 0.f, 1.f);
-				m_moon_brightness_pixel.set(&moon_brightness, services);
-			}
-			else
-			{
-				m_moon_position_pixel.set(v3f(0.f, 0.f, -1.f), services);
-
-				float moon_brightness = 0.f;
-				m_moon_brightness_pixel.set(&moon_brightness, services);
-			}
+			m_sun_position_pixel.set(frame.sun_position, services);
+			m_sun_brightness_pixel.set(&frame.sun_brightness, services);
+			m_moon_position_pixel.set(frame.moon_position, services);
+			m_moon_brightness_pixel.set(&frame.moon_brightness, services);
 
 			float volumetric_light_strength = lighting.volumetric_light_strength;
 			m_volumetric_light_strength_pixel.set(&volumetric_light_strength, services);
@@ -277,28 +461,8 @@ public:
 		// ====================================================================
 		// --- ПАТЧ ДИНАМИЧЕСКОГО СВЕТА В РУКАХ ИГРОКОВ ---
 		// ====================================================================
-		float dyn_lights[MAX_DYN_LIGHTS * 4] = {0.0f};
-		float light_count = 0.0f;
-
-		v3f camera_offset_f = intToFloat(m_client->getCamera()->getOffset(), BS);
-
-		// Запрашиваем у менеджера 4 ближайших источника
-		auto closest = m_client->getDynamicLightManager().getClosestLights(camera_position, MAX_DYN_LIGHTS);
-
-		for (const auto &light : closest)
-		{
-			v3f rel_pos = light.position - camera_offset_f;
-
-			int idx = (int)light_count * 4;
-			dyn_lights[idx + 0] = rel_pos.X;
-			dyn_lights[idx + 1] = rel_pos.Y;
-			dyn_lights[idx + 2] = rel_pos.Z;
-			dyn_lights[idx + 3] = light.radius;
-			light_count += 1.0f;
-		}
-
-		m_dyn_lights.set(dyn_lights, services);
-		m_dyn_light_count.set(&light_count, services);
+		m_dyn_lights.set(frame.dyn_lights, services);
+		m_dyn_light_count.set(&frame.dyn_light_count, services);
 		m_light_curve.set(get_light_curve_table(), services);
 		// ====================================================================
 	}
@@ -385,14 +549,10 @@ public:
 
 #undef PROVIDE
 
-		bool enable_waving_water = g_settings->getBool("enable_waving_water");
-		constants["ENABLE_WAVING_WATER"] = enable_waving_water ? 1 : 0;
-		if (enable_waving_water)
-		{
-			constants["WATER_WAVE_HEIGHT"] = g_settings->getFloat("water_wave_height");
-			constants["WATER_WAVE_LENGTH"] = g_settings->getFloat("water_wave_length");
-			constants["WATER_WAVE_SPEED"] = g_settings->getFloat("water_wave_speed");
-		}
+		// Качание жидкостей, листвы и растений задаётся не здесь: настройки
+		// уезжают в шейдер значениями (wavingFlags, waterWaveParams), а не
+		// константами сборки, иначе переключатель в меню ждал бы следующего
+		// входа в мир. Тип материала - другое дело, он от настроек не зависит.
 		switch (material_type)
 		{
 		case TILE_MATERIAL_WAVING_LIQUID_TRANSPARENT:
@@ -417,8 +577,6 @@ public:
 			break;
 		}
 
-		constants["ENABLE_WAVING_LEAVES"] = g_settings->getBool("enable_waving_leaves") ? 1 : 0;
-		constants["ENABLE_WAVING_PLANTS"] = g_settings->getBool("enable_waving_plants") ? 1 : 0;
 	}
 };
 
@@ -436,6 +594,7 @@ Game::Game() : m_chat_log_buf(g_logger),
 		"toggle_sneak_key",
 		"toggle_aux1_key",
 		"enable_fog",
+		"enable_volumetric_clouds",
 		"mouse_sensitivity",
 		"repeat_place_time",
 		"repeat_dig_time",
@@ -452,6 +611,65 @@ Game::Game() : m_chat_log_buf(g_logger),
 	};
 	for (auto s : settings)
 		g_settings->registerChangedCallback(s, &settingChangedCallback, this);
+
+	// Настройки, от которых зависит сам состав конвейера отрисовки. Менять его
+	// посреди кадра нельзя, поэтому здесь только поднимается флаг, а пересборка
+	// происходит между кадрами, см. Game::run().
+	const char *pipeline_settings[] = {
+		"enable_post_processing",
+		"enable_bloom",
+		"enable_volumetric_lighting",
+		"enable_volumetric_clouds",
+		"enable_auto_exposure",
+		"enable_dynamic_shadows",
+		"antialiasing",
+		"fsaa",
+		"fxaa",
+		"undersampling",
+		"post_processing_texture_bits",
+		"3d_mode",
+	};
+	for (auto s : pipeline_settings)
+		g_settings->registerChangedCallback(s, &pipelineSettingChangedCallback, this);
+
+	// Настройки, которые уезжают в шейдер константами сборки. Поменялась такая -
+	// шейдеры надо собрать заново, иначе игрок увидит своё изменение только
+	// после следующего входа в мир.
+	const char *shader_settings[] = {
+		"enable_dynamic_shadows",
+		"shadow_map_color",
+		"shadow_poisson_filter",
+		"shadow_filters",
+		"shadow_soft_radius",
+		"enable_water_reflections",
+		"enable_translucent_foliage",
+		"tone_mapping",
+		"debanding",
+		"enable_bloom_debug",
+	};
+	for (auto s : shader_settings)
+		g_settings->registerChangedCallback(s, &shaderSettingChangedCallback, this);
+
+	// Эти меняют не вид ноды, а то, из чего складывается её меш, поэтому карту
+	// приходится собирать заново
+	const char *mesh_settings[] = {
+		"smooth_lighting",
+		"enable_water_reflections",
+	};
+	for (auto s : mesh_settings)
+		g_settings->registerChangedCallback(s, &meshSettingChangedCallback, this);
+
+	// А эти меняют сами визуалы нод - из чего нода состоит, ещё до всякого меша
+	const char *node_visual_settings[] = {
+		"leaves_style",
+		"connected_glass",
+		"translucent_liquids",
+		"texture_min_size",
+		"world_aligned_mode",
+		"autoscale_mode",
+	};
+	for (auto s : node_visual_settings)
+		g_settings->registerChangedCallback(s, &nodeVisualSettingChangedCallback, this);
 
 	readSettings();
 }
@@ -583,6 +801,10 @@ void Game::run()
 		framemarker.start();
 
 		g_fontengine->handleReload();
+
+		// Настройка картинки, поменянная в меню, действует со следующего кадра:
+		// прошлый уже нарисован старыми шейдерами, а следующий ещё не начался
+		applyGraphicsSettings();
 
 		const auto current_dynamic_info = ClientDynamicInfo::getCurrent();
 		if (!current_dynamic_info.equal(client_display_info))
@@ -1574,6 +1796,31 @@ void Game::updateDebugState()
 	draw_control->allow_noclip = m_cache_enable_noclip && client->checkPrivilege("noclip");
 }
 
+/*
+ * Куда ложится профиль клиента, когда profiler_print_interval больше нуля.
+ *
+ * Профиль печатается через infostream, а рабочий debug_log_level в этом проекте
+ * - action, так что в debug.txt он не попадает вовсе. Отдельный файл заодно
+ * избавляет от необходимости выуживать цифры из журнала на десятки мегабайт.
+ */
+static void writeProfileToFile(Profiler *profiler, float interval)
+{
+	const std::string path = porting::path_user + DIR_DELIM "profile.txt";
+
+	// Первая запись за запуск начинает файл заново, дальше дописываем
+	static bool started = false;
+	std::ofstream os(path, started ? std::ios::app : std::ios::trunc);
+	started = true;
+
+	if (!os.good())
+		return;
+
+	os << "==== Profiler: " << (profiler->getElapsedMs() / 1000.0f)
+			<< " s since clear, interval " << interval << " s ====" << std::endl;
+	profiler->print(os);
+	os << std::endl;
+}
+
 void Game::updateProfilers(const RunStats &stats, const FpsControl &draw_times,
 						   f32 dtime)
 {
@@ -1615,6 +1862,7 @@ void Game::updateProfilers(const RunStats &stats, const FpsControl &draw_times,
 		{
 			infostream << "Profiler:" << std::endl;
 			g_profiler->print(infostream);
+			writeProfileToFile(g_profiler, profiler_print_interval);
 		}
 
 		m_game_ui->updateProfiler();
@@ -4221,11 +4469,38 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 		runData.damage_flash -= 384.0f * dtime;
 	}
 
+	/*
+	 * Съёмка по часам, для подбора картинки без человека за клавиатурой.
+	 *
+	 * Ждать приходится потому, что мир к первому кадру ещё не пришёл: блоки
+	 * едут от сервера, меши строятся в фоне, и снимок раньше времени покажет
+	 * пустоту. Сняв, клиент уходит сам - иначе его пришлось бы убивать снаружи,
+	 * а незакрытый мир остаётся с недописанной картой.
+	 */
+	if (m_screenshot_after > 0.0f)
+	{
+		m_screenshot_after -= dtime;
+		if (m_screenshot_after <= 0.0f)
+		{
+			client->makeScreenshot();
+			infostream << "Game: screenshot taken, leaving" << std::endl;
+			g_gamecallback->exitToOS();
+		}
+	}
+
 	g_profiler->avg("Game::updateFrame(): update frame [ms]", tt_update.stop(true));
 }
 
 void Game::updateClouds(float dtime)
 {
+	// Объёмные облака рисуются в постобработке и занимают то же небо. Плоские
+	// под ними были бы вторым слоем в том же месте, поэтому уступают дорогу.
+	if (m_cache_volumetric_clouds)
+	{
+		this->clouds->setVisible(false);
+		return;
+	}
+
 	if (this->sky->getCloudsVisible())
 	{
 		this->clouds->setVisible(true);
@@ -4305,6 +4580,10 @@ void Game::updateShadows()
 void Game::drawScene(ProfilerGraph *graph, RunStats *stats)
 {
 	ZoneScoped;
+
+	// Открывает новый кадр для значений, которые внутри него постоянны,
+	// см. FrameShaderValues
+	g_frame_serial++;
 
 	if (!client->worldIsRenderable())
 	{
@@ -4411,6 +4690,66 @@ void Game::settingChangedCallback(const std::string &setting_name, void *data)
 	((Game *)data)->readSettings();
 }
 
+void Game::pipelineSettingChangedCallback(const std::string &setting_name, void *data)
+{
+	// Сам конвейер собирается между кадрами: сюда мы попадаем из меню настроек,
+	// а оно открыто поверх картинки, которая как раз рисуется старым конвейером
+	((Game *)data)->m_needs_pipeline_rebuild = true;
+}
+
+void Game::shaderSettingChangedCallback(const std::string &setting_name, void *data)
+{
+	((Game *)data)->m_needs_shader_rebuild = true;
+}
+
+void Game::meshSettingChangedCallback(const std::string &setting_name, void *data)
+{
+	((Game *)data)->m_needs_mesh_rebuild = true;
+}
+
+void Game::nodeVisualSettingChangedCallback(const std::string &setting_name, void *data)
+{
+	((Game *)data)->m_needs_node_visual_rebuild = true;
+}
+
+void Game::applyGraphicsSettings()
+{
+	// Порядок не случаен. Шейдеры первыми: визуалы нод раздают их тайлам, а
+	// меши забирают номера материалов при постройке.
+	if (m_needs_shader_rebuild)
+	{
+		m_needs_shader_rebuild = false;
+		shader_src->rebuildShaders();
+	}
+
+	if (m_needs_node_visual_rebuild)
+	{
+		m_needs_node_visual_rebuild = false;
+		// Сюда входит и пересборка карты, так что отдельно её звать не нужно
+		m_needs_mesh_rebuild = false;
+		client->rebuildNodeVisuals();
+	}
+
+	if (m_needs_mesh_rebuild)
+	{
+		m_needs_mesh_rebuild = false;
+		client->rebuildAllMeshes();
+	}
+
+	if (m_needs_pipeline_rebuild)
+	{
+		m_needs_pipeline_rebuild = false;
+
+		if (m_rendering_engine->rebuildPipeline(client, hud))
+		{
+			// Тени завели заново, и список отбрасывающих их узлов пуст: его
+			// наполняют сами объекты, когда появляются в мире. Заставляем их
+			// появиться снова - иначе тень будет только у карты.
+			client->getEnv().expireObjectVisuals();
+		}
+	}
+}
+
 void Game::readSettings()
 {
 	// The instrument follows its setting, so it can be switched on mid-game
@@ -4428,6 +4767,8 @@ void Game::readSettings()
 	m_cache_toggle_sneak_key = g_settings->getBool("toggle_sneak_key");
 	m_cache_toggle_aux1_key = g_settings->getBool("toggle_aux1_key");
 	m_cache_enable_fog = g_settings->getBool("enable_fog");
+	m_cache_volumetric_clouds = g_settings->getBool("enable_volumetric_clouds");
+	m_screenshot_after = g_settings->getFloat("screenshot_after");
 	m_cache_mouse_sensitivity = g_settings->getFloat("mouse_sensitivity", 0.001f, 10.0f);
 	m_repeat_place_time = g_settings->getFloat("repeat_place_time", 0.16f, 2.0f);
 	m_repeat_dig_time = g_settings->getFloat("repeat_dig_time", 0.0f, 2.0f);

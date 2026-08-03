@@ -117,6 +117,14 @@ public:
 	 */
 	void remapContentIds(const std::vector<content_t> &mapping);
 
+	/**
+	 * Складывает позиции всех загруженных блоков в @p dest.
+	 *
+	 * Нужно, когда настройка меняет то, из чего строится меш - сглаженный свет,
+	 * вид листвы - и всю карту приходится собирать заново.
+	 */
+	void getAllBlockPositions(std::vector<v3s16> &dest);
+
 	/// @brief Calculate statistics about the map and keep the blocks alive
 	void touchMapBlocks();
 

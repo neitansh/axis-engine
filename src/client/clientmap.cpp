@@ -378,6 +378,18 @@ void ClientMap::remapContentIds(const std::vector<content_t> &mapping)
 			<< " blocks to the content IDs of the new session" << std::endl;
 }
 
+void ClientMap::getAllBlockPositions(std::vector<v3s16> &dest)
+{
+	MapBlockVect sector_blocks;
+
+	for (auto &sector : m_sectors) {
+		sector_blocks.clear();
+		sector.second->getBlocks(sector_blocks);
+		for (MapBlock *block : sector_blocks)
+			dest.push_back(block->getPos());
+	}
+}
+
 void ClientMap::dropAllBlocks()
 {
 	clearDrawList();
@@ -410,7 +422,7 @@ void ClientMap::clearDrawList()
 
 void ClientMap::updateDrawList()
 {
-	ScopeProfiler sp(g_profiler, "CM::updateDrawList()", SPT_AVG);
+	ScopeProfiler sp(g_profiler, "CM::updateDrawList() [us]", SPT_AVG, PRECISION_MICRO);
 
 	clearDrawList();
 
@@ -773,7 +785,7 @@ void ClientMap::touchMapBlocks()
 	if (m_control.range_all || m_loops_occlusion_culler)
 		return;
 
-	ScopeProfiler sp(g_profiler, "CM::touchMapBlocks()", SPT_AVG);
+	ScopeProfiler sp(g_profiler, "CM::touchMapBlocks() [us]", SPT_AVG, PRECISION_MICRO);
 
 	const v3s16 cam_pos_nodes = floatToInt(m_camera_position, BS);
 
@@ -1053,7 +1065,7 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 	/*
 		Collect everything we need to draw
 	*/
-	TimeTaker tt_collect("");
+	TimeTaker tt_collect("", nullptr, PRECISION_MICRO);
 
 	MeshBufListMaps &grouped_buffers = tl_meshbuflistmaps;
 	DrawDescriptorList &draw_order = tl_drawdescriptorlist;
@@ -1119,9 +1131,9 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 		}
 	}
 
-	g_profiler->avg(prefix + "collecting [ms]", tt_collect.stop(true));
+	g_profiler->avg(prefix + "collecting [us]", tt_collect.stop(true));
 
-	TimeTaker tt_draw("");
+	TimeTaker tt_draw("", nullptr, PRECISION_MICRO);
 
 	core::matrix4 m; // Model matrix
 	u32 vertex_count = 0;
@@ -1172,7 +1184,7 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 		vertex_count += descriptor.draw(driver);
 	}
 
-	g_profiler->avg(prefix + "draw meshes [ms]", tt_draw.stop(true));
+	g_profiler->avg(prefix + "draw meshes [us]", tt_draw.stop(true));
 
 	if (pass == scene::ESNRP_SOLID) {
 		g_profiler->avg("renderMap(): animated meshes [#]", mesh_animate_count);
@@ -1327,7 +1339,7 @@ static bool getVisibleBrightness(Map *map, const v3f &p0, v3f dir, float step,
 int ClientMap::getBackgroundBrightness(float max_d, u32 daylight_factor,
 		int oldvalue, bool *sunlight_seen_result)
 {
-	ScopeProfiler sp(g_profiler, "CM::getBackgroundBrightness", SPT_AVG);
+	ScopeProfiler sp(g_profiler, "CM::getBackgroundBrightness [us]", SPT_AVG, PRECISION_MICRO);
 	static v3f z_directions[50] = {
 		v3f(-100, 0, 0)
 	};
@@ -1645,7 +1657,7 @@ void ClientMap::reportMetrics(u64 save_time_us, u32 saved_blocks, u32 all_blocks
 
 void ClientMap::updateTransparentMeshBuffers()
 {
-	ScopeProfiler sp(g_profiler, "CM::updateTransparentMeshBuffers", SPT_AVG);
+	ScopeProfiler sp(g_profiler, "CM::updateTransparentMeshBuffers [us]", SPT_AVG, PRECISION_MICRO);
 	u32 sorted_blocks = 0;
 	u32 unsorted_blocks = 0;
 	bool transparency_sorting_enabled = m_cache_transparency_sorting_distance > 0;

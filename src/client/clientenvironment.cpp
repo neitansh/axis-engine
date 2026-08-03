@@ -148,6 +148,7 @@ void ClientEnvironment::step(float dtime)
 
 	u32 steps = std::ceil(dtime / dtime_max_increment);
 	f32 dtime_part = dtime / steps;
+
 	for (; steps > 0; --steps) {
 		/*
 			Local player handling
@@ -421,6 +422,14 @@ void ClientEnvironment::clearActiveObjects()
 	for (auto &simple : m_simple_objects)
 		delete simple;
 	m_simple_objects.clear();
+}
+
+void ClientEnvironment::expireObjectVisuals()
+{
+	m_ao_manager.step(0.0f, [] (ClientActiveObject *cao) {
+		if (auto *gcao = dynamic_cast<GenericCAO *>(cao))
+			gcao->expireVisuals();
+	});
 }
 
 void ClientEnvironment::processActiveObjectMessage(u16 id, const std::string &data)

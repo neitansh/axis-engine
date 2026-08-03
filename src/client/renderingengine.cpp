@@ -406,6 +406,29 @@ void RenderingEngine::initialize(Client *client, Hud *hud)
 	core.reset(createRenderingCore(draw_mode, m_device, client, hud));
 }
 
+bool RenderingEngine::rebuildPipeline(Client *client, Hud *hud)
+{
+	const std::string &draw_mode = g_settings->get("3d_mode");
+
+	// Тени переезжают в новый конвейер вместе со списком объектов, которые их
+	// отбрасывают - но только если сами тени остались при своём. Когда игрок
+	// включил или выключил именно их, рендерер нужен другой.
+	std::unique_ptr<ShadowRenderer> shadows;
+	const bool want_shadows = g_settings->getBool("enable_dynamic_shadows");
+	if (core && (core->get_shadow_renderer() != nullptr) == want_shadows)
+		shadows = core->takeShadowRenderer();
+
+	const bool shadows_are_new = !shadows;
+
+	core.reset(createRenderingCore(draw_mode, m_device, client, hud,
+			std::move(shadows)));
+
+	infostream << "RenderingEngine: rebuilt the pipeline" << std::endl;
+
+	// Пустой список отбрасывающих тень - только когда он и правда новый
+	return shadows_are_new && core->get_shadow_renderer();
+}
+
 void RenderingEngine::finalize()
 {
 	core.reset();

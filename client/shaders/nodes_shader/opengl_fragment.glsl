@@ -18,6 +18,11 @@ uniform float animationTimer;
 uniform float crackAnimationLength;
 uniform float crackLevel;
 uniform float crackTextureScale;
+// См. одноимённые uniform'ы в вершинном шейдере: настройки качания приходят
+// значениями, а не константами, чтобы менялись прямо во время игры.
+uniform vec3 wavingFlags;
+uniform vec3 waterWaveParams;
+
 uniform vec4 u_dyn_lights[4];
 uniform float u_dyn_light_count;
 
@@ -63,7 +68,7 @@ CENTROID_ VARYING_ float nightRatio;
 VARYING_ highp vec3 eyeVec;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
-#if (defined(ENABLE_WATER_REFLECTIONS) && MATERIAL_WATER_REFLECTIONS && ENABLE_WAVING_WATER)
+#if (defined(ENABLE_WATER_REFLECTIONS) && MATERIAL_WATER_REFLECTIONS)
 vec4 perm(vec4 x)
 {
 	return mod(((x * 34.0) + 1.0) * x, 289.0);
@@ -662,16 +667,18 @@ void main(void)
 		vec3 viewVec = normalize(worldPosition + cameraOffset - cameraPosition);
 
 		// Water reflections
-#if (defined(ENABLE_WATER_REFLECTIONS) && MATERIAL_WATER_REFLECTIONS && ENABLE_WAVING_WATER)
-		vec3 wavePos = worldPosition * vec3(2.0, 0.0, 2.0);
-		float off = animationTimer * WATER_WAVE_SPEED * 10.0;
-		wavePos.x /= WATER_WAVE_LENGTH * 3.0;
-		wavePos.z /= WATER_WAVE_LENGTH * 2.0;
+#if (defined(ENABLE_WATER_REFLECTIONS) && MATERIAL_WATER_REFLECTIONS)
+		if (wavingFlags.x > 0.5) {
+			vec3 wavePos = worldPosition * vec3(2.0, 0.0, 2.0);
+			float off = animationTimer * waterWaveParams.z * 10.0;
+			wavePos.x /= waterWaveParams.y * 3.0;
+			wavePos.z /= waterWaveParams.y * 2.0;
 
-		// This is an analogous method to the bumpmap, except we get the gradient information directly from gnoise.
-		vec2 gradient = wave_noise(wavePos, off);
-		fNormal = normalize(normalize(fNormal) + vec3(gradient.x, 0., gradient.y) * WATER_WAVE_HEIGHT * abs(fNormal.y) * 0.25);
-		reflect_ray = -normalize(v_LightDirection - fNormal * dot(v_LightDirection, fNormal) * 2.0);
+			// This is an analogous method to the bumpmap, except we get the gradient information directly from gnoise.
+			vec2 gradient = wave_noise(wavePos, off);
+			fNormal = normalize(normalize(fNormal) + vec3(gradient.x, 0., gradient.y) * waterWaveParams.x * abs(fNormal.y) * 0.25);
+			reflect_ray = -normalize(v_LightDirection - fNormal * dot(v_LightDirection, fNormal) * 2.0);
+		}
 		float fresnel_factor = dot(fNormal, viewVec);
 
 		float brightness_factor = 1.0 - adjusted_night_ratio;

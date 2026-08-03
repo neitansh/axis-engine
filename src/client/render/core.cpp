@@ -38,3 +38,8 @@ v2u32 RenderingCore::getVirtualSize() const
 {
 	return virtual_size;
 }
+
+std::unique_ptr<ShadowRenderer> RenderingCore::takeShadowRenderer()
+{
+	return std::move(shadow_renderer);
+}

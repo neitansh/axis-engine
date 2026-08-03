@@ -89,6 +89,13 @@ namespace {
 MeshUpdateQueue::MeshUpdateQueue(Client *client):
 	m_client(client)
 {
+	readSettings();
+}
+
+void MeshUpdateQueue::readSettings()
+{
+	MutexAutoLock lock(m_mutex);
+
 	m_cache_smooth_lighting = g_settings->getBool("smooth_lighting");
 	m_cache_enable_water_reflections = g_settings->getBool("enable_water_reflections");
 }

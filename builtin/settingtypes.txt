@@ -856,6 +856,59 @@ enable_bloom (Enable Bloom) bool false
 #    Requires: enable_post_processing, enable_bloom
 enable_volumetric_lighting (Volumetric lighting) bool false
 
+[**Volumetric clouds]
+
+#    Clouds you can fly into: a layer traced through by the view, instead of a
+#    flat sheet overhead. Replaces the flat clouds while enabled.
+#
+#    Requires: enable_post_processing
+enable_volumetric_clouds (Volumetric clouds) bool false
+
+#    Height of the cloud layer, in nodes.
+#
+#    Requires: enable_post_processing, enable_volumetric_clouds
+volumetric_clouds_height (Cloud height) float 120.0 -31000.0 31000.0
+
+#    How much of the sky the clouds cover. 0 is a few stray wisps, 1 is overcast.
+#
+#    Requires: enable_post_processing, enable_volumetric_clouds
+volumetric_clouds_density (Cloud density) float 0.62 0.0 1.0
+
+#    How fast the clouds drift.
+#
+#    Requires: enable_post_processing, enable_volumetric_clouds
+volumetric_clouds_speed (Cloud speed) float 0.6 0.0 20.0
+
+#    Distance at which the clouds dissolve into the sky, in nodes. Clouds meet a
+#    lowered view far away, so this has to be considerably larger than the
+#    viewing range for them to reach the horizon.
+#
+#    Requires: enable_post_processing, enable_volumetric_clouds
+volumetric_clouds_distance (Cloud distance) float 2000.0 100.0 100000.0
+
+#    Size of a single cloud, in nodes. Small clouds seen from a distance blur
+#    into noise, so a cloud should be considerably larger than a building.
+#
+#    Requires: enable_post_processing, enable_volumetric_clouds
+volumetric_clouds_size (Cloud size) float 180.0 4.0 2000.0
+
+#    Side of the squares a cloud is built from, in nodes. Cloud size and cloud
+#    square size are different things: the first says how large a cloud is, the
+#    second how coarsely it is cut.
+#
+#    Requires: enable_post_processing, enable_volumetric_clouds
+volumetric_clouds_pixel (Cloud square size) float 45.0 1.0 200.0
+
+#    Thickness of the cloud layer, in nodes.
+#
+#    Requires: enable_post_processing, enable_volumetric_clouds
+volumetric_clouds_thickness (Cloud thickness) float 32.0 1.0 500.0
+
+#    Shape of the cloud edges. 0 keeps them blocky, 0.5 makes them smooth.
+#
+#    Requires: enable_post_processing, enable_volumetric_clouds
+volumetric_clouds_roundness (Cloud edge roundness) float 0.22 0.0 0.5
+
 [**Other Effects]
 
 #   Simulate translucency when looking at foliage in the sunlight.
@@ -1975,6 +2028,11 @@ mgvalleys_np_dungeons (Dungeon noise) noise_params_3d 0.9, 0.5, (500, 500, 500),
 [Advanced]
 
 [*Developer Options]
+
+#    Take a screenshot this many seconds after entering a world, then quit.
+#    Meant for adjusting how the game looks in repeated runs, without a
+#    person at the keyboard. 0 disables it.
+screenshot_after (Screenshot after) float 0.0 0.0 600.0
 
 #    Enable Lua modding support on client.
 #    This support is experimental and API can change.

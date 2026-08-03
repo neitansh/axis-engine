@@ -253,21 +253,21 @@ WieldMeshSceneNode::WieldMeshSceneNode(scene::ISceneManager *mgr, s32 id):
 	m_meshnode->setVisible(false);
 	dummymesh->drop(); // m_meshnode grabbed it
 
-	m_shadow = RenderingEngine::get_shadow_renderer();
-
-	if (m_shadow) {
-		// Add mesh to shadow caster
-		m_shadow->addNodeToShadowList(m_meshnode);
-	}
+	// Add mesh to shadow caster
+	if (auto *shadow = RenderingEngine::get_shadow_renderer())
+		shadow->addNodeToShadowList(m_meshnode);
 }
 
 WieldMeshSceneNode::~WieldMeshSceneNode()
 {
 	sanity_check(g_extrusion_mesh_cache);
 
-	// Remove node from shadow casters. m_shadow might be an invalid pointer!
-	if (m_shadow)
-		m_shadow->removeNodeFromShadowList(m_meshnode);
+	// Спрашиваем рендерер теней заново, а не помним его с постройки: он живёт
+	// внутри конвейера отрисовки, а тот пересобирается, стоит игроку тронуть
+	// настройки картинки. Запомненный указатель к этому времени уже никуда не
+	// ведёт.
+	if (auto *shadow = RenderingEngine::get_shadow_renderer())
+		shadow->removeNodeFromShadowList(m_meshnode);
 
 	if (g_extrusion_mesh_cache->drop())
 		g_extrusion_mesh_cache = nullptr;

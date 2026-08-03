@@ -9,6 +9,7 @@
 #include "client/shader.h"
 #include "settings.h"
 #include "plain.h"
+#include "profiler.h"
 #include <ISceneManager.h>
 
 PostProcessingStep::PostProcessingStep(u32 _shader_id, const std::vector<u8> &_texture_map) :
@@ -181,6 +182,29 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 	// shared variables
 	u32 shader_id;
 
+	/*
+	 * Объёмные облака подмешиваются в кадр до всего остального, чтобы дальше
+	 * идти наравне с миром: попадать в свечение, в тонирование, в сглаживание.
+	 * Читать и писать одну текстуру нельзя, поэтому результат ложится в
+	 * отдельную, и следующие шаги берут за исходную уже её.
+	 */
+	u8 scene_color = TEXTURE_COLOR;
+
+	if (g_settings->getBool("enable_volumetric_clouds")) {
+		static const u8 TEXTURE_CLOUDS = 9;
+
+		buffer->setTexture(TEXTURE_CLOUDS, scale, "clouds", color_format);
+
+		shader_id = client->getShaderSource()->getShaderRaw("volumetric_clouds");
+		auto clouds = pipeline->addStep<PostProcessingStep>(shader_id,
+				std::vector<u8> { TEXTURE_COLOR, TEXTURE_DEPTH });
+		clouds->setRenderSource(buffer);
+		clouds->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(
+				buffer, TEXTURE_CLOUDS));
+
+		scene_color = TEXTURE_CLOUDS;
+	}
+
 	// Number of mipmap levels of the bloom downsampling texture
 	// (this affects the bloom strength, so don't blindly change it)
 	const u8 MIPMAP_LEVELS = 4;
@@ -191,7 +215,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 
 	// post-processing stage
 
-	u8 source = TEXTURE_COLOR;
+	u8 source = scene_color;
 
 	// common downsampling step for bloom or autoexposure
 	if (enable_bloom || enable_auto_exposure) {
@@ -216,10 +240,25 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 		}
 
 		if (enable_volumetric_light) {
-			buffer->setTexture(TEXTURE_VOLUME, scale, "volume", bloom_format);
+			/*
+			 * Половина разрешения по каждой оси, то есть четверть пикселей.
+			 *
+			 * Этот проход берёт три десятка выборок глубины на пиксель, и
+			 * выборки идут по расходящимся к солнцу лучам, так что кэш текстур
+			 * почти не помогает - в полном разрешении он стоит больше, чем вся
+			 * остальная постобработка вместе взятая. Считать его точно незачем:
+			 * его результат идёт не на экран, а в цепочку размытия ниже, и
+			 * оттуда возвращается уже растёкшимся.
+			 */
+			buffer->setTexture(TEXTURE_VOLUME, scale * 0.5f, "volume", bloom_format);
 
 			shader_id = client->getShaderSource()->getShaderRaw("volumetric_light");
 			auto volume = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { source, TEXTURE_DEPTH });
+			// Картинка читается вдвое реже, чем в неё писали, поэтому берём
+			// среднее по четырём точкам, а не одну из них. Глубину (слой 1)
+			// сглаживать нельзя: шейдер сравнивает её с единицей, и на краях
+			// геометрии усреднение выдумало бы промежуточные значения.
+			volume->setBilinearFilter(0, true);
 			volume->setRenderSource(buffer);
 			volume->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_VOLUME));
 			source = TEXTURE_VOLUME;
@@ -260,14 +299,14 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 	}
 
 	// FXAA
-	u8 final_stage_source = TEXTURE_COLOR;
+	u8 final_stage_source = scene_color;
 
 	if (enable_fxaa) {
 		final_stage_source = TEXTURE_FXAA;
 
 		buffer->setTexture(TEXTURE_FXAA, scale, "fxaa", color_format);
 		shader_id = client->getShaderSource()->getShaderRaw("fxaa");
-		PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { TEXTURE_COLOR });
+		PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { scene_color });
 		pipeline->addStep(effect);
 		effect->setBilinearFilter(0, true);
 		effect->setRenderSource(buffer);

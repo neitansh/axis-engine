@@ -96,6 +96,16 @@ public:
 	/// @param finish if true, also clears updates that need to be acked to the server
 	void clear(bool finish = false);
 
+	/**
+	 * Перечитывает настройки, от которых зависит содержимое меша.
+	 *
+	 * Читаются они один раз, при создании очереди, потому что спрашивать
+	 * g_settings на каждый блок дорого. Настройку, изменённую посреди игры,
+	 * поэтому нужно занести сюда - и пересобрать всё, что уже построено, см.
+	 * Client::rebuildAllMeshes().
+	 */
+	void readSettings();
+
 private:
 	Client *m_client;
 	std::vector<QueuedMeshUpdate *> m_queue;
@@ -152,6 +162,9 @@ public:
 			bool update_neighbors = false);
 
 	void putResult(MeshUpdateResult &&r);
+
+	/// Перечитывает настройки построения мешей, см. MeshUpdateQueue::readSettings()
+	void readSettings() { m_queue_in.readSettings(); }
 
 	/// @note caller needs to refDrop() the affected map_blocks
 	bool getNextResult(MeshUpdateResult &r);

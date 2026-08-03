@@ -632,24 +632,45 @@ void ShaderSource::rebuildShaders()
 {
 	MutexAutoLock lock(m_shaderinfo_cache_mutex);
 
-	// Delete materials
-	auto *gpu = RenderingEngine::get_video_driver()->getGPUProgrammingServices();
+	auto *driver = RenderingEngine::get_video_driver();
+	auto *gpu = driver->getGPUProgrammingServices();
 	assert(gpu);
-	for (ShaderInfo &i : m_shaderinfo_cache) {
-		if (!i.name.empty()) {
-			gpu->deleteShaderMaterial(i.material);
-			i.material = video::EMT_INVALID;
-		}
-	}
 
 	infostream << "ShaderSource: recreating " << m_shaderinfo_cache.size()
 			<< " shaders" << std::endl;
 
-	// Recreate shaders
+	/*
+	 * Каждый шейдер переезжает в тот же номер материала, что занимал раньше.
+	 *
+	 * Номер этот - не деталь учёта: он записан в материал каждого меша, который
+	 * успели построить, а мешей к этому времени тысячи, и лежат они по всему
+	 * клиенту - в блоках карты, в сущностях, в предмете в руке, в небе. Выдай
+	 * новый номер - и вся эта геометрия станет ссылаться на удалённый материал.
+	 * Раньше это было не важно, потому что шейдеры пересобирались только при
+	 * входе в мир, где меши всё равно строятся заново; теперь их пересобирает
+	 * ещё и настройка, переключённая посреди игры.
+	 *
+	 * Драйвер выдаёт номера только по порядку, поэтому новый материал сначала
+	 * встаёт в конец, а потом меняется местами со старым. Рендерер своего
+	 * номера не помнит, так что обмен для него незаметен.
+	 */
 	for (ShaderInfo &i : m_shaderinfo_cache) {
-		if (!i.name.empty()) {
-			generateShader(i);
-		}
+		if (i.name.empty())
+			continue;
+
+		const video::E_MATERIAL_TYPE old_material = i.material;
+
+		generateShader(i); // ставит i.material в свежесозданный номер
+
+		if (old_material == video::EMT_INVALID || i.material == old_material)
+			continue;
+
+		// Имена не меняем: они одинаковы, и в них нет смысла для нас
+		driver->swapMaterialRenderers(old_material, i.material, false);
+		// В новом номере теперь лежит прежний рендерер, он больше не нужен.
+		// Номер этот последний, так что список материалов не разрастается.
+		gpu->deleteShaderMaterial(i.material);
+		i.material = old_material;
 	}
 }
 

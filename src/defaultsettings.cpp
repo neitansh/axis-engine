@@ -126,6 +126,9 @@ void set_default_settings()
 	settings->setDefault("client_unload_unused_data_timeout", "600");
 	settings->setDefault("client_mapblock_limit", "10000"); // about 160 MB
 	settings->setDefault("enable_build_where_you_stand", "false");
+	// Снять экран через столько секунд после входа в мир и закрыться. Нужно,
+	// чтобы подбирать картинку прогонами, без человека за клавиатурой.
+	settings->setDefault("screenshot_after", "0");
 	// Writes what the player and the deck under them do each step
 	settings->setDefault("debug_platform_ride", "false");
 	// Measures network motion: packet rhythm, playback buffer and the change
@@ -392,6 +395,32 @@ void set_default_settings()
 	settings->setDefault("enable_bloom", "false");
 	settings->setDefault("enable_bloom_debug", "false");
 	settings->setDefault("enable_volumetric_lighting", "false");
+
+	/*
+	 * Объёмные облака: слой на высоте, сквозь который смотрит луч, а не
+	 * плоскость над головой. Плоские при этом гаснут сами - два слоя облаков
+	 * друг на друге смысла не имеют.
+	 *
+	 * Высота задана в узлах и по умолчанию стоит заметно выше обычной постройки,
+	 * чтобы дирижабль мог до неё дойти, но не упирался в неё сразу.
+	 */
+	settings->setDefault("enable_volumetric_clouds", "false");
+	settings->setDefault("volumetric_clouds_height", "120.0");
+	settings->setDefault("volumetric_clouds_density", "0.62");
+	settings->setDefault("volumetric_clouds_speed", "0.6");
+	// Слой пересекается тем дальше, чем ниже опущен взгляд, поэтому у горизонта
+	// облака отодвинуты на тысячи узлов - там их и надо искать
+	settings->setDefault("volumetric_clouds_distance", "2000.0");
+	// Размер отдельного облака и толщина слоя, в узлах. Мелкие облака с высоты
+	// сливаются в рябь, поэтому клуб должен быть заметно крупнее постройки.
+	settings->setDefault("volumetric_clouds_size", "180.0");
+	settings->setDefault("volumetric_clouds_thickness", "32.0");
+	// 0 - кубические края, 0.5 - гладкие
+	settings->setDefault("volumetric_clouds_roundness", "0.22");
+	// Сторона квадрата, из которых сложено облако. Размер облака и размер его
+	// квадратов - разные вещи: первое решает, насколько облако крупное, второе -
+	// насколько крупно оно нарезано.
+	settings->setDefault("volumetric_clouds_pixel", "45.0");
 	settings->setDefault("enable_water_reflections", "false");
 	settings->setDefault("enable_translucent_foliage", "false");
 

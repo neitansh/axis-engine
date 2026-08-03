@@ -8,5 +8,12 @@
 #include <string>
 #include "core.h"
 
+#include <memory>
+
+class ShadowRenderer;
+
+/// @param shadow_renderer готовый теневой рендерер, либо nullptr - тогда он
+/// создаётся заново по текущим настройкам
 RenderingCore *createRenderingCore(const std::string &stereo_mode, IrrlichtDevice *device,
-		Client *client, Hud *hud);
+		Client *client, Hud *hud,
+		std::unique_ptr<ShadowRenderer> shadow_renderer = nullptr);

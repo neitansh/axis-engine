@@ -6,6 +6,20 @@ uniform vec3 dayLight;
 uniform highp vec3 cameraOffset;
 uniform float animationTimer;
 
+// Which kinds of node sway, and how the water waves are shaped.
+//
+// These come from player settings, and a setting the player just changed has to
+// take effect on the spot. Compiled in as constants they could not: shaders are
+// built once, when the world is entered, so a switch flipped in the menu would
+// wait for the next world. Handed over as uniforms they cost a comparison per
+// vertex of a swaying node, and nothing at all for every other node - the code
+// below is still behind the material tests, and a stone block never reaches it.
+//
+// x - liquids, y - leaves, z - plants. Non-zero means the setting is on.
+uniform vec3 wavingFlags;
+// x - wave height, y - wave length, z - wave speed
+uniform vec3 waterWaveParams;
+
 VARYING_ vec3 vNormal;
 // World position in the visible world (i.e. relative to the cameraOffset.)
 // This can be used for many shader effects without loss of precision.
@@ -123,7 +137,7 @@ float smoothTriangleWave(float x)
 	return smoothCurve(triangleWave(x)) * 2.0 - 1.0;
 }
 
-#if MATERIAL_WAVING_LIQUID && ENABLE_WAVING_WATER
+#if MATERIAL_WAVING_LIQUID
 
 //
 // Simple, fast noise function.
@@ -171,37 +185,44 @@ void main(void)
 
 	vec4 wpos = mWorld * inVertexPosition;
 // OpenGL < 4.3 does not support continued preprocessor lines
-#if (MATERIAL_TYPE == TILE_MATERIAL_WAVING_LEAVES && ENABLE_WAVING_LEAVES) || (MATERIAL_TYPE == TILE_MATERIAL_WAVING_PLANTS && ENABLE_WAVING_PLANTS)
-	float disp_x;
-	float disp_z;
+#if MATERIAL_TYPE == TILE_MATERIAL_WAVING_LEAVES || MATERIAL_TYPE == TILE_MATERIAL_WAVING_PLANTS
+	float disp_x = 0.0;
+	float disp_z = 0.0;
 
-	float tOffset = (wpos.x + wpos.y) * 0.001 + wpos.z * 0.002;
-	disp_x = (smoothTriangleWave(animationTimer * 23.0 + tOffset) +
-		smoothTriangleWave(animationTimer * 11.0 + tOffset)) * 0.4;
-	disp_z = (smoothTriangleWave(animationTimer * 31.0 + tOffset) +
-		smoothTriangleWave(animationTimer * 29.0 + tOffset) +
-		smoothTriangleWave(animationTimer * 13.0 + tOffset)) * 0.5;
+	// Пять волн на вершину не стоит считать тому, кто их всё равно не сдвинет
+	if (wavingFlags.y > 0.5 || wavingFlags.z > 0.5) {
+		float tOffset = (wpos.x + wpos.y) * 0.001 + wpos.z * 0.002;
+		disp_x = (smoothTriangleWave(animationTimer * 23.0 + tOffset) +
+			smoothTriangleWave(animationTimer * 11.0 + tOffset)) * 0.4;
+		disp_z = (smoothTriangleWave(animationTimer * 31.0 + tOffset) +
+			smoothTriangleWave(animationTimer * 29.0 + tOffset) +
+			smoothTriangleWave(animationTimer * 13.0 + tOffset)) * 0.5;
+	}
 #endif
 
 	vec4 pos = inVertexPosition;
-#if MATERIAL_WAVING_LIQUID && ENABLE_WAVING_WATER
-	// Generate waves with Perlin-type noise.
-	// The constants are calibrated such that they roughly
-	// correspond to the old sine waves.
-	vec3 wavePos = wpos.xyz + cameraOffset;
-	// The waves are slightly compressed along the z-axis to get
-	// wave-fronts along the x-axis.
-	wavePos.x /= WATER_WAVE_LENGTH * 3.0;
-	wavePos.z /= WATER_WAVE_LENGTH * 2.0;
-	wavePos.z += animationTimer * WATER_WAVE_SPEED * 10.0;
-	pos.y += (snoise(wavePos) - 1.0) * WATER_WAVE_HEIGHT * 5.0;
-#elif MATERIAL_TYPE == TILE_MATERIAL_WAVING_LEAVES && ENABLE_WAVING_LEAVES
-	pos.x += disp_x;
-	pos.y += disp_z * 0.1;
-	pos.z += disp_z;
-#elif MATERIAL_TYPE == TILE_MATERIAL_WAVING_PLANTS && ENABLE_WAVING_PLANTS
+#if MATERIAL_WAVING_LIQUID
+	if (wavingFlags.x > 0.5) {
+		// Generate waves with Perlin-type noise.
+		// The constants are calibrated such that they roughly
+		// correspond to the old sine waves.
+		vec3 wavePos = wpos.xyz + cameraOffset;
+		// The waves are slightly compressed along the z-axis to get
+		// wave-fronts along the x-axis.
+		wavePos.x /= waterWaveParams.y * 3.0;
+		wavePos.z /= waterWaveParams.y * 2.0;
+		wavePos.z += animationTimer * waterWaveParams.z * 10.0;
+		pos.y += (snoise(wavePos) - 1.0) * waterWaveParams.x * 5.0;
+	}
+#elif MATERIAL_TYPE == TILE_MATERIAL_WAVING_LEAVES
+	if (wavingFlags.y > 0.5) {
+		pos.x += disp_x;
+		pos.y += disp_z * 0.1;
+		pos.z += disp_z;
+	}
+#elif MATERIAL_TYPE == TILE_MATERIAL_WAVING_PLANTS
 	// bottom of plant doesn't wave
-	if (varTexCoord.y < 0.05) {
+	if (wavingFlags.z > 0.5 && varTexCoord.y < 0.05) {
 		pos.x += disp_x;
 		pos.z += disp_z;
 	}
@@ -251,10 +272,10 @@ void main(void)
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 	if (f_shadow_strength > 0.0) {
-#if MATERIAL_TYPE == TILE_MATERIAL_WAVING_PLANTS && ENABLE_WAVING_PLANTS
+#if MATERIAL_TYPE == TILE_MATERIAL_WAVING_PLANTS
 		// The shadow shaders don't apply waving when creating the shadow-map.
 		// We are using the not waved inVertexPosition to avoid ugly self-shadowing.
-		vec4 shadow_pos = inVertexPosition;
+		vec4 shadow_pos = wavingFlags.z > 0.5 ? inVertexPosition : pos;
 #else
 		vec4 shadow_pos = pos;
 #endif
