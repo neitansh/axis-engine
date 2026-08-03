@@ -13,6 +13,8 @@
 #include "client/shader.h"
 #include "client/client.h"
 #include "client/clientmap.h"
+#include "profiler.h"
+#include "SViewFrustum.h"
 #include "IGPUProgrammingServices.h"
 #include "IVideoDriver.h"
 
@@ -486,8 +488,26 @@ void ShadowRenderer::renderShadowMap(video::ITexture *target,
 void ShadowRenderer::renderShadowObjects(
 		video::ITexture *target, DirectionalLight &light)
 {
+	ScopeProfiler sp(g_profiler, "SHADOW: objects [us]", SPT_AVG, PRECISION_MICRO);
+
 	m_driver->setTransform(video::ETS_VIEW, light.getViewMatrix());
 	m_driver->setTransform(video::ETS_PROJECTION, light.getProjectionMatrix());
+
+	/*
+	 * Область, попадающая в карту теней.
+	 *
+	 * Объект за её пределами в карту не запишется при всём желании, но до сих
+	 * пор рисовался всё равно - здесь не было отбора вообще, а рисуется этот
+	 * список каждый кадр, целиком, в дополнение к обычной отрисовке. Для
+	 * скелетных моделей это ещё и второй расчёт скиннинга.
+	 */
+	core::matrix4 light_transform;
+	light_transform.setbyproduct_nocheck(light.getProjectionMatrix(),
+			light.getViewMatrix());
+
+	// false - отсечение по z от -w до w, как принято в OpenGL; ровно так же
+	// строит свою область видимости камера, см. CCameraSceneNode
+	scene::SViewFrustum light_frustum(light_transform, false);
 
 	struct MaterialProps {
 		video::E_MATERIAL_TYPE type;
@@ -497,11 +517,20 @@ void ShadowRenderer::renderShadowObjects(
 	};
 
 	std::vector<MaterialProps> old_materials;
+	u32 drawn = 0, culled = 0;
 
 	for (const auto &shadow_node : m_shadow_node_array) {
 		// we only take care of the shadow casters and only visible nodes cast shadows
 		if (shadow_node.shadowMode == ESM_RECEIVE || !shadow_node.node->isVisible())
 			continue;
+
+		// Свет светит мимо - записывать нечего
+		if (!light_frustum.getBoundingBox().intersectsWithBox(
+				shadow_node.node->getTransformedBoundingBox())) {
+			culled++;
+			continue;
+		}
+		drawn++;
 
 		// render other objects
 		u32 n_node_materials = shadow_node.node->getMaterialCount();
@@ -546,6 +575,9 @@ void ShadowRenderer::renderShadowObjects(
 		}
 
 	} // end for caster shadow nodes
+
+	g_profiler->avg("SHADOW: objects drawn [#]", drawn);
+	g_profiler->avg("SHADOW: objects culled [#]", culled);
 }
 
 void ShadowRenderer::createShaders()

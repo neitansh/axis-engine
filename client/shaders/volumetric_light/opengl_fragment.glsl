@@ -33,8 +33,13 @@ float noise(vec3 uvd) {
 float sampleVolumetricLight(vec2 uv, vec3 lightVec, float rawDepth)
 {
 	lightVec = 0.5 * lightVec / lightVec.z + 0.5;
-	const float samples = 30.;
-	float result = texture2D(depthmap, uv).r < 1. ? 0.0 : 1.0;
+	// Шагов вдоль луча. Каждый - это выборка глубины, и они же составляют
+	// почти всю стоимость эффекта. Полосы, которые появляются от малого числа
+	// шагов, размывает случайный сдвиг bias ниже и цепочка bloom после.
+	const float samples = 16.;
+	// Глубина под самим пикселем нужна дважды, а стоит выборки
+	float depthHere = texture2D(depthmap, uv).r;
+	float result = depthHere < 1. ? 0.0 : 1.0;
 	float bias = noise(vec3(uv, rawDepth));
 	vec2 samplepos;
 	for (float i = 1.; i < samples; i++) {
@@ -44,7 +49,7 @@ float sampleVolumetricLight(vec2 uv, vec3 lightVec, float rawDepth)
 	}
 	// We use the depth map to approximate the effect of depth on the light intensity.
 	// The exponent was chosen based on aesthetic preference.
-	return result / samples * pow(texture2D(depthmap, uv).r, 128.0);
+	return result / samples * pow(depthHere, 128.0);
 }
 
 vec3 getDirectLightScatteringAtGround(vec3 v_LightDirection)
