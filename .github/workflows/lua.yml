@@ -16,7 +16,7 @@ on:
 jobs:
   luacheck:
     name: "Builtin Luacheck and Unit Tests"
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, public]
 
     steps:
 
