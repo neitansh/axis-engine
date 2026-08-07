@@ -2,6 +2,7 @@ name: lua_lint
 
 # Lint on lua changes on builtin or if workflow changed
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'builtin/**.lua'
