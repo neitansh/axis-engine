@@ -2,6 +2,7 @@ name: cpp_lint
 
 # lint on c/cpp changes or workflow changes
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'lib/**.[ch]'
@@ -46,7 +47,7 @@ jobs:
 
   settings_domains:
     name: "Settings domain table"
-    runs-on: ubuntu-22.04
+    runs-on: [self-hosted, linux, x64, public]
     steps:
     - uses: actions/checkout@v7
     # Every setting belongs to exactly one configuration file. The table the

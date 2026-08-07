@@ -2,6 +2,7 @@ name: png_file_checks
 
 # Check whether all png files are in a valid format
 on:
+  workflow_dispatch:
   push:
     paths:
       - '**.png'
@@ -13,7 +14,7 @@ on:
 
 jobs:
   png_optimized:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, public]
     steps:
       - uses: actions/checkout@v7
       - name: Install deps
