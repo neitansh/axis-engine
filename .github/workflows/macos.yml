@@ -1,35 +1,10 @@
 name: macos
 
-# build on c/cpp changes or workflow changes
+# Только ручной запуск. macOS в планах, но не раньше, чем игра будет готова
+# под ПК, а до тех пор автопрогоны на каждый коммит только жгут минуты и
+# держат ветку красной. Автотриггеры вернуть, когда дойдут руки до macOS.
 on:
-  push:
-    paths:
-      - 'lib/**.[ch]'
-      - 'lib/**.cpp'
-      - 'src/**.[ch]'
-      - 'src/**.cpp'
-      - 'irr/**.[ch]'
-      - 'irr/**.cpp'
-      - 'irr/**.mm' # Objective-C(++)
-      - '**/CMakeLists.txt'
-      - 'cmake/Modules/**'
-      - 'po/**.po'
-      - 'util/ci/**'
-      - '.github/workflows/macos.yml'
-  pull_request:
-    paths:
-      - 'lib/**.[ch]'
-      - 'lib/**.cpp'
-      - 'src/**.[ch]'
-      - 'src/**.cpp'
-      - 'irr/**.[ch]'
-      - 'irr/**.cpp'
-      - 'irr/**.mm' # Objective-C(++)
-      - '**/CMakeLists.txt'
-      - 'cmake/Modules/**'
-      - 'po/**.po'
-      - 'util/ci/**'
-      - '.github/workflows/macos.yml'
+  workflow_dispatch:
 
 # Name of what the build produces, follows project() in CMakeLists.txt.
 # The executables are ${PROJECT_NAME} and ${PROJECT_NAME}server.

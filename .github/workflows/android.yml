@@ -1,33 +1,9 @@
 name: android
 
-# build on c/cpp changes or workflow changes
+# Только ручной запуск. Android в планах, но не раньше, чем игра будет готова
+# под ПК. Автотриггеры вернуть, когда дойдут руки до мобильной версии.
 on:
-  push:
-    paths:
-      - 'lib/**.[ch]'
-      - 'lib/**.cpp'
-      - 'src/**.[ch]'
-      - 'src/**.cpp'
-      - 'irr/**.[ch]'
-      - 'irr/**.cpp'
-      - '**/CMakeLists.txt'
-      - 'cmake/Modules/**'
-      - 'po/**.po'
-      - 'android/**'
-      - '.github/workflows/android.yml'
-  pull_request:
-    paths:
-      - 'lib/**.[ch]'
-      - 'lib/**.cpp'
-      - 'src/**.[ch]'
-      - 'src/**.cpp'
-      - 'irr/**.[ch]'
-      - 'irr/**.cpp'
-      - '**/CMakeLists.txt'
-      - 'cmake/Modules/**'
-      - 'po/**.po'
-      - 'android/**'
-      - '.github/workflows/android.yml'
+  workflow_dispatch:
 
 jobs:
   build:

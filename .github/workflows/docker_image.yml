@@ -3,27 +3,10 @@ name: docker_image
 
 # https://docs.docker.com/build/ci/github-actions/github-builder
 
+# Только ручной запуск. Образ сервера пока никуда не публикуется — тесты
+# гоняются локально, а как сервер будут раздавать (докером или ядром), ещё
+# не решено. До того автопубликация в ghcr.io на каждый push в main не нужна.
 on:
-  push:
-    branches: [ "main" ]
-    # Publish semver tags as releases.
-    tags: [ "*" ]
-  pull_request:
-    # Build docker image on pull requests. (but do not publish)
-    paths:
-      - 'lib/**.[ch]'
-      - 'lib/**.cpp'
-      - 'src/**.[ch]'
-      - 'src/**.cpp'
-      - 'irr/**.[ch]'
-      - 'irr/**.cpp'
-      - '**/CMakeLists.txt'
-      - 'cmake/Modules/**'
-      - 'util/ci/**'
-      - 'misc/irrlichtmt_tag.txt'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/docker_image.yml'
   workflow_dispatch:
     inputs:
       use_cache:
