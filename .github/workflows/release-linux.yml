@@ -14,9 +14,33 @@ permissions:
 jobs:
   build_and_release:
     name: Build & Upload Linux Client
-    runs-on: ubuntu-22.04
+    runs-on: [self-hosted, linux, x64, public]
+
+    # Собираем в контейнере с Ubuntu 22.04, а не прямо на раннере: на нём
+    # Ubuntu 26.04, и слинкованный с её glibc клиент не запустится у тестеров
+    # на 22.04, Mint или Debian — glibc совместим только вперёд. Контейнер
+    # даёт и старый glibc, и тот же g++-11, что был на GitHub-hosted.
+    container:
+      image: ubuntu:22.04
+      options: --user root
 
     steps:
+      # Образ голый: в нём нет ни sudo (его зовёт install_linux_deps), ни git
+      # для checkout, ни gh для заливки релиза — на GitHub-hosted они были
+      # предустановлены. gh ставим бинарником с релизов, чтобы не заводить
+      # ещё один apt-репозиторий ради одной утилиты.
+      - name: Prepare container
+        env:
+          GH_CLI_VERSION: "2.97.0"
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            sudo ca-certificates curl git binutils file tar gzip xz-utils
+          curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" \
+            | tar -xz -C /tmp
+          install "/tmp/gh_${GH_CLI_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
+          gh --version
+
       - uses: actions/checkout@v7
 
       - name: Install Dependencies
