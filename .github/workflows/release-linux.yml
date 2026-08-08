@@ -24,6 +24,13 @@ jobs:
       image: ubuntu:22.04
       options: --user root
 
+    # В контейнерных джобах шаги по умолчанию идут через sh, а /bin/sh в Ubuntu
+    # это dash — на нём `source` из install_linux_deps падает с exit 127.
+    # У обычных джоб на раннере такого нет, там сразу bash.
+    defaults:
+      run:
+        shell: bash
+
     steps:
       # Образ голый: в нём нет ни sudo (его зовёт install_linux_deps), ни git
       # для checkout, ни gh для заливки релиза — на GitHub-hosted они были
