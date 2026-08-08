@@ -352,7 +352,7 @@ void Map::timerUpdate(float dtime, float unload_timeout, s32 max_loaded_blocks,
 			for (const auto &entry : sector->getBlocks()) {
 				MapBlock *block = entry.second.get();
 				block->incrementUsageTimer(dtime);
-				mapblock_queue.push(TimeOrderedMapBlock(const_cast<MapSector*>(sector), block));
+				mapblock_queue.emplace(const_cast<MapSector*>(sector), block);
 			}
 		}
 		block_count_all = mapblock_queue.size();

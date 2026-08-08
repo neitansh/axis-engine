@@ -433,12 +433,12 @@ size_t read_stringlist(lua_State *L, int index, std::vector<std::string> *result
 	if (lua_istable(L, index)) {
 		LuaHelper::for_ipairs(L, index, [&]() {
 			if (lua_isstring(L, -1)) {
-				result->push_back(lua_tostring(L, -1));
+				result->emplace_back(lua_tostring(L, -1));
 				num_strings++;
 			}
 		});
 	} else if (lua_isstring(L, index)) {
-		result->push_back(lua_tostring(L, index));
+		result->emplace_back(lua_tostring(L, index));
 		num_strings++;
 	}
 

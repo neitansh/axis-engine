@@ -3987,7 +3987,7 @@ bool Server::rollbackRevertActions(const std::list<RollbackAction> &actions,
 	// Fail if no actions to handle
 	if (actions.empty()) {
 		assert(log);
-		log->push_back("Nothing to do.");
+		log->emplace_back("Nothing to do.");
 		return false;
 	}
 
