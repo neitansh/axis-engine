@@ -31,6 +31,14 @@ jobs:
       run:
         shell: bash
 
+    # В образе GitHub tzdata уже настроен, в голом ubuntu:22.04 — нет, и apt
+    # посреди установки зависимостей уходит спрашивать часовой пояс, вешая
+    # джобу до таймаута. install_linux_deps своего DEBIAN_FRONTEND не ставит,
+    # поэтому задаём его на всю джобу.
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      TZ: Etc/UTC
+
     steps:
       # Образ голый: в нём нет ни sudo (его зовёт install_linux_deps), ни git
       # для checkout, ни gh для заливки релиза — на GitHub-hosted они были
@@ -40,9 +48,23 @@ jobs:
         env:
           GH_CLI_VERSION: "2.97.0"
         run: |
+          # tzdata посреди установки уходит спрашивать часовой пояс и вешает
+          # джобу до таймаута. Задаём зону заранее, чтобы его postinst нашёл
+          # готовый ответ и ничего не спрашивал.
+          ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime
+          echo "Etc/UTC" > /etc/timezone
+
           apt-get update
           apt-get install -y --no-install-recommends \
-            sudo ca-certificates curl git binutils file tar gzip xz-utils
+            sudo ca-certificates curl git binutils file tar gzip xz-utils tzdata
+
+          # install_linux_deps ставит пакеты через sudo, а sudo по умолчанию
+          # вычищает окружение — заданный на джобе DEBIAN_FRONTEND до apt
+          # без этого не доходит, и следующий же пакет с вопросом снова повесит
+          # сборку.
+          echo 'Defaults env_keep += "DEBIAN_FRONTEND TZ"' > /etc/sudoers.d/keep-frontend
+          chmod 0440 /etc/sudoers.d/keep-frontend
+
           curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" \
             | tar -xz -C /tmp
           install "/tmp/gh_${GH_CLI_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
