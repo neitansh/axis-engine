@@ -1,4 +1,9 @@
-_G.core = {}
+-- misc_helpers объявляет fgettext_ne только под `if core.gettext`, а список
+-- официальных серверов зовёт его прямо при загрузке модуля. В меню gettext
+-- есть всегда, здесь его нужно подставить, иначе dofile падает на nil.
+_G.core = {
+	gettext = function(text) return text end,
+}
 _G.unpack = table.unpack
 _G.check_cache_age = function() return false end
 _G.serverlistmgr = {}
