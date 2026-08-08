@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: "Версия релиза (например, v0.1.0)"
+        description: "Версия релиза (например, v0.0.1)"
         required: true
-        default: "v0.1.0"
+        default: "v0.0.1"
 
 permissions:
   contents: write
