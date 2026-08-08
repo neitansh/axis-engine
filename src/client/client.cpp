@@ -184,7 +184,7 @@ Client::Client(
 
 		ModVFS tmp_mod_vfs;
 		// FIXME: only read files that are relevant to sscsm, and compute sha2 digests
-		tmp_mod_vfs.scanModIntoMemory("*client_builtin*", getBuiltinLuaPath());
+		tmp_mod_vfs.scanModIntoMemory("*client_builtin*", getBuiltinLuaPath(), true);
 
 		for (auto &p : tmp_mod_vfs.m_vfs)
 		{
@@ -292,7 +292,7 @@ void Client::loadMods()
 	m_script->setEnv(&m_env);
 
 	// Load builtin
-	m_mod_vfs->scanModIntoMemory(BUILTIN_MOD_NAME, getBuiltinLuaPath());
+	m_mod_vfs->scanModIntoMemory(BUILTIN_MOD_NAME, getBuiltinLuaPath(), true);
 	m_script->loadModFromMemory(BUILTIN_MOD_NAME);
 	m_script->checkSetByBuiltin();
 

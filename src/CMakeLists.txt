@@ -471,6 +471,7 @@ set(independent_SRCS
 	tileanimation.cpp
 	tool.cpp
 	${PROJECT_BINARY_DIR}/builtin_files.cpp
+	builtin_check.cpp
 	${common_network_SRCS}
 	${config_SRCS}
 	${content_SRCS}

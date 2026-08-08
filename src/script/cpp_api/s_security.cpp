@@ -6,8 +6,6 @@
 #include "config/config_manager.h"
 #include "lua_api/l_base.h"
 #include "filesys.h"
-#include "util/hashing.h"
-#include "util/hex.h"
 #include "builtin_files.h"
 #include "server.h"
 #if CHECK_CLIENT_BUILD()
@@ -699,26 +697,17 @@ bool ScriptApiSecurity::safeLoadFile(lua_State *L, const char *path, const char 
 	}
 
 	// Check sha256 if it's a builtin file
-	do {
+	{
 		assert(path != nullptr);
 		auto path_local = fs::MakePathRelativeTo(path, Server::getBuiltinLuaPath());
-		if (path_local.empty())
-			break; // not in builtin
-
-		auto it = g_builtin_file_sha256_map.find(path_local);
-		if (it == g_builtin_file_sha256_map.end()) {
-			warningstream << "No SHA256 known for builtin file \"" << path << "\""
-					<< std::endl;
-			break;
+		if (!path_local.empty()) {
+			std::string error;
+			if (!checkBuiltinFileIntegrity(path_local, code, &error)) {
+				lua_pushlstring(L, error.data(), error.size());
+				return false;
+			}
 		}
-		auto digest = hex_encode(hashing::sha256(code));
-		if (it->second != digest) {
-			warningstream << "SHA256 of builtin file \"" << path << "\" does not match."
-					<< "\nExpected: " << it->second
-					<< "\nFound:    " << digest
-					<< std::endl;
-		}
-	} while (false);
+	}
 
 	return safeLoadFileContent(L, code, chunk_name.c_str());
 }

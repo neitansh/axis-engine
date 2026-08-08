@@ -9,12 +9,17 @@
 
 struct ModVFS
 {
+	/**
+	 * @param verify  check each file against the builtin hashes compiled into
+	 *                the binary; only valid when scanning the builtin directory
+	 */
 	void scanModSubfolder(const std::string &mod_name, const std::string &mod_path,
-			std::string mod_subpath);
+			std::string mod_subpath, bool verify = false);
 
-	inline void scanModIntoMemory(const std::string &mod_name, const std::string &mod_path)
+	inline void scanModIntoMemory(const std::string &mod_name, const std::string &mod_path,
+			bool verify = false)
 	{
-		scanModSubfolder(mod_name, mod_path, "");
+		scanModSubfolder(mod_name, mod_path, "", verify);
 	}
 
 	const std::string *getModFile(std::string filename);

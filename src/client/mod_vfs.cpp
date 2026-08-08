@@ -3,12 +3,14 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 #include "mod_vfs.h"
+#include "builtin_files.h"
+#include "exceptions.h"
 #include "filesys.h"
 #include "log.h"
 #include <algorithm>
 
 void ModVFS::scanModSubfolder(const std::string &mod_name, const std::string &mod_path,
-		std::string mod_subpath)
+		std::string mod_subpath, bool verify)
 {
 	std::string full_path = mod_path + DIR_DELIM + mod_subpath;
 	std::vector<fs::DirListNode> mod = fs::GetDirListing(full_path);
@@ -17,7 +19,7 @@ void ModVFS::scanModSubfolder(const std::string &mod_name, const std::string &mo
 			continue;
 
 		if (j.dir) {
-			scanModSubfolder(mod_name, mod_path, mod_subpath + j.name + DIR_DELIM);
+			scanModSubfolder(mod_name, mod_path, mod_subpath + j.name + DIR_DELIM, verify);
 			continue;
 		}
 		std::replace(mod_subpath.begin(), mod_subpath.end(), DIR_DELIM_CHAR, '/');
@@ -32,6 +34,12 @@ void ModVFS::scanModSubfolder(const std::string &mod_name, const std::string &mo
 			errorstream << "ModVFS::scanModSubfolder(): Can't read file \""
 					<< real_path << "\"." << std::endl;
 			continue;
+		}
+
+		if (verify) {
+			std::string error;
+			if (!checkBuiltinFileIntegrity(mod_subpath + j.name, contents, &error, false))
+				throw ModError(error);
 		}
 
 		m_vfs.emplace(vfs_path, contents);

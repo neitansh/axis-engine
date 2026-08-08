@@ -21,6 +21,17 @@ set(VERSION_EXTRA "" CACHE STRING "Stuff to append to version string")
 # Change to false for releases
 set(DEVELOPMENT_BUILD TRUE)
 
+# Refuse to load builtin Lua files that don't match the hashes compiled into
+# the binary. Off for development builds, where editing builtin is expected to
+# work without recompiling.
+if(DEVELOPMENT_BUILD)
+	set(DEFAULT_ENFORCE_BUILTIN_INTEGRITY FALSE)
+else()
+	set(DEFAULT_ENFORCE_BUILTIN_INTEGRITY TRUE)
+endif()
+set(ENFORCE_BUILTIN_INTEGRITY ${DEFAULT_ENFORCE_BUILTIN_INTEGRITY} CACHE BOOL
+	"Refuse to load modified builtin Lua files")
+
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 if(VERSION_EXTRA)
 	set(VERSION_STRING "${VERSION_STRING}-${VERSION_EXTRA}")
