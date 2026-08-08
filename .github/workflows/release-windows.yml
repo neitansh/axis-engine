@@ -93,6 +93,8 @@ jobs:
 
           cp bin/axis.exe axis_windows/bin/
 
+          strip axis_windows/bin/axis.exe || llvm-strip axis_windows/bin/axis.exe || true
+
           # Every DLL the executable needs, directly or transitively.
           echo "Bundling DLL dependencies into libs/..."
           bash util/bundle_dlls.sh \

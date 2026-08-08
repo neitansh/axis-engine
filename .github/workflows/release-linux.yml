@@ -51,6 +51,7 @@ jobs:
           mkdir -p axis_linux/libs
 
           cp bin/axis axis_linux/bin/
+          strip axis_linux/bin/axis
 
           # ------------------------------------------------------------
           # Collect shared libraries recursively into libs/, which the
