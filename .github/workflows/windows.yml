@@ -1,35 +1,10 @@
 name: windows
 
-# build on c/cpp changes or workflow changes
+# Только ручной запуск. Сборку под Windows для тестеров делает свой
+# release-windows.yml на MSYS2; гонять здесь ещё два чужих тулчейна
+# (MinGW-кросскомпиляцию и MSVC) на каждый коммит смысла нет.
 on:
-  push:
-    paths:
-      - 'lib/**.[ch]'
-      - 'lib/**.cpp'
-      - 'src/**.[ch]'
-      - 'src/**.cpp'
-      - 'irr/**.[ch]'
-      - 'irr/**.cpp'
-      - '**/CMakeLists.txt'
-      - 'cmake/Modules/**'
-      - 'po/**.po'
-      - 'util/buildbot/**'
-      - 'misc/*'
-      - '.github/workflows/windows.yml'
-  pull_request:
-    paths:
-      - 'lib/**.[ch]'
-      - 'lib/**.cpp'
-      - 'src/**.[ch]'
-      - 'src/**.cpp'
-      - 'irr/**.[ch]'
-      - 'irr/**.cpp'
-      - '**/CMakeLists.txt'
-      - 'cmake/Modules/**'
-      - 'po/**.po'
-      - 'util/buildbot/**'
-      - 'misc/*'
-      - '.github/workflows/windows.yml'
+  workflow_dispatch:
 
 # Name of what the build produces, follows project() in CMakeLists.txt.
 # The executables are ${PROJECT_NAME} and ${PROJECT_NAME}server.

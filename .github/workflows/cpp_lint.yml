@@ -28,12 +28,13 @@ on:
       - 'util/ci/**'
       - '.github/workflows/**.yml'
 
+# На раннере Ubuntu 26.04, clang-tidy-15 там уже нет — самый старый доступный 20.
 env:
-  CLANG_TIDY: clang-tidy-15
+  CLANG_TIDY: clang-tidy-20
 
 jobs:
   clang_tidy:
-    runs-on: ubuntu-22.04
+    runs-on: [self-hosted, linux, x64, public]
     steps:
     - uses: actions/checkout@v7
     - name: Install deps
