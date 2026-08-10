@@ -503,13 +503,12 @@ Server::~Server()
 
 void Server::init()
 {
-	infostream << "Server created for gameid \"" << m_gamespec.id << "\"";
+	infostream << "Server created";
 	if (m_simple_singleplayer_mode)
 		infostream << " in simple singleplayer mode" << std::endl;
 	else
 		infostream << std::endl;
 	infostream << "- world:  " << m_path_world << std::endl;
-	infostream << "- game:   " << m_gamespec.path << std::endl;
 
 	m_game_settings = Settings::createLayer(SL_GAME);
 
@@ -690,8 +689,7 @@ void Server::start()
 	}
 
 	actionstream << "World at [" << m_path_world << "]" << std::endl;
-	actionstream << "Server for gameid=\"" << m_gamespec.id
-				 << "\" listening on ";
+	actionstream << "Server listening on ";
 	m_bind_addr.print(actionstream);
 	actionstream << "." << std::endl;
 }
@@ -3637,8 +3635,6 @@ std::string Server::getStatusString()
 	os << "# Server: ";
 	// Version
 	os << "version: " << g_version_string;
-	// Game
-	os << " | game: " << (m_gamespec.title.empty() ? m_gamespec.id : m_gamespec.title);
 	// Uptime
 	os << " | uptime: " << duration_to_string((int)m_uptime_counter->get());
 	// Max lag estimate
