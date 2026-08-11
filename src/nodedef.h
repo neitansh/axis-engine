@@ -326,6 +326,25 @@ struct ContentFeatures
 	// These will be drawn over the base tiles.
 	TileDef tiledef_overlay[6];
 	TileDef tiledef_special[CF_SPECIAL_COUNT]; // eg. flowing liquid
+
+	/*
+		Fringe: geometry drawn along the top edge of each *visible* side face,
+		textured with special_tiles[0].
+
+		It exists because a node cannot otherwise have anything sticking out of
+		it without giving up face culling: mesh and nodebox drawtypes report
+		solidness 0, which stops the node occluding its neighbours and makes a
+		field of them ruinously expensive. Here the extra quads ride along with
+		the face they belong to, so they are culled exactly when it is -- grass
+		fringes appear at exposed edges and cost nothing in the middle of a
+		field, which is also where they would look wrong.
+	*/
+	// Height of the leaning part, in nodes. Zero disables the whole thing.
+	f32 fringe_height = 0.0f;
+	// How far it leans outwards, in degrees, hinged at the top edge.
+	f32 fringe_lean = 0.0f;
+	// How far a horizontal skirt jutts past the node, in nodes. Zero omits it.
+	f32 fringe_overhang = 0.0f;
 	AlphaMode alpha;
 	// The color of the node.
 	video::SColor color;

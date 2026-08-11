@@ -151,6 +151,7 @@ private:
 		float offset_h, float offset_v = 0.0);
 
 // drawtypes
+	void drawFringe(u8 faces);
 	void drawSolidNode();
 	void drawLiquidNode();
 	void drawGlasslikeNode();

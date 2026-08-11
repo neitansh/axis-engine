@@ -1797,6 +1797,25 @@ There are a bunch of different looking node types.
     * Tiles should hold model materials textures.
     * Only static meshes are implemented.
     * For supported model formats see Irrlicht engine documentation.
+Nodes drawn as `normal` may additionally define a `fringe`: geometry along the
+top edge of each *visible* side face, textured with `special_tiles[1]`.
+
+    special_tiles = {{name = "grass_blades.png"}},
+    fringe = {
+        height = 5/16,     -- height of the strip leaning outwards; 0 disables
+        lean = 22.5,       -- how far it leans out, in degrees, hinged at the top
+        overhang = 3.5/16, -- horizontal skirt jutting past the node; 0 omits it
+    },
+
+Set `use_texture_alpha = "clip"` on the node as well, or the transparent parts
+of the fringe texture are drawn as they are: a `normal` node is opaque unless
+told otherwise.
+
+The fringe is culled together with the face it belongs to, so it shows along
+exposed edges and costs nothing where the node is surrounded. This is what
+`mesh` and `nodebox` cannot do: those report a solidness of 0, which stops the
+node occluding its neighbours.
+
 * `plantlike_rooted`
     * Enables underwater `plantlike` without air bubbles around the nodes.
     * Consists of a base cube at the coordinates of the node plus a

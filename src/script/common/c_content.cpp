@@ -803,6 +803,16 @@ void read_content_features(lua_State *L, ContentFeatures &f, int index)
 	read_tiles("overlay_tiles", f.tiledef_overlay);
 
 	// special_tiles = {}
+	// Fringe: extra geometry along visible side faces, textured with
+	// special_tiles[0]. See ContentFeatures for why it is not a mesh.
+	lua_getfield(L, index, "fringe");
+	if (lua_istable(L, -1)) {
+		f.fringe_height = getfloatfield_default(L, -1, "height", 0.0f);
+		f.fringe_lean = getfloatfield_default(L, -1, "lean", 0.0f);
+		f.fringe_overhang = getfloatfield_default(L, -1, "overhang", 0.0f);
+	}
+	lua_pop(L, 1);
+
 	lua_getfield(L, index, "special_tiles");
 	if (lua_istable(L, -1)) {
 		for (int i = 0; LuaHelper::geti(L, -1, i); ++i, lua_pop(L, 1)) {

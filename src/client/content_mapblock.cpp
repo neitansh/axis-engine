@@ -427,6 +427,89 @@ void MapblockMeshGenerator::drawAutoLightedCuboid(aabb3f box,
 	}
 }
 
+// Draws the fringe of a solid node: a strip leaning outwards from the top of
+// each visible side face, plus an optional horizontal skirt jutting past it.
+//
+// The point of doing this here rather than with a mesh node is culling. `faces`
+// has already been worked out from the neighbours, so the fringe follows the
+// face it belongs to: it shows along an exposed edge and disappears in the
+// middle of a field, where grass leaning over its neighbour would look wrong
+// and cost geometry for nothing.
+void MapblockMeshGenerator::drawFringe(u8 faces)
+{
+	const f32 height = cur_node.f->fringe_height;
+	const f32 overhang = cur_node.f->fringe_overhang;
+	if (height <= 0.0f && overhang <= 0.0f)
+		return;
+
+	TileSpec tile;
+	// Both sides are visible: the strip leans away from the block, so from
+	// outside you see its back.
+	useTile(&tile, 0, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
+	if (tile.layers[0].empty())
+		return;
+
+	// drawNode() skips the usual lighting setup for solid nodes -- drawSolidNode
+	// works it out per face on its own -- so it has to happen here, or drawQuad
+	// reads a colour nobody filled in and the fringe comes out black.
+	//
+	// The light is taken from the node above rather than from inside this one:
+	// the fringe sticks up into the open air, and a solid node's own interior
+	// light is nil.
+	if (data->m_smooth_lighting) {
+		getSmoothLightFrame();
+	} else {
+		const MapNode above = data->m_vmanip.getNodeNoEx(
+				blockpos_nodes + cur_node.p + v3s16(0, 1, 0));
+		cur_node.lcolor = encode_light(getFaceLight(cur_node.n, above, nodedef),
+				cur_node.f->light_source);
+	}
+
+	const f32 lean = cur_node.f->fringe_lean * core::DEGTORAD;
+	// Hinged at the top edge, so the bottom of the strip swings outwards.
+	const f32 out = std::sin(lean) * height;
+	const f32 drop = std::cos(lean) * height;
+	const f32 top = 0.5f * BS;
+	// A hair above the face, or it fights with it for the same pixels.
+	const f32 skin = 0.001f * BS;
+
+	// Only the four sides: a fringe on the top or bottom face is meaningless.
+	static const struct {
+		int face;          // index in the face bitmask
+		v3f out_dir;       // outwards from the node
+		v3f along_dir;     // along the edge
+	} sides[4] = {
+		{ 2, v3f( 1, 0, 0), v3f(0, 0, 1) },
+		{ 3, v3f(-1, 0, 0), v3f(0, 0, 1) },
+		{ 4, v3f( 0, 0, 1), v3f(1, 0, 0) },
+		{ 5, v3f( 0, 0,-1), v3f(1, 0, 0) },
+	};
+
+	for (const auto &side : sides) {
+		if (!(faces & (1 << side.face)))
+			continue;
+
+		const v3f face = side.out_dir * (0.5f * BS + skin);
+		const v3f half = side.along_dir * (0.5f * BS);
+
+		if (height > 0.0f) {
+			// Leaning strip: top edge on the block, bottom edge swung out.
+			const v3f hi = face + v3f(0, top, 0);
+			const v3f lo = face + side.out_dir * (out * BS) + v3f(0, top - drop * BS, 0);
+			v3f coords[4] = { lo - half, lo + half, hi + half, hi - half };
+			drawQuad(tile, coords, v3s16::from(side.out_dir));
+		}
+
+		if (overhang > 0.0f) {
+			// Horizontal skirt lying over whatever is beyond the edge.
+			const v3f inner = face + v3f(0, top + skin, 0);
+			const v3f outer = inner + side.out_dir * (overhang * BS);
+			v3f coords[4] = { inner - half, inner + half, outer + half, outer - half };
+			drawQuad(tile, coords, v3s16(0, 1, 0));
+		}
+	}
+}
+
 void MapblockMeshGenerator::drawSolidNode()
 {
 	u8 faces = 0; // k-th bit will be set if k-th face is to be drawn.
@@ -472,6 +555,7 @@ void MapblockMeshGenerator::drawSolidNode()
 	}
 	if (!faces)
 		return;
+	drawFringe(faces);
 	u8 mask = faces ^ 0b0011'1111; // k-th bit is set if k-th face is to be *omitted*, as expected by cuboid drawing functions.
 	auto box = aabb3f(v3f(-0.5 * BS), v3f(0.5 * BS));
 	box.MinEdge += cur_node.origin;
