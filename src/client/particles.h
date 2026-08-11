@@ -107,6 +107,15 @@ private:
 	// Color without lighting
 	video::SColor m_base_color;
 
+	// Cached result of updateLight(). Looking the light up means finding the
+	// node in the map, which is far from free, and the answer cannot change
+	// while the particle stays inside the same node and the sky does not move.
+	// A particle drifting a node per second reuses this for tens of frames.
+	v3s16 m_light_node{S16_MIN, S16_MIN, S16_MIN};
+	u32 m_light_ratio = 0;
+	bool m_light_valid = false;
+	video::SColor m_light_color;
+
 	ClientParticleTexRef m_texture;
 	v2f m_texpos;
 	v2f m_texsize;

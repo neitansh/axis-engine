@@ -189,6 +189,11 @@ video::SColor Particle::updateLight(ClientEnvironment *env)
 		floor(m_pos.Y+0.5),
 		floor(m_pos.Z+0.5)
 	);
+
+	const u32 ratio = env->getDayNightRatio();
+	if (m_light_valid && p == m_light_node && ratio == m_light_ratio)
+		return m_light_color;
+
 	MapNode n = env->getClientMap().getNode(p, &pos_ok);
 	if (pos_ok)
 		light = n.getLightBlend(env->getDayNightRatio(),
@@ -197,10 +202,14 @@ video::SColor Particle::updateLight(ClientEnvironment *env)
 		light = blend_light(env->getDayNightRatio(), LIGHT_SUN, 0);
 
 	u8 m_light = decode_light(light + m_p.glow);
-	return video::SColor(255,
+	m_light_color = video::SColor(255,
 		m_light * m_base_color.getRed() / 255,
 		m_light * m_base_color.getGreen() / 255,
 		m_light * m_base_color.getBlue() / 255);
+	m_light_node = p;
+	m_light_ratio = ratio;
+	m_light_valid = true;
+	return m_light_color;
 }
 
 void Particle::updateVertices(ClientEnvironment *env, video::SColor color)
