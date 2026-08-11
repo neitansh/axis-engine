@@ -5,6 +5,8 @@
 #include "particles.h"
 #include <cmath>
 #include <array>
+#include <algorithm>
+#include "ICameraSceneNode.h"
 #include "client.h"
 #include "collision.h"
 #include "client/content_cao.h"
@@ -594,6 +596,8 @@ std::optional<u16> ParticleBuffer::allocate()
 			vertices[4 * index + i] = video::S3DVertex();
 		for (u16 i = 0; i < 6; i++)
 			indices[6 * index + i] = 4 * index + quad_indices[i];
+		m_live[index] = true;
+		m_indices_dirty = true;
 		return index;
 	}
 
@@ -606,15 +610,20 @@ std::optional<u16> ParticleBuffer::allocate()
 	std::array<video::S3DVertex, 4> vertices {};
 	m_mesh_buffer->append(&vertices.front(), 4, quad_indices, 6);
 	index = m_count++;
+	m_live.resize(m_count, false);
+	m_live[index] = true;
+	m_indices_dirty = true;
 	return index;
 }
 
 void ParticleBuffer::release(u16 index)
 {
 	assert(index < m_count);
-	u16 *indices = m_mesh_buffer->getIndices();
-	for (u16 i = 0; i < 6; i++)
-		indices[6 * index + i] = 0;
+	// The index buffer is rebuilt from m_live every frame, so there is nothing
+	// to erase here. Zeroing it would be wrong besides: after the depth sort a
+	// slot's quad no longer lives at its own offset.
+	m_live[index] = false;
+	m_indices_dirty = true;
 	m_free_list.push_back(index);
 }
 
@@ -644,9 +653,7 @@ const core::aabbox3df &ParticleBuffer::getBoundingBox() const
 	core::aabbox3df box{{0, 0, 0}};
 	bool first = true;
 	for (u16 i = 0; i < m_count; i++) {
-		// check if this index is used
-		static_assert(quad_indices[1] != 0);
-		if (m_mesh_buffer->getIndices()[6 * i + 1] == 0)
+		if (!m_live[i])
 			continue;
 
 		for (u16 j = 0; j < 4; j++) {
@@ -664,12 +671,80 @@ const core::aabbox3df &ParticleBuffer::getBoundingBox() const
 	return m_mesh_buffer->BoundingBox;
 }
 
+void ParticleBuffer::updateIndices()
+{
+	// Blended particles do not write depth (see
+	// ParticleManager::getMaterialForParticle), so nothing but the drawing
+	// order decides which of two overlapping particles ends up on top. Left
+	// unordered, a particle further away can be drawn later and paint over a
+	// nearer one -- smoke shows through smoke, and a cloud looks inside out.
+	//
+	// Ordering them back to front makes the blend come out right. This is not
+	// exact for particles that intersect each other, but for the sprites
+	// particles actually are it is what a depth sort is for.
+	//
+	// Alpha-clipped particles do write depth and need none of this.
+	const bool needs_sorting = m_mesh_buffer->getMaterial().MaterialType
+			!= video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+
+	// An alpha-clipped buffer only has to be rebuilt when a particle came or
+	// went; rebuilding it every frame would re-upload the index buffer for
+	// nothing.
+	if (!needs_sorting && !m_indices_dirty)
+		return;
+
+	m_sort_scratch.clear();
+	m_sort_scratch.reserve(m_count);
+
+	const scene::ICameraSceneNode *camera = SceneManager->getActiveCamera();
+	const bool sort = needs_sorting && camera != nullptr;
+	const v3f eye = sort ? camera->getAbsolutePosition() : v3f();
+
+	for (u16 i = 0; i < m_count; i++) {
+		if (!m_live[i])
+			continue;
+		f32 key = 0.0f;
+		if (sort) {
+			// Centre of the quad from its two opposite corners. Cheaper than
+			// averaging all four, and accurate enough to order by: a corner
+			// alone would misplace the large sprites an explosion throws.
+			const v3f centre = (m_mesh_buffer->getPosition(4 * i)
+					+ m_mesh_buffer->getPosition(4 * i + 2)) * 0.5f;
+			key = centre.getDistanceFromSQ(eye);
+		}
+		m_sort_scratch.emplace_back(key, i);
+	}
+
+	if (sort) {
+		// Farthest first.
+		std::sort(m_sort_scratch.begin(), m_sort_scratch.end(),
+				[] (const auto &a, const auto &b) { return a.first > b.first; });
+	}
+
+	u16 *indices = m_mesh_buffer->getIndices();
+	u32 out = 0;
+	for (const auto &entry : m_sort_scratch) {
+		for (u16 j = 0; j < 6; j++)
+			indices[out++] = 4 * entry.second + quad_indices[j];
+	}
+	// Slots without a particle collapse to a degenerate triangle, which draws
+	// nothing.
+	const u32 total = 6u * m_count;
+	while (out < total)
+		indices[out++] = 0;
+
+	m_mesh_buffer->setDirty(scene::EBT_INDEX);
+	m_indices_dirty = false;
+}
+
 void ParticleBuffer::render()
 {
 	video::IVideoDriver *driver = SceneManager->getVideoDriver();
 
 	if (isEmpty())
 		return;
+
+	updateIndices();
 
 	driver->setTransform(video::ETS_WORLD, core::matrix4());
 	driver->setMaterial(m_mesh_buffer->getMaterial());

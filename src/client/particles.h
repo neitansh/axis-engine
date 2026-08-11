@@ -194,9 +194,21 @@ public:
 	static constexpr u16 MAX_PARTICLES_PER_BUFFER = 16000;
 
 private:
+	/// Rewrites the index buffer, ordering the particles back to front when the
+	/// material needs it. Called once per frame from render().
+	void updateIndices();
+
 	irr_ptr<scene::SMeshBuffer> m_mesh_buffer;
 	// unused (e.g. expired) particle indices for re-use
 	std::vector<u16> m_free_list;
+	// which slots hold a live particle. The index buffer cannot answer this
+	// once the particles have been reordered for depth.
+	std::vector<bool> m_live;
+	// scratch for updateIndices(), kept to avoid reallocating every frame
+	std::vector<std::pair<f32, u16>> m_sort_scratch;
+	// set when the live set changed. Depth-sorted buffers are rebuilt every
+	// frame regardless, since both the particles and the camera move.
+	bool m_indices_dirty = true;
 	// for automatic deletion when unused for a while. is reset on allocate().
 	float m_usage_timer = 0;
 	// total count of contained particles
