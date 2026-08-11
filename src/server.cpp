@@ -2948,8 +2948,11 @@ void Server::fillMediaCache()
 	paths.push_back(getBuiltinLuaPath() + DIR_DELIM "locale");
 	fs::GetRecursiveDirs(paths,
 						 porting::path_user + DIR_DELIM "textures" DIR_DELIM "server");
-	fs::GetRecursiveDirs(paths,
-						 m_gamespec.path + DIR_DELIM "textures");
+	// A game gets the same media directories as a mod, so that it can keep its
+	// assets together instead of scattering them across the mods that use them.
+	// The game comes before the mods here, which lets it override their media.
+	for (const char *dir : {"textures", "sounds", "media", "models", "fonts", "locale"})
+		fs::GetRecursiveDirs(paths, m_gamespec.path + DIR_DELIM + dir);
 	m_modmgr->getModsMediaPaths(paths);
 
 	// Collect media file information from paths into cache
