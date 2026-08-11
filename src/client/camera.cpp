@@ -126,6 +126,15 @@ void Camera::notifyFovChange()
 	{
 		m_transition_time = spec.transition_time;
 		m_fov_diff = m_target_fov_degrees - m_old_fov_degrees;
+
+		// A transition that has nowhere to go must not start. Its completion
+		// test in update() checks whether the current FOV has passed the target
+		// in the direction of travel, and with no direction neither half of
+		// that test can ever hold: the transition would stay active forever,
+		// pinning the FOV to whatever it was when the transition began. A mod
+		// re-applying the FOV it already has is enough to trigger it.
+		if (m_fov_diff == 0.0f)
+			m_fov_transition_active = false;
 	}
 }
 

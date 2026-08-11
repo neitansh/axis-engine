@@ -213,13 +213,16 @@ private:
 
 	bool m_stepheight_smooth_active = false;
 
-	// Server-sent FOV variables
+	// Server-sent FOV variables.
+	// These start at a sane angle rather than whatever the memory held: a
+	// camera entering a world for the second time would otherwise inherit the
+	// previous session's garbage until something overwrites it.
 	bool m_server_sent_fov = false;
-	f32 m_curr_fov_degrees, m_target_fov_degrees;
+	f32 m_curr_fov_degrees = 72.0f, m_target_fov_degrees = 72.0f;
 
 	// FOV transition variables
 	bool m_fov_transition_active = false;
-	f32 m_fov_diff, m_transition_time;
+	f32 m_fov_diff = 0.0f, m_transition_time = 0.0f;
 
 	v2f m_wieldmesh_offset = v2f(55.0f, -35.0f);
 	v2f m_arm_dir;
