@@ -638,11 +638,49 @@ video::S3DVertex *ParticleBuffer::getVertices(u16 index)
 void ParticleBuffer::OnRegisterSceneNode()
 {
 	if (IsVisible) {
+		const bool blended = m_mesh_buffer->getMaterial().MaterialType
+				!= video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF;
+		// Has to happen before registering: that is where the sort key is
+		// taken and where culling reads the bounding box.
+		if (blended)
+			updateSortPosition();
 		SceneManager->registerNodeForRendering(this,
-				m_mesh_buffer->getMaterial().MaterialType == video::EMT_TRANSPARENT_ALPHA_CHANNEL_REF
-				? scene::ESNRP_SOLID : scene::ESNRP_TRANSPARENT_EFFECT);
+				blended ? scene::ESNRP_TRANSPARENT_EFFECT : scene::ESNRP_SOLID);
 	}
 	scene::ISceneNode::OnRegisterSceneNode();
+}
+
+void ParticleBuffer::updateSortPosition()
+{
+	// The scene manager orders transparent nodes by the distance from the
+	// camera to the node's own translation (see TransparentNodeEntry). A
+	// particle buffer never had one, so every buffer reported the distance to
+	// the world origin, they all compared equal, and their order came out
+	// arbitrary. Since a buffer is created per material, that is exactly the
+	// case of particles with one texture drawing over nearer particles with
+	// another.
+	//
+	// Giving the node the centre of its particles makes that ordering work.
+	// Vertices stay in world coordinates -- render() resets the world
+	// transform -- so the position only ever serves as a sort key, and
+	// getBoundingBox() hands back a box relative to it so that culling keeps
+	// working.
+	v3f sum;
+	u32 live = 0;
+	for (u16 i = 0; i < m_count; i++) {
+		if (!m_live[i])
+			continue;
+		sum += (m_mesh_buffer->getPosition(4 * i)
+				+ m_mesh_buffer->getPosition(4 * i + 2)) * 0.5f;
+		live++;
+	}
+
+	const v3f centre = live > 0 ? sum / static_cast<f32>(live) : v3f();
+	if (centre != getPosition()) {
+		setPosition(centre);
+		updateAbsolutePosition();
+		m_bounding_box_dirty = true;
+	}
 }
 
 const core::aabbox3df &ParticleBuffer::getBoundingBox() const
@@ -665,6 +703,13 @@ const core::aabbox3df &ParticleBuffer::getBoundingBox() const
 			first = false;
 		}
 	}
+
+	// The vertices are in world coordinates, but the scene manager culls with
+	// the box put through the node's transformation. Hand it back relative to
+	// the node so the two do not stack up.
+	const v3f offset = getPosition();
+	box.MinEdge -= offset;
+	box.MaxEdge -= offset;
 
 	m_mesh_buffer->BoundingBox = box;
 	m_bounding_box_dirty = false;

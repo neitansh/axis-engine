@@ -198,6 +198,10 @@ private:
 	/// material needs it. Called once per frame from render().
 	void updateIndices();
 
+	/// Moves the node to the centre of its particles so the scene manager can
+	/// order it against the other transparent nodes.
+	void updateSortPosition();
+
 	irr_ptr<scene::SMeshBuffer> m_mesh_buffer;
 	// unused (e.g. expired) particle indices for re-use
 	std::vector<u16> m_free_list;
