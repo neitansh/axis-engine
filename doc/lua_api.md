@@ -1798,11 +1798,18 @@ There are a bunch of different looking node types.
     * Only static meshes are implemented.
     * For supported model formats see Irrlicht engine documentation.
 Nodes drawn as `normal` may additionally define a `fringe`: geometry along the
-top edge of each *visible* side face. `special_tiles[1]` textures the leaning
-strip and `special_tiles[2]` the horizontal skirt; with only the first one
-given, it is used for both.
+top edge of each *visible* side face. Four special tiles texture it, so that
+the two axes can carry different artwork -- with one strip on all four sides,
+the repeat is plain to see wherever two of them meet at a corner:
 
-    special_tiles = {{name = "grass_blades.png"}, {name = "grass_skirt.png"}},
+    special_tiles = {
+        {name = "blades_z.png"},  -- leaning strip, faces along Z
+        {name = "blades_x.png"},  -- leaning strip, faces along X (default: 1st)
+        {name = "skirt_z.png"},   -- skirt, faces along Z         (default: 1st)
+        {name = "skirt_x.png"},   -- skirt, faces along X         (default: 3rd)
+    },
+
+The top edge of each texture is the one attached to the block.
     fringe = {
         height = 5/16,     -- height of the strip leaning outwards; 0 disables
         lean = 22.5,       -- how far it leans out, in degrees, hinged at the top

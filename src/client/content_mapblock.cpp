@@ -442,19 +442,28 @@ void MapblockMeshGenerator::drawFringe(u8 faces)
 	if (height <= 0.0f && overhang <= 0.0f)
 		return;
 
-	// Both sides are visible: the strip leans away from the block, so from
-	// outside you see its back.
-	TileSpec lean_tile;
-	useTile(&lean_tile, 0, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
-	if (lean_tile.layers[0].empty())
+	// Four tiles, because the two parts are shaped differently and the two axes
+	// want different artwork -- otherwise the fringe on a corner shows the same
+	// blades twice, meeting at a right angle, and the repeat is obvious.
+	//
+	//   special_tiles[1]  leaning strip, faces along Z
+	//   special_tiles[2]  leaning strip, faces along X   (default: [1])
+	//   special_tiles[3]  skirt, faces along Z           (default: [1])
+	//   special_tiles[4]  skirt, faces along X           (default: [3])
+	//
+	// Backface culling is switched off for all of them: the strip leans away
+	// from the block, so from outside you are looking at its back.
+	TileSpec tiles[4];
+	for (int i = 0; i < 4; i++)
+		useTile(&tiles[i], i, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
+	if (tiles[0].layers[0].empty())
 		return;
-
-	// The skirt lies flat and is usually drawn shorter than the leaning strip,
-	// so it gets a tile of its own. Falls back to the first one when unset.
-	TileSpec skirt_tile;
-	useTile(&skirt_tile, 1, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
-	if (skirt_tile.layers[0].empty())
-		skirt_tile = lean_tile;
+	if (tiles[1].layers[0].empty())
+		tiles[1] = tiles[0];
+	if (tiles[2].layers[0].empty())
+		tiles[2] = tiles[0];
+	if (tiles[3].layers[0].empty())
+		tiles[3] = tiles[2];
 
 	// drawNode() skips the usual lighting setup for solid nodes -- drawSolidNode
 	// works it out per face on its own -- so it has to happen here, or drawQuad
@@ -485,11 +494,12 @@ void MapblockMeshGenerator::drawFringe(u8 faces)
 		int face;          // index in the face bitmask
 		v3f out_dir;       // outwards from the node
 		v3f along_dir;     // along the edge
+		int tile;          // leaning tile for this axis; the skirt is +2
 	} sides[4] = {
-		{ 2, v3f( 1, 0, 0), v3f(0, 0, 1) },
-		{ 3, v3f(-1, 0, 0), v3f(0, 0, 1) },
-		{ 4, v3f( 0, 0, 1), v3f(1, 0, 0) },
-		{ 5, v3f( 0, 0,-1), v3f(1, 0, 0) },
+		{ 2, v3f( 1, 0, 0), v3f(0, 0, 1), 1 },
+		{ 3, v3f(-1, 0, 0), v3f(0, 0, 1), 1 },
+		{ 4, v3f( 0, 0, 1), v3f(1, 0, 0), 0 },
+		{ 5, v3f( 0, 0,-1), v3f(1, 0, 0), 0 },
 	};
 
 	for (const auto &side : sides) {
@@ -501,18 +511,23 @@ void MapblockMeshGenerator::drawFringe(u8 faces)
 
 		if (height > 0.0f) {
 			// Leaning strip: top edge on the block, bottom edge swung out.
+			//
+			// The top of the strip comes first, because drawQuad puts the top
+			// of the texture on the first two vertices. Feed it the other way
+			// round and the blades grow root-end outwards.
 			const v3f hi = face + v3f(0, top, 0);
 			const v3f lo = face + side.out_dir * (out * BS) + v3f(0, top - drop * BS, 0);
-			v3f coords[4] = { lo - half, lo + half, hi + half, hi - half };
-			drawQuad(lean_tile, coords, v3s16::from(side.out_dir));
+			v3f coords[4] = { hi - half, hi + half, lo + half, lo - half };
+			drawQuad(tiles[side.tile], coords, v3s16::from(side.out_dir));
 		}
 
 		if (overhang > 0.0f) {
-			// Horizontal skirt lying over whatever is beyond the edge.
+			// Horizontal skirt lying over whatever is beyond the edge. Same
+			// rule: the edge touching the block takes the top of the texture.
 			const v3f inner = face + v3f(0, top + skin, 0);
 			const v3f outer = inner + side.out_dir * (overhang * BS);
 			v3f coords[4] = { inner - half, inner + half, outer + half, outer - half };
-			drawQuad(skirt_tile, coords, v3s16(0, 1, 0));
+			drawQuad(tiles[side.tile + 2], coords, v3s16(0, 1, 0));
 		}
 	}
 }
