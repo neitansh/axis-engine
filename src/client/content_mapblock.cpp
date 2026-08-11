@@ -442,12 +442,19 @@ void MapblockMeshGenerator::drawFringe(u8 faces)
 	if (height <= 0.0f && overhang <= 0.0f)
 		return;
 
-	TileSpec tile;
 	// Both sides are visible: the strip leans away from the block, so from
 	// outside you see its back.
-	useTile(&tile, 0, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
-	if (tile.layers[0].empty())
+	TileSpec lean_tile;
+	useTile(&lean_tile, 0, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
+	if (lean_tile.layers[0].empty())
 		return;
+
+	// The skirt lies flat and is usually drawn shorter than the leaning strip,
+	// so it gets a tile of its own. Falls back to the first one when unset.
+	TileSpec skirt_tile;
+	useTile(&skirt_tile, 1, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
+	if (skirt_tile.layers[0].empty())
+		skirt_tile = lean_tile;
 
 	// drawNode() skips the usual lighting setup for solid nodes -- drawSolidNode
 	// works it out per face on its own -- so it has to happen here, or drawQuad
@@ -497,7 +504,7 @@ void MapblockMeshGenerator::drawFringe(u8 faces)
 			const v3f hi = face + v3f(0, top, 0);
 			const v3f lo = face + side.out_dir * (out * BS) + v3f(0, top - drop * BS, 0);
 			v3f coords[4] = { lo - half, lo + half, hi + half, hi - half };
-			drawQuad(tile, coords, v3s16::from(side.out_dir));
+			drawQuad(lean_tile, coords, v3s16::from(side.out_dir));
 		}
 
 		if (overhang > 0.0f) {
@@ -505,7 +512,7 @@ void MapblockMeshGenerator::drawFringe(u8 faces)
 			const v3f inner = face + v3f(0, top + skin, 0);
 			const v3f outer = inner + side.out_dir * (overhang * BS);
 			v3f coords[4] = { inner - half, inner + half, outer + half, outer - half };
-			drawQuad(tile, coords, v3s16(0, 1, 0));
+			drawQuad(skirt_tile, coords, v3s16(0, 1, 0));
 		}
 	}
 }
