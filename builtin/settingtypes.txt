@@ -2032,7 +2032,7 @@ mgvalleys_np_dungeons (Dungeon noise) noise_params_3d 0.9, 0.5, (500, 500, 500),
 #    Take a screenshot this many seconds after entering a world, then quit.
 #    Meant for adjusting how the game looks in repeated runs, without a
 #    person at the keyboard. 0 disables it.
-screenshot_after (Screenshot after) float 0.0 0.0 600.0
+screenshot_after (Screenshot after) [client] float 0.0 0.0 600.0
 
 #    Enable Lua modding support on client.
 #    This support is experimental and API can change.

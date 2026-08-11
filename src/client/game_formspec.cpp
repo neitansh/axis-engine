@@ -355,6 +355,17 @@ void GameFormSpec::showPlayerInventory(const std::string *fs_override)
 
 #define SIZE_TAG "size[11,5.5,true]" // Fixed size (ignored in touchscreen mode)
 
+// Shared look of every menu, mirroring builtin/common/menu_style.lua. That file
+// is the source of truth for the palette and the nine-slice art; this menu is
+// built in C++ and cannot read it, so the few values it needs are repeated here.
+// The textures live in the base pack, which the client's texture source already
+// serves to formspecs by plain name.
+namespace {
+	const char *MENU_TEXT_COLOR = "#E8EAED";
+	// Corner size of the button art, in source pixels.
+	const int MENU_BUTTON_MIDDLE = 2;
+}
+
 void GameFormSpec::showPauseMenu()
 {
 	std::string control_text;
@@ -377,81 +388,87 @@ void GameFormSpec::showPauseMenu()
 
 	auto simple_singleplayer_mode = m_client->m_simple_singleplayer_mode;
 
-	float ypos = simple_singleplayer_mode ? 0.7f : 0.1f;
+	// One column, laid out from the top down. Sizes are named so the menu can
+	// gain or lose a button without every following number having to move.
+	const float margin = 0.7f;
+	const float width = 6.4f;
+	const float button_w = width - 2 * margin;
+	const float button_h = 0.9f;
+	const float gap = 0.25f;
+	// The wordmark is 1344x144 in source, kept at its own aspect ratio so it
+	// does not smear.
+	const float logo_w = button_w;
+	const float logo_h = logo_w * 144.0f / 1344.0f;
+
+	int buttons = 4; // continue, settings, exit to menu, exit to OS
+#if !defined(__ANDROID__) && USE_SOUND
+	buttons++;
+#endif
+	if (!simple_singleplayer_mode)
+		buttons++; // change password
+
+	float y = margin;
+	const float logo_y = y;
+	y += logo_h + 0.45f;
+	const float title_y = y;
+	y += 0.5f + 0.35f;
+	const float first_button_y = y;
+	float height = first_button_y + buttons * button_h + (buttons - 1) * gap + margin;
+
 	std::ostringstream os;
+	os << "formspec_version[6]"
+		<< "size[" << width << "," << height << ",true]"
+		<< "bgcolor[#00000000;true]"
+		<< "background9[0,0;" << width << "," << height
+			<< ";axis_panel.png;false;2]"
+		<< "style_type[button,image_button;bgimg=axis_button.png"
+			";bgimg_hovered=axis_button_hover.png"
+			";bgimg_pressed=axis_button_pressed.png"
+			";bgimg_middle=" << MENU_BUTTON_MIDDLE
+			<< ";border=false;textcolor=" << MENU_TEXT_COLOR << "]"
+		// An area label is the only kind that can be centred, and centring is
+		// what the heading was missing.
+		<< "style_type[label;textcolor=" << MENU_TEXT_COLOR << ";halign=center]"
+		<< "image[" << margin << "," << logo_y << ";"
+			<< logo_w << "," << logo_h << ";menu_header.png]"
+		<< "label[" << margin << "," << title_y << ";" << button_w << ",0.5;"
+			<< strgettext("Game paused") << "]";
 
-	os << "formspec_version[1]" << SIZE_TAG
-		<< "button_exit[4," << (ypos++) << ";3,0.5;btn_continue;"
-		// TRANSLATORS: Pause menu button, try to keep the translation short
-		<< strgettext("Continue") << "]";
+	auto button = [&](const char *tag, const std::string &label, bool exits) {
+		os << (exits ? "button_exit[" : "button[")
+			<< margin << "," << y << ";" << button_w << "," << button_h << ";"
+			<< tag << ";" << label << "]";
+		y += button_h + gap;
+	};
+
+	// TRANSLATORS: Pause menu button, try to keep the translation short
+	button("btn_continue", strgettext("Continue"), true);
 
 	if (!simple_singleplayer_mode) {
-		os << "button[4," << (ypos++) << ";3,0.5;btn_change_password;"
-			// TRANSLATORS: Pause menu button, try to keep the translation short
-			<< strgettext("Change Password") << "]";
-	} else {
-		os << "field[4.95,0;5,1.5;;" << strgettext("Game paused") << ";]";
+		// TRANSLATORS: Pause menu button, try to keep the translation short
+		button("btn_change_password", strgettext("Change Password"), false);
 	}
 
-	os	<< "button[4," << (ypos++) << ";3,0.5;btn_settings;"
-		// TRANSLATORS: Try to keep the translation short
-		<< strgettext("Settings") << "]";
+	// TRANSLATORS: Try to keep the translation short
+	button("btn_settings", strgettext("Settings"), false);
 
-#ifndef __ANDROID__
-#if USE_SOUND
-	os << "button[4," << (ypos++) << ";3,0.5;btn_sound;"
-		// TRANSLATORS: Pause menu button, try to keep the translation short
-		<< strgettext("Sound Volume") << "]";
-#endif
+#if !defined(__ANDROID__) && USE_SOUND
+	// TRANSLATORS: Pause menu button, try to keep the translation short
+	button("btn_sound", strgettext("Sound Volume"), false);
 #endif
 
-	os		<< "button_exit[4," << (ypos++) << ";3,0.5;btn_exit_menu;"
-		// TRANSLATORS: Pause menu button, try to keep the translation short
-		<< strgettext("Exit to Menu") << "]";
-	os		<< "button_exit[4," << (ypos++) << ";3,0.5;btn_exit_os;"
-		// TRANSLATORS: Pause menu button, try to keep the translation short (OS = Operating System)
-		<< strgettext("Exit to OS")   << "]";
+	// TRANSLATORS: Pause menu button, try to keep the translation short
+	button("btn_exit_menu", strgettext("Exit to Menu"), true);
+	// TRANSLATORS: Pause menu button, try to keep the translation short (OS = Operating System)
+	button("btn_exit_os", strgettext("Exit to OS"), true);
+
+	// The version and server details that used to sit here were dropped: they
+	// were unreadable over the world and belong in the About screen anyway.
+	// Touch controls stay, because there they are the only place to read them.
 	if (!control_text.empty()) {
-	os		<< "textarea[7.5,0.25;3.9,6.25;;" << control_text << ";]";
+		os << "textarea[" << margin << "," << y << ";" << button_w << ",4;;"
+			<< control_text << ";]";
 	}
-	os		<< "textarea[0.4,0.25;3.9,6.25;;" << PROJECT_NAME_C " " VERSION_STRING "\n"
-		<< "\n"
-		<<  strgettext("Game info:") << "\n";
-	const std::string &address = m_client->getAddressName();
-	// TRANSLATORS: Game mode (server or singleplayer)
-	os << strgettext("- Mode: ");
-	if (!simple_singleplayer_mode) {
-		if (address.empty())
-			os << strgettext("Hosting server");
-		else
-			os << strgettext("Remote server");
-	} else {
-		os << strgettext("Singleplayer");
-	}
-	os << "\n";
-	if (simple_singleplayer_mode || address.empty()) {
-		static const std::string on = strgettext("On");
-		static const std::string off = strgettext("Off");
-		// Note: Status of enable_damage and creative_mode settings is intentionally
-		// NOT shown here because the game might roll its own damage system and/or do
-		// a per-player Creative Mode, in which case writing it here would mislead.
-		bool damage = g_settings->getBool("enable_damage");
-		const std::string &announced = g_settings->getBool("server_announce") ? on : off;
-		if (!simple_singleplayer_mode) {
-			if (damage) {
-				const std::string &pvp = g_settings->getBool("enable_pvp") ? on : off;
-				// TRANSLATORS: PvP = Player versus Player
-				os << strgettext("- PvP: ") << pvp << "\n";
-			}
-			os << strgettext("- Public: ") << announced << "\n";
-			std::string server_name = g_settings->get("server_name");
-			str_formspec_escape(server_name);
-			if (announced == on && !server_name.empty())
-				os << strgettext("- Server Name: ") << server_name;
-
-		}
-	}
-	os << ";]";
 
 	/* Create menu */
 	/* Note: FormspecFormSource and LocalFormspecHandler  *
