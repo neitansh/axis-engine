@@ -390,7 +390,7 @@ void GameFormSpec::showPauseMenu()
 
 	// One column, laid out from the top down. Sizes are named so the menu can
 	// gain or lose a button without every following number having to move.
-	const float width = 12.0f;
+	const float width = 16.0f;
 	const float panel_w = 6.4f;
 	const float panel_x = (width - panel_w) / 2.0f;
 	const float margin = 0.6f;
@@ -400,7 +400,7 @@ void GameFormSpec::showPauseMenu()
 
 	// The wordmark is 1344x144 in source, kept at its own aspect ratio so it
 	// does not smear.
-	const float logo_w = 11.0f;
+	const float logo_w = 15.0f;
 	const float logo_h = logo_w * 144.0f / 1344.0f;
 	const float logo_x = (width - logo_w) / 2.0f;
 
@@ -413,11 +413,15 @@ void GameFormSpec::showPauseMenu()
 
 	float y = 0.5f;
 	const float logo_y = y;
-	y += logo_h + 1.0f;
+	y += logo_h + 1.2f;
 	const float title_y = y;
 	y += 0.5f + 0.3f;
 	const float first_button_y = y;
 	float height = first_button_y + buttons * button_h + (buttons - 1) * gap + margin;
+
+	if (!control_text.empty()) {
+		height += 4.0f + gap;
+	}
 
 	const float panel_y = title_y - margin;
 	const float panel_h = height - panel_y;
