@@ -409,17 +409,20 @@ void GameFormSpec::showPauseMenu()
 
 	float y = margin;
 	const float logo_y = y;
-	y += logo_h + 0.45f;
+	y += logo_h + 0.8f;
 	const float title_y = y;
 	y += 0.5f + 0.35f;
 	const float first_button_y = y;
 	float height = first_button_y + buttons * button_h + (buttons - 1) * gap + margin;
 
+	const float panel_y = title_y - margin;
+	const float panel_h = height - panel_y;
+
 	std::ostringstream os;
 	os << "formspec_version[6]"
 		<< "size[" << width << "," << height << ",true]"
 		<< "bgcolor[#00000000;true]"
-		<< "background9[0,0;" << width << "," << height
+		<< "background9[0," << panel_y << ";" << width << "," << panel_h
 			<< ";axis_panel.png;false;2]"
 		<< "style_type[button,image_button;bgimg=axis_button.png"
 			";bgimg_hovered=axis_button_hover.png"
