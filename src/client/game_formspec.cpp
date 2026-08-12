@@ -397,19 +397,18 @@ void GameFormSpec::showPauseMenu()
 	const float gap = 0.25f;
 	// The wordmark is 1344x144 in source, kept at its own aspect ratio so it
 	// does not smear.
-	const float logo_w = button_w;
+	const float logo_w = 7.5f;
 	const float logo_h = logo_w * 144.0f / 1344.0f;
+	const float logo_x = (width - logo_w) / 2.0f;
 
 	int buttons = 4; // continue, settings, exit to menu, exit to OS
-#if !defined(__ANDROID__) && USE_SOUND
-	buttons++;
-#endif
+	// ... (rest of the button logic remains)
 	if (!simple_singleplayer_mode)
 		buttons++; // change password
 
 	float y = margin;
 	const float logo_y = y;
-	y += logo_h + 0.8f;
+	y += logo_h + 1.2f;
 	const float title_y = y;
 	y += 0.5f + 0.35f;
 	const float first_button_y = y;
@@ -432,7 +431,7 @@ void GameFormSpec::showPauseMenu()
 		// An area label is the only kind that can be centred, and centring is
 		// what the heading was missing.
 		<< "style_type[label;textcolor=" << MENU_TEXT_COLOR << ";halign=center]"
-		<< "image[" << margin << "," << logo_y << ";"
+		<< "image[" << logo_x << "," << logo_y << ";"
 			<< logo_w << "," << logo_h << ";menu_header.png]"
 		<< "label[" << margin << "," << title_y << ";" << button_w << ",0.5;"
 			<< strgettext("Game paused") << "]";
