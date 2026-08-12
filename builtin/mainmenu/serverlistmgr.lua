@@ -22,19 +22,19 @@ do
 	end
 end
 
--- The public Luanti list is not used: the Axis only talks to its own servers.
+-- The public Luanti list is not used: Axis only talks to its own servers.
 local OFFICIAL_SERVERS = {
 	{
-		name = "the Axis · " .. fgettext_ne("Russia"),
+		name = "Axis · " .. fgettext_ne("Russia"),
 		address = "135.106.173.139",
 		port = 30000,
-		description = fgettext_ne("Official server of the Axis, Russia"),
+		description = fgettext_ne("Official server of Axis, Russia"),
 	},
 	{
-		name = "the Axis · " .. fgettext_ne("Europe"),
+		name = "Axis · " .. fgettext_ne("Europe"),
 		address = "65.109.68.114",
 		port = 30000,
-		description = fgettext_ne("Official server of the Axis, Europe"),
+		description = fgettext_ne("Official server of Axis, Europe"),
 	},
 }
 

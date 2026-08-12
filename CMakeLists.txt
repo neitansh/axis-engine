@@ -5,7 +5,7 @@ endif()
 
 # This can be read from ${PROJECT_NAME} after project() is called
 project(axis)
-set(PROJECT_NAME_CAPITALIZED "the Axis")
+set(PROJECT_NAME_CAPITALIZED "Axis")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)

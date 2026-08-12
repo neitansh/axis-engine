@@ -42,7 +42,7 @@ public:
 	virtual u32 getMaterialCount() const { return SKY_MATERIAL_COUNT; }
 
 	void update(float m_time_of_day, float time_brightness, float direct_brightness,
-			bool sunlight_seen, CameraMode cam_mode, float yaw, float pitch);
+				bool sunlight_seen, CameraMode cam_mode, float yaw, float pitch);
 
 	float getBrightness() { return m_brightness; }
 
@@ -59,23 +59,27 @@ public:
 	void setSunVisible(bool sun_visible) { m_sun_params.visible = sun_visible; }
 	bool getSunVisible() const { return m_sun_params.visible; }
 	void setSunTexture(const std::string &sun_texture,
-		const std::string &sun_tonemap, ITextureSource *tsrc);
+					   const std::string &sun_tonemap, ITextureSource *tsrc);
 	void setSunScale(f32 sun_scale) { m_sun_params.scale = sun_scale; }
 	void setSunriseVisible(bool glow_visible) { m_sun_params.sunrise_visible = glow_visible; }
-	void setSunriseTexture(const std::string &sunglow_texture, ITextureSource* tsrc);
+	void setSunriseTexture(const std::string &sunglow_texture, ITextureSource *tsrc);
 	v3f getSunDirection();
 
 	void setMoonVisible(bool moon_visible) { m_moon_params.visible = moon_visible; }
 	bool getMoonVisible() const { return m_moon_params.visible; }
 	void setMoonTexture(const std::string &moon_texture,
-		const std::string &moon_tonemap, ITextureSource *tsrc);
+						const std::string &moon_tonemap, ITextureSource *tsrc);
 	void setMoonScale(f32 moon_scale) { m_moon_params.scale = moon_scale; }
 	v3f getMoonDirection();
 
 	void setStarsVisible(bool stars_visible) { m_star_params.visible = stars_visible; }
 	void setStarCount(u16 star_count);
 	void setStarColor(video::SColor star_color) { m_star_params.starcolor = star_color; }
-	void setStarScale(f32 star_scale) { m_star_params.scale = star_scale; updateStars(); }
+	void setStarScale(f32 star_scale)
+	{
+		m_star_params.scale = star_scale;
+		updateStars();
+	}
 	void setStarDayOpacity(f32 day_opacity) { m_star_params.day_opacity = day_opacity; }
 	void setStarSeed(u64 star_seed);
 
@@ -102,11 +106,11 @@ public:
 	}
 	void setSkyColors(const SkyColor &sky_color);
 	void setHorizonTint(video::SColor sun_tint, video::SColor moon_tint,
-		const std::string &use_sun_tint);
+						const std::string &use_sun_tint);
 	void setInClouds(bool clouds) { m_in_clouds = clouds; }
 	void clearSkyboxTextures() { m_sky_params.textures.clear(); }
 	void addTextureToSkybox(const std::string &texture, int material_id,
-		ITextureSource *tsrc);
+							ITextureSource *tsrc);
 
 	// Note: the Sky class doesn't use these values. It just stores them.
 	void setFogDistance(s16 fog_distance) { m_sky_params.fog_distance = fog_distance; }
@@ -116,7 +120,8 @@ public:
 	float getFogStart() const { return m_sky_params.fog_start; }
 
 	void setFogColor(video::SColor v) { m_sky_params.fog_color = v; }
-	video::SColor getFogColor() const {
+	video::SColor getFogColor() const
+	{
 		if (m_sky_params.fog_color.getAlpha() > 0)
 			return m_sky_params.fog_color;
 		return getBgColor();
@@ -140,7 +145,7 @@ private:
 		if (!m_sunlight_seen)
 			return 0;
 		float x = m_time_of_day >= 0.5 ? (1 - m_time_of_day) * 2
-					       : m_time_of_day * 2;
+									   : m_time_of_day * 2;
 
 		if (x <= 0.3)
 			return 0;
@@ -155,19 +160,19 @@ private:
 	static video::SColor m_mix_scolor(video::SColor col1, video::SColor col2, f32 factor)
 	{
 		video::SColor result = video::SColor(
-				col1.getAlpha() * (1 - factor) + col2.getAlpha() * factor,
-				col1.getRed() * (1 - factor) + col2.getRed() * factor,
-				col1.getGreen() * (1 - factor) + col2.getGreen() * factor,
-				col1.getBlue() * (1 - factor) + col2.getBlue() * factor);
+			col1.getAlpha() * (1 - factor) + col2.getAlpha() * factor,
+			col1.getRed() * (1 - factor) + col2.getRed() * factor,
+			col1.getGreen() * (1 - factor) + col2.getGreen() * factor,
+			col1.getBlue() * (1 - factor) + col2.getBlue() * factor);
 		return result;
 	}
 	static video::SColorf m_mix_scolorf(video::SColorf col1, video::SColorf col2, f32 factor)
 	{
 		video::SColorf result =
-				video::SColorf(col1.r * (1 - factor) + col2.r * factor,
-						col1.g * (1 - factor) + col2.g * factor,
-						col1.b * (1 - factor) + col2.b * factor,
-						col1.a * (1 - factor) + col2.a * factor);
+			video::SColorf(col1.r * (1 - factor) + col2.r * factor,
+						   col1.g * (1 - factor) + col2.g * factor,
+						   col1.b * (1 - factor) + col2.b * factor,
+						   col1.a * (1 - factor) + col2.a * factor);
 		return result;
 	}
 
@@ -180,7 +185,7 @@ private:
 	bool m_sunlight_seen;
 	float m_brightness = 0.5f;
 	float m_cloud_brightness = 0.5f;
-	bool m_clouds_visible; // Whether clouds are disabled due to player underground
+	bool m_clouds_visible;		  // Whether clouds are disabled due to player underground
 	bool m_clouds_enabled = true; // Initialised to true, reset only by set_sky API
 	bool m_directional_colored_fog;
 	bool m_in_clouds = true; // Prevent duplicating bools to remember old values
@@ -196,10 +201,9 @@ private:
 	video::SColorf m_cloudcolor_day_f = video::SColorf(1, 1, 1, 1);
 	// dawn-factoring version of pure white (note: R is above 1.0)
 	video::SColorf m_cloudcolor_dawn_f = video::SColorf(
-		255.0f/240.0f,
-		223.0f/240.0f,
-		191.0f/255.0f
-	);
+		255.0f / 240.0f,
+		223.0f / 240.0f,
+		191.0f / 255.0f);
 
 	SkyboxParams m_sky_params;
 	SunParams m_sun_params;
@@ -218,15 +222,21 @@ private:
 
 	void updateStars();
 
+	static constexpr u32 SKY_BODY_SEGMENTS = 8;
+
 	void draw_sun(video::IVideoDriver *driver, const video::SColor &suncolor,
-		const video::SColor &suncolor2, float wicked_time_of_day);
+				  const video::SColor &suncolor2, float wicked_time_of_day);
 	void draw_moon(video::IVideoDriver *driver, const video::SColor &mooncolor,
-		const video::SColor &mooncolor2, float wicked_time_of_day);
+				   const video::SColor &mooncolor2, float wicked_time_of_day);
 	void draw_sky_body(std::array<video::S3DVertex, 4> &vertices,
-		float pos_1, float pos_2, const video::SColor &c);
+					   float pos_1, float pos_2, const video::SColor &c);
+	void draw_sky_body_pixel(std::array<video::S3DVertex, 12> &vertices,
+							 float d, const video::SColor &c);
 	void draw_stars(video::IVideoDriver *driver, float wicked_time_of_day);
 	void place_sky_body(std::array<video::S3DVertex, 4> &vertices,
-		float horizon_position,	float day_position);
+						float horizon_position, float day_position);
+	void place_sky_body_pixel(std::array<video::S3DVertex, 12> &vertices,
+							  float horizon_position, float day_position);
 };
 
 // calculates value for sky body positions for the given observed time of day

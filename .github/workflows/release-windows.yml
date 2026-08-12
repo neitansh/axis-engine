@@ -159,7 +159,7 @@ jobs:
           }
 
           if (-not (Test-Path (Join-Path $root 'axis.cmd'))) {
-            throw 'The axis.cmd launcher is missing from the package.'
+            throw 'axis.cmd launcher is missing from the package.'
           }
 
           # The configuration template must survive packaging, otherwise a

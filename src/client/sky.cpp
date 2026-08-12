@@ -545,18 +545,16 @@ v3f Sky::getMoonDirection()
 
 void Sky::draw_sun(video::IVideoDriver *driver, const video::SColor &suncolor,
 	const video::SColor &suncolor2, float wicked_time_of_day)
-	/* Draw sun in the sky.
-	 * driver: Video driver object used to draw
-	 * suncolor: main sun color
-	 * suncolor2: second sun color
-	 * wicked_time_of_day: current time of day, to know where should be the sun in the sky
-	 */
 {
-	// A magic number that contributes to the ratio 1.57 sun/moon size difference.
 	constexpr float sunsize = 0.07;
 
-	static const u16 indices[] = {0, 1, 2, 0, 2, 3};
-	std::array<video::S3DVertex, 4> vertices;
+	static const u16 indices[18] = {
+		0, 1, 2,  0, 2, 3,   // Центральный блок
+		4, 5, 6,  4, 6, 7,   // Верхний блок
+		8, 9, 10, 8, 10, 11  // Нижний блок
+	};
+	std::array<video::S3DVertex, 12> vertices;
+
 	if (!m_sun_texture) {
 		driver->setMaterial(m_materials[1]);
 		const float sunsizes[4] = {
@@ -571,52 +569,42 @@ void Sky::draw_sun(video::IVideoDriver *driver, const video::SColor &suncolor,
 		c2.setAlpha(0.15 * 255);
 		const video::SColor colors[4] = {c1, c2, suncolor, suncolor2};
 		for (int i = 0; i < 4; i++) {
-			draw_sky_body(vertices, -sunsizes[i], sunsizes[i], colors[i]);
-			place_sky_body(vertices, 90, wicked_time_of_day * 360 - 90);
-			driver->drawIndexedTriangleList(&vertices[0], 4, indices, 2);
+			draw_sky_body_pixel(vertices, sunsizes[i], colors[i]);
+			place_sky_body_pixel(vertices, 90, wicked_time_of_day * 360 - 90);
+			driver->drawIndexedTriangleList(&vertices[0], 12, indices, 6);
 		}
 	} else {
+		static const u16 quad_indices[] = {0, 1, 2, 0, 2, 3};
+		std::array<video::S3DVertex, 4> quad_vertices;
 		driver->setMaterial(m_materials[3]);
-		// Another magic number that contributes to the ratio 1.57 sun/moon size
-		// difference.
 		float d = (sunsize * 1.7) * m_sun_params.scale;
 		video::SColor c = m_sun_tonemap ? m_materials[3].ColorParam :
 				video::SColor(255, 255, 255, 255);
-		draw_sky_body(vertices, -d, d, c);
-		place_sky_body(vertices, 90, wicked_time_of_day * 360 - 90);
-		driver->drawIndexedTriangleList(&vertices[0], 4, indices, 2);
+		draw_sky_body(quad_vertices, -d, d, c);
+		place_sky_body(quad_vertices, 90, wicked_time_of_day * 360 - 90);
+		driver->drawIndexedTriangleList(&quad_vertices[0], 4, quad_indices, 2);
 	}
 }
 
 
 void Sky::draw_moon(video::IVideoDriver *driver, const video::SColor &mooncolor,
 	const video::SColor &mooncolor2, float wicked_time_of_day)
-/*
-	* Draw moon in the sky.
-	* driver: Video driver object used to draw
-	* mooncolor: main moon color
-	* mooncolor2: second moon color
-	* wicked_time_of_day: current time of day, to know where should be the moon in
-	* the sky
-	*/
 {
-	// A magic number that contributes to the ratio 1.57 sun/moon size difference.
 	constexpr float moonsize = 0.04;
 
-	static const u16 indices[] = {0, 1, 2, 0, 2, 3};
-	std::array<video::S3DVertex, 4> vertices;
+	static const u16 indices[18] = {
+		0, 1, 2,  0, 2, 3,   // Центральный блок
+		4, 5, 6,  4, 6, 7,   // Верхний блок
+		8, 9, 10, 8, 10, 11  // Нижний блок
+	};
+	std::array<video::S3DVertex, 12> vertices;
+
 	if (!m_moon_texture) {
 		driver->setMaterial(m_materials[1]);
-		const float moonsizes_1[4] = {
-			(-moonsize * 1.9f) * m_moon_params.scale,
-			(-moonsize * 1.3f) * m_moon_params.scale,
-			(-moonsize) * m_moon_params.scale,
-			(-moonsize) * m_moon_params.scale
-		};
-		const float moonsizes_2[4] = {
+		const float moonsizes[4] = {
 			(moonsize * 1.9f) * m_moon_params.scale,
 			(moonsize * 1.3f) * m_moon_params.scale,
-			(moonsize) *m_moon_params.scale,
+			(moonsize) * m_moon_params.scale,
 			(moonsize * 0.6f) * m_moon_params.scale
 		};
 		video::SColor c1 = mooncolor;
@@ -625,20 +613,20 @@ void Sky::draw_moon(video::IVideoDriver *driver, const video::SColor &mooncolor,
 		c2.setAlpha(0.15 * 255);
 		const video::SColor colors[4] = {c1, c2, mooncolor, mooncolor2};
 		for (int i = 0; i < 4; i++) {
-			draw_sky_body(vertices, moonsizes_1[i], moonsizes_2[i], colors[i]);
-			place_sky_body(vertices, -90, wicked_time_of_day * 360 - 90);
-			driver->drawIndexedTriangleList(&vertices[0], 4, indices, 2);
+			draw_sky_body_pixel(vertices, moonsizes[i], colors[i]);
+			place_sky_body_pixel(vertices, -90, wicked_time_of_day * 360 - 90);
+			driver->drawIndexedTriangleList(&vertices[0], 12, indices, 6);
 		}
 	} else {
+		static const u16 quad_indices[] = {0, 1, 2, 0, 2, 3};
+		std::array<video::S3DVertex, 4> quad_vertices;
 		driver->setMaterial(m_materials[4]);
-		// Another magic number that contributes to the ratio 1.57 sun/moon size
-		// difference.
 		float d = (moonsize * 1.9) * m_moon_params.scale;
 		video::SColor c = m_sun_tonemap ? m_materials[4].ColorParam :
 				video::SColor(255, 255, 255, 255);
-		draw_sky_body(vertices, -d, d, c);
-		place_sky_body(vertices, -90, wicked_time_of_day * 360 - 90);
-		driver->drawIndexedTriangleList(&vertices[0], 4, indices, 2);
+		draw_sky_body(quad_vertices, -d, d, c);
+		place_sky_body(quad_vertices, -90, wicked_time_of_day * 360 - 90);
+		driver->drawIndexedTriangleList(&quad_vertices[0], 4, quad_indices, 2);
 	}
 }
 
@@ -699,6 +687,47 @@ void Sky::place_sky_body(
 {
 	for (video::S3DVertex &vertex : vertices) {
 		// Body is directed to -Z (south) by default
+		vertex.Pos.rotateXZBy(horizon_position);
+		vertex.Pos.rotateXYBy(day_position);
+		vertex.Pos.rotateYZBy(m_sky_params.body_orbit_tilt);
+	}
+}
+
+void Sky::draw_sky_body_pixel(std::array<video::S3DVertex, 12> &vertices, float d, const video::SColor &c)
+{
+	/*
+	* Формирует пиксельную форму 5x5 с вырезанными уголочками (3 прямоугольника = 12 вершин)
+	*  1 1 1
+	* 1 1 1 1 1
+	* 1 1 1 1 1
+	* 1 1 1 1 1
+	*  1 1 1
+	*/
+
+	float d_sub = d * 0.6f; // 3/5 от полного размера d
+
+	// 1. Центральный прямоугольник (ширина 5, высота 3)
+	vertices[0]  = video::S3DVertex(-d,     -d_sub, -1, 0, 0, 1, c, 0.0f, 0.2f);
+	vertices[1]  = video::S3DVertex( d,     -d_sub, -1, 0, 0, 1, c, 1.0f, 0.2f);
+	vertices[2]  = video::S3DVertex( d,      d_sub, -1, 0, 0, 1, c, 1.0f, 0.8f);
+	vertices[3]  = video::S3DVertex(-d,      d_sub, -1, 0, 0, 1, c, 0.0f, 0.8f);
+
+	// 2. Верхний выступ (ширина 3, высота 1)
+	vertices[4]  = video::S3DVertex(-d_sub,  d_sub, -1, 0, 0, 1, c, 0.2f, 0.8f);
+	vertices[5]  = video::S3DVertex( d_sub,  d_sub, -1, 0, 0, 1, c, 0.8f, 0.8f);
+	vertices[6]  = video::S3DVertex( d_sub,  d,     -1, 0, 0, 1, c, 0.8f, 1.0f);
+	vertices[7]  = video::S3DVertex(-d_sub,  d,     -1, 0, 0, 1, c, 0.2f, 1.0f);
+
+	// 3. Нижний выступ (ширина 3, высота 1)
+	vertices[8]  = video::S3DVertex(-d_sub, -d,     -1, 0, 0, 1, c, 0.2f, 0.0f);
+	vertices[9]  = video::S3DVertex( d_sub, -d,     -1, 0, 0, 1, c, 0.8f, 0.0f);
+	vertices[10] = video::S3DVertex( d_sub, -d_sub, -1, 0, 0, 1, c, 0.8f, 0.2f);
+	vertices[11] = video::S3DVertex(-d_sub, -d_sub, -1, 0, 0, 1, c, 0.2f, 0.2f);
+}
+
+void Sky::place_sky_body_pixel(std::array<video::S3DVertex, 12> &vertices, float horizon_position, float day_position)
+{
+	for (video::S3DVertex &vertex : vertices) {
 		vertex.Pos.rotateXZBy(horizon_position);
 		vertex.Pos.rotateXYBy(day_position);
 		vertex.Pos.rotateYZBy(m_sky_params.body_orbit_tilt);

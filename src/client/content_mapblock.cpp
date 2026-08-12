@@ -111,7 +111,7 @@ void MapblockMeshGenerator::getSpecialTile(int index, TileSpec *tile_ret, bool a
 			f.visuals->getColor(cur_node.n.param2, &layer->color);
 	}
 
-	if (apply_crack)
+	if (apply_crack && top_layer)
 		top_layer->material_flags |= MATERIAL_FLAG_CRACK;
 }
 
@@ -453,17 +453,30 @@ void MapblockMeshGenerator::drawFringe(u8 faces)
 	//
 	// Backface culling is switched off for all of them: the strip leans away
 	// from the block, so from outside you are looking at its back.
-	TileSpec tiles[4];
-	for (int i = 0; i < 4; i++)
-		useTile(&tiles[i], i, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
-	if (tiles[0].layers[0].empty())
+	TileSpec first_tile;
+	useTile(&first_tile, 0, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
+
+	auto is_empty = [](const TileSpec &tile) {
+		return tile.layers[0].empty();
+	};
+
+	if (is_empty(first_tile))
 		return;
-	if (tiles[1].layers[0].empty())
-		tiles[1] = tiles[0];
-	if (tiles[2].layers[0].empty())
-		tiles[2] = tiles[0];
-	if (tiles[3].layers[0].empty())
-		tiles[3] = tiles[2];
+
+	std::array<TileSpec, 4> raw_tiles;
+	raw_tiles[0] = std::move(first_tile);
+	for (int i = 1; i < 4; ++i)
+		useTile(&raw_tiles[i], i, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
+
+	const TileSpec &leaning_z = raw_tiles[0];
+	const TileSpec &leaning_x = !is_empty(raw_tiles[1]) ? raw_tiles[1] : leaning_z;
+
+	// Если передано 2 текстуры: raw_tiles[1] содержит юбку (skirt)
+	const TileSpec &skirt_default = !is_empty(raw_tiles[1]) ? raw_tiles[1] : leaning_z;
+	const TileSpec &skirt_z   = !is_empty(raw_tiles[2]) ? raw_tiles[2] : skirt_default;
+	const TileSpec &skirt_x   = !is_empty(raw_tiles[3]) ? raw_tiles[3] : skirt_z;
+
+	const TileSpec tiles[4] = { leaning_z, leaning_x, skirt_z, skirt_x };
 
 	// drawNode() skips the usual lighting setup for solid nodes -- drawSolidNode
 	// works it out per face on its own -- so it has to happen here, or drawQuad

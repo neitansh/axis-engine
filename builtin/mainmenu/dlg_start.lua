@@ -1,4 +1,4 @@
--- the Axis
+-- Axis
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
 -- Landing page shown on startup: the sidebar of the main tabview, centred on

@@ -1085,7 +1085,7 @@ axis_server_commands[0x63] = {"SET_LIGHTING", 2}
 -- axis.control dissector
 
 do
-	local p_control = Proto("axis.control", "the Axis Control")
+	local p_control = Proto("axis.control", "Axis Control")
 
 	local vs_control_type = {
 		[0] = "Ack",
@@ -1131,7 +1131,7 @@ end
 -- axis.client dissector
 -- axis.server dissector
 
--- Defines the axis.client or axis.server Proto. These two protocols
+-- Defines axis.client or axis.server Proto. These two protocols
 -- are created by the same function because they are so similar.
 -- Parameter: proto: the Proto object
 -- Parameter: this_peer: "Client" or "Server"
@@ -1159,7 +1159,7 @@ function axis_define_client_or_server_proto(is_client)
 	end
 
 	-- Create the protocol object.
-	local proto = Proto(proto_name, "the Axis " .. this_peer .. " to " .. other_peer)
+	local proto = Proto(proto_name, "Axis " .. this_peer .. " to " .. other_peer)
 
 	-- Create a table vs_command that maps command codes to command names.
 	local vs_command = {}
@@ -1234,7 +1234,7 @@ axis_define_client_or_server_proto(false) -- axis.server
 -- axis.split dissector
 
 do
-	local p_split = Proto("axis.split", "the Axis Split Message")
+	local p_split = Proto("axis.split", "Axis Split Message")
 
 	local f_split_seq = ProtoField.uint16("axis.split.seq", "Sequence number", base.DEC)
 	local f_split_chunkcount = ProtoField.uint16("axis.split.chunkcount", "Chunk count", base.DEC)
@@ -1272,7 +1272,7 @@ end
 -------------------------------------
 
 do
-	local p_axis = Proto("axis", "The Axis")
+	local p_axis = Proto("axis", "Axis")
 
 	local axis_id = 0x41584953
 	local vs_id = {
@@ -1318,15 +1318,15 @@ do
 		t:add(f_id, buffer(0,4))
 
 		-- ID is valid, so replace packet's shown protocol
-		pinfo.cols.protocol = "the Axis"
-		pinfo.cols.info = "the Axis"
+		pinfo.cols.protocol = "Axis"
+		pinfo.cols.info = "Axis"
 
 		-- Set the other header fields
 		local peer_id = buffer(4,2):uint()
 		t:add(f_peer, buffer(4,2))
 		t:add(f_channel, buffer(6,1))
 		t:add(f_type, buffer(7,1))
-		t:set_text("the Axis, Peer: " .. peer_id .. ", Channel: " .. buffer(6,1):uint())
+		t:set_text("Axis, Peer: " .. peer_id .. ", Channel: " .. buffer(6,1):uint())
 
 		local reliability_info
 		local pos

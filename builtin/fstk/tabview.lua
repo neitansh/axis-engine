@@ -116,7 +116,7 @@ local function get_formspec(self)
 		.. menu_style.divider(menu_style.SPACE.lg, 0, tsize.width - menu_style.SPACE.lg * 2)
 		.. menu_style.caption(menu_style.SPACE.lg, menu_style.SPACE.sm,
 			tsize.width - 2.6 - menu_style.SPACE.lg, footer_h,
-			core.formspec_escape("the Axis © the iVy Studio · " ..
+			core.formspec_escape("Axis © the iVy Studio · " ..
 				fgettext_ne("All rights reserved")))
 		.. menu_style.ghost("mainmenu_footer_about")
 		.. ("style[mainmenu_footer_about;font_size=*0.9]")

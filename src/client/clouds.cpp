@@ -25,12 +25,10 @@ static void cloud_3d_setting_changed(const std::string &settingname, void *data)
 	((Clouds *)data)->readSettings();
 }
 
-Clouds::Clouds(scene::ISceneManager* mgr, IShaderSource *ssrc,
-		s32 id,
-		u32 seed
-):
-	scene::ISceneNode(mgr->getRootSceneNode(), mgr, id),
-	m_seed(seed)
+Clouds::Clouds(scene::ISceneManager *mgr, IShaderSource *ssrc,
+			   s32 id,
+			   u32 seed) : scene::ISceneNode(mgr->getRootSceneNode(), mgr, id),
+						   m_seed(seed)
 {
 	assert(ssrc);
 
@@ -46,9 +44,9 @@ Clouds::Clouds(scene::ISceneManager* mgr, IShaderSource *ssrc,
 
 	readSettings();
 	g_settings->registerChangedCallback("enable_3d_clouds",
-		&cloud_3d_setting_changed, this);
+										&cloud_3d_setting_changed, this);
 	g_settings->registerChangedCallback("soft_clouds",
-		&cloud_3d_setting_changed, this);
+										&cloud_3d_setting_changed, this);
 
 	updateBox();
 
@@ -70,7 +68,7 @@ Clouds::~Clouds()
 
 void Clouds::OnRegisterSceneNode()
 {
-	if(IsVisible)
+	if (IsVisible)
 	{
 		SceneManager->registerNodeForRendering(this, scene::ESNRP_TRANSPARENT);
 	}
@@ -90,21 +88,27 @@ void Clouds::updateMesh()
 	// The integer center point of drawing in the noise
 	v2s16 center_of_drawing_in_noise_i(
 		std::floor(center_of_drawing_in_noise_f.X / cloud_size),
-		std::floor(center_of_drawing_in_noise_f.Y / cloud_size)
-	);
+		std::floor(center_of_drawing_in_noise_f.Y / cloud_size));
 
 	// Only update mesh if it has moved enough, this saves lots of GPU buffer uploads.
 	constexpr float max_d = 5 * BS;
 
-	if (!m_mesh_valid) {
+	if (!m_mesh_valid)
+	{
 		// mesh was never created or invalidated
-	} else if (m_mesh_origin.getDistanceFrom(m_origin) >= max_d) {
+	}
+	else if (m_mesh_origin.getDistanceFrom(m_origin) >= max_d)
+	{
 		// clouds moved
-	} else if (center_of_drawing_in_noise_i != m_last_noise_center) {
+	}
+	else if (center_of_drawing_in_noise_i != m_last_noise_center)
+	{
 		// noise offset changed
 		// I think in practice this never happens due to the camera offset
 		// being smaller than the cloud size.(?)
-	} else {
+	}
+	else
+	{
 		return;
 	}
 
@@ -116,9 +120,9 @@ void Clouds::updateMesh()
 
 	// The world position of the integer center point of drawing in the noise
 	v2f world_center_of_drawing_in_noise_f = v2f(
-		center_of_drawing_in_noise_i.X * cloud_size,
-		center_of_drawing_in_noise_i.Y * cloud_size
-	) + m_origin;
+												 center_of_drawing_in_noise_i.X * cloud_size,
+												 center_of_drawing_in_noise_i.Y * cloud_size) +
+											 m_origin;
 
 	// Colors with primitive shading
 
@@ -134,9 +138,9 @@ void Clouds::updateMesh()
 	c_side_2_f.r *= shadow.r * 0.5f + 0.5f;
 	c_side_2_f.g *= shadow.g * 0.5f + 0.5f;
 	c_side_2_f.b *= shadow.b * 0.5f + 0.5f;
-	c_bottom_f.r *= shadow.r;
-	c_bottom_f.g *= shadow.g;
-	c_bottom_f.b *= shadow.b;
+	c_bottom_f.r *= shadow.r * 0.3f + 0.7f;
+	c_bottom_f.g *= shadow.g * 0.3f + 0.7f;
+	c_bottom_f.b *= shadow.b * 0.3f + 0.7f;
 
 	video::SColor c_top = c_top_f.toSColor();
 	video::SColor c_side_1 = c_side_1_f.toSColor();
@@ -147,19 +151,19 @@ void Clouds::updateMesh()
 
 	std::vector<bool> grid(m_cloud_radius_i * 2 * m_cloud_radius_i * 2);
 
-	for(s16 zi = -m_cloud_radius_i; zi < m_cloud_radius_i; zi++) {
+	for (s16 zi = -m_cloud_radius_i; zi < m_cloud_radius_i; zi++)
+	{
 		u32 si = (zi + m_cloud_radius_i) * m_cloud_radius_i * 2 + m_cloud_radius_i;
 
-		for (s16 xi = -m_cloud_radius_i; xi < m_cloud_radius_i; xi++) {
+		for (s16 xi = -m_cloud_radius_i; xi < m_cloud_radius_i; xi++)
+		{
 			u32 i = si + xi;
 
 			grid[i] = gridFilled(
 				xi + center_of_drawing_in_noise_i.X,
-				zi + center_of_drawing_in_noise_i.Y
-			);
+				zi + center_of_drawing_in_noise_i.Y);
 		}
 	}
-
 
 	auto *mb = m_meshbuffer.get();
 	auto &vertices = mb->Vertices->Data;
@@ -174,180 +178,227 @@ void Clouds::updateMesh()
 		indices.reserve(index_count);
 	}
 
-#define GETINDEX(x, z, radius) (((z)+(radius))*(radius)*2 + (x)+(radius))
+#define GETINDEX(x, z, radius) (((z) + (radius)) * (radius) * 2 + (x) + (radius))
 #define INAREA(x, z, radius) \
 	((x) >= -(radius) && (x) < (radius) && (z) >= -(radius) && (z) < (radius))
 
 	vertices.clear();
-	for (s16 zi0= -m_cloud_radius_i; zi0 < m_cloud_radius_i; zi0++)
-	for (s16 xi0= -m_cloud_radius_i; xi0 < m_cloud_radius_i; xi0++)
-	{
-		s16 zi = zi0;
-		s16 xi = xi0;
-		// Draw from back to front for proper transparency
-		if(zi >= 0)
-			zi = m_cloud_radius_i - zi - 1;
-		if(xi >= 0)
-			xi = m_cloud_radius_i - xi - 1;
-
-		u32 i = GETINDEX(xi, zi, m_cloud_radius_i);
-
-		if (!grid[i])
-			continue;
-
-		v2f p0 = v2f(xi,zi)*cloud_size + world_center_of_drawing_in_noise_f;
-
-		video::S3DVertex v[4] = {
-			video::S3DVertex(0,0,0, 0,0,0, c_top, 0, 1),
-			video::S3DVertex(0,0,0, 0,0,0, c_top, 1, 1),
-			video::S3DVertex(0,0,0, 0,0,0, c_top, 1, 0),
-			video::S3DVertex(0,0,0, 0,0,0, c_top, 0, 0)
-		};
-
-		const f32 rx = cloud_size / 2.0f;
-		// if clouds are flat, the top layer should be at the given height
-		const f32 ry = is3D() ? m_params.thickness * BS : 0.0f;
-		const f32 rz = cloud_size / 2;
-
-		bool soft_clouds_enabled = g_settings->getBool("soft_clouds");
-		for (u32 i = 0; i < num_faces_to_draw; i++)
+	for (s16 zi0 = -m_cloud_radius_i; zi0 < m_cloud_radius_i; zi0++)
+		for (s16 xi0 = -m_cloud_radius_i; xi0 < m_cloud_radius_i; xi0++)
 		{
-			switch (i)
+			s16 zi = zi0;
+			s16 xi = xi0;
+			// Draw from back to front for proper transparency
+			if (zi >= 0)
+				zi = m_cloud_radius_i - zi - 1;
+			if (xi >= 0)
+				xi = m_cloud_radius_i - xi - 1;
+
+			u32 i = GETINDEX(xi, zi, m_cloud_radius_i);
+
+			if (!grid[i])
+				continue;
+
+			v2f p0 = v2f(xi, zi) * cloud_size + world_center_of_drawing_in_noise_f;
+
+			video::S3DVertex v[4] = {
+				video::S3DVertex(0, 0, 0, 0, 0, 0, c_top, 0, 1),
+				video::S3DVertex(0, 0, 0, 0, 0, 0, c_top, 1, 1),
+				video::S3DVertex(0, 0, 0, 0, 0, 0, c_top, 1, 0),
+				video::S3DVertex(0, 0, 0, 0, 0, 0, c_top, 0, 0)};
+
+			const f32 rx = cloud_size / 2.0f;
+			// if clouds are flat, the top layer should be at the given height
+			const f32 ry = is3D() ? m_params.thickness * BS * 5.0f : 0.0f;
+			const f32 rz = cloud_size / 2;
+
+			bool soft_clouds_enabled = g_settings->getBool("soft_clouds");
+			for (u32 i = 0; i < num_faces_to_draw; i++)
 			{
-			case 0:	// top
-				for (video::S3DVertex& vertex : v) {
-					vertex.Normal.set(0, 1, 0);
-				}
-				v[0].Pos.set(-rx, ry,-rz);
-				v[1].Pos.set(-rx, ry, rz);
-				v[2].Pos.set( rx, ry, rz);
-				v[3].Pos.set( rx, ry,-rz);
-				break;
-			case 1: // back
-				if (INAREA(xi, zi - 1, m_cloud_radius_i)) {
-					u32 j = GETINDEX(xi, zi - 1, m_cloud_radius_i);
-					if (grid[j])
-						continue;
-				}
-				if (soft_clouds_enabled) {
-					for (video::S3DVertex& vertex : v) {
-						vertex.Normal.set(0, 0, -1);
+				switch (i)
+				{
+				case 0: // top
+					for (video::S3DVertex &vertex : v)
+					{
+						vertex.Normal.set(0, 1, 0);
+						vertex.TCoords.Y = 1.0f; // Верхняя грань = 1.0
 					}
-					v[2].Color = c_bottom;
-					v[3].Color = c_bottom;
-				} else {
-					for (video::S3DVertex& vertex : v) {
-						vertex.Color = c_side_1;
-						vertex.Normal.set(0, 0, -1);
+					v[0].Pos.set(-rx, ry, -rz);
+					v[1].Pos.set(-rx, ry, rz);
+					v[2].Pos.set(rx, ry, rz);
+					v[3].Pos.set(rx, ry, -rz);
+					break;
+				case 1: // back
+					if (INAREA(xi, zi - 1, m_cloud_radius_i))
+					{
+						u32 j = GETINDEX(xi, zi - 1, m_cloud_radius_i);
+						if (grid[j])
+							continue;
 					}
-				}
-				v[0].Pos.set(-rx, ry,-rz);
-				v[1].Pos.set( rx, ry,-rz);
-				v[2].Pos.set( rx,  0,-rz);
-				v[3].Pos.set(-rx,  0,-rz);
-				break;
-			case 2: //right
-				if (INAREA(xi + 1, zi, m_cloud_radius_i)) {
-					u32 j = GETINDEX(xi + 1, zi, m_cloud_radius_i);
-					if (grid[j])
-						continue;
-				}
-				if (soft_clouds_enabled) {
-					for (video::S3DVertex& vertex : v) {
-						vertex.Normal.set(1, 0, 0);
+					v[0].TCoords.Y = 1.0f;
+					v[1].TCoords.Y = 1.0f;
+					v[2].TCoords.Y = 0.0f;
+					v[3].TCoords.Y = 0.0f;
+					if (soft_clouds_enabled)
+					{
+						for (video::S3DVertex &vertex : v)
+						{
+							vertex.Normal.set(0, 0, -1);
+						}
+						v[2].Color = c_bottom;
+						v[3].Color = c_bottom;
 					}
-					v[2].Color = c_bottom;
-					v[3].Color = c_bottom;
-				}
-				else {
-					for (video::S3DVertex& vertex : v) {
-						vertex.Color = c_side_2;
-						vertex.Normal.set(1, 0, 0);
+					else
+					{
+						for (video::S3DVertex &vertex : v)
+						{
+							vertex.Color = c_side_1;
+							vertex.Normal.set(0, 0, -1);
+						}
 					}
-				}
-				v[0].Pos.set(rx, ry,-rz);
-				v[1].Pos.set(rx, ry, rz);
-				v[2].Pos.set(rx,  0, rz);
-				v[3].Pos.set(rx,  0,-rz);
-				break;
-			case 3: // front
-				if (INAREA(xi, zi + 1, m_cloud_radius_i)) {
-					u32 j = GETINDEX(xi, zi + 1, m_cloud_radius_i);
-					if (grid[j])
-						continue;
-				}
-				if (soft_clouds_enabled) {
-					for (video::S3DVertex& vertex : v) {
-						vertex.Normal.set(0, 0, -1);
+					v[0].Pos.set(-rx, ry, -rz);
+					v[1].Pos.set(rx, ry, -rz);
+					v[2].Pos.set(rx, 0, -rz);
+					v[3].Pos.set(-rx, 0, -rz);
+					break;
+				case 2: // right
+					if (INAREA(xi + 1, zi, m_cloud_radius_i))
+					{
+						u32 j = GETINDEX(xi + 1, zi, m_cloud_radius_i);
+						if (grid[j])
+							continue;
 					}
-					v[2].Color = c_bottom;
-					v[3].Color = c_bottom;
-				} else {
-					for (video::S3DVertex& vertex : v) {
-						vertex.Color = c_side_1;
-						vertex.Normal.set(0, 0, -1);
+					v[0].TCoords.Y = 1.0f;
+					v[1].TCoords.Y = 1.0f;
+					v[2].TCoords.Y = 0.0f;
+					v[3].TCoords.Y = 0.0f;
+					if (soft_clouds_enabled)
+					{
+						for (video::S3DVertex &vertex : v)
+						{
+							vertex.Normal.set(1, 0, 0);
+						}
+						v[2].Color = c_bottom;
+						v[3].Color = c_bottom;
 					}
-				}
-				v[0].Pos.set( rx, ry, rz);
-				v[1].Pos.set(-rx, ry, rz);
-				v[2].Pos.set(-rx,  0, rz);
-				v[3].Pos.set( rx,  0, rz);
-				break;
-			case 4: // left
-				if (INAREA(xi - 1, zi, m_cloud_radius_i)) {
-					u32 j = GETINDEX(xi - 1, zi, m_cloud_radius_i);
-					if (grid[j])
-						continue;
-				}
-				if (soft_clouds_enabled) {
-					for (video::S3DVertex& vertex : v) {
-						vertex.Normal.set(-1, 0, 0);
+					else
+					{
+						for (video::S3DVertex &vertex : v)
+						{
+							vertex.Color = c_side_2;
+							vertex.Normal.set(1, 0, 0);
+						}
 					}
-					v[2].Color = c_bottom;
-					v[3].Color = c_bottom;
-				} else {
-					for (video::S3DVertex& vertex : v) {
-						vertex.Color = c_side_2;
-						vertex.Normal.set(-1, 0, 0);
+					v[0].Pos.set(rx, ry, -rz);
+					v[1].Pos.set(rx, ry, rz);
+					v[2].Pos.set(rx, 0, rz);
+					v[3].Pos.set(rx, 0, -rz);
+					break;
+				case 3: // front
+					if (INAREA(xi, zi + 1, m_cloud_radius_i))
+					{
+						u32 j = GETINDEX(xi, zi + 1, m_cloud_radius_i);
+						if (grid[j])
+							continue;
 					}
+					v[0].TCoords.Y = 1.0f;
+					v[1].TCoords.Y = 1.0f;
+					v[2].TCoords.Y = 0.0f;
+					v[3].TCoords.Y = 0.0f;
+					if (soft_clouds_enabled)
+					{
+						for (video::S3DVertex &vertex : v)
+						{
+							vertex.Normal.set(0, 0, -1);
+						}
+						v[2].Color = c_bottom;
+						v[3].Color = c_bottom;
+					}
+					else
+					{
+						for (video::S3DVertex &vertex : v)
+						{
+							vertex.Color = c_side_1;
+							vertex.Normal.set(0, 0, -1);
+						}
+					}
+					v[0].Pos.set(rx, ry, rz);
+					v[1].Pos.set(-rx, ry, rz);
+					v[2].Pos.set(-rx, 0, rz);
+					v[3].Pos.set(rx, 0, rz);
+					break;
+				case 4: // left
+					if (INAREA(xi - 1, zi, m_cloud_radius_i))
+					{
+						u32 j = GETINDEX(xi - 1, zi, m_cloud_radius_i);
+						if (grid[j])
+							continue;
+					}
+					v[0].TCoords.Y = 1.0f;
+					v[1].TCoords.Y = 1.0f;
+					v[2].TCoords.Y = 0.0f;
+					v[3].TCoords.Y = 0.0f;
+					if (soft_clouds_enabled)
+					{
+						for (video::S3DVertex &vertex : v)
+						{
+							vertex.Normal.set(-1, 0, 0);
+						}
+						v[2].Color = c_bottom;
+						v[3].Color = c_bottom;
+					}
+					else
+					{
+						for (video::S3DVertex &vertex : v)
+						{
+							vertex.Color = c_side_2;
+							vertex.Normal.set(-1, 0, 0);
+						}
+					}
+					v[0].Pos.set(-rx, ry, rz);
+					v[1].Pos.set(-rx, ry, -rz);
+					v[2].Pos.set(-rx, 0, -rz);
+					v[3].Pos.set(-rx, 0, rz);
+					break;
+				case 5: // bottom
+					for (video::S3DVertex &vertex : v)
+					{
+						vertex.Color = c_bottom;
+						vertex.Normal.set(0, -1, 0);
+						vertex.TCoords.Y = 0.0f; // Нижняя грань = 0.0
+					}
+					v[0].Pos.set(rx, 0, rz);
+					v[1].Pos.set(-rx, 0, rz);
+					v[2].Pos.set(-rx, 0, -rz);
+					v[3].Pos.set(rx, 0, -rz);
+					break;
 				}
-				v[0].Pos.set(-rx, ry, rz);
-				v[1].Pos.set(-rx, ry,-rz);
-				v[2].Pos.set(-rx,  0,-rz);
-				v[3].Pos.set(-rx,  0, rz);
-				break;
-			case 5: // bottom
-				for (video::S3DVertex& vertex : v) {
-					vertex.Color = c_bottom;
-					vertex.Normal.set(0, -1, 0);
-				}
-				v[0].Pos.set( rx,  0, rz);
-				v[1].Pos.set(-rx,  0, rz);
-				v[2].Pos.set(-rx,  0,-rz);
-				v[3].Pos.set( rx,  0,-rz);
-				break;
-			}
 
-			v3f pos(p0.X, m_params.height * BS, p0.Y);
+				v3f pos(p0.X, m_params.height * BS, p0.Y);
 
-			for (video::S3DVertex &vertex : v) {
-				vertex.Pos += pos;
-				vertices.push_back(vertex);
+				for (video::S3DVertex &vertex : v)
+				{
+					vertex.Pos += pos;
+					vertices.push_back(vertex);
+				}
 			}
 		}
-	}
 	mb->setDirty(scene::EBT_VERTEX);
 
 	const u32 quad_count = mb->getVertexCount() / 4;
 	const u32 index_count = quad_count * 6;
 	// rewrite index array as needed
-	if (mb->getIndexCount() > index_count) {
+	if (mb->getIndexCount() > index_count)
+	{
 		indices.resize(index_count);
 		mb->setDirty(scene::EBT_INDEX);
-	} else if (mb->getIndexCount() < index_count) {
+	}
+	else if (mb->getIndexCount() < index_count)
+	{
 		const u32 start = mb->getIndexCount() / 6;
 		assert(start * 6 == mb->getIndexCount());
-		for (u32 k = start; k < quad_count; k++) {
+		for (u32 k = start; k < quad_count; k++)
+		{
 			indices.push_back(4 * k + 0);
 			indices.push_back(4 * k + 1);
 			indices.push_back(4 * k + 2);
@@ -359,7 +410,7 @@ void Clouds::updateMesh()
 	}
 
 	tracestream << "Cloud::updateMesh(): " << mb->getVertexCount() << " vertices"
-		<< std::endl;
+				<< std::endl;
 }
 
 void Clouds::render()
@@ -367,7 +418,7 @@ void Clouds::render()
 	if (m_params.density <= 0.0f)
 		return; // no need to do anything
 
-	video::IVideoDriver* driver = SceneManager->getVideoDriver();
+	video::IVideoDriver *driver = SceneManager->getVideoDriver();
 
 	if (SceneManager->getSceneNodeRenderPass() != scene::ESNRP_TRANSPARENT)
 		return;
@@ -413,19 +464,20 @@ void Clouds::render()
 	bool fog_pixelfog = false;
 	bool fog_rangefog = false;
 	driver->getFog(fog_color, fog_type, fog_start, fog_end, fog_density,
-			fog_pixelfog, fog_rangefog);
+				   fog_pixelfog, fog_rangefog);
 
 	// Set our own fog, unless it was already disabled
-	if (fog_start < FOG_RANGE_ALL) {
+	if (fog_start < FOG_RANGE_ALL)
+	{
 		driver->setFog(fog_color, fog_type, cloud_full_radius * 0.5,
-				cloud_full_radius*1.2, fog_density, fog_pixelfog, fog_rangefog);
+					   cloud_full_radius * 1.2, fog_density, fog_pixelfog, fog_rangefog);
 	}
 
 	driver->drawMeshBuffer(m_meshbuffer.get());
 
 	// Restore fog settings
 	driver->setFog(fog_color, fog_type, fog_start, fog_end, fog_density,
-			fog_pixelfog, fog_rangefog);
+				   fog_pixelfog, fog_rangefog);
 }
 
 void Clouds::step(float dtime)
@@ -445,10 +497,12 @@ void Clouds::update(const v3f &camera_p, const video::SColorf &color_diffuse)
 	// is the camera inside the cloud mesh?
 	m_camera_pos = camera_p;
 	m_camera_inside_cloud = false;
-	if (is3D()) {
+	if (is3D())
+	{
 		float camera_height = camera_p.Y - BS * m_camera_offset.Y;
 		if (camera_height >= m_box.MinEdge.Y &&
-				camera_height <= m_box.MaxEdge.Y) {
+			camera_height <= m_box.MaxEdge.Y)
+		{
 			v2f camera_in_noise;
 			camera_in_noise.X = floorf((camera_p.X - m_origin.X) / cloud_size + 0.5f);
 			camera_in_noise.Y = floorf((camera_p.Z - m_origin.Y) / cloud_size + 0.5f);
@@ -474,9 +528,9 @@ bool Clouds::gridFilled(int x, int y) const
 {
 	float cloud_size_noise = cloud_size / (BS * 200.f);
 	float noise = noise2d_fractal(
-			(float)x * cloud_size_noise,
-			(float)y * cloud_size_noise,
-			m_seed, 3, 0.5);
+		(float)x * cloud_size_noise,
+		(float)y * cloud_size_noise,
+		m_seed, 3, 0.5);
 	// normalize to 0..1 (given 3 octaves)
 	static constexpr const float noise_bound = 1.0f + 0.5f + 0.25f;
 	float density = noise / noise_bound * 0.5f + 0.5f;
