@@ -1135,9 +1135,75 @@ void Client::loseLink(const std::string &reason)
 	m_out_chat_queue = {};
 }
 
+bool Client::transferTo(const std::string &address, u16 port,
+		const std::string &message)
+{
+	if (address.empty() || port == 0)
+		return false;
+
+	Address target(0, 0, 0, 0, port);
+	try {
+		target.Resolve(address.c_str());
+	} catch (const ResolveError &e) {
+		errorstream << "Client: cannot resolve \"" << address << "\": "
+			<< e.what() << std::endl;
+		return false;
+	}
+
+	// A server that names itself by a wildcard means "the machine you already
+	// talk to": handy for a lobby that hands out ports on its own host and
+	// cannot know from the inside which address the player reached it by.
+	std::string name = address;
+	if (target.isAny()) {
+		target = m_server_address;
+		target.setPort(port);
+		name = m_address_name;
+	}
+
+	actionstream << "Client: moving to another server at ";
+	target.print(actionstream);
+	actionstream << std::endl;
+
+	m_transfer_return_address = m_server_address;
+	m_transfer_return_name = m_address_name;
+	m_transfer_pending = true;
+	m_address_name = name;
+	m_server_address = target;
+
+	// From here on it is the ordinary "the session ended, log in again over
+	// the world we kept" path; beginRejoin() connects to the address above.
+	loseLink(message.empty() ? std::string(gettext("Moving to another server."))
+			: message);
+	return true;
+}
+
+bool Client::abandonTransfer()
+{
+	if (!m_transfer_pending)
+		return false;
+
+	m_transfer_pending = false;
+	m_server_address = m_transfer_return_address;
+	m_address_name = m_transfer_return_name;
+
+	actionstream << "Client: giving up on the transfer, aiming back at ";
+	m_server_address.print(actionstream);
+	actionstream << std::endl;
+	return true;
+}
+
 void Client::beginRejoin()
 {
 	actionstream << "Client: logging in again" << std::endl;
+
+	// Say goodbye to the old session first. A server that is still alive —
+	// the one we are moving away from, or one that merely fell silent for a
+	// moment — then frees the player slot at once instead of holding it until
+	// the peer times out, and does not meet us with "already connected" when
+	// we knock again. The command goes out while everything below is being
+	// torn down, which is the same order Client::~Client relies on.
+	if (m_con)
+		m_con->Disconnect();
 
 	m_link_state = LinkState::Rejoining;
 	m_map_survived_session = false;
@@ -1148,6 +1214,11 @@ void Client::beginRejoin()
 	// player is looking at, and media is content-addressed, so the server
 	// will only send what actually changed.
 	m_state = LC_Created;
+	// Knock at once. The timer paces how often TOSERVER_INIT is repeated at a
+	// server that stays silent; left where the previous session dropped it, it
+	// would hold the first attempt back by up to its full interval — a second
+	// and a half of nothing, in plain sight of the player.
+	m_connection_reinit_timer = 0.0f;
 	m_proto_ver = 0;
 	m_server_ser_ver = SER_FMT_VER_INVALID;
 	m_itemdef_received = false;
@@ -1303,6 +1374,7 @@ void Client::linkRestored()
 	m_link_state = LinkState::Live;
 	m_link_lost_reason.clear();
 	m_world_of_previous_session = false;
+	m_transfer_pending = false;
 }
 
 void Client::request_media(const std::vector<std::string> &file_requests)

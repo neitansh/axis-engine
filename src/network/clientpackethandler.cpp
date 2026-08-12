@@ -1972,3 +1972,16 @@ void Client::handleCommand_ChatCommands(NetworkPacket *pkt)
 	infostream << "Client: " << m_chat_commands.size()
 		<< " chat commands available" << std::endl;
 }
+
+void Client::handleCommand_Transfer(NetworkPacket *pkt)
+{
+	std::string address, message;
+	u16 port;
+
+	*pkt >> address >> port >> message;
+
+	if (!transferTo(address, port, message)) {
+		errorstream << "Client: the server asked to move us to \"" << address
+			<< ":" << port << "\", which leads nowhere. Staying." << std::endl;
+	}
+}

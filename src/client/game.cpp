@@ -1604,15 +1604,30 @@ bool Game::checkConnection()
 	return true;
 }
 
+// How many attempts a transfer gets before the client aims back at the server
+// it came from. Three is enough to ride out a destination that is still coming
+// up, and short enough that a destination which never will is not waited on.
+static constexpr u32 TRANSFER_ATTEMPTS = 3;
+// Seconds a destination gets to answer one attempt. Generous for a machine
+// that is up — ten times a bad round trip — and short enough that all the
+// attempts together pass in a few seconds.
+static constexpr f32 TRANSFER_ATTEMPT_TIMEOUT = 2.0f;
+// Pause between attempts at a destination. Nearly none: a knock costs nothing,
+// and the machine may be coming up right now.
+static constexpr f32 TRANSFER_RETRY_GAP = 0.25f;
+
 void Game::enterLimbo()
 {
 	m_limbo = LimboState();
 	m_limbo.active = true;
 	m_limbo.reason = client->linkLostReason();
+	m_limbo.transfer = client->linkLostToTransfer();
 	// The first attempt is soon: a server that is merely restarting is often
 	// back within seconds, and an attempt that goes nowhere costs nothing.
+	// On a transfer there is nothing to wait for at all — the server we are
+	// going to is up and expecting us — so the first attempt is immediate.
 	m_limbo.retry_delay = 2.0f;
-	m_limbo.retry_in = m_limbo.retry_delay;
+	m_limbo.retry_in = m_limbo.transfer ? 0.0f : m_limbo.retry_delay;
 
 	actionstream << "Game: entering limbo (" << m_limbo.reason << ")" << std::endl;
 
@@ -1623,9 +1638,10 @@ void Game::enterLimbo()
 
 	if (chat_backend)
 	{
-		chat_backend->addMessage(L"", utf8_to_wide(
-			std::string("# ") + m_limbo.reason + " " +
-			gettext("Waiting for it to come back.")));
+		std::string text = std::string("# ") + m_limbo.reason;
+		if (!m_limbo.transfer)
+			text.append(" ").append(gettext("Waiting for it to come back."));
+		chat_backend->addMessage(L"", utf8_to_wide(text));
 	}
 }
 
@@ -1689,21 +1705,48 @@ void Game::updateLimbo(f32 dtime)
 			m_game_ui->setLinkStatus(wstrgettext("Loading the world again..."));
 			return;
 		}
-		else if (m_limbo.retry_in <= 0.0f)
+		else if (m_limbo.retry_in <= 0.0f && client->getState() == LC_Created)
 		{
+			// Nothing came back at all, so the countdown that spaces the
+			// attempts bounds this one too. Once the server has answered the
+			// attempt is left alone: what follows is definitions and media,
+			// and how long those take is none of the countdown's business.
 			actionstream << "Game: attempt to log in again timed out" << std::endl;
 			client->loseLink(m_limbo.reason);
-			m_limbo.retry_in = m_limbo.retry_delay;
+			m_limbo.retry_in = m_limbo.transfer ? TRANSFER_RETRY_GAP
+					: m_limbo.retry_delay;
 		}
 		else
 		{
-			m_game_ui->setLinkStatus(wstrgettext("Reconnecting to the server..."));
+			m_game_ui->setLinkStatus(m_limbo.transfer
+					? wstrgettext("Moving to another server...")
+					: wstrgettext("Reconnecting to the server..."));
 			return;
 		}
 	}
 
 	// Waiting for the next attempt
 	m_limbo.retry_in -= dtime;
+
+	// A destination that will not answer must not strand the player: after a
+	// few tries we aim back at the server they came from, which is the one
+	// place known to have worked a moment ago.
+	if (m_limbo.transfer && m_limbo.attempts >= TRANSFER_ATTEMPTS &&
+			client->abandonTransfer())
+	{
+		actionstream << "Game: the destination did not answer, going back"
+				<< std::endl;
+		m_limbo.transfer = false;
+		m_limbo.attempts = 0;
+		m_limbo.retry_delay = 2.0f;
+		m_limbo.retry_in = 0.0f;
+		m_limbo.reason = gettext("Could not move to the other server.");
+		if (chat_backend)
+		{
+			chat_backend->addMessage(L"", wstrgettext(
+					"# Could not move to the other server, going back."));
+		}
+	}
 
 	if (m_limbo.retry_in <= 0.0f)
 	{
@@ -1712,12 +1755,20 @@ void Game::updateLimbo(f32 dtime)
 		// quickly: 2, 4, 8, 15, 30 seconds and then every 30.
 		m_limbo.retry_delay = std::min(m_limbo.retry_delay * 2.0f, 30.0f);
 		m_limbo.retry_in = std::max(m_limbo.retry_delay, 12.0f);
+		// A destination is a different matter: it was up a moment ago, when
+		// the server we came from named it. Either it answers right away or
+		// it is not there, and waiting out a whole backoff before going back
+		// leaves the player staring at a still picture for no reason.
+		if (m_limbo.transfer)
+			m_limbo.retry_in = TRANSFER_ATTEMPT_TIMEOUT;
 
 		actionstream << "Game: attempt " << m_limbo.attempts
 				<< " to log in again" << std::endl;
 
 		client->beginRejoin();
-		m_game_ui->setLinkStatus(wstrgettext("Reconnecting to the server..."));
+		m_game_ui->setLinkStatus(m_limbo.transfer
+				? wstrgettext("Moving to another server...")
+				: wstrgettext("Reconnecting to the server..."));
 		return;
 	}
 
@@ -1741,6 +1792,8 @@ void Game::finishRejoin()
 	// Everything of the new session has arrived. Putting it into effect,
 	// deciding the fate of the world and building what it is drawn with all
 	// happens here, within one frame, so the player never sees a half state.
+	const bool transfer = m_limbo.transfer;
+
 	client->applyPendingContent();
 	client->linkRestored();
 	client->afterContentReceived(client->mapSurvivedSession());
@@ -1751,10 +1804,13 @@ void Game::finishRejoin()
 	m_game_ui->clearLinkStatus();
 
 	if (chat_backend) {
-		chat_backend->addMessage(L"", seamless
-				? wstrgettext("# Connection restored.")
-				: wstrgettext("# Connection restored, the world changed and is "
-						"being loaded again."));
+		if (transfer)
+			chat_backend->addMessage(L"", wstrgettext("# Arrived."));
+		else
+			chat_backend->addMessage(L"", seamless
+					? wstrgettext("# Connection restored.")
+					: wstrgettext("# Connection restored, the world changed and is "
+							"being loaded again."));
 	}
 }
 

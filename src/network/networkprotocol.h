@@ -722,7 +722,26 @@ enum ToClientCommand : u16
 			std::string description
 	*/
 
-	TOCLIENT_NUM_MSG_TYPES = 0x66,
+	TOCLIENT_TRANSFER = 0x66,
+	/*
+		Move this player to another server, without leaving the world.
+
+		The client keeps what is on screen, logs in at the given address and
+		puts the new session in place of the old one — the same path a client
+		takes when a server restarts under it (see Client::loseLink and
+		Game::updateLimbo), only pointed elsewhere. Nothing is denied here:
+		a transfer is not a kick, and the game does not end.
+
+		Sending this to a client that predates protocol version 53 does
+		nothing at all, so a server has to check `net_proto_version` before
+		relying on it.
+
+		std::string address    // host name or address of the destination
+		u16 port
+		std::string message    // shown while the player is on the way, may be empty
+	*/
+
+	TOCLIENT_NUM_MSG_TYPES = 0x67,
 };
 
 enum ToServerCommand : u16

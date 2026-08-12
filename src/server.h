@@ -418,6 +418,14 @@ public:
 	void SendPlayerHP(PlayerSAO *sao, bool effect);
 	void SendChatCommands(session_t peer_id,
 			const std::vector<std::tuple<std::string, std::string, std::string>> &commands);
+	/**
+	 * Asks a client to continue on another server, keeping its world on screen.
+	 *
+	 * Returns false if that client is too old to understand the request, in
+	 * which case nothing was sent and the player stays here.
+	 */
+	bool SendTransfer(session_t peer_id, const std::string &address, u16 port,
+			const std::string &message);
 	void SendPlayerBreath(PlayerSAO *sao);
 	void SendInventory(RemotePlayer *player, bool incremental, bool skip_wield_anim = false);
 	void SendMovePlayer(PlayerSAO *sao);

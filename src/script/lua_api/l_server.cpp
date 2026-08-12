@@ -419,6 +419,31 @@ int ModApiServer::l_disconnect_player(lua_State *L)
 	return 1;
 }
 
+// transfer_player(name, address[, port[, message]]) -> success
+int ModApiServer::l_transfer_player(lua_State *L)
+{
+	GET_ENV_PTR_NO_MAP_LOCK;
+
+	const char *name = luaL_checkstring(L, 1);
+	std::string address = luaL_checkstring(L, 2);
+	u16 port = (u16)luaL_optinteger(L, 3, 30000);
+
+	std::string message;
+	if (lua_isstring(L, 4))
+		message = readParam<std::string>(L, 4);
+
+	RemotePlayer *player = env->getPlayer(name);
+	if (!player) {
+		lua_pushboolean(L, false); // No such player
+		return 1;
+	}
+
+	Server *server = env->getServer();
+	lua_pushboolean(L,
+			server->SendTransfer(player->getPeerId(), address, port, message));
+	return 1;
+}
+
 int ModApiServer::l_remove_player(lua_State *L)
 {
 	GET_ENV_PTR_NO_MAP_LOCK;
@@ -759,6 +784,7 @@ void ModApiServer::Initialize(lua_State *L, int top)
 	API_FCT(get_ban_description);
 	API_FCT(ban_player);
 	API_FCT(disconnect_player);
+	API_FCT(transfer_player);
 	API_FCT(remove_player);
 	API_FCT(unban_player_or_ip);
 	API_FCT(notify_authentication_modified);

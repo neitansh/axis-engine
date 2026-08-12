@@ -1624,6 +1624,25 @@ void Server::HandlePlayerHPChange(PlayerSAO *playersao, const PlayerHPChangeReas
 		HandlePlayerDeath(playersao, reason);
 }
 
+bool Server::SendTransfer(session_t peer_id, const std::string &address,
+						  u16 port, const std::string &message)
+{
+	{
+		ClientInterface::AutoLock clientlock(m_clients);
+		RemoteClient *client = m_clients.lockedGetClientNoEx(peer_id, CS_Created);
+		if (!client || client->net_proto_version < 53)
+			return false;
+	}
+
+	NetworkPacket pkt(TOCLIENT_TRANSFER, 0, peer_id);
+	pkt << address << port << message;
+	Send(&pkt);
+
+	actionstream << "Server: sending " << getPlayerName(peer_id) << " to "
+				 << address << ":" << port << std::endl;
+	return true;
+}
+
 void Server::SendChatCommands(session_t peer_id,
 							  const std::vector<std::tuple<std::string, std::string, std::string>> &commands)
 {

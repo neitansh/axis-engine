@@ -7939,6 +7939,28 @@ Bans
   optional reason, this will not prefix with 'Kicked: ' like kick_player.
   If no reason is given, it will default to 'Disconnected.'
     * Returns boolean indicating success (false if player nonexistent)
+* `core.transfer_player(name, address[, port[, message]])`: continue this
+  player's game on another server.
+    * The player does not leave the world: what is on screen stays while the
+      client logs in at `address` and puts the new session in place of this
+      one. The map is kept whenever the two servers describe their nodes the
+      same way, so a transfer between servers of the same game costs one
+      handshake and no media downloads.
+    * `address`: host name or address of the destination. An address of
+      `"0.0.0.0"` means "the machine this player is already talking to", which
+      is what a server handing out ports on its own host wants: it does not
+      know from the inside which address the player reached it by.
+    * `port`: defaults to 30000
+    * `message`: shown to the player on the way, e.g. the name of the match
+    * Returns boolean indicating success. False means the player does not
+      exist or their client predates protocol version 53; in both cases
+      nothing was sent and the player stays here.
+    * If the destination never answers, the client comes back here on its own
+      after a few attempts, so a server that failed to come up does not strand
+      anybody.
+    * The destination knows nothing about this player beyond the name they log
+      in with. Deciding who is allowed in is the destination's own business —
+      see `core.register_on_prejoinplayer`.
 
 Particles
 ---------

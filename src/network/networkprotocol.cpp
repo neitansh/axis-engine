@@ -78,10 +78,13 @@
 		Added "skip_wield_anim" to TOCLIENT_INVENTORY
 		Type of TOCLIENT_HUDADD `size` changed from v2s32 to v2f
 		[scheduled bump for 5.16.0]
+	PROTOCOL VERSION 53
+		Support for TOCLIENT_TRANSFER: moving a player to another server
+		without leaving the world
 */
 
 // Note: Also update core.protocol_versions in builtin when bumping
-const u16 LATEST_PROTOCOL_VERSION = 52;
+const u16 LATEST_PROTOCOL_VERSION = 53;
 
 // See also formspec [Version History] in doc/lua_api.md
 const u16 FORMSPEC_API_VERSION = 10;

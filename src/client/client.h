@@ -217,6 +217,7 @@ public:
 	void handleCommand_SpawnParticle(NetworkPacket* pkt);
 	void handleCommand_SpawnParticleBatch(NetworkPacket *pkt);
 	void handleCommand_ChatCommands(NetworkPacket *pkt);
+	void handleCommand_Transfer(NetworkPacket *pkt);
 
 	/// Commands the server said this player may use, for completing them
 	std::vector<ChatCommand> m_chat_commands;
@@ -368,6 +369,31 @@ public:
 	 * as they are; only the session with the server ends.
 	 */
 	void loseLink(const std::string &reason);
+
+	/**
+	 * Moves to another server without leaving the world.
+	 *
+	 * The session with the current server ends the same way it would if that
+	 * server had gone quiet: what is on screen stays, and the client logs in
+	 * again over it — only at the given address instead of the old one.
+	 *
+	 * Returns false if the address is unusable; then nothing happens and the
+	 * player stays where they are.
+	 */
+	bool transferTo(const std::string &address, u16 port,
+			const std::string &message);
+
+	/// A transfer is under way, as opposed to a server that fell silent
+	bool linkLostToTransfer() const { return m_transfer_pending; }
+
+	/**
+	 * Gives up on a transfer and aims back at the server we came from.
+	 *
+	 * A destination that never answers must not strand the player in limbo
+	 * forever: the server they were on a moment ago is the one place known to
+	 * have worked. Returns false if no transfer was pending.
+	 */
+	bool abandonTransfer();
 
 	/**
 	 * Logs in again over the world we kept.
@@ -716,6 +742,12 @@ private:
 	// Link to the server, see LinkState
 	LinkState m_link_state = LinkState::Live;
 	std::string m_link_lost_reason;
+	// The link was let go for a transfer, not because the server went quiet.
+	// Cleared once the new session is in place.
+	bool m_transfer_pending = false;
+	// Where to aim back if the destination of a transfer never answers
+	Address m_transfer_return_address;
+	std::string m_transfer_return_name;
 	// Set while rejoining, until the new session took the world over
 	bool m_world_of_previous_session = false;
 	// The map survived the change of session, so no content has to be rebuilt

@@ -97,6 +97,9 @@ private:
 	// disconnect_player(name[, reason[, reconnect]]) -> success
 	static int l_disconnect_player(lua_State *L);
 
+	// transfer_player(name, address[, port[, message]])
+	static int l_transfer_player(lua_State *L);
+
 	// remove_player(name)
 	static int l_remove_player(lua_State *L);
 

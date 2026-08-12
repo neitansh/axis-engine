@@ -381,6 +381,8 @@ private:
 		/// Seconds spent in limbo, shown to the player
 		f32 waited = 0.0f;
 		std::string reason;
+		/// We are on our way to another server, not waiting for this one
+		bool transfer = false;
 	};
 
 	LimboState m_limbo;
