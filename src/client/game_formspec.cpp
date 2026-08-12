@@ -390,27 +390,32 @@ void GameFormSpec::showPauseMenu()
 
 	// One column, laid out from the top down. Sizes are named so the menu can
 	// gain or lose a button without every following number having to move.
-	const float margin = 0.7f;
-	const float width = 6.4f;
-	const float button_w = width - 2 * margin;
-	const float button_h = 0.9f;
-	const float gap = 0.25f;
+	const float width = 12.0f;
+	const float panel_w = 6.4f;
+	const float panel_x = (width - panel_w) / 2.0f;
+	const float margin = 0.6f;
+	const float button_w = panel_w - 2.0f * margin;
+	const float button_h = 0.85f;
+	const float gap = 0.2f;
+
 	// The wordmark is 1344x144 in source, kept at its own aspect ratio so it
 	// does not smear.
-	const float logo_w = 7.5f;
+	const float logo_w = 11.0f;
 	const float logo_h = logo_w * 144.0f / 1344.0f;
 	const float logo_x = (width - logo_w) / 2.0f;
 
 	int buttons = 4; // continue, settings, exit to menu, exit to OS
-	// ... (rest of the button logic remains)
+#if !defined(__ANDROID__) && USE_SOUND
+	buttons++;
+#endif
 	if (!simple_singleplayer_mode)
 		buttons++; // change password
 
-	float y = margin;
+	float y = 0.5f;
 	const float logo_y = y;
-	y += logo_h + 1.2f;
+	y += logo_h + 1.0f;
 	const float title_y = y;
-	y += 0.5f + 0.35f;
+	y += 0.5f + 0.3f;
 	const float first_button_y = y;
 	float height = first_button_y + buttons * button_h + (buttons - 1) * gap + margin;
 
@@ -421,7 +426,7 @@ void GameFormSpec::showPauseMenu()
 	os << "formspec_version[6]"
 		<< "size[" << width << "," << height << ",true]"
 		<< "bgcolor[#00000000;true]"
-		<< "background9[0," << panel_y << ";" << width << "," << panel_h
+		<< "background9[" << panel_x << "," << panel_y << ";" << panel_w << "," << panel_h
 			<< ";axis_panel.png;false;2]"
 		<< "style_type[button,image_button;bgimg=axis_button.png"
 			";bgimg_hovered=axis_button_hover.png"
@@ -433,12 +438,12 @@ void GameFormSpec::showPauseMenu()
 		<< "style_type[label;textcolor=" << MENU_TEXT_COLOR << ";halign=center]"
 		<< "image[" << logo_x << "," << logo_y << ";"
 			<< logo_w << "," << logo_h << ";menu_header.png]"
-		<< "label[" << margin << "," << title_y << ";" << button_w << ",0.5;"
+		<< "label[" << panel_x + margin << "," << title_y << ";" << button_w << ",0.5;"
 			<< strgettext("Game paused") << "]";
 
 	auto button = [&](const char *tag, const std::string &label, bool exits) {
 		os << (exits ? "button_exit[" : "button[")
-			<< margin << "," << y << ";" << button_w << "," << button_h << ";"
+			<< panel_x + margin << "," << y << ";" << button_w << "," << button_h << ";"
 			<< tag << ";" << label << "]";
 		y += button_h + gap;
 	};
@@ -468,7 +473,7 @@ void GameFormSpec::showPauseMenu()
 	// were unreadable over the world and belong in the About screen anyway.
 	// Touch controls stay, because there they are the only place to read them.
 	if (!control_text.empty()) {
-		os << "textarea[" << margin << "," << y << ";" << button_w << ",4;;"
+		os << "textarea[" << panel_x + margin << "," << y << ";" << button_w << ",4;;"
 			<< control_text << ";]";
 	}
 
