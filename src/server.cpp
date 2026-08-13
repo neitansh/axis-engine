@@ -2900,6 +2900,8 @@ bool Server::addMediaFile(const std::string &filename,
 		".png", ".jpg", ".tga",
 		".ogg",
 		".x", ".b3d", ".obj", ".gltf", ".glb",
+		// Модели Bedrock/Blockbench: геометрия и анимации к ней
+		".geo.json", ".animation.json",
 		// Translation file formats
 		".tr", ".po", ".mo",
 		// Fonts

@@ -377,7 +377,8 @@ Accepted formats are:
 
     images: .png, .jpg, .tga
     sounds: .ogg vorbis
-    models: .x, .b3d, .obj, (since version 5.10:) .gltf, .glb
+    models: .x, .b3d, .obj, (since version 5.10:) .gltf, .glb,
+            .geo.json (Bedrock/Blockbench geometry) and its .animation.json
     fonts: .ttf, .woff (both since version 5.11, see notes below)
 
 Currently the engine is unable to handle files over ~16MB in size. For best
@@ -401,7 +402,26 @@ depends on by supplying a file with an equal name.
 Only a subset of model file format features is supported:
 
 Simple textured meshes (with multiple textures), optionally with normals.
-The .x, .b3d and .gltf formats additionally support (a single) animation.
+The .x, .b3d, .gltf and .geo.json formats additionally support animation.
+
+#### Bedrock geometry (.geo.json)
+
+Models exported from Blockbench as "Bedrock Geometry", the format Minecraft
+mods use through GeckoLib, are loaded as they are. Their animations live in a
+separate `.animation.json` file exported alongside, found by the shared file
+name: `rifle.geo.json` picks up `rifle.animation.json`.
+
+Every animation becomes a named track, so it is played by the name it was
+given in Blockbench:
+
+    obj:play_animation("reload", {loop = false, speed = 1})
+
+Track time is in seconds, matching the animation file, so `speed = 1` plays an
+animation exactly as authored. One pixel of the model is 1/16 of a node, so a
+16x16x16 model is one node in size at `visual_size = 1`.
+
+See `doc/bedrock_models.md` for the workflow, the coordinate system and the
+list of supported format features.
 
 #### glTF
 

@@ -336,6 +336,13 @@ public:
 	const Animation &getAnimation(u16 index) const
 	{ return animations.at(index); }
 
+	//! Adds an animation track to an already finalized mesh.
+	/** For formats which keep animations in files of their own, separate from
+	the geometry: one mesh may collect its tracks from several files, long
+	after the mesh itself has been built.
+	\return the number of the added track */
+	u16 addAnimation(Animation &&animation);
+
 protected:
 	bool checkForWeights() const;
 	bool checkForKeys() const;

@@ -1642,7 +1642,7 @@ std::optional<u16> GenericCAO::resolveTrackId(const scene::TrackId &track_id)
 	if (const auto *track_name = std::get_if<std::string>(&track_id)) {
 		if (const std::optional<u16> opt = mesh->getTrackNumber(*track_name))
 			return *opt;
-		warningstream << "Track name " << track_name << " not found in mesh " << m_prop.mesh << std::endl;
+		warningstream << "Track name " << *track_name << " not found in mesh " << m_prop.mesh << std::endl;
 		return std::nullopt;
 	}
 

@@ -40,6 +40,15 @@ std::optional<u16> SkinnedMesh::getTrackNumber(const std::string &track_name) co
 	return it->second;
 }
 
+u16 SkinnedMesh::addAnimation(Animation &&animation)
+{
+	const u16 track_nr = static_cast<u16>(animations.size());
+	if (!animation.name.empty())
+		anim_name_to_idx[animation.name] = track_nr;
+	animations.push_back(std::move(animation));
+	return track_nr;
+}
+
 f32 SkinnedMesh::getMaxFrameNumber(u16 track_nr) const
 {
 	return animations.at(track_nr).end_frame;

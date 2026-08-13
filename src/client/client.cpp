@@ -70,6 +70,8 @@
 #include <IFileSystem.h>
 #include <IReadFile.h>
 #include <json/json.h>
+#include "bedrock/animation.h"
+#include "bedrock/geometry.h"
 
 #include <iostream>
 #include <algorithm>
@@ -163,6 +165,15 @@ Client::Client(
 {
 	// Add local player
 	m_env.setLocalPlayer(new LocalPlayer(this, playername));
+
+	// Модели Blockbench читаются наравне со всеми прочими: загрузчик встаёт в
+	// общий список, и дальше .geo.json ничем не отличается от .b3d или .gltf.
+	if (m_rendering_engine)
+	{
+		auto *loader = new bedrock::GeometryLoader();
+		m_rendering_engine->get_scene_manager()->addExternalMeshLoader(loader);
+		loader->drop(); // список забрал ссылку себе
+	}
 
 	// Make the mod storage database and begin the save for later
 	m_mod_storage_database =
@@ -1042,8 +1053,21 @@ bool Client::loadMedia(const std::string &data, const std::string &filename,
 		return true;
 	}
 
+	// Анимации Bedrock проверяются до моделей: у них расширение длиннее, и
+	// иначе ".animation.json" опознался бы как модель по хвосту ".json".
+	const char *bedrock_anim_ext[] = {bedrock::ANIMATION_EXT, NULL};
+	name = removeStringEnd(filename, bedrock_anim_ext);
+	if (!name.empty())
+	{
+		TRACESTREAM(<< "Client: Storing Bedrock animations \""
+					<< filename << "\"" << std::endl);
+		m_animation_data[filename] = data;
+		return true;
+	}
+
 	const char *model_ext[] = {
 		".x", ".b3d", ".obj", ".gltf", ".glb",
+		bedrock::GEOMETRY_EXT,
 		NULL};
 	name = removeStringEnd(filename, model_ext);
 	if (!name.empty())
@@ -2603,10 +2627,41 @@ scene::IAnimatedMesh *Client::getMesh(const std::string &filename, bool cache)
 	rfile->drop();
 	if (!mesh)
 		return nullptr;
+	attachBedrockAnimations(mesh, filename);
 	mesh->grab();
 	if (!cache)
 		m_rendering_engine->removeMesh(mesh);
 	return mesh;
+}
+
+/*
+ * Геометрия Bedrock приходит одним файлом, анимации к ней — другим, и связывает
+ * их имя: ak47.geo.json ждёт ak47.animation.json. Так эти файлы лежат и в самих
+ * модах, откуда модели берутся, поэтому раскладывать их по-особому не нужно.
+ *
+ * Дорожки добавляются один раз на модель: движок держит разобранные меши в
+ * своём кеше, и повторная загрузка возвращает уже дополненный.
+ */
+void Client::attachBedrockAnimations(scene::IAnimatedMesh *mesh,
+		const std::string &filename)
+{
+	const std::string ext(bedrock::GEOMETRY_EXT);
+	if (filename.size() <= ext.size()
+			|| filename.compare(filename.size() - ext.size(), ext.size(), ext) != 0)
+		return;
+
+	auto *skinned = dynamic_cast<scene::SkinnedMesh *>(mesh);
+	if (!skinned || skinned->getTrackCount() > 0)
+		return;
+
+	const std::string anim_name =
+			filename.substr(0, filename.size() - ext.size())
+			+ bedrock::ANIMATION_EXT;
+	auto it = m_animation_data.find(anim_name);
+	if (it == m_animation_data.end())
+		return;
+
+	bedrock::loadAnimations(skinned, it->second, anim_name);
 }
 
 /*

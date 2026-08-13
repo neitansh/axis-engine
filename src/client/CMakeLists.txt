@@ -28,6 +28,11 @@ file(GLOB_RECURSE client_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 set(client_SRCS
 	${client_HDRS}
 	${sound_SRCS}
+	${CMAKE_CURRENT_SOURCE_DIR}/bedrock/animation.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/bedrock/easing.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/bedrock/geometry.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/bedrock/json.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/bedrock/molang.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/meshgen/collector.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/render/anaglyph.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/render/core.cpp

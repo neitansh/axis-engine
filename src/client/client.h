@@ -559,6 +559,10 @@ public:
 	bool checkLocalPrivilege(const std::string &priv)
 	{ return checkPrivilege(priv); }
 	virtual scene::IAnimatedMesh* getMesh(const std::string &filename, bool cache = false);
+
+	// Довесить к модели Bedrock её анимации, если они пришли вместе с ней.
+	void attachBedrockAnimations(scene::IAnimatedMesh *mesh,
+			const std::string &filename);
 	ModVFS *getModVFS() { return m_mod_vfs.get(); }
 	ModStorageDatabase *getModStorageDatabase() override { return m_mod_storage_database; }
 
@@ -801,6 +805,11 @@ private:
 
 	// Storage for mesh data for creating multiple instances of the same mesh
 	StringMap m_mesh_data;
+
+	// Анимации моделей Bedrock. Лежат отдельно от геометрии, потому что и в
+	// самом формате они отдельные файлы: одна модель набирает дорожки из
+	// своего *.animation.json, а «сами по себе» они ничего не значат.
+	StringMap m_animation_data;
 
 	// own state
 	LocalClientState m_state;
