@@ -407,26 +407,37 @@ local function side_card(ox, oy, h)
 	if own and own ~= "" then
 		-- Свой Диспетчер: замеры и списки тут ни при чём, показываем как есть.
 		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(own))
+		y = y + 1.15
 	elseif server then
-		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(server.name or server.address))
+		-- Пока идёт проверка, вход не называется. Назвать его заранее — значит
+		-- сказать «пойдёшь отсюда» до того, как это решено: сменится он через
+		-- секунду или нет, игрок уже прочитал не то.
 		local part = delivery(state.region)
-		local note
 		if probing and not part then
-			note = fgettext("Checking...")
-		elseif not part then
-			note = fgettext("No answer")
-		elseif part < DELIVERED then
-			-- Путь отвечает, но теряет: играть на нём можно только знать,
-			-- что рвётся не игра, а дорога до неё.
-			note = fgettext("Unstable: $1% delivered", tostring(math.floor(part * 100)))
+			fs[#fs + 1] = menu_style.body(x, y, w, 0.6, fgettext("Checking..."))
 		else
-			note = fgettext("$1 ms", tostring(math.floor(link[state.region].ping or 0)))
+			fs[#fs + 1] = menu_style.body(x, y, w, 0.6,
+				ESC(server.name or server.address))
+			local note
+			if not part then
+				note = probed_at > 0 and fgettext("No answer") or nil
+			elseif part < DELIVERED then
+				-- Путь отвечает, но теряет: играть на нём можно, только зная,
+				-- что рвётся не игра, а дорога до неё.
+				note = fgettext("Unstable: $1% delivered",
+					tostring(math.floor(part * 100)))
+			else
+				note = fgettext("$1 ms", tostring(math.floor(link[state.region].ping or 0)))
+			end
+			if note then
+				fs[#fs + 1] = menu_style.caption(x, y + 0.6, w, 0.5, note)
+			end
 		end
-		fs[#fs + 1] = menu_style.caption(x, y + 0.6, w, 0.5, note)
+		y = y + 1.15
 	else
 		fs[#fs + 1] = menu_style.caption(x, y, w, 0.6, fgettext("No servers"))
+		y = y + 1.15
 	end
-	y = y + 1.15
 
 	fs[#fs + 1] = menu_style.divider(x, y, w)
 	y = y + menu_style.SPACE.lg
