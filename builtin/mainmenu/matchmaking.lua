@@ -123,6 +123,21 @@ local function pick_entry()
 	state.region = best or 1
 end
 
+-- Известно ли уже, каким входом идти. Пока нет — арены не показываются и
+-- список их не спрашивается: нажатие ушло бы к тому Диспетчеру, который мы
+-- как раз собираемся забраковать, и игрок оказался бы в матче не там, где
+-- оказался бы через секунду.
+local function decided()
+	local own = core.settings:get("matchmaking_url")
+	if own and own ~= "" then
+		return true -- свой Диспетчер, выбирать не из чего
+	end
+	if not core.probe_link then
+		return true -- проверять нечем
+	end
+	return not probing and probed_at > 0
+end
+
 ---Проверить входы. Замер идёт в стороне: главное не имеет права стоять.
 local function probe_entries()
 	if probing or not core.probe_link then
@@ -140,6 +155,7 @@ local function probe_entries()
 		end
 	end
 	if #targets == 0 then
+		probed_at = os.time()
 		return
 	end
 
@@ -501,6 +517,12 @@ local function arenas_card(x, y, w, h)
 		menu_style.heading(x + 0.375, y + 0.175, w - 0.75, 0.6, fgettext("Arenas")),
 	}
 
+	if not decided() then
+		fs[#fs + 1] = menu_style.body(x + 0.375, y + 1.0, w - 0.75, 0.6,
+			fgettext("Checking connection..."))
+		return table.concat(fs)
+	end
+
 	if not state.modes then
 		fs[#fs + 1] = menu_style.caption(x + 0.375, y + 1.0, w - 0.75, 0.6,
 			fgettext("Loading..."))
@@ -561,7 +583,7 @@ function matchmaking.get_formspec(x, y, w, h)
 	-- рисовании: как только стало известно, кто ближе, экран сам переедет.
 	local was = dispatch_url()
 	pick_entry()
-	if not state.modes or dispatch_url() ~= was then
+	if decided() and (not state.modes or dispatch_url() ~= was) then
 		state.modes = nil
 		refresh_modes()
 	end
@@ -600,7 +622,9 @@ function matchmaking.handle(fields)
 
 	for i, mode in ipairs(state.modes or {}) do
 		if fields["mode_" .. i] then
-			join(mode.id)
+			if decided() then
+				join(mode.id)
+			end
 			return true
 		end
 	end
@@ -617,7 +641,9 @@ function matchmaking.on_enter()
 	serverlistmgr.sync()
 	probe_entries()
 	pick_entry()
-	refresh_modes()
+	if decided() then
+		refresh_modes()
+	end
 end
 
 return matchmaking

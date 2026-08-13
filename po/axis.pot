@@ -7119,6 +7119,10 @@ msgid "Checking..."
 msgstr ""
 
 #: builtin/mainmenu/matchmaking.lua
+msgid "Checking connection..."
+msgstr ""
+
+#: builtin/mainmenu/matchmaking.lua
 msgid "No answer"
 msgstr ""
 

@@ -8291,6 +8291,10 @@ msgid "Checking..."
 msgstr "Проверяем…"
 
 #: builtin/mainmenu/matchmaking.lua
+msgid "Checking connection..."
+msgstr "Проверяем подключение…"
+
+#: builtin/mainmenu/matchmaking.lua
 msgid "No answer"
 msgstr "Не отвечает"
 
