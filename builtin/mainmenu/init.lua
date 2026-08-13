@@ -24,6 +24,7 @@ dofile(basepath .. "fstk" .. DIR_DELIM .. "ui.lua")
 dofile(menupath .. DIR_DELIM .. "async_event.lua")
 dofile(menupath .. DIR_DELIM .. "common.lua")
 dofile(menupath .. DIR_DELIM .. "serverlistmgr.lua")
+dofile(menupath .. DIR_DELIM .. "matchmaking.lua")
 dofile(menupath .. DIR_DELIM .. "game_theme.lua")
 dofile(menupath .. DIR_DELIM .. "content" .. DIR_DELIM .. "init.lua")
 
@@ -44,7 +45,6 @@ dofile(menupath .. DIR_DELIM .. "dlg_start.lua")
 local tabs = {
 	content = dofile(menupath .. DIR_DELIM .. "tab_content.lua"),
 	about = dofile(menupath .. DIR_DELIM .. "tab_about.lua"),
-	play = dofile(menupath .. DIR_DELIM .. "tab_play.lua"),
 	local_game = dofile(menupath .. DIR_DELIM .. "tab_local.lua"),
 	play_online = dofile(menupath .. DIR_DELIM .. "tab_online.lua"),
 }
@@ -134,7 +134,6 @@ local function init_globals()
 	})
 
 	tv_main:set_autosave_tab(true)
-	tv_main:add(tabs.play)
 	tv_main:add(tabs.local_game)
 	tv_main:add(tabs.play_online)
 	tv_main:add(tabs.content)

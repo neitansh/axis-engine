@@ -86,16 +86,52 @@ local function find_selected_server()
 	end
 end
 
+-- Экран ведёт в игру двумя дорогами: подбором матча и списком серверов.
+-- Полоска сверху переключает их, всё остальное живёт под ней.
+local STRIP_H = 0.75
+local STRIP_GAP = 0.2
+
+local function mode_strip(tabdata)
+	local w = 2.6
+	local fs = {}
+	local modes = {
+		{ id = "matches", label = fgettext("Matches") },
+		{ id = "servers", label = fgettext("Server List") },
+	}
+	for i, mode in ipairs(modes) do
+		local x = 0.25 + (i - 1) * (w + 0.15)
+		if tabdata.mode == mode.id then
+			fs[#fs + 1] = menu_style.selected("mode_" .. mode.id)
+		else
+			fs[#fs + 1] = menu_style.ghost("mode_" .. mode.id)
+		end
+		fs[#fs + 1] = ("button[%f,0.25;%f,%f;mode_%s;%s]")
+			:format(x, w, STRIP_H, mode.id, mode.label)
+	end
+	return table.concat(fs)
+end
+
 local function get_formspec(tabview, name, tabdata)
 	-- Update the cached supported proto info,
 	-- it may have changed after a change by the settings menu.
 	common_update_cached_supp_proto()
 
+	if not tabdata.mode then
+		tabdata.mode = "matches"
+	end
+
+	local shift = 0.25 + STRIP_H + STRIP_GAP
+	if tabdata.mode == "matches" then
+		return mode_strip(tabdata) ..
+			matchmaking.get_formspec(0.25, shift, 15, 7.1 - shift - 0.25)
+	end
+
 	if not tabdata.search_for then
 		tabdata.search_for = ""
 	end
 
-	local retval =
+	local retval = mode_strip(tabdata) ..
+		("container[0,%f]"):format(STRIP_H + STRIP_GAP) ..
 		-- Search
 		"field[0.25,0.25;7,0.75;te_search;;" .. core.formspec_escape(tabdata.search_for) .. "]" ..
 		"tooltip[te_search;" .. core.formspec_escape(table.concat({
@@ -117,7 +153,7 @@ local function get_formspec(tabview, name, tabdata)
 		"container_end[]" ..
 
 		"container[9.75,0]" ..
-		menu_style.surface(0, 0, 5.75, 7.1) ..
+		menu_style.surface(0, 0, 5.75, 6.15) ..
 
 		-- TRANSLATORS: Network address
 		"label[0.25,0.35;" .. fgettext("Address") .. "]" ..
@@ -135,7 +171,7 @@ local function get_formspec(tabview, name, tabdata)
 		menu_style.inset(0.25, 1.85, 5.25, 2.7) ..
 
 		-- Name / Password
-		"container[0,4.8]" ..
+		"container[0,3.85]" ..
 		"label[0.25,0;" .. fgettext("Name") .. "]" ..
 		"label[2.875,0;" .. fgettext("Password") .. "]" ..
 		menu_style.inset(0.25, 0.2, 2.625, 0.75) ..
@@ -147,11 +183,11 @@ local function get_formspec(tabview, name, tabdata)
 	-- Connect
 	if core.settings:get_bool("enable_split_login_register") then
 		-- TRANSLATORS: Register an account on a server
-		retval = retval .. "button[0.25,6;2.5,0.75;btn_mp_register;" .. fgettext("Register") .. "]"
+		retval = retval .. "button[0.25,5.05;2.5,0.75;btn_mp_register;" .. fgettext("Register") .. "]"
 	end
 	-- TRANSLATORS: Login to server
 	retval = retval .. menu_style.accent("btn_mp_login") ..
-			"button[3,6;2.5,0.75;btn_mp_login;" .. fgettext("Login") .. "]"
+			"button[3,5.05;2.5,0.75;btn_mp_login;" .. fgettext("Login") .. "]"
 
 	local selected_server = find_selected_server()
 
@@ -259,7 +295,7 @@ local function get_formspec(tabview, name, tabdata)
 		"align=inline,padding=0.25,width=1.5;" ..
 		"color,align=inline,span=1;" ..
 		"text,align=inline,padding=1]" ..
-		"table[0.25,1;9.25,5.8;servers;"
+		"table[0.25,1;9.25,4.85;servers;"
 
 	local servers = get_sorted_servers()
 
@@ -297,7 +333,7 @@ local function get_formspec(tabview, name, tabdata)
 	end
 	retval = retval .. ";" .. selected_row_idx .. "]"
 
-	return retval
+	return retval .. "container_end[]"
 end
 
 --------------------------------------------------------------------------------
@@ -501,6 +537,20 @@ local function search_server_list(input, tabdata)
 end
 
 local function main_button_handler(tabview, fields, name, tabdata)
+	for _, mode in ipairs({ "matches", "servers" }) do
+		if fields["mode_" .. mode] then
+			tabdata.mode = mode
+			if mode == "matches" then
+				matchmaking.on_enter()
+			end
+			return true
+		end
+	end
+
+	if tabdata.mode == "matches" then
+		return matchmaking.handle(fields)
+	end
+
 	if fields.te_name then
 		gamedata.playername = fields.te_name
 		core.settings:set("name", fields.te_name)

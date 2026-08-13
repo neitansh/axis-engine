@@ -7142,3 +7142,10 @@ msgstr ""
 msgid "No servers"
 msgstr ""
 
+#: builtin/mainmenu/tab_online.lua
+msgid "Matches"
+msgstr ""
+
+#: builtin/mainmenu/tab_online.lua
+msgid "Server List"
+msgstr ""

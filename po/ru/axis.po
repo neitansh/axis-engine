@@ -8314,3 +8314,10 @@ msgstr "Ещё раз"
 msgid "No servers"
 msgstr "Серверов нет"
 
+#: builtin/mainmenu/tab_online.lua
+msgid "Matches"
+msgstr "Матчи"
+
+#: builtin/mainmenu/tab_online.lua
+msgid "Server List"
+msgstr "Серверы"

@@ -1,7 +1,11 @@
 -- Axis
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
--- Вкладка «Играть»: выбор арены и ожидание набора.
+-- Подбор матча: выбор арены и ожидание набора.
+--
+-- Живёт внутри экрана «Подключиться к игре» отдельным режимом рядом со
+-- списком серверов: это две дороги в одну и ту же игру, и разводить их по
+-- разным углам меню незачем.
 --
 -- Ждут здесь же, в меню, и это осознанно. Отдельный мир-лобби пришлось бы
 -- поднимать, поддерживать и переезжать из него на матч — ради экрана, на
@@ -12,9 +16,10 @@
 -- режим один и сервер один, ответ всегда одинаковый, но в тот день, когда
 -- их станет много, поменяется ответ, а не клиент.
 
+matchmaking = {}
+
 local ESC = core.formspec_escape
 
-local PAD = 0.375
 local LEFT_W = 4.5
 local GAP = 0.375
 
@@ -192,11 +197,11 @@ end
 --- Окно ---------------------------------------------------------------------
 
 -- Левая карточка: кто и откуда играет.
-local function side_card(h)
-	local x, w = PAD + 0.375, LEFT_W - 0.75
+local function side_card(ox, oy, h)
+	local x, w = ox + 0.375, LEFT_W - 0.75
 	local fs = {
-		menu_style.surface(PAD, PAD, LEFT_W, h - PAD * 2),
-		menu_style.heading(x, PAD + 0.175, w, 0.6, fgettext("Region")),
+		menu_style.surface(ox, oy, LEFT_W, h),
+		menu_style.heading(x, oy + 0.175, w, 0.6, fgettext("Region")),
 	}
 
 	local names = {}
@@ -208,7 +213,7 @@ local function side_card(h)
 		names[#names + 1] = ESC(label)
 	end
 
-	local y = PAD + 0.85
+	local y = oy + 0.85
 	if #names > 0 then
 		fs[#fs + 1] = ("dropdown[%f,%f;%f,0.8;region;%s;%d;true]")
 			:format(x, y, w, table.concat(names, ","), state.region)
@@ -221,7 +226,9 @@ local function side_card(h)
 	y = y + menu_style.SPACE.lg
 
 	fs[#fs + 1] = menu_style.heading(x, y, w, 0.6, fgettext("Name"))
-	fs[#fs + 1] = ("field[%f,%f;%f,0.8;name;;%s]"):format(x, y + 0.7, w, ESC(player_name()))
+	fs[#fs + 1] = menu_style.inset(x, y + 0.7, w, 0.8)
+	fs[#fs + 1] = ("field[%f,%f;%f,0.8;name;;%s]")
+		:format(x + 0.1, y + 0.7, w - 0.2, ESC(player_name()))
 	fs[#fs + 1] = "field_close_on_enter[name;false]"
 
 	return table.concat(fs)
@@ -300,44 +307,45 @@ local function arenas_card(x, y, w, h)
 	return table.concat(fs)
 end
 
-local function get_formspec(tabview, name, tabdata)
-	local w, h = tabview.width or 15.5, tabview.height or 7.1
-	local rx = PAD + LEFT_W + GAP
-	local rw = w - rx - PAD
-	local rh = h - PAD * 2
+---Нарисовать подбор матча в прямоугольнике (x, y, w, h).
+function matchmaking.get_formspec(x, y, w, h)
+	-- Первый показ: списка арен ещё нет и никто его не просил.
+	if not state.modes and not state.asked then
+		state.asked = true
+		refresh_modes()
+	end
+	local rx = x + LEFT_W + GAP
+	local rw = w - LEFT_W - GAP
 
-	local fs = { menu_style.prelude(), side_card(h) }
+	local fs = { side_card(x, y, h) }
 	if state.queue then
-		fs[#fs + 1] = waiting_card(rx, PAD, rw, rh)
+		fs[#fs + 1] = waiting_card(rx, y, rw, h)
 	else
-		fs[#fs + 1] = arenas_card(rx, PAD, rw, rh)
+		fs[#fs + 1] = arenas_card(rx, y, rw, h)
 	end
 	return table.concat(fs)
 end
 
-local function button_handler(tabview, fields, name, tabdata)
+---Разобрать нажатия. true — своё, разобрали.
+function matchmaking.handle(fields)
 	if fields.name then
 		core.settings:set("name", fields.name)
 	end
 
-	if fields.region then
-		for i, server in ipairs(servers()) do
-			local label = server.name or server.address
-			if server.ping then
-				label = ("%s   %d ms"):format(label, math.floor(server.ping * 1000))
-			end
-			if label == fields.region then
-				state.region = i
-				state.modes = nil
-				refresh_modes()
-				break
-			end
-		end
+	-- Выпадающий список приходит с каждым событием, не только со своим:
+	-- проверять его надо на смену, иначе он съедает нажатия на арены.
+	local picked = tonumber(fields.region)
+	if picked and picked ~= state.region and servers()[picked] then
+		state.region = picked
+		state.modes = nil
+		state.asked = true
+		refresh_modes()
 		return true
 	end
 
 	if fields.retry then
 		state.modes = nil
+		state.asked = true
 		refresh_modes()
 		return true
 	end
@@ -356,19 +364,11 @@ local function button_handler(tabview, fields, name, tabdata)
 	return false
 end
 
-local function on_change(type)
-	if type == "ENTER" then
-		mm_game_theme.set_engine()
-		state.modes = nil
-		refresh_modes()
-	end
+---Экран открыли: список арен мог измениться, пока нас не было.
+function matchmaking.on_enter()
+	state.modes = nil
+	state.asked = true
+	refresh_modes()
 end
 
---------------------------------------------------------------------------------
-return {
-	name = "play",
-	caption = fgettext("Quick Play"),
-	cbf_formspec = get_formspec,
-	cbf_button_handler = button_handler,
-	on_change = on_change,
-}
+return matchmaking
