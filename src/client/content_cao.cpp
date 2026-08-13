@@ -1034,6 +1034,17 @@ static constexpr f32 RIDE_BLEND_TIME = 0.25f;
 
 void GenericCAO::step(float dtime, ClientEnvironment *env)
 {
+	// Вещь, живущая у камеры, обязана заметить, когда владелец отошёл в третье
+	// лицо: место у неё меняется вместе с видом, а не вместе со свойствами.
+	if (m_prop.first_person && m_attached_to_local) {
+		const bool now_first = inFirstPersonView();
+		if (now_first != m_was_first_person) {
+			m_was_first_person = now_first;
+			updateAttachments();
+			updateMeshCulling();
+		}
+	}
+
 	// Handle model animations and update positions instantly to prevent lags
 	if (m_is_local_player) {
 		LocalPlayer *player = m_env->getLocalPlayer();

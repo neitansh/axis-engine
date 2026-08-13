@@ -333,6 +333,9 @@ public:
 	/// Рисуется ли объект сейчас перед камерой своего владельца.
 	bool inFirstPersonView() const;
 
+	/// Каким этот вид был на прошлом шаге: по смене переставляем объект.
+	bool m_was_first_person = false;
+
 	void removeFromScene(bool permanent) override;
 
 	void addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr) override;
