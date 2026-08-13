@@ -3218,12 +3218,19 @@ bool GUIFormSpecMenu::isScrollbarDragged() const
 	return false;
 }
 
+// Как часто форма может перестраиваться, пока тянут ползунок. Десять раз в
+// секунду глаз читает как «на лету», а работы это стоит вдесятеро меньше, чем
+// перестроение на каждый пиксель хода.
+static const u64 REGEN_WHILE_DRAGGING_MS = 100;
+
 void GUIFormSpecMenu::regenerateGui(v2u32 screensize)
 {
 	// Useless to regenerate without a screensize
 	if ((screensize.X <= 0) || (screensize.Y <= 0)) {
 		return;
 	}
+
+	m_regen_time = porting::getTimeMs();
 
 	parserData mydata;
 
@@ -3301,7 +3308,6 @@ void GUIFormSpecMenu::regenerateGui(v2u32 screensize)
 	m_hypertip_map.clear();
 	m_tooltip_rects.clear();
 	m_tooltip_panels.clear();
-	m_tooltip_panel_over = nullptr;
 	m_inventory_rings.clear();
 	m_dropdowns.clear();
 	m_scroll_containers.clear();
@@ -3765,9 +3771,14 @@ void GUIFormSpecMenu::drawMenu()
 		const std::string &newform = m_form_src->getForm();
 		// A slider being dragged sends a change per pixel, and every change
 		// comes back as a new form. Rebuilding the whole screen that often is
-		// wasteful at best and jerky at worst, so the new form waits until the
-		// hand is off: the widget draws its own motion meanwhile.
-		if (newform != m_formspec_string && !isScrollbarDragged()) {
+		// wasteful at best and jerky at worst — but never rebuilding leaves the
+		// number beside the slider showing yesterday's value. So while the hand
+		// is down the rebuild is rationed: often enough that the number keeps
+		// up with the eye, rarely enough that nothing stutters.
+		const u64 now = porting::getTimeMs();
+		const bool held_back = isScrollbarDragged() &&
+				now - m_regen_time < REGEN_WHILE_DRAGGING_MS;
+		if (newform != m_formspec_string && !held_back) {
 			m_formspec_string = newform;
 			m_is_form_regenerated = false;
 			regenerateGui(m_screensize_old);
@@ -3820,13 +3831,13 @@ void GUIFormSpecMenu::drawMenu()
 		соседних строк: в этом и смысл — прочесть, не разъезжая список.
 	*/
 	{
-		gui::IGUIElement *over = nullptr;
+		const TooltipSpec *over = nullptr;
 		core::rect<s32> over_rect;
 		for (const auto &pair : m_tooltip_panels) {
 			core::rect<s32> rect = pair.first->getAbsoluteClippingRect();
 			if (rect.getArea() > 0 && rect.isPointInside(m_pointer) &&
 					!pair.second.tooltip.empty()) {
-				over = pair.first;
+				over = &pair.second;
 				over_rect = rect;
 				break;
 			}
@@ -3837,22 +3848,33 @@ void GUIFormSpecMenu::drawMenu()
 				: std::min(0.1f, (now_ms - m_tooltip_panel_time) / 1000.0f);
 		m_tooltip_panel_time = now_ms;
 
-		if (over != m_tooltip_panel_over) {
-			// Перешли на другую строку — новое пояснение начинает с нуля.
-			m_tooltip_panel_over = over;
+		// Сравниваем текст, а не элемент: после перестроения формы элементы
+		// другие, а пояснение под указателем — то же самое, и всплывать
+		// заново ему незачем.
+		const std::wstring id = over ? over->tooltip : std::wstring();
+		if (over && id != m_tooltip_panel_id) {
+			// Перешли на другую строку: прежнее пояснение не догорает, а
+			// уступает место — иначе на бегу по списку они наложились бы.
+			m_tooltip_panel_id = id;
 			m_tooltip_panel_fade = 0.0f;
 		}
-
 		if (over) {
-			// Полное проявление примерно за шестую долю секунды: заметно, что
-			// панель всплыла, и не приходится её ждать.
-			m_tooltip_panel_fade = std::min(1.0f, m_tooltip_panel_fade + dtime * 6.0f);
-			for (const auto &pair : m_tooltip_panels) {
-				if (pair.first == over) {
-					showTooltipPanel(over_rect, pair.second, m_tooltip_panel_fade);
-					break;
-				}
-			}
+			m_tooltip_panel_last = *over;
+			m_tooltip_panel_last_rect = over_rect;
+		}
+
+		// Полное проявление и угасание — примерно за шестую долю секунды:
+		// заметно, что панель всплыла, и ждать её не приходится.
+		const f32 step = dtime * 6.0f;
+		m_tooltip_panel_fade = over
+				? std::min(1.0f, m_tooltip_panel_fade + step)
+				: std::max(0.0f, m_tooltip_panel_fade - step);
+
+		if (m_tooltip_panel_fade > 0.0f && !m_tooltip_panel_last.tooltip.empty()) {
+			showTooltipPanel(m_tooltip_panel_last_rect, m_tooltip_panel_last,
+					m_tooltip_panel_fade);
+		} else if (!over) {
+			m_tooltip_panel_id.clear();
 		}
 	}
 

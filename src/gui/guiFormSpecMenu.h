@@ -385,10 +385,21 @@ protected:
 	//! отличаются тем, что не бегают за указателем: текст встаёт ровно под тем,
 	//! о чём он, переносится по ширине строки и растёт вниз, сколько нужно.
 	std::vector<std::pair<gui::IGUIElement *, TooltipSpec>> m_tooltip_panels;
-	//! Панель, над которой сейчас указатель, и насколько она проявилась.
-	gui::IGUIElement *m_tooltip_panel_over = nullptr;
+	//! Пояснение, над которым сейчас указатель, и насколько оно проявилось.
+	//! Узнаётся по тексту, а не по элементу: перестроение формы заводит новые
+	//! элементы, и панель, узнаваемая по указателю, каждый раз всплывала бы
+	//! заново — на глаз это выглядит как мигание.
+	std::wstring m_tooltip_panel_id;
 	f32 m_tooltip_panel_fade = 0.0f;
 	u64 m_tooltip_panel_time = 0;
+	//! Последнее показанное пояснение: пока оно гаснет, рисовать надо его,
+	//! хотя указатель со строки уже ушёл.
+	TooltipSpec m_tooltip_panel_last;
+	core::rect<s32> m_tooltip_panel_last_rect;
+
+	//! Когда форма перестраивалась в последний раз. Пока ползунок тянут,
+	//! перестроения приходится придерживать, но не запрещать совсем.
+	u64 m_regen_time = 0;
 	std::vector<std::pair<FieldSpec, GUIScrollBar *>> m_scrollbars;
 	std::vector<std::pair<FieldSpec, std::vector<std::string>>> m_dropdowns;
 	std::vector<gui::IGUIElement *> m_clickthrough_elements;
