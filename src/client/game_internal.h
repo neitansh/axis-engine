@@ -148,6 +148,7 @@ protected:
 
 	// Limbo: the server went quiet, the world stays up and we wait for it
 	void enterLimbo();
+	void dropSessionHud();
 	void updateLimbo(f32 dtime);
 	void finishRejoin();
 	bool inLimbo() const { return m_limbo.active; }

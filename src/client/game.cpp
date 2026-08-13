@@ -1616,6 +1616,28 @@ static constexpr f32 TRANSFER_ATTEMPT_TIMEOUT = 2.0f;
 // and the machine may be coming up right now.
 static constexpr f32 TRANSFER_RETRY_GAP = 0.25f;
 
+// Всё, что сервер нарисовал поверх мира, принадлежит ему одному, и вместе с
+// сессией теряет смысл. Убрать его должны мы: новый сервер раздаёт свои
+// идентификаторы с единицы, и, встретив занятый, HudAdd молча пройдёт мимо —
+// то есть на новом месте не будет ни полосы здоровья, ни хотбара.
+void Game::dropSessionHud()
+{
+	m_hud_server_to_client.clear();
+
+	LocalPlayer *player = client->getEnv().getLocalPlayer();
+	if (!player)
+		return;
+
+	player->hud.clear();
+	player->hud_flags =
+			HUD_FLAG_HOTBAR_VISIBLE | HUD_FLAG_HEALTHBAR_VISIBLE |
+			HUD_FLAG_CROSSHAIR_VISIBLE | HUD_FLAG_WIELDITEM_VISIBLE |
+			HUD_FLAG_BREATHBAR_VISIBLE | HUD_FLAG_MINIMAP_VISIBLE |
+			HUD_FLAG_MINIMAP_RADAR_VISIBLE | HUD_FLAG_BASIC_DEBUG |
+			HUD_FLAG_CHAT_VISIBLE;
+	player->hud_hotbar_itemcount = HUD_HOTBAR_ITEMCOUNT_DEFAULT;
+}
+
 void Game::enterLimbo()
 {
 	m_limbo = LimboState();
@@ -1630,6 +1652,8 @@ void Game::enterLimbo()
 	m_limbo.retry_in = m_limbo.transfer ? 0.0f : m_limbo.retry_delay;
 
 	actionstream << "Game: entering limbo (" << m_limbo.reason << ")" << std::endl;
+
+	dropSessionHud();
 
 	// Nothing the player does from here reaches the server, so let go of what
 	// was in flight and take the hands off the controls of the world
@@ -1765,6 +1789,8 @@ void Game::updateLimbo(f32 dtime)
 		actionstream << "Game: attempt " << m_limbo.attempts
 				<< " to log in again" << std::endl;
 
+		// Прошлая попытка могла получить часть элементов, прежде чем сорваться.
+		dropSessionHud();
 		client->beginRejoin();
 		m_game_ui->setLinkStatus(m_limbo.transfer
 				? wstrgettext("Moving to another server...")
