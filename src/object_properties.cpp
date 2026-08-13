@@ -227,6 +227,10 @@ void ObjectProperties::serialize(std::ostream &os) const
 	writeU8(os, nametag_scale_z);
 	writeU8(os, static_cast<u8>(step_up_mode));
 
+	writeU8(os, first_person);
+	writeV3F32(os, first_person_position);
+	writeV3F32(os, first_person_rotation);
+
 	// Add stuff only at the bottom.
 	// Never remove anything, because we don't want new versions of this!
 }
@@ -334,6 +338,14 @@ void ObjectProperties::deSerialize(std::istream &is)
 	// >= 5.16.0-dev
 
 	step_up_mode = static_cast<StepUpMode>(readU8(is));
+
+	if (!canRead(is))
+		return;
+	// >= 0.0.1-dev (the-axis)
+
+	first_person = readU8(is);
+	first_person_position = readV3F32(is);
+	first_person_rotation = readV3F32(is);
 
 	//if (!canRead(is))
 	//	return;

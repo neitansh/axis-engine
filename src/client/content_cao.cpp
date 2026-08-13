@@ -498,7 +498,8 @@ void GenericCAO::setAttachment(object_t parent_id, const std::string &bone,
 	} else if (!m_is_local_player) {
 		// Objects attached to the local player should be hidden in first person
 		m_is_visible = !m_attached_to_local ||
-			m_client->getCamera()->getCameraMode() != CAMERA_MODE_FIRST;
+			m_client->getCamera()->getCameraMode() != CAMERA_MODE_FIRST
+			|| m_prop.first_person;
 		m_force_visible = false;
 	} else {
 		// Local players need to have this set,
@@ -1544,6 +1545,15 @@ void GenericCAO::setLocalPlayerAnimation(LocalPlayerAnimation local_anim, float 
 	player->last_animation_speed = speed;
 }
 
+// Смотрит ли владелец этой вещи своими глазами. Только тогда её место —
+// перед камерой; для всех прочих она остаётся на кости.
+bool GenericCAO::inFirstPersonView() const
+{
+	return m_prop.first_person && m_attached_to_local && !m_is_local_player
+			&& m_client->getCamera()
+			&& m_client->getCamera()->getCameraMode() == CAMERA_MODE_FIRST;
+}
+
 void GenericCAO::updateAttachments()
 {
 	ClientActiveObject *parent = getParent();
@@ -1582,13 +1592,27 @@ void GenericCAO::updateAttachments()
 			parent_node = parent_animated_mesh_node->getJointNode(m_attachment_bone.c_str());
 		}
 
+		// Вещь, которой полагается быть перед глазами, висит не на модели
+		// владельца, а на его камере — и только пока он сам смотрит своими
+		// глазами. Стоит ему отойти в третье лицо, и она возвращается на
+		// кость, где её всё это время видели остальные.
+		v3f position = m_attachment_position;
+		v3f rotation = m_attachment_rotation;
+		if (inFirstPersonView()) {
+			if (auto *camera_node = m_client->getCamera()->getCameraNode()) {
+				parent_node = camera_node;
+				position = m_prop.first_person_position * BS;
+				rotation = m_prop.first_person_rotation;
+			}
+		}
+
 		if (m_matrixnode && parent_node) {
 			m_matrixnode->setParent(parent_node);
 			parent_node->updateAbsolutePosition();
-			getPosRotMatrix().setTranslation(m_attachment_position);
+			getPosRotMatrix().setTranslation(position);
 			//setPitchYawRoll(getPosRotMatrix(), m_attachment_rotation);
 			// use Irrlicht eulers instead
-			getPosRotMatrix().setRotationDegrees(m_attachment_rotation);
+			getPosRotMatrix().setRotationDegrees(rotation);
 			m_matrixnode->updateAbsolutePosition();
 		}
 	}

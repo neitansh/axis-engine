@@ -295,7 +295,7 @@ void push_item_definition_full(lua_State *L, const ItemDefinition &i)
 }
 
 /******************************************************************************/
-const std::array<const char *, 36> object_property_keys = {
+const std::array<const char *, 37> object_property_keys = {
 	"hp_max",
 	"breath_max",
 	"physical",
@@ -332,7 +332,8 @@ const std::array<const char *, 36> object_property_keys = {
 	// "node" is intentionally not here as it's gated behind `fallback` below!
 	"nametag_fontsize",
 	"nametag_scale_z",
-	"step_up_mode"
+	"step_up_mode",
+	"first_person"
 };
 
 /******************************************************************************/
@@ -539,6 +540,24 @@ void read_object_properties(lua_State *L, int index,
 
 	getstringfield(L, -1, "damage_texture_modifier", prop->damage_texture_modifier);
 
+	// Вид от первого лица: где вещь висит, пока владелец смотрит своими
+	// глазами. Отсутствие таблицы значит «как у всех», то есть на кости.
+	lua_getfield(L, -1, "first_person");
+	if (lua_istable(L, -1)) {
+		prop->first_person = true;
+		lua_getfield(L, -1, "position");
+		if (!lua_isnil(L, -1))
+			prop->first_person_position = check_v3f(L, -1);
+		lua_pop(L, 1);
+		lua_getfield(L, -1, "rotation");
+		if (!lua_isnil(L, -1))
+			prop->first_person_rotation = check_v3f(L, -1);
+		lua_pop(L, 1);
+	} else if (lua_isboolean(L, -1)) {
+		prop->first_person = lua_toboolean(L, -1);
+	}
+	lua_pop(L, 1);
+
 	// Remember to update object_property_keys above
 	// when adding a new property
 }
@@ -647,6 +666,17 @@ void push_object_properties(lua_State *L, const ObjectProperties *prop)
 	lua_setfield(L, -2, "show_on_minimap");
 	lua_pushstring(L, enum_to_string(es_StepUpMode, prop->step_up_mode));
 	lua_setfield(L, -2, "step_up_mode");
+
+	if (prop->first_person) {
+		lua_newtable(L);
+		push_v3f(L, prop->first_person_position);
+		lua_setfield(L, -2, "position");
+		push_v3f(L, prop->first_person_rotation);
+		lua_setfield(L, -2, "rotation");
+	} else {
+		lua_pushboolean(L, false);
+	}
+	lua_setfield(L, -2, "first_person");
 
 	// Remember to update object_property_keys above
 	// when adding a new property

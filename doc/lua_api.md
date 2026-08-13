@@ -10265,6 +10265,16 @@ Player properties need to be saved manually.
     -- "rigid": Step-up is only possible when standing on ground.
     --   In practice, you cannot parkour clutch edges of nodes.
     -- Supported by clients >= 5.16.0.
+
+    first_person = {position = {x=0.1, y=-0.1, z=0.3}, rotation = {x=0, y=0, z=0}},
+    -- Where the object sits while its owner looks through their own eyes.
+    -- Only has an effect on objects attached to a player.
+    -- Given a table, the object is drawn at the owner's camera with this
+    -- offset (in nodes) and rotation (in degrees) instead of on the bone it is
+    -- attached to; everyone else keeps seeing it on the bone, and so does the
+    -- owner in third person.
+    -- Meant for what belongs in front of the eyes: a weapon, a tool, a lamp.
+    -- `false` (the default) means the object is always drawn on its bone.
 }
 ```
 

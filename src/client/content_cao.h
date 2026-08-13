@@ -330,6 +330,9 @@ public:
 	{ return m_attachment_child_ids; }
 	void updateAttachments() override;
 
+	/// Рисуется ли объект сейчас перед камерой своего владельца.
+	bool inFirstPersonView() const;
+
 	void removeFromScene(bool permanent) override;
 
 	void addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr) override;
