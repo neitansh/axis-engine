@@ -1167,6 +1167,8 @@ bool Game::createClient(const GameStartData &start_data)
 		return false;
 	}
 
+	// Пока содержимое не пришло, мира ещё нет — и ждать сервер, держа
+	// пустой экран, незачем: см. checkConnection().
 	if (!getServerContent(&connect_aborted))
 	{
 		if (error_message->empty() && !connect_aborted)
@@ -1473,6 +1475,7 @@ bool Game::getServerContent(bool *aborted)
 		if (client->mediaReceived() && client->itemdefReceived() &&
 			client->nodedefReceived())
 		{
+			m_world_is_up = true;
 			return true;
 		}
 
@@ -1588,8 +1591,12 @@ bool Game::checkConnection()
 	// A silent server is not a lost world: hold on to what we have and wait.
 	// In singleplayer the server lives in this very process, so there is
 	// nothing to wait for and the old behaviour is the honest one.
+	//
+	// Ждать имеет смысл, только когда есть что удерживать. До того как мир
+	// собран, экран пуст, и молчаливое ожидание на нём выглядит зависанием:
+	// сервер, не отдавший содержимое, честнее назвать сразу.
 	if (!client->isLinkLive() && !m_limbo.active && !simple_singleplayer_mode &&
-			g_settings->getBool("wait_for_server"))
+			m_world_is_up && g_settings->getBool("wait_for_server"))
 		enterLimbo();
 
 	if (!client->isLinkLive() && !m_limbo.active)

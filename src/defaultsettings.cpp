@@ -87,6 +87,9 @@ void set_default_settings()
 	settings->setDefault("address", "");
 	settings->setDefault("remote_port", "30000");
 	// Waiting out a server that went quiet instead of dropping the world
+	// Куда вкладка «Играть» ходит за очередями и адресами матчей, если у
+	// выбранного сервера свой адрес не назван.
+	settings->setDefault("matchmaking_url", "");
 	settings->setDefault("wait_for_server", "true");
 	settings->setDefault("wait_for_server_timeout", "0");
 	// A deliberately worse network, for measuring motion under one

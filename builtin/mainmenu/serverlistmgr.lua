@@ -29,12 +29,19 @@ local OFFICIAL_SERVERS = {
 		address = "135.106.173.139",
 		port = 30000,
 		description = fgettext_ne("Official server of Axis, Russia"),
+		-- Куда вкладка «Играть» ходит за очередями и адресами матчей и каким
+		-- входом отсюда виден матч: до Германии из России доходит не всё,
+		-- и путь туда идёт через свой узел.
+		dispatch = "http://135.106.173.139:30090",
+		region = "ru",
 	},
 	{
 		name = "Axis · " .. fgettext_ne("Europe"),
 		address = "65.109.68.114",
 		port = 30000,
 		description = fgettext_ne("Official server of Axis, Europe"),
+		dispatch = "http://65.109.68.114:30090",
+		region = "eu",
 	},
 }
 

@@ -629,6 +629,7 @@ constexpr SettingDomainEntry SETTING_DOMAIN_TABLE[] = {
 	{"volumetric_clouds_speed", ConfigDomain::ClientGraphics},
 	{"volumetric_clouds_thickness", ConfigDomain::ClientGraphics},
 	{"vsync", ConfigDomain::ClientGraphics},
+	{"matchmaking_url", ConfigDomain::ClientNetwork},
 	{"wait_for_server", ConfigDomain::ClientNetwork},
 	{"wait_for_server_timeout", ConfigDomain::ClientNetwork},
 	{"water_level", ConfigDomain::ServerWorldgen},

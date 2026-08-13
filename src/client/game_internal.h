@@ -388,6 +388,10 @@ private:
 
 	LimboState m_limbo;
 
+	// Содержимое дошло и мир собран. До этого удерживать на экране нечего,
+	// а значит и ждать молчащий сервер не за чем.
+	bool m_world_is_up = false;
+
 	/* 'cache'
 	   This class does take ownership/responsibily for cleaning up etc of any of
 	   these items (e.g. device)
