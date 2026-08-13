@@ -238,14 +238,61 @@ function make.unavail_list(settings)
 	}
 end
 
+-- Разбить строку на строки нужной ширины.
+--
+-- Мерить надпись из Lua нечем, а область-надпись, если текст в неё не влез,
+-- молча его обрезает — так и пропадала половина примечаний. Поэтому переносы
+-- расставляются заранее, по счёту знаков: на единицу ширины уменьшенным
+-- шрифтом помещается около пяти с половиной. Берём чуть меньше — лишний
+-- перенос ничего не портит, обрезанная строка портит всё.
+local CHARS_PER_UNIT = 5.2
+local NOTE_LINE_H = 0.4
+
+-- LuaJIT не знает utf8, поэтому длину считаем по ведущим байтам.
+local function utf8_len(text)
+	local n = 0
+	for i = 1, #text do
+		local byte = text:byte(i)
+		if byte < 0x80 or byte >= 0xC0 then
+			n = n + 1
+		end
+	end
+	return n
+end
+
+local function wrap_text(text, width)
+	local per_line = math.max(8, math.floor(width * CHARS_PER_UNIT))
+	local lines, line, line_len = {}, nil, 0
+	for word in text:gmatch("%S+") do
+		local len = utf8_len(word)
+		if not line then
+			line, line_len = word, len
+		elseif line_len + 1 + len <= per_line then
+			line = line .. " " .. word
+			line_len = line_len + 1 + len
+		else
+			lines[#lines + 1] = line
+			line, line_len = word, len
+		end
+	end
+	if line then
+		lines[#lines + 1] = line
+	end
+	return lines
+end
+
+
 function make.note(text)
 	return {
 		full_width = true,
 		get_formspec = function(self, avail_w)
+			local lines = wrap_text(text, avail_w)
+			local h = #lines * NOTE_LINE_H
 			return ("style_type[label;textcolor=%s;font_size=*0.9]" ..
-				"label[0,0;%f,0.45;%s]" ..
+				"label[0,0;%f,%f;%s]" ..
 				"style_type[label;textcolor=;font_size=]"):format(
-					COLOR_DESC, avail_w, core.formspec_escape(text)), 0.45
+					COLOR_DESC, avail_w, h,
+					core.formspec_escape(table.concat(lines, "\n"))), h
 		end,
 	}
 end
