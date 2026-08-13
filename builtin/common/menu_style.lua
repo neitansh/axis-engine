@@ -102,11 +102,20 @@ end
 --- Отличается от соседей подложкой и обычным белым текстом, а не цветом:
 --- цветная надпись в сером списке кричит громче, чем нужно от «вы здесь».
 function menu_style.selected(names)
-	return ("style[%s;bgimg=%s;bgimg_hovered=%s;bgimg_pressed=%s;bgimg_middle=%d;" ..
-			"border=false;textcolor=%s]"):format(
-		names, tex("axis_surface.png"), tex("axis_surface.png"),
-		tex("axis_surface.png"), BUTTON_MIDDLE, menu_style.TEXT)
+	return ("style[%s;bgimg=;bgimg_hovered=%s;bgimg_pressed=%s;bgimg_middle=%d;" ..
+			"border=false;bgcolor=#00000000;textcolor=%s]"):format(
+		names, tex("axis_button_hover.png"), tex("axis_button_pressed.png"),
+		BUTTON_MIDDLE, menu_style.TEXT)
 end
+
+--- Отметка выбранной строки в списке разделов: тонкая полоска у левого края
+--- и едва заметная заливка. Поднятая подложка делала из строки списка кнопку,
+--- которой она не является.
+function menu_style.selected_mark(x, y, w, h)
+	return ("box[%f,%f;%f,%f;#FFFFFF0E]box[%f,%f;0.06,%f;%s]"):format(
+		x, y, w, h, x, y, h, menu_style.TEXT)
+end
+
 
 --- Icon-only buttons: no 9-slice, which would eat the room the icon needs.
 function menu_style.icon(names)

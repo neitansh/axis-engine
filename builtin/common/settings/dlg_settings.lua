@@ -761,6 +761,7 @@ local function get_formspec(dialogdata)
 		local name = "page_" .. other_page.id
 
 		if other_page.id == page_id then
+			fs[#fs + 1] = menu_style.selected_mark(0, y, entry_w, menu_style.ROW)
 			fs[#fs + 1] = menu_style.selected(name)
 		else
 			fs[#fs + 1] = menu_style.ghost(name)
