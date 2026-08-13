@@ -46,8 +46,8 @@ local DIVIDER_GAP = 0.05
 local COLOR_DESC = "#9aa0a6"
 -- Пояснение ложится поверх соседних строк, поэтому фон у него глухой:
 -- просвечивающий текст поверх текста не прочесть.
-local COLOR_TIP_BG = "#12161bf2"
-local COLOR_TIP_TEXT = "#dfe3e8"
+local COLOR_TIP_BG = "#242B34F5"
+local COLOR_TIP_TEXT = "#E8EAED"
 local COLOR_HEADING = menu_style.HEADING
 
 

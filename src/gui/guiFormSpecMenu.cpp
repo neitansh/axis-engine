@@ -4144,7 +4144,8 @@ void GUIFormSpecMenu::showTooltipPanel(const core::rect<s32> &under,
 			core::dimension2d<s32>(width, height)));
 	m_tooltip_element->setTextRestrainedInside(false);
 	m_tooltip_element->setDrawBackground(true);
-	m_tooltip_element->setDrawBorder(true);
+	// Без рамки: у панели и так есть край — её собственная заливка.
+	m_tooltip_element->setDrawBorder(false);
 	m_tooltip_element->setVisible(true);
 	m_tooltip_element->setOverrideFont(m_font);
 	// Отступ от края берём текстовым выравниванием: своих полей у надписи нет.

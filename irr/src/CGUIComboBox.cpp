@@ -383,18 +383,87 @@ void CGUIComboBox::draw()
 		SelectedText->setDrawBackground(false);
 		SelectedText->setOverrideColor(skin->getColor(EGDC_GRAY_TEXT));
 	}
-	ListButton->setSprite(EGBS_BUTTON_UP, skin->getIcon(EGDI_CURSOR_DOWN), skin->getColor(isEnabled() ? EGDC_WINDOW_SYMBOL : EGDC_GRAY_WINDOW_SYMBOL));
-	ListButton->setSprite(EGBS_BUTTON_DOWN, skin->getIcon(EGDI_CURSOR_DOWN), skin->getColor(isEnabled() ? EGDC_WINDOW_SYMBOL : EGDC_GRAY_WINDOW_SYMBOL));
+	// Стрелку рисуем сами, поэтому кнопке нечего показывать.
+	ListButton->setDrawBorder(false);
+	ListButton->setSprite(EGBS_BUTTON_UP, -1, video::SColor(0, 0, 0, 0));
+	ListButton->setSprite(EGBS_BUTTON_DOWN, -1, video::SColor(0, 0, 0, 0));
 
+	video::IVideoDriver *driver = Environment->getVideoDriver();
+	const core::rect<s32> &clip = AbsoluteClippingRect;
 	core::rect<s32> frameRect(AbsoluteRect);
 
-	// draw the border
+	// Поле: лёгкая заливка вместо тёмной вдавленной плашки. Тёмный
+	// прямоугольник посреди светлого списка кричит громче самого поля.
+	driver->draw2DRectangle(video::SColor(20, 255, 255, 255), frameRect, &clip);
+	driver->draw2DRectangle(video::SColor(34, 255, 255, 255),
+			core::rect<s32>(frameRect.UpperLeftCorner.X,
+					frameRect.LowerRightCorner.Y - 2,
+					frameRect.LowerRightCorner.X, frameRect.LowerRightCorner.Y),
+			&clip);
 
-	skin->draw3DSunkenPane(this, skin->getColor(EGDC_3D_HIGH_LIGHT),
-			true, true, frameRect, &AbsoluteClippingRect);
+	drawArrow();
 
 	// draw children
 	IGUIElement::draw();
+}
+
+//! Стрелка справа от поля.
+//!
+//! В рамке, как у полосы прокрутки, и той же ширины — раскрытый список
+//! приставляет свою полосу ровно под ней, и разъезжаться им незачем. Сама
+//! стрелка складывается из полосок: так она перетекает из «вниз» в «вверх»,
+//! показывая, раскрыт список или закрыт.
+void CGUIComboBox::drawArrow()
+{
+	video::IVideoDriver *driver = Environment->getVideoDriver();
+	const core::rect<s32> &clip = AbsoluteClippingRect;
+	const video::SColor line(255, 255, 255, 255);
+
+	const u32 now = os::Timer::getTime();
+	const f32 dt = ArrowTime == 0 ? 0.0f : core::min_((now - ArrowTime) / 1000.0f, 0.1f);
+	ArrowTime = now;
+	const f32 target = ListBox ? 1.0f : 0.0f;
+	const f32 step = dt * 8.0f;
+	if (ArrowOpen < target)
+		ArrowOpen = core::min_(target, ArrowOpen + step);
+	else if (ArrowOpen > target)
+		ArrowOpen = core::max_(target, ArrowOpen - step);
+
+	core::rect<s32> btn = ListButton->getAbsolutePosition();
+	// Рамка в два пикселя, внутри пусто — как у полос прокрутки.
+	const s32 w = 2;
+	auto bar = [&](s32 x0, s32 y0, s32 x1, s32 y1) {
+		driver->draw2DRectangle(line, core::rect<s32>(x0, y0, x1, y1), &clip);
+	};
+	bar(btn.UpperLeftCorner.X, btn.UpperLeftCorner.Y, btn.LowerRightCorner.X,
+			btn.UpperLeftCorner.Y + w);
+	bar(btn.UpperLeftCorner.X, btn.LowerRightCorner.Y - w, btn.LowerRightCorner.X,
+			btn.LowerRightCorner.Y);
+	bar(btn.UpperLeftCorner.X, btn.UpperLeftCorner.Y, btn.UpperLeftCorner.X + w,
+			btn.LowerRightCorner.Y);
+	bar(btn.LowerRightCorner.X - w, btn.UpperLeftCorner.Y, btn.LowerRightCorner.X,
+			btn.LowerRightCorner.Y);
+
+	// Треугольник из четырёх полосок: закрытый список — остриём вниз,
+	// раскрытый — вверх, между ними ровная черта.
+	const s32 rows = 4;
+	// Треугольнику нужна ширина, а не высота: в узкой кнопке высокий и узкий
+	// он читается не стрелкой, а восклицательным знаком.
+	const s32 full = core::max_(4, btn.getWidth() - 2 * (w + 3));
+	const s32 row_h = core::max_(2, btn.getHeight() / 12);
+	const s32 top = btn.UpperLeftCorner.Y +
+			(btn.getHeight() - rows * row_h) / 2;
+	const s32 centre = btn.UpperLeftCorner.X + btn.getWidth() / 2;
+
+	for (s32 i = 0; i < rows; ++i) {
+		const f32 down = (f32)(rows - i) / rows;
+		const f32 up = (f32)(i + 1) / rows;
+		const s32 width = (s32)(full * (down + (up - down) * ArrowOpen));
+		if (width < 1)
+			continue;
+		bar(centre - width / 2, top + i * row_h,
+				centre - width / 2 + width, top + i * row_h + row_h);
+	}
 }
 
 void CGUIComboBox::openCloseMenu()

@@ -720,7 +720,7 @@ local function get_formspec(dialogdata)
 
 		-- Search sits above the page list it filters. The icons live inside the
 		-- field, inset from its right edge, so nothing hangs over the border.
-		menu_style.inset(pad, top, search_box_w, search_h),
+		menu_style.field(pad, top, search_box_w, search_h),
 		("style[search_query;halign=left]"),
 		("field[%f,%f;%f,%f;search_query;;%s]"):format(
 			pad + menu_style.SPACE.md, top, search_field_w, search_h,

@@ -336,7 +336,7 @@ void set_default_settings()
 	settings->setDefault("gui_color_light", "#00000000");
 	// Фон списков и таблиц. Полупрозрачным он быть не может: раскрытый список
 	// выбора ложится поверх строк, и сквозь него читалось то, что под ним.
-	settings->setDefault("gui_color_high_light", "#171B21");
+	settings->setDefault("gui_color_high_light", "#1E242C");
 	settings->setDefault("gui_color_shadow", "#00000099");
 	settings->setDefault("gui_color_dark_shadow", "#000000CC");
 	settings->setDefault("gui_color_scrollbar", "#5A6068");

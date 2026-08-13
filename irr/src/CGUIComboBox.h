@@ -73,6 +73,7 @@ public:
 
 private:
 	void openCloseMenu();
+	void drawArrow();
 	void sendSelectionChangedEvent();
 	void updateListButtonWidth(s32 width);
 
@@ -80,6 +81,11 @@ private:
 	IGUIStaticText *SelectedText;
 	IGUIListBox *ListBox;
 	IGUIElement *LastFocus;
+
+	//! Насколько стрелка повёрнута: 0 — список закрыт, 1 — раскрыт. Между
+	//! ними она перетекает, чтобы переворот было видно, а не только заметить.
+	f32 ArrowOpen = 0.0f;
+	u32 ArrowTime = 0;
 
 	struct SComboData
 	{
