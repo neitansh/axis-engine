@@ -518,8 +518,10 @@ local function arenas_card(x, y, w, h)
 	}
 
 	if not decided() then
-		fs[#fs + 1] = menu_style.body(x + 0.375, y + 1.0, w - 0.75, 0.6,
-			fgettext("Checking connection..."))
+		-- Кроме этой строки на карточке ничего нет, поэтому и стоит она
+		-- посреди неё, а не в углу под заголовком.
+		fs[#fs + 1] = menu_style.body(x + 0.375, y + h / 2 - 0.3, w - 0.75, 0.6,
+			fgettext("Checking connection..."), "center")
 		return table.concat(fs)
 	end
 

@@ -151,12 +151,26 @@ local function init_globals()
 
 	start_page = create_start_page(tv_main)
 
-	ui.set_default("mainmenu_start")
-	start_page:show()
-	ui.update()
+	-- Открыться сразу на нужном экране, минуя стартовую страницу. Пусто —
+	-- обычный вход; заполняют это стенды, которым надо снять экран, и некому
+	-- нажать за них кнопку.
+	local straight = core.settings:get("mainmenu_start_tab")
+	local skip_start = straight and straight ~= "" and tv_main:set_tab(straight)
+
+	local parent
+	if skip_start then
+		ui.set_default("maintab")
+		tv_main:show()
+		ui.update()
+		parent = tv_main
+	else
+		ui.set_default("mainmenu_start")
+		start_page:show()
+		ui.update()
+		parent = start_page
+	end
 
 	-- synchronous, chain parents to only show one at a time
-	local parent = start_page
 	parent = migrate_keybindings(parent)
 	check_reinstall_mtg(parent)
 end

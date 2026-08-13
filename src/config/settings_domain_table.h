@@ -276,6 +276,7 @@ constexpr SettingDomainEntry SETTING_DOMAIN_TABLE[] = {
 	{"main_world_name", ConfigDomain::ServerServer},
 	{"mainmenu_last_selected_world", ConfigDomain::ClientSession},
 	{"maintab_LAST", ConfigDomain::ClientSession},
+	{"mainmenu_start_tab", ConfigDomain::ClientSession},
 	{"map-dir", ConfigDomain::ServerServer},
 	{"map_compression_level_disk", ConfigDomain::ServerPerformance},
 	{"map_compression_level_net", ConfigDomain::ServerNetwork},
