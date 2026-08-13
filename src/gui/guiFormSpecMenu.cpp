@@ -3834,10 +3834,21 @@ void GUIFormSpecMenu::drawMenu()
 		// Раскрытый список выбора важнее пояснения: оно всё равно легло бы
 		// поверх него, закрыв половину строк. Пока список открыт, пояснение
 		// уходит — тем же плавным движением, каким появлялось.
-		gui::IGUIElement *focus = Environment->getFocus();
-		const bool list_open = focus &&
-				focus->getType() == gui::EGUIET_LIST_BOX && focus->getParent() &&
-				focus->getParent()->getType() == gui::EGUIET_COMBO_BOX;
+		//
+		// Ищем список по всей цепочке над тем, что в фокусе, а не в самом
+		// фокусе: стоит взяться за полосу прокрутки внутри списка, как фокус
+		// переходит на неё, и по одному фокусу список выглядел бы закрытым.
+		// Проверяем именно пару «список внутри поля выбора»: закрытое поле
+		// выбора фокус держит и после того, как в нём выбрали, и по нему
+		// одному пояснение пропадало бы надолго.
+		bool list_open = false;
+		for (gui::IGUIElement *e = Environment->getFocus(); e; e = e->getParent()) {
+			if (e->getType() == gui::EGUIET_LIST_BOX && e->getParent() &&
+					e->getParent()->getType() == gui::EGUIET_COMBO_BOX) {
+				list_open = true;
+				break;
+			}
+		}
 
 		const TooltipSpec *over = nullptr;
 		core::rect<s32> over_rect;
