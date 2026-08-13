@@ -8359,3 +8359,325 @@ msgstr "Ждём ещё игроков"
 #: builtin/mainmenu/matchmaking.lua
 msgid "Starting"
 msgstr "Отправляемся"
+
+#. Пояснения к настройкам: что делает и во что обходится.
+#: builtin/common/settings/descriptions.lua
+msgid "Stereoscopic output for 3D glasses and split screens. Every mode except «none» draws the world twice and roughly halves the frame rate."
+msgstr "Стереоскопический вывод для очков и раздельного экрана. Любой режим, кроме «none», рисует мир дважды и примерно вдвое снижает частоту кадров."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far apart the two eyes are in stereoscopic modes. Changes the depth effect, not the cost."
+msgstr "Насколько разведены глаза в стереоскопических режимах. Меняет ощущение глубины, но не стоимость кадра."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How dark the corners between blocks are. Shading is already computed, so the setting only changes how strongly it shows."
+msgstr "Насколько тёмными выходят углы между блоками. Затенение всё равно уже посчитано, поэтому настройка меняет только силу его проявления."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Keep textures sharp on surfaces seen at a steep angle, such as floors stretching into the distance. Costs a few percent of the frame on modern cards."
+msgstr "Сохранять чёткость текстур на поверхностях, видимых под острым углом, — например, на полу, уходящем вдаль. Стоит несколько процентов кадра на современных картах."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How jagged edges are smoothed. FSAA is the most expensive and the cleanest; FXAA is nearly free and slightly blurry; «none» is fastest."
+msgstr "Чем сглаживаются ступеньки на краях. FSAA дороже всех и чище всех, FXAA почти бесплатен и слегка размывает, «none» — самый быстрый."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let the held item lag behind the camera when you turn. Pure decoration, free."
+msgstr "Позволять предмету в руке отставать от камеры при повороте. Чистое украшение, ничего не стоит."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Remember the window size and whether it was maximised, and restore them at the next launch. No effect on performance."
+msgstr "Запоминать размер окна и то, было ли оно развёрнуто, и восстанавливать при следующем запуске. На производительность не влияет."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Smooth textures when they are magnified. Blurs the pixel art; the cost itself is negligible."
+msgstr "Сглаживать текстуры при увеличении. Размывает пиксельную графику, сама по себе стоит незаметно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Join neighbouring glass blocks into one surface, without the seam between them. Slightly fewer faces to draw."
+msgstr "Сращивать соседние стеклянные блоки в одну поверхность, без шва между ними. Граней для отрисовки становится чуть меньше."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How opaque the crosshair is. Zero hides it completely."
+msgstr "Насколько непрозрачен прицел. Ноль скрывает его совсем."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Colour of the crosshair."
+msgstr "Цвет прицела."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Add faint noise to break up the bands that appear in smooth gradients, such as the sky at dusk. Nearly free."
+msgstr "Добавлять едва заметный шум, чтобы разбить полосы на плавных переходах — например, на небе в сумерках. Почти бесплатно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Tint the fog towards the colour of the sky in the direction you are looking. A small extra cost per frame."
+msgstr "Подкрашивать туман под цвет неба в ту сторону, куда вы смотрите. Небольшая надбавка к кадру."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Brightness curve applied to the finished frame. Costs nothing, but a bright picture hides less than a dark one."
+msgstr "Кривая яркости, накладываемая на готовый кадр. Ничего не стоит, но на светлой картинке скрыто меньше, чем на тёмной."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Draw clouds as boxes instead of a flat layer. A little more to draw, and much better looking from below."
+msgstr "Рисовать облака объёмными, а не плоским слоем. Рисовать чуть дороже, а снизу выглядит гораздо лучше."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let the picture adapt to bright and dark places the way an eye does. Costs a pass that measures the frame's brightness."
+msgstr "Позволять картинке привыкать к светлым и тёмным местам, как это делает глаз. Стоит прохода, которым измеряется яркость кадра."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let bright surfaces bleed light into their surroundings. Costs several blur passes over the frame; the cost is fixed and does not depend on what is in view."
+msgstr "Позволять ярким поверхностям разливать свет вокруг себя. Стоит нескольких проходов размытия по кадру; цена постоянна и не зависит от того, что в кадре."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Cast real shadows from the sun and moon. The most expensive effect in the game: the world is drawn again from the light's point of view, so expect to lose a noticeable part of the frame rate."
+msgstr "Отбрасывать настоящие тени от солнца и луны. Самый дорогой эффект в игре: мир рисуется ещё раз, уже со стороны света, так что заметной части кадров придётся лишиться."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Fade the world into fog at the edge of the view distance. Costs almost nothing and hides the boundary where the world stops being drawn."
+msgstr "Растворять мир в тумане у границы прорисовки. Стоит почти ничего и прячет край, за которым мир перестаёт рисоваться."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Master switch for effects applied to the finished frame: tone mapping, bloom, exposure, debanding. With it off, all of them stop costing anything."
+msgstr "Общий выключатель эффектов, накладываемых на готовый кадр: тональной карты, свечения, экспозиции, сглаживания полос. Пока он выключен, ни один из них ничего не стоит."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Check visibility by tracing rays instead of guessing from the shape of the world. More accurate, so fewer hidden blocks are drawn, at the cost of some processor time."
+msgstr "Проверять видимость лучами, а не по форме мира. Точнее — значит, меньше скрытых блоков попадёт в отрисовку, но часть времени процессора уходит на сами проверки."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let light pass through leaves so they glow when the sun is behind them. A small extra cost wherever foliage is in view."
+msgstr "Пропускать свет сквозь листву, чтобы она светилась, когда солнце за ней. Небольшая надбавка там, где в кадре есть листва."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Replace the flat cloud layer with clouds that have depth and can be flown through. Much more expensive than ordinary clouds: the sky is ray-marched every frame."
+msgstr "Заменить плоский слой облаков объёмными, сквозь которые можно пролететь. Гораздо дороже обычных облаков: небо просчитывается лучами на каждом кадре."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Draw shafts of light through the air. Adds a pass and looks best against the sun; costs more the more of the screen the sky covers."
+msgstr "Рисовать лучи света в воздухе. Добавляет проход и лучше всего смотрится против солнца; тем дороже, чем больше экрана занимает небо."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Reflect the sky and the world in water. Costs an extra pass wherever water is visible."
+msgstr "Отражать небо и мир в воде. Стоит лишнего прохода там, где вода видна."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make leaves sway in the wind. The swaying is computed on the card for every leaf face in sight; noticeable in dense forest on weak hardware."
+msgstr "Заставить листву качаться на ветру. Качание считается на карте для каждой видимой грани листвы — на слабом железе в густом лесу это заметно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make grass and plants sway. Same cost as waving leaves, spread over the ground rather than the canopy."
+msgstr "Заставить траву и растения качаться. Стоит того же, что и качание листвы, только распределено по земле, а не по кронам."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make the water surface rise and fall. Costs a little on the card and much more on the eye — still water reads as a flat sheet."
+msgstr "Заставить поверхность воды подниматься и опускаться. На карте стоит немного, а на вид даёт много: неподвижная вода читается как лист железа."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Shift the whole picture brighter or darker, in stops. Free."
+msgstr "Сдвинуть всю картинку светлее или темнее, в ступенях экспозиции. Бесплатно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far away the fog begins, as a share of the view distance. Starting it closer hides more of the world but does not make drawing cheaper — the blocks behind it are still there."
+msgstr "Насколько далеко начинается туман — долей от дальности прорисовки. Ближний туман скрывает больше мира, но рисовать дешевле не становится: блоки за ним никуда не делись."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Field of view in degrees. A wider angle shows more of the world at once, which means more to draw: the cost grows roughly with the area brought into the frame."
+msgstr "Угол обзора в градусах. Широкий угол показывает больше мира разом, а значит и рисовать приходится больше: стоимость растёт примерно как площадь, попавшая в кадр."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Upper limit on frames per second. Frames above the limit are not drawn, so the card and processor idle instead of heating the room for nothing. Setting it above the refresh rate of the monitor gains nothing you can see."
+msgstr "Предел кадров в секунду. Кадры сверх предела не рисуются, и карта с процессором простаивают, вместо того чтобы впустую греть комнату. Ставить выше частоты монитора бессмысленно: увидеть эти кадры всё равно нельзя."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Frame limit while the window is not focused. Keep it low: a background window that draws hundreds of frames takes them away from whatever you are actually doing."
+msgstr "Предел кадров, пока окно не в фокусе. Держать его низким стоит: фоновое окно, рисующее сотни кадров, отбирает их у того, чем вы заняты на самом деле."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many samples per pixel FSAA takes. Each step multiplies the work the card does on the world: 4× samples means roughly a quarter of the frame rate in the worst case."
+msgstr "Сколько выборок на пиксель берёт FSAA. Каждая ступень умножает работу карты по миру: четырёхкратная выборка в худшем случае оставляет около четверти кадров."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Run the game fullscreen instead of in a window. Usually a little faster than a window of the same size, because the desktop compositor steps out of the way."
+msgstr "Запускать игру в полный экран вместо окна. Обычно чуть быстрее окна того же размера: оболочка рабочего стола перестаёт вмешиваться в вывод."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Smooth edges by blurring them after the frame is drawn. Nearly free, but fine detail and text in the world become slightly soft."
+msgstr "Сглаживать края размытием уже готового кадра. Почти бесплатно, но мелкие детали и надписи в мире становятся чуть мягче."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Flash the screen red when you take damage. Free."
+msgstr "Подсвечивать экран красным при получении урона. Ничего не стоит."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How leaves are drawn. «Fancy» draws every face and looks like foliage; «simple» draws the outer faces only; «opaque» turns leaves into solid blocks and is the cheapest by a wide margin — a forest is where this setting is felt."
+msgstr "Как рисуется листва. «Fancy» рисует все грани и выглядит как листва, «simple» — только внешние, «opaque» превращает листву в сплошные блоки и дешевле остальных с большим отрывом. Разница чувствуется именно в лесу."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Keep smaller copies of every texture for distant surfaces. Costs a little video memory and usually pays it back: distant blocks stop shimmering and are cheaper to sample."
+msgstr "Держать уменьшенные копии каждой текстуры для далёких поверхностей. Стоит немного видеопамяти и обычно окупается: далёкие блоки перестают рябить и читаются дешевле."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How the block under the crosshair is marked: an outline, a highlight, or nothing at all. The cost is negligible."
+msgstr "Как отмечается блок под прицелом: рамкой, подсветкой или никак. Стоимость незаметна."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How the engine decides which blocks are hidden behind others and can be skipped. Skipping them is what keeps caves and buildings cheap to draw."
+msgstr "Как движок решает, какие блоки скрыты за другими и их можно пропустить. Именно этот пропуск и делает пещеры и постройки дешёвыми в отрисовке."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Open the pause menu when the window loses focus. A single player game stops along with it, so the machine is freed for whatever you switched to."
+msgstr "Открывать меню паузы, когда окно теряет фокус. Одиночная игра при этом останавливается, и машина освобождается для того, на что вы переключились."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Trade some visual quality for speed in several places at once. Worth turning on if the frame rate matters more than the picture."
+msgstr "Разменять часть качества картинки на скорость сразу в нескольких местах. Стоит включать, когда частота кадров важнее вида."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Height of the game window when it is not maximised or fullscreen. Like the width, it changes how many pixels have to be drawn each frame."
+msgstr "Высота окна игры, когда оно не развёрнуто и не в полный экран. Как и ширина, задаёт, сколько пикселей приходится рисовать на каждый кадр."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Width of the game window when it is not maximised or fullscreen. Costs nothing by itself: what costs is the number of pixels the card has to fill, so a wider window means a lower frame rate."
+msgstr "Ширина окна игры, когда оно не развёрнуто и не в полный экран. Само по себе ничего не стоит: платить приходится за число пикселей, которые рисует карта, — чем шире окно, тем ниже частота кадров."
+
+#: builtin/common/settings/descriptions.lua
+msgid "File format for screenshots. PNG keeps every pixel exactly; JPEG makes smaller files and loses fine detail."
+msgstr "Формат файла для снимков экрана. PNG сохраняет каждый пиксель точно, JPEG даёт файлы меньше и теряет мелкие детали."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where screenshots are saved."
+msgstr "Куда сохраняются снимки экрана."
+
+#: builtin/common/settings/descriptions.lua
+msgid "JPEG quality, from crude to nearly lossless. Ignored for PNG."
+msgstr "Качество JPEG — от грубого до почти без потерь. Для PNG не действует."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Colour of the selection outline."
+msgstr "Цвет рамки выделения."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Thickness of the selection outline in pixels."
+msgstr "Толщина рамки выделения в пикселях."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How shadow edges are softened. Each step samples the shadow map more times per pixel, so soft edges cost frames."
+msgstr "Как смягчаются края теней. Каждая ступень берёт больше выборок из карты теней на пиксель, поэтому мягкие края оплачиваются кадрами."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let coloured translucent blocks tint the shadow they cast. Requires a second shadow pass and is not cheap."
+msgstr "Позволить цветным прозрачным блокам окрашивать отбрасываемую тень. Требует второго прохода по теням и обходится недёшево."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far from the player shadows are still cast. Doubling the distance spreads the same shadow detail over four times the area, so shadows get coarser rather than slower."
+msgstr "Насколько далеко от игрока ещё падают тени. Удвоение дальности растягивает ту же детальность на вчетверо большую площадь, поэтому тени становятся грубее, а не медленнее."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Store the shadow map with more precision. Removes shadow acne and banding at the cost of twice the memory for the map."
+msgstr "Хранить карту теней точнее. Убирает рябь и полосы в тенях ценой вдвое большей памяти под карту."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Resolution of the shadow map. Sharper shadow edges cost video memory and time in square measure: doubling the number quadruples both."
+msgstr "Разрешение карты теней. Чёткость краёв тени оплачивается видеопамятью и временем по площади: удвоение числа учетверяет и то, и другое."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Tilt of the sun's path across the sky. Changes where shadows fall, not what they cost."
+msgstr "Наклон пути солнца по небу. Меняет, куда падают тени, а не сколько они стоят."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How wide the soft edge of a shadow is. Wider blur means more samples per pixel."
+msgstr "Насколько широка мягкая кромка тени. Шире размытие — больше выборок на пиксель."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How dark the shadows are. Costs nothing once shadows are on."
+msgstr "Насколько темны тени. Когда тени включены, настройка ничего не стоит."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Draw selection boxes around creatures and objects as well as blocks. Costs a few lines per visible object."
+msgstr "Рисовать рамку выделения не только на блоках, но и на существах и предметах. Стоит нескольких линий на каждый видимый объект."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Blend light across block corners instead of lighting each face flatly. Costs processor time when the world is meshed — that is, on loading and on every block you place — and nothing while merely looking around."
+msgstr "Растушёвывать свет по углам блоков вместо плоской заливки каждой грани. Стоит времени процессора при сборке мира — то есть при загрузке и на каждый поставленный блок — и ничего не стоит, пока вы просто смотрите по сторонам."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Soften the edges of the clouds. Costs almost nothing."
+msgstr "Смягчать края облаков. Стоит почти ничего."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Compress the bright and dark ends of the frame the way film does, instead of clipping them. One extra pass over the picture."
+msgstr "Сжимать светлый и тёмный края кадра, как это делает плёнка, вместо того чтобы срезать их. Один лишний проход по картинке."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make water and other liquids see-through. Costs a little: what is behind the surface has to be drawn as well."
+msgstr "Делать воду и прочие жидкости прозрачными. Стоит немного: то, что за поверхностью, тоже приходится рисовать."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Smooth the transition between texture detail levels. Slightly more expensive than bilinear filtering and removes the visible seam where the levels change."
+msgstr "Сглаживать переход между уровнями детализации текстур. Немного дороже билинейной фильтрации и убирает видимый шов на границе уровней."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Draw the world at a fraction of the window resolution while keeping the interface sharp. A large gain in frame rate for a visibly coarser picture; 2 means a quarter of the pixels."
+msgstr "Рисовать мир с долей от разрешения окна, оставляя интерфейс чётким. Даёт большой прирост кадров ценой заметно более грубой картинки: 2 — это вчетверо меньше пикселей."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much the view sways while walking. Zero turns it off; some players find the sway unpleasant. Free either way."
+msgstr "Насколько сильно качается вид при ходьбе. Ноль выключает качание совсем — некоторым от него неуютно. Ничего не стоит в любом положении."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far the world is drawn, in chunks of 16 blocks. The single most expensive graphics setting there is: the volume to load, keep in memory and draw grows with the cube of this number."
+msgstr "Насколько далеко прорисовывается мир, в кусках по 16 блоков. Самая дорогая настройка графики из всех: объём, который надо загрузить, держать в памяти и рисовать, растёт как куб этого числа."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How thick the volumetric clouds are. Denser clouds end the ray sooner and are, if anything, slightly cheaper."
+msgstr "Насколько плотны объёмные облака. Плотные обрывают луч раньше и оттого скорее чуть дешевле."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far volumetric clouds are traced. The single most expensive of the cloud settings: every extra step is more work per pixel of sky."
+msgstr "Насколько далеко просчитываются объёмные облака. Самая дорогая из облачных настроек: каждый лишний шаг — это работа на каждый пиксель неба."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Height at which volumetric clouds float. Free."
+msgstr "Высота, на которой плывут объёмные облака. Бесплатно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Trace the clouds at a fraction of the screen resolution. The cheapest way to keep volumetric clouds at all on weak hardware: a coarser sky, a much lighter frame."
+msgstr "Просчитывать облака с долей от разрешения экрана. Самый дешёвый способ вообще оставить объёмные облака на слабом железе: небо грубее, кадр заметно легче."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How rounded the cloud shapes are. Free."
+msgstr "Насколько округлы облачные формы. Бесплатно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Size of the cloud shapes. Free."
+msgstr "Размер облачных форм. Бесплатно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How fast volumetric clouds drift. Free."
+msgstr "Насколько быстро плывут объёмные облака. Бесплатно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How deep the cloud layer is. Thicker layers take more steps to pass through and cost more."
+msgstr "Насколько глубок слой облаков. Толстый слой проходится большим числом шагов и стоит дороже."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Wait for the monitor before showing a new frame. Removes tearing, but caps the frame rate at the refresh rate and adds a little input delay. Requires a restart, and the driver may enforce its own setting anyway."
+msgstr "Ждать монитор, прежде чем показать новый кадр. Убирает разрывы картинки, но ограничивает частоту кадров частотой монитора и добавляет небольшую задержку управления. Нужен перезапуск, и драйвер всё равно может настоять на своём."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How high the waves rise. Free — the wave is computed either way."
+msgstr "Насколько высоко поднимается волна. Бесплатно: волна всё равно считается."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Distance between wave crests. Free."
+msgstr "Расстояние между гребнями волн. Бесплатно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "How fast the waves travel. Free."
+msgstr "Насколько быстро идут волны. Бесплатно."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Whether the window opens maximised. Affects the frame rate only through the resulting window size."
+msgstr "Открывать ли окно развёрнутым. На частоту кадров влияет только через размер окна, который при этом получается."
+

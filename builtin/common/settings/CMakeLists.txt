@@ -1,5 +1,6 @@
 set(BUILTIN_COMMON_SETTINGS_SRCS
 	common/settings/components.lua
+	common/settings/descriptions.lua
 	common/settings/dlg_change_mapgen_flags.lua
 	common/settings/dlg_settings.lua
 	common/settings/generate_from_settingtypes.lua

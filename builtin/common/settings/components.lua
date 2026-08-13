@@ -58,7 +58,16 @@ end
 -- влезло под названием, — от описания оставался огрызок с многоточием. Теперь
 -- текст никуда не режется: он раскрывается под строкой по наведению и занимает
 -- столько строк, сколько нужно.
+-- Своё пояснение сильнее родного: родные писались как подсказки для тех, кто
+-- и так знает устройство, и о цене настройки в них нет ни слова.
+local own_descriptions = dofile(core.get_builtin_path() ..
+	"common" .. DIR_DELIM .. "settings" .. DIR_DELIM .. "descriptions.lua")
+
 local function get_description(setting)
+	local own = own_descriptions[setting.name]
+	if own then
+		return core.formspec_escape(own)
+	end
 	local comment = setting.comment
 	if not comment or comment == "" then
 		return nil
