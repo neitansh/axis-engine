@@ -307,6 +307,12 @@ u32 loadAnimations(scene::SkinnedMesh *mesh, const std::string &json,
 			continue;
 		}
 
+		// Дорожка без длины — не пустая: Blockbench так пишет позы, у которых
+		// нет движения, одними значениями без ключей. Дорожке нулевой длины
+		// движку нечего проигрывать, поэтому даём ей мгновение: поза встаёт
+		// и держится, а это ровно то, для чего её и писали.
+		if (length <= 0.0f)
+			length = 0.05f;
 		animation.end_frame = length;
 		mesh->addAnimation(std::move(animation));
 		++added;
