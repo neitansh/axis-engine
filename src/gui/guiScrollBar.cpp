@@ -39,14 +39,18 @@ GUIScrollBar::GUIScrollBar(IGUIEnvironment *environment, IGUIElement *parent, s3
 //! плоским меню смотрелись деталью из другой игры.
 namespace
 {
-const video::SColor SCROLLBAR_FRAME(120, 255, 255, 255);
-const video::SColor SCROLLBAR_THUMB(220, 255, 255, 255);
+const video::SColor SCROLLBAR_FRAME(255, 255, 255, 255);
+// Разница между обычным бегунком и зажатым — в яркости, а не в прозрачности:
+// сквозь полосу ничего просвечивать не должно.
+const video::SColor SCROLLBAR_THUMB(255, 225, 225, 225);
 const video::SColor SCROLLBAR_THUMB_HELD(255, 255, 255, 255);
 //! Толщина рамки, в пикселях.
 const s32 SCROLLBAR_FRAME_W = 2;
 //! Насколько бегунок отступает от внешнего края полосы. За вычетом рамки это
-//! и есть просвет между ней и бегунком.
+//! и есть просвет между ней и бегунком. У горизонтальной полосы отступ меньше:
+//! она тонкая, и большой отступ съедает сам квадратик.
 const s32 SCROLLBAR_PAD = 7;
+const s32 SCROLLBAR_PAD_H = 4;
 }
 
 void GUIScrollBar::draw()
@@ -79,11 +83,11 @@ void GUIScrollBar::draw()
 		if (Horizontal) {
 			// У горизонтальной полосы бегунок квадратный: она задаёт одно
 			// число, и растягивать его в полоску нечего.
-			const s32 side = frame.getHeight() - 2 * SCROLLBAR_PAD;
+			const s32 side = frame.getHeight() - 2 * SCROLLBAR_PAD_H;
 			const s32 centre = frame.UpperLeftCorner.X + DrawPos;
 			SliderRect.UpperLeftCorner.X = centre - side / 2;
 			SliderRect.LowerRightCorner.X = SliderRect.UpperLeftCorner.X + side;
-			SliderRect.UpperLeftCorner.Y = frame.UpperLeftCorner.Y + SCROLLBAR_PAD;
+			SliderRect.UpperLeftCorner.Y = frame.UpperLeftCorner.Y + SCROLLBAR_PAD_H;
 			SliderRect.LowerRightCorner.Y = SliderRect.UpperLeftCorner.Y + side;
 		} else {
 			// У вертикальной длина бегунка показывает, какая часть списка
@@ -97,11 +101,10 @@ void GUIScrollBar::draw()
 		}
 
 		// Бегунок не должен вылезать за рамку даже на краях хода.
+		const s32 pad = Horizontal ? SCROLLBAR_PAD_H : SCROLLBAR_PAD;
 		SliderRect.constrainTo(core::rect<s32>(
-				frame.UpperLeftCorner.X + SCROLLBAR_PAD,
-				frame.UpperLeftCorner.Y + SCROLLBAR_PAD,
-				frame.LowerRightCorner.X - SCROLLBAR_PAD,
-				frame.LowerRightCorner.Y - SCROLLBAR_PAD));
+				frame.UpperLeftCorner.X + pad, frame.UpperLeftCorner.Y + pad,
+				frame.LowerRightCorner.X - pad, frame.LowerRightCorner.Y - pad));
 
 		driver->draw2DRectangle(
 				Dragging ? SCROLLBAR_THUMB_HELD : SCROLLBAR_THUMB,
