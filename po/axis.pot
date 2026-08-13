@@ -7100,3 +7100,45 @@ msgstr ""
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr ""
+
+#. Вкладка «Играть»: подбор матча.
+#: builtin/mainmenu/tab_play.lua
+msgid "Quick Play"
+msgstr ""
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Region"
+msgstr ""
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Arenas"
+msgstr ""
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Waiting for players"
+msgstr ""
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Everyone is here. Preparing the arena"
+msgstr ""
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Matchmaking is unavailable"
+msgstr ""
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Enter a name first"
+msgstr ""
+
+#: builtin/mainmenu/tab_play.lua
+msgid "No arenas available"
+msgstr ""
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Try again"
+msgstr ""
+
+#: builtin/mainmenu/tab_play.lua
+msgid "No servers"
+msgstr ""
+

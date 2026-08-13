@@ -8272,3 +8272,45 @@ msgstr "Может видеть зерно мира на экране отлад
 
 msgid "Show controls"
 msgstr "Показать управление"
+
+#. Вкладка «Играть»: подбор матча.
+#: builtin/mainmenu/tab_play.lua
+msgid "Quick Play"
+msgstr "Играть"
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Region"
+msgstr "Регион"
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Arenas"
+msgstr "Арены"
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Waiting for players"
+msgstr "Ждём игроков"
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Everyone is here. Preparing the arena"
+msgstr "Все в сборе, готовим арену"
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Matchmaking is unavailable"
+msgstr "Матчмейкинг недоступен"
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Enter a name first"
+msgstr "Сначала введите имя"
+
+#: builtin/mainmenu/tab_play.lua
+msgid "No arenas available"
+msgstr "Арен пока нет"
+
+#: builtin/mainmenu/tab_play.lua
+msgid "Try again"
+msgstr "Ещё раз"
+
+#: builtin/mainmenu/tab_play.lua
+msgid "No servers"
+msgstr "Серверов нет"
+
