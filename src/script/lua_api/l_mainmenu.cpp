@@ -1200,6 +1200,7 @@ void ModApiMainMenu::Initialize(lua_State *L, int top)
 	API_FCT(do_async_callback);
 	API_FCT(copy_to_clipboard);
 	API_FCT(ping_server);
+	API_FCT(probe_link);
 
 	lua_pushboolean(L, g_config && g_config->isFirstRun());
 	lua_setfield(L, top, "is_first_run");
@@ -1318,6 +1319,139 @@ int ModApiMainMenu::l_ping_server(lua_State *L)
 }
 
 /******************************************************************************/
+/*
+	Checks whether a route carries a session, not just a packet.
+
+	A single small datagram is a poor witness: filtering equipment commonly lets
+	the first exchange through and drops the flow that follows, and a path that
+	cannot carry full-sized packets only fails once real data moves. The game
+	stalls exactly there — on media, not on the handshake — so the probe asks
+	for a burst of full-sized packets and counts what actually arrives.
+
+	Two round trips, and the first one exists solely to keep this from being an
+	amplifier: the burst is only sent to an address that has proven it can
+	receive, by handing back the cookie it was given.
+*/
+int ModApiMainMenu::l_probe_link(lua_State *L)
+{
+	std::string address = luaL_checkstring(L, 1);
+	int port = luaL_checkint(L, 2);
+	int want = luaL_optint(L, 3, 48);
+	int timeout_ms = luaL_optint(L, 4, 3000);
+
+	if (port <= 0 || port > 65535)
+		return 0;
+	want = rangelim(want, 1, 255);
+
+	Address dest;
+	try {
+		dest.Resolve(address.c_str());
+	} catch (const ResolveError &) {
+		return 0;
+	}
+	dest.setPort(port);
+
+	UDPSocket socket;
+	if (!socket.init(dest.isIPv6(), true))
+		return 0;
+
+	try {
+		if (dest.isIPv6()) {
+			IPv6AddressBytes any;
+			socket.Bind(Address(&any, 0));
+		} else {
+			socket.Bind(Address((u32)0, (u16)0));
+		}
+	} catch (const SocketException &) {
+		// An ephemeral port is best effort; sending still works without it
+	}
+
+	const size_t COOKIE_SIZE = 8;
+
+	u8 query[BASE_HEADER_SIZE + 2 + 1 + COOKIE_SIZE] = {};
+	writeU32(&query[0], PROTOCOL_ID);
+	writeU16(&query[4], PEER_ID_INEXISTENT);
+	query[6] = 0; // channel
+	query[7] = con::PACKET_TYPE_CONTROL;
+	query[8] = con::CONTROLTYPE_QUERY_LINK;
+	query[9] = (u8)want;
+	// The first query carries no cookie, so it stops right here.
+	size_t query_size = BASE_HEADER_SIZE + 3;
+
+	u64 sent_at = porting::getTimeMs();
+	try {
+		socket.Send(dest, query, query_size);
+	} catch (const SendFailedException &) {
+		return 0;
+	}
+
+	char buffer[2048];
+	Address sender;
+	u64 ping_ms = 0;
+	bool have_cookie = false;
+	int got = 0;
+	u64 burst_asked_at = 0;
+	u64 last_arrival = 0;
+
+	while (true) {
+		u64 elapsed = porting::getTimeMs() - sent_at;
+		if ((int)elapsed >= timeout_ms)
+			break;
+
+		if (!socket.WaitData(timeout_ms - (int)elapsed))
+			break;
+
+		int received = socket.Receive(sender, buffer, sizeof(buffer));
+		if (received < BASE_HEADER_SIZE + 2)
+			continue;
+
+		const u8 *data = (const u8 *)buffer;
+		if (readU32(data) != PROTOCOL_ID || sender.getPort() != dest.getPort())
+			continue;
+		if (data[BASE_HEADER_SIZE] != con::PACKET_TYPE_CONTROL)
+			continue;
+
+		u8 type = data[BASE_HEADER_SIZE + 1];
+
+		if (type == con::CONTROLTYPE_LINK_COOKIE && !have_cookie) {
+			if (received < (int)(BASE_HEADER_SIZE + 2 + COOKIE_SIZE))
+				continue;
+			ping_ms = porting::getTimeMs() - sent_at;
+			have_cookie = true;
+
+			memcpy(&query[BASE_HEADER_SIZE + 3], data + BASE_HEADER_SIZE + 2,
+					COOKIE_SIZE);
+			burst_asked_at = porting::getTimeMs();
+			try {
+				socket.Send(dest, query, sizeof(query));
+			} catch (const SendFailedException &) {
+				break;
+			}
+			continue;
+		}
+
+		if (type == con::CONTROLTYPE_LINK_DATA && have_cookie) {
+			got++;
+			last_arrival = porting::getTimeMs();
+			if (got >= want)
+				break;
+		}
+	}
+
+	if (!have_cookie)
+		return 0; // even the first packet did not come back
+
+	lua_newtable(L);
+	setfloatfield(L, -1, "ping", (float)ping_ms);
+	setintfield(L, -1, "got", got);
+	setintfield(L, -1, "want", want);
+	// How long the burst itself took. Zero means nothing of it arrived.
+	setfloatfield(L, -1, "burst",
+			(float)(last_arrival > burst_asked_at ? last_arrival - burst_asked_at : 0));
+	return 1;
+}
+
+/******************************************************************************/
 void ModApiMainMenu::InitializeAsync(lua_State *L, int top)
 {
 	API_FCT(get_worlds);
@@ -1345,4 +1479,5 @@ void ModApiMainMenu::InitializeAsync(lua_State *L, int top)
 	API_FCT(get_formspec_version);
 	API_FCT(is_debug_build);
 	API_FCT(ping_server);
+	API_FCT(probe_link);
 }

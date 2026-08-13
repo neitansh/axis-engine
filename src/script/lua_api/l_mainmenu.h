@@ -157,6 +157,8 @@ private:
 	//! Round trip time to a server, in milliseconds
 	static int l_ping_server(lua_State *L);
 
+	static int l_probe_link(lua_State *L);
+
 public:
 
 	/**

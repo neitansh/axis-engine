@@ -130,6 +130,19 @@ enum ControlType : u8 {
 	*/
 	CONTROLTYPE_QUERY_INFO = 4,
 	CONTROLTYPE_SERVER_INFO = 5,
+	/*
+		the Axis extension. Checks that the link itself carries a session, not
+		just a packet: a single datagram gets through where a real transfer
+		stalls, so the client asks for a burst and counts what arrives.
+
+		QUERY_LINK without a cookie is answered with LINK_COOKIE; the same query
+		carrying that cookie back is answered with the burst, LINK_DATA each.
+		The cookie is what keeps this from being an amplifier: a forged sender
+		address never receives one, so it can never ask for the burst.
+	*/
+	CONTROLTYPE_QUERY_LINK = 6,
+	CONTROLTYPE_LINK_COOKIE = 7,
+	CONTROLTYPE_LINK_DATA = 8,
 };
 
 inline bool seqnum_higher(u16 totest, u16 base)

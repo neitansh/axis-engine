@@ -8290,6 +8290,15 @@ msgstr "Подключение"
 msgid "Checking..."
 msgstr "Проверяем…"
 
+#: builtin/mainmenu/matchmaking.lua
+msgid "No answer"
+msgstr "Не отвечает"
+
+#. Путь отвечает, но теряет пакеты: $1 — доля дошедших, в процентах.
+#: builtin/mainmenu/matchmaking.lua
+msgid "Unstable: $1% delivered"
+msgstr "Неустойчиво: доходит $1%"
+
 #. Отклик выбранного входа, в миллисекундах.
 #: builtin/mainmenu/matchmaking.lua
 msgid "$1 ms"

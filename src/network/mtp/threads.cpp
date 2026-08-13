@@ -1044,10 +1044,18 @@ void ConnectionReceiveThread::receive(SharedBuffer<u8> &packetdata,
 		// server list can poll without appearing as a connecting client.
 		if (peer_id == PEER_ID_INEXISTENT &&
 				received_size >= BASE_HEADER_SIZE + 2 &&
-				readU8(&packetdata[BASE_HEADER_SIZE]) == PACKET_TYPE_CONTROL &&
-				readU8(&packetdata[BASE_HEADER_SIZE + 1]) == CONTROLTYPE_QUERY_INFO) {
-			replyToInfoQuery(sender);
-			return;
+				readU8(&packetdata[BASE_HEADER_SIZE]) == PACKET_TYPE_CONTROL) {
+			u8 control = readU8(&packetdata[BASE_HEADER_SIZE + 1]);
+			if (control == CONTROLTYPE_QUERY_INFO) {
+				replyToInfoQuery(sender);
+				return;
+			}
+			// A link probe is for the dispatcher, which guards the burst with a
+			// cookie. A game server has no such guard, so it stays silent
+			// rather than becoming an amplifier for a forged address.
+			if (control == CONTROLTYPE_QUERY_LINK) {
+				return;
+			}
 		}
 
 		const bool knew_peer_id = peer_id != PEER_ID_INEXISTENT;

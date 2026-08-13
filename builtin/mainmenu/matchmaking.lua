@@ -53,14 +53,42 @@ end
 -- через какой вообще дойдёт до матча — вопрос сети, а не вкуса, и ошибка в
 -- ответе разводит друзей по разным матчам.
 --
--- Решает замер, и он дешёвый: на каждый вход уходит один пакет. Отвечает на
--- него сам Диспетчер, на порту из того же проброшенного диапазона, что и
--- матчи, — значит ответ означает не «узел жив», а «отсюда игра дойдёт».
--- Из ответивших берётся самый быстрый.
+-- Решает замер, и меряет он не «дошёл ли пакет». Одиночный пакет — плохой
+-- свидетель: там, где фильтруют, первый обмен обычно проходит, а поток за ним
+-- гаснет, и путь, не тянущий полноразмерные пакеты, ломается только на
+-- настоящих данных. Игра и застревает там же — на приёме содержимого, а не на
+-- рукопожатии. Поэтому клиент просит очередь полноразмерных пакетов и считает,
+-- сколько дошло. Годным считается вход, добравший очередь почти целиком;
+-- из годных берётся самый быстрый.
+--
+-- Стоит это двух обменов и полусотни килобайт на вход — раз на открытие
+-- экрана.
 
--- Годится ли вход: сеть до него дошла, и его Диспетчер нас не подводил.
-local function usable(server)
-	return server.dispatch and server.ping and not state.bad[server.dispatch]
+local BURST = 48        -- пакетов в очереди, по 1200 байт
+local PROBE_TIMEOUT = 3000
+local DELIVERED = 0.9   -- меньше — путь рвётся, играть на нём нечего
+-- Сколько замер считается свежим. Сеть за полминуты не переделывается, а
+-- Диспетчер отсекает слишком частые просьбы — и отказ выглядел бы как обрыв.
+local PROBE_FRESH = 30
+
+-- Что показала проверка каждого входа: { ping, got, want }.
+local link = {}
+local probed_at = 0
+local probing = false
+
+local function delivery(i)
+	local r = link[i]
+	if not r or not r.want or r.want == 0 then
+		return nil
+	end
+	return (r.got or 0) / r.want
+end
+
+-- Годится ли вход: очередь дошла, и его Диспетчер нас не подводил.
+local function usable(i, server)
+	local part = delivery(i)
+	return server.dispatch and part and part >= DELIVERED
+		and not state.bad[server.dispatch]
 end
 
 local function pick_entry()
@@ -71,21 +99,76 @@ local function pick_entry()
 	end
 	local best
 	for i, server in ipairs(servers()) do
-		if usable(server) and (not best or server.ping < servers()[best].ping) then
+		if usable(i, server) and
+				(not best or (link[i].ping or 0) < (link[best].ping or 0)) then
 			best = i
 		end
 	end
 	if not best then
-		-- Никто ещё не отозвался: пробуем тот, что не подводил, — иначе
-		-- экран будет пустым всё время замера.
+		-- Ни один вход не прошёл проверку целиком. Отказывать игроку из-за
+		-- этого нельзя — берём тот, где потери меньше, а если не мерили ещё,
+		-- то первый годный, чтобы экран не пустовал.
+		local most
 		for i, server in ipairs(servers()) do
 			if server.dispatch and not state.bad[server.dispatch] then
-				best = i
-				break
+				local part = delivery(i)
+				if part and (not most or part > delivery(most)) then
+					most = i
+				end
+				best = best or i
 			end
 		end
+		best = most or best
 	end
 	state.region = best or 1
+end
+
+---Проверить входы. Замер идёт в стороне: главное не имеет права стоять.
+local function probe_entries()
+	if probing or not core.probe_link then
+		return
+	end
+	if next(link) and os.time() - probed_at < PROBE_FRESH then
+		return
+	end
+	local targets = {}
+	for i, server in ipairs(servers()) do
+		if server.dispatch and server.probe_port then
+			targets[#targets + 1] = {
+				i = i, address = server.address, port = server.probe_port,
+			}
+		end
+	end
+	if #targets == 0 then
+		return
+	end
+
+	probing = true
+	core.handle_async(function(p)
+		local out = {}
+		for _, t in ipairs(p.targets) do
+			out[t.i] = core.probe_link(t.address, t.port, p.burst, p.wait)
+		end
+		return out
+	end, { targets = targets, burst = BURST, wait = PROBE_TIMEOUT }, function(out)
+		probing = false
+		link = out or {}
+		probed_at = os.time()
+		pick_entry()
+
+		-- В журнал — чтобы на вопрос «почему меня увело в Германию» был
+		-- ответ, а не догадка.
+		for i, server in ipairs(servers()) do
+			local r = link[i]
+			core.log("info", ("[matchmaking] %s: %s%s"):format(
+				server.name or server.address,
+				r and ("дошло %d из %d, отклик %d мс")
+					:format(r.got or 0, r.want or 0, r.ping or 0)
+					or "не отвечает",
+				i == state.region and " — выбран" or ""))
+		end
+		core.event_handler("Refresh")
+	end)
 end
 
 local function entry()
@@ -324,13 +407,22 @@ local function side_card(ox, oy, h)
 	if own and own ~= "" then
 		-- Свой Диспетчер: замеры и списки тут ни при чём, показываем как есть.
 		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(own))
-	elseif server and server.ping then
-		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(server.name or server.address))
-		fs[#fs + 1] = menu_style.caption(x, y + 0.6, w, 0.5,
-			fgettext("$1 ms", tostring(math.floor(server.ping * 1000))))
 	elseif server then
 		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(server.name or server.address))
-		fs[#fs + 1] = menu_style.caption(x, y + 0.6, w, 0.5, fgettext("Checking..."))
+		local part = delivery(state.region)
+		local note
+		if probing and not part then
+			note = fgettext("Checking...")
+		elseif not part then
+			note = fgettext("No answer")
+		elseif part < DELIVERED then
+			-- Путь отвечает, но теряет: играть на нём можно только знать,
+			-- что рвётся не игра, а дорога до неё.
+			note = fgettext("Unstable: $1% delivered", tostring(math.floor(part * 100)))
+		else
+			note = fgettext("$1 ms", tostring(math.floor(link[state.region].ping or 0)))
+		end
+		fs[#fs + 1] = menu_style.caption(x, y + 0.6, w, 0.5, note)
 	else
 		fs[#fs + 1] = menu_style.caption(x, y, w, 0.6, fgettext("No servers"))
 	end
@@ -509,9 +601,10 @@ function matchmaking.on_enter()
 	state.drawn = os.time()
 	state.modes = nil
 	-- Замер за прошлый заход мог устареть, а вход, объявленный плохим, —
-	-- починиться. Список сам меряет отклик при синхронизации.
+	-- починиться: сеть меняется чаще, чем открывают меню.
 	state.bad = {}
 	serverlistmgr.sync()
+	probe_entries()
 	pick_entry()
 	refresh_modes()
 end

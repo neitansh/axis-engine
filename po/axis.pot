@@ -7118,6 +7118,15 @@ msgstr ""
 msgid "Checking..."
 msgstr ""
 
+#: builtin/mainmenu/matchmaking.lua
+msgid "No answer"
+msgstr ""
+
+#. Путь отвечает, но теряет пакеты: $1 — доля дошедших, в процентах.
+#: builtin/mainmenu/matchmaking.lua
+msgid "Unstable: $1% delivered"
+msgstr ""
+
 #. Отклик выбранного входа, в миллисекундах.
 #: builtin/mainmenu/matchmaking.lua
 msgid "$1 ms"
