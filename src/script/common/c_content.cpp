@@ -101,6 +101,18 @@ void read_item_definition(lua_State *L, int index,
 	}
 	lua_pop(L, 1);
 
+	lua_getfield(L, index, "wield_rotation");
+	if(lua_istable(L, -1)){
+		def.wield_rotation = check_v3f(L, -1);
+	}
+	lua_pop(L, 1);
+
+	lua_getfield(L, index, "wield_offset");
+	if(lua_istable(L, -1)){
+		def.wield_offset = check_v3f(L, -1);
+	}
+	lua_pop(L, 1);
+
 	int stack_max = getintfield_default(L, index, "stack_max", def.stack_max);
 	def.stack_max = rangelim(stack_max, 1, U16_MAX);
 

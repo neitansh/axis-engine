@@ -424,6 +424,17 @@ std::vector<FrameSpec> createAnimationFrames(ITextureSource *tsrc,
 	return frames;
 }
 
+// Поза предмета в руке. Камера каждый кадр ставит сам узел — качание, замах,
+// отдачу, — поэтому собственная поза предмета живёт на внутреннем узле: одно
+// не затирает другое.
+static void applyWieldPose(scene::IMeshSceneNode *node, const ItemDefinition &def)
+{
+	if (!node)
+		return;
+	node->setRotation(def.wield_rotation);
+	node->setPosition(def.wield_offset * BS);
+}
+
 void WieldMeshSceneNode::setItem(const ItemStack &item, Client *client, bool check_wield_image)
 {
 	ITextureSource *tsrc = client->getTextureSource();
@@ -434,6 +445,10 @@ void WieldMeshSceneNode::setItem(const ItemStack &item, Client *client, bool che
 	const ItemDefinition &def = item.getDefinition(idef);
 	const ContentFeatures &f = ndef->get(def.name);
 	const NodeVisuals &v = *(f.visuals);
+
+	// Ставится один раз на весь вызов: ниже узлу меняют только меш и масштаб,
+	// а поза от предмета к предмету своя и сбрасываться не должна.
+	applyWieldPose(m_meshnode, def);
 
 	{
 		// Initialize material type used by setExtruded

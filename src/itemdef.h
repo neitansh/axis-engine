@@ -99,6 +99,17 @@ struct ItemDefinition
 	std::string palette_image; // If specified, the item will be colorized based on this
 	video::SColor color; // The fallback color of the node.
 	v3f wield_scale;
+	/*
+		Как предмет лежит в руке. Движок держит его одним и тем же хватом, а
+		модели приходят из разных редакторов и смотрят кто куда: в Blockbench
+		позу задают мышкой, у Bedrock-геометрии её нет вовсе. Запекать поворот
+		в вершины — значит пересобирать модель ради каждого градуса, поэтому
+		он живёт здесь, рядом с масштабом.
+
+		wield_rotation — градусы по осям, wield_offset — сдвиг в нодах.
+	*/
+	v3f wield_rotation;
+	v3f wield_offset;
 
 	/*
 		Item stack and interaction properties

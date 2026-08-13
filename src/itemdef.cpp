@@ -125,6 +125,8 @@ ItemDefinition& ItemDefinition::operator=(const ItemDefinition &def)
 	wield_image = def.wield_image;
 	wield_overlay = def.wield_overlay;
 	wield_scale = def.wield_scale;
+	wield_rotation = def.wield_rotation;
+	wield_offset = def.wield_offset;
 	stack_max = def.stack_max;
 	usable = def.usable;
 	liquids_pointable = def.liquids_pointable;
@@ -173,6 +175,8 @@ void ItemDefinition::reset()
 	palette_image.clear();
 	color = video::SColor(0xFFFFFFFF);
 	wield_scale = v3f(1.0f);
+	wield_rotation = v3f(0.0f);
+	wield_offset = v3f(0.0f);
 	stack_max = 99;
 	usable = false;
 	liquids_pointable = false;
@@ -267,6 +271,10 @@ void ItemDefinition::serialize(std::ostream &os, u16 protocol_version) const
 	} else {
 		writeU8(os, 0);
 	}
+
+	// >= 5.17.0-dev
+	writeV3F32(os, wield_rotation);
+	writeV3F32(os, wield_offset);
 }
 
 void ItemDefinition::deSerialize(std::istream &is, u16 protocol_version)
@@ -367,6 +375,13 @@ void ItemDefinition::deSerialize(std::istream &is, u16 protocol_version)
 
 		if (readU8(is)) // "have wear bar params"
 			wear_bar_params = WearBarParams::deserialize(is);
+
+		if (!canRead(is))
+			break;
+		// >= 5.17.0-dev
+
+		wield_rotation = readV3F32(is);
+		wield_offset = readV3F32(is);
 
 		//if (!canRead(is))
 		//	break;

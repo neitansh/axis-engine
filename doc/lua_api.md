@@ -10522,6 +10522,17 @@ Used by `core.register_node`, `core.register_craftitem`, and
     -- Like inventory_overlay but only used in the same situation as wield_image
 
     wield_scale = {x = 1, y = 1, z = 1},
+
+    wield_rotation = {x = 0, y = 0, z = 0},
+    -- How the item is turned in the hand, in degrees around each axis.
+    -- The engine holds every item with the same grip, while models come from
+    -- different editors and face different ways: Blockbench lets you pose an
+    -- item by hand, Bedrock geometry carries no pose at all. Baking the angle
+    -- into the vertices means re-exporting the model for every degree, so it
+    -- lives here instead, next to the scale.
+
+    wield_offset = {x = 0, y = 0, z = 0},
+    -- Shifts the item in the hand, in nodes. Applied after the rotation.
     -- Scale for the item when held in hand
 
     palette = "",
