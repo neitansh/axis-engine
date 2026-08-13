@@ -429,7 +429,7 @@ void GameFormSpec::showPauseMenu()
 	std::ostringstream os;
 	os << "formspec_version[6]"
 		<< "size[" << width << "," << height << ",true]"
-		<< "bgcolor[#00000000;true]"
+		<< "bgcolor[#00000000;false]"
 		<< "background9[" << panel_x << "," << panel_y << ";" << panel_w << "," << panel_h
 			<< ";axis_panel.png;false;2]"
 		<< "style_type[button,image_button;bgimg=axis_button.png"
