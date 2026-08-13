@@ -7187,3 +7187,1711 @@ msgstr ""
 #: builtin/mainmenu/matchmaking.lua
 msgid "Starting"
 msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Stereo picture for 3D glasses or a split screen. Anything except «none» draws the world twice and roughly halves the frame rate."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far apart the two pictures are in 3D mode. Changes how deep the picture feels."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often the world's own rules run: grass spreading, water flowing, fire burning."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much of each turn those rules may take. Less means a smoother server and slower world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often the server checks which parts of the world are alive."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far around each player the world stays alive: plants grow, machines work. The heaviest server setting there is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far away creatures and moving things are still sent to the player."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Always fly at full speed, without holding the fast key."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How dark the corners between blocks look. Higher means softer shading in the corners."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Keep textures sharp on surfaces you see edge-on, like a floor stretching away. Cheap and noticeable."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How the jagged staircase edges are smoothed. FSAA is the cleanest and the heaviest, FXAA is almost free but slightly blurry."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which kinds of cheating the server watches for."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far a player may drift from where the server thinks they are before it counts as cheating. Raise it if honest players on a poor connection get caught."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let the item in your hand swing a little behind the camera when you turn. Just for looks."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many textures the game keeps in one bundle for the graphics card. Bigger bundles draw faster."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Offer players to come back after a crash."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Step up single blocks automatically, without pressing jump."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Remember the window size, so next time the game opens exactly as you left it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Stretch small textures to the size of the block automatically."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make the special key move you down while flying or climbing, instead of doing what it usually does."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which rights a moderator may hand out to others."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Smooth textures when you stand close to them. Some like it, some prefer sharp pixels."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which network address the server listens on. Empty means all of them."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "From what distance that skipping becomes rougher and cheaper."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "From what distance the server starts sending the world more sparingly."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How softly the camera follows your mouse. Higher makes the view smoother and a little slower to respond."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Size of the chat text. Zero means the usual size."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which messages also appear in the in-game chat."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How a chat line is built: where the name goes, where the text goes."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many messages one player may send in ten seconds before being told to slow down."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "After how many messages over the limit a player is kicked off the server."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The longest message a player may send. Longer ones are cut."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Colour of clickable links in chat."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long a command may take before the server says it is still working on it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How large a piece of world is created at once. Bigger pieces generate faster overall and cause longer pauses."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The same softness, but for cinematic mode, where the camera is meant to glide."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make links in chat clickable."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many pieces of the world are kept in memory at once. Fewer means less memory and more reloading."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How large a piece of the world is prepared at once. Larger pieces draw faster and take longer to rebuild after you place a block."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long the game keeps parts of the world you have left before forgetting them, in seconds."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far the flat clouds spread around you."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Join glass blocks placed next to each other into one clean pane, without lines between them."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How solid the chat console background is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Background colour of the chat console."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much of the screen the chat console takes when opened."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Show a mark when an installed add-on has a newer version."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Hide content marked with these flags, such as adult or non-free."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many add-ons may download at the same time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where the game looks for downloadable content."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How visible the crosshair is. Zero hides it completely."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Colour of the crosshair in the middle of the screen."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What client-side mods are forbidden to do on this server."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far around the player client-side mods may look at the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The same limit for large files."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many downloads may run at the same time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long a download may take before it is called failed."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Remove the ugly stripes that show up on smooth gradients, like the evening sky."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much detail goes into the log file. More detail helps find problems and makes the file grow fast."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How big the log may grow before it starts over, in kilobytes."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often the server sends changes to players. Smaller means smoother play and more work for the server."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The password new accounts get. Empty means anyone may join without one."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What a new player is allowed to do."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many identical items fit in one slot."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What to do when a mod uses an outdated feature: keep quiet, warn, or stop."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Colour the haze like the sky in the direction you are looking. Sunsets look much better with it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Do not let players keep an empty password."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How dense your screen is. Affects how big everything looks; usually best left alone."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Overall brightness of the picture. Raise it if dark places are too dark to see anything."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Turn flying on and off by tapping jump twice."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many of them may be read from disk at a time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many of them may be created from scratch at a time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many pieces of the world may wait in line to be loaded or created."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make clouds solid instead of a flat sheet. They look much better from below and while flying."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Turn on every mod of the game, ignoring what the world has enabled."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let your eyes adjust: step out of a cave and the light slowly settles down, just like in life."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let bright things glow softly around themselves, like the sun through leaves."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Show the glow effect split into its parts. For those tuning it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Allow placing blocks in the space you are standing in."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Allow mods that run on your own computer."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Show a separate console window next to the game. Windows only."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let the sun and moon cast real shadows. This is the most beautiful and the heaviest effect in the game: expect to lose a noticeable part of your frames."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Ask before leaving the game when you press escape."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Fade the far edge of the world into a haze, instead of showing where the world simply stops."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Switch the item in your hand with the mouse wheel."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Allow IPv6 connections at all."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Keep the parts of the world you have seen on a server, so they load from your disk next time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Write technical details about world generation to the log."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let mods talk to each other over their own channels."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The master switch for the finishing touches: glow, tone, exposure. With it off none of them cost anything."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Check more carefully what is hidden behind walls. Fewer invisible blocks get drawn, but the checking itself takes some work."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let clients fetch textures and sounds from the address given above."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Record who changed what, so damage can be undone later. Costs disk space and some speed."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Ask separately whether you are logging in or registering a new account."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Allow the server to send mods that run on your computer."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let sunlight shine through leaves so they glow when the sun is behind them."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Replace flat clouds with real ones you can fly through. Very beautiful and very heavy."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Draw sunbeams in the air. Best seen when you look towards the sun."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Reflect the sky and the shore in the water."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let leaves sway in the wind. Pretty, and a little heavier in a thick forest."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let grass and flowers sway in the wind."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let the water surface move in waves instead of lying flat like glass."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make the whole picture brighter or darker."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The font used for letters the main font does not have — Chinese or Japanese, for example."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The number a world is built from. The same number always gives the same world; empty means a new one each time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Keep the on-screen stick in one place instead of putting it where you touch."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How close the haze begins. Closer haze hides the distance, but the game still draws what is behind it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Use the bold face for all text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Use the italic face for all text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which font file the game uses for ordinary text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Font file for bold text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Font file for bold italic text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Font file for italic text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far the shadow under the letters is offset. Makes text readable on a light background."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How dark that shadow is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Size of the main text in the game."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Round the font size to a multiple of this number. For pixel fonts, so they stay crisp."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Colour of that dimming."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much the game behind a fullscreen window is dimmed."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How wide a view you have. A wider view shows more around you, but the game has to draw more of the world at once."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The highest number of frames per second the game will draw. Extra frames you cannot see anyway only heat up the computer, so a limit near your monitor's refresh rate is a good idea."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Frame limit while the game window is in the background. Keep it low so the game does not eat the computer while you are doing something else."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How thoroughly the edges are smoothed. Every step up is much heavier for the graphics card: four times means about four times the work on the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long after building the server waits before sending whole pieces of the world again."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Play on the whole screen instead of in a window. Usually a bit smoother than a window of the same size."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Smooth the edges after the frame is drawn. Costs almost nothing, but small details get a little soft."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How big menus and windows are. Raise it if the text is too small on a big screen."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Smooth interface pictures when they are stretched. Turn it off if you like sharp pixels."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How wide the hotbar is allowed to be, as a share of the screen."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How big the on-screen indicators are: health, hotbar, and the rest."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Flash the screen red when you get hurt, so you notice it even in a fight."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Enter the world even if part of it failed to load. Dangerous: the damage may spread."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let animated blocks keep moving inside the inventory as well."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Reverse the direction the wheel switches items in."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Turn the vertical mouse movement upside down."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let the server accept connections over IPv6 as well."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long a dropped item lies on the ground before it disappears, in seconds."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How fast the view turns with the gamepad stick."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far the stick must move before the game notices. Raise it if the view drifts on its own."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How close to the edge the stick counts as fully pushed."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How fast the view turns when you look around with the keyboard."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which key does this. Click the setting and press the key you want."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Switch between first person and the view from behind."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Open the chat line."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Smooth camera mode, for recording video."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Open the chat line with a command already started."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Open the large chat console."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "See less far, and get some frames back."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Drop the item you are holding."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Move fast, if the server allows it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Fly, if the server allows it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Switch between window and fullscreen."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "See further. Beyond a point this costs frames."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Open your inventory."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Show the small map in the corner of the screen."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Turn the sound off and on."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Walk through walls, if the server allows it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Fly in the direction you are looking, rather than straight ahead."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Take a picture of the screen and save it to the screenshots folder."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Move slowly and carefully. While sneaking you will not step off the edge of a block."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Show the grid the world is divided into. Useful for building and for understanding what the server sends you."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Show the technical information panel."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Show where the game's time goes. For finding what makes it stutter."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Look into the distance, as through binoculars. The game may forbid it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What players are told when the server falls over."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What players are told when the server shuts down normally."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The language of the game. «System language» takes the one your computer uses."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How leaves are drawn. «Fancy» looks like real foliage, «simple» is lighter, and «opaque» turns leaves into solid blocks — the fastest by far. In a forest the difference is very noticeable."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How dark the darkest places are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How bright the brightest places are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Extra light added around a chosen brightness."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which brightness gets that extra light."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How wide a range of brightness the addition covers."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many liquid updates the server does in one go."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long the liquid queue may grow before it is cleared. Zero never clears it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often liquids flow, in seconds. Smaller makes water livelier and the server busier."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "A script that replaces the main menu. For those building their own."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which world opens by default."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How hard the world is squeezed when saved to disk."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How hard the world is squeezed before being sent. Harder saves traffic and costs processor time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far the world reaches before it simply ends."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far from the player new world may still be generated."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far the server sends pieces of the world at all."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many extra pieces of the world may be loaded at once while cleaning up objects."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many pieces of the world mods may keep loaded even with nobody nearby."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many things may pile up in one piece of the world. A limit against dropped items flooding the server."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many chat messages may wait in line before the oldest are dropped."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many network packets the server handles in one go."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many pieces of the world the server sends one player at a time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many players may be on the server at once."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Show moving clouds behind the main menu."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which look the main menu uses."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How small a piece of the world may be before it is merged with its neighbours. Merging makes drawing cheaper."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often the game rebuilds the pieces of the world it draws."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many processor cores prepare the world for drawing. More cores mean less stutter when the world loads."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How warmth is spread over the world — it decides where deserts and snow end up."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How softly neighbouring warm and cold areas blend into each other."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How dampness is spread over the world — it decides where swamps and dry lands go."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How softly damp and dry areas blend into each other."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What is made in the world at all: caves, dungeons, trees, ores, lakes."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which mapgen builds the world: hills and caves, flat ground, floating islands."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The height the landscape is built around."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How wide the cave tunnels are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Above this height the huge underground halls do not appear."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The height at which those halls start to thin out."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often the huge halls turn up. Lower means more of them."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Above this height there are no dungeons."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Below this height there are no dungeons."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Below this height the big caves begin."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What share of the big caves is flooded with water."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The most big caves in one piece of the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The fewest big caves in one piece of the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How the cave tunnels wind."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The second set of tunnels, crossing the first."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where the huge underground halls are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where dungeons turn up."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How thick the soil lying on the stone is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The first layer of the landscape's height."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The second layer of the landscape's height."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The third layer of the landscape's height."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The fourth layer of the landscape's height."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the hills."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where the hilly country is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much the mountains differ from one another."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the ridges."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where the ridges are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where rivers run."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the steps."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where the stepped country is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How deep the rivers cut into the land."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How wide the rivers are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The most small caves in one piece of the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The fewest small caves in one piece of the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What the Carpathian mapgen makes: caves, dungeons, rivers, floating islands and the rest."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How wide the valleys are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The height of the flat ground."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How steep those hills are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often hills rise out of the flat ground. Lower means more of them."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How steep the banks of those lakes are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often lakes appear in the flat ground. Lower means more of them."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the landscape."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What the Flat mapgen makes: caves, dungeons, rivers, floating islands and the rest."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which mathematical shape the world is built from. Each gives a completely different landscape."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How finely that shape is worked out. More means finer detail and slower generation."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Fourth number of the Julia shape."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "First number of the Julia shape."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Second number of the Julia shape."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Third number of the Julia shape."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the sea floor."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where the shape sits in the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How large the shape is in the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which slice of the shape becomes the world. Change it for a completely different landscape from the same shape."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What the Fractal mapgen makes: caves, dungeons, rivers, floating islands and the rest."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How rugged the land is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the ground itself."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How high the land rises."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What the V5 mapgen makes: caves, dungeons, rivers, floating islands and the rest."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often beaches turn up."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often deserts turn up."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where apple trees grow."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where beaches appear."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How the landscapes are spread over the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where caves appear."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where the low ground gives way to the high ground."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How dampness is spread over the world."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How thick the layer of mud is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How steep the slopes are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the low ground."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the high ground."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where trees grow."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What the V6 mapgen makes: caves, dungeons, rivers, floating islands and the rest."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How sharply that thinning happens."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much land there is in the floating islands. Less means separate islands, more means a whole layer."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Over what distance the floating islands thin out towards their edges."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Above this height there are no floating islands."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Below this height there are no floating islands."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The height the sea stands at up in the floating islands."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The height mountains are measured from."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the floating islands."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How high the mountains reach."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the mountains."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the river valleys."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The shape of the second, higher ground."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How roughness changes from place to place."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What the V7 mapgen makes: caves, dungeons, rivers, floating islands and the rest."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much colder it gets with height. Higher means snow starts lower down."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What fills the space between the valleys."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How steep the slopes between the valleys are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The height of the land between the valleys."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How deep the valleys are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What the Valleys mapgen makes: caves, dungeons, rivers, floating islands and the rest."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let the minimap look further up and down for the surface."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Keep smaller copies of textures for distant blocks. Distant walls stop flickering, and the game even gets slightly faster."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Font file for monospaced text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Font file for bold monospaced text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Font file for bold italic monospaced text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Font file for italic monospaced text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Size of the monospaced text, the kind used in the console."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Round the monospaced font size to a multiple of this number."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "A greeting shown to everyone who joins."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far the view turns for the same mouse movement."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much you can steer while in the air."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How quickly you pick up speed on the ground."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How quickly you pick up speed when moving fast."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How strongly gravity pulls you down."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How thick liquids feel to move through."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How smoothly you slow down when entering a liquid."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How fast you sink in a liquid."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Speed of climbing ladders and vines."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Speed while sneaking."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Speed in fast mode."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How high you jump."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Ordinary walking speed."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Turn all sound off completely."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The name you play under."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Pretend the network delay jumps around. For testing."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Pretend the network is slow by this many milliseconds. For testing."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Pretend this share of packets is lost. For testing."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The starting number for that pretend network, so a test can be repeated exactly."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Collect technical details about what the server sends you. For finding network problems."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where those details are written."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How the block you are pointing at is marked: an outline around it, a light on it, or nothing."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often blocks with their own timers are checked: furnaces, growing plants."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many processor cores create the world. More cores load the world faster and leave less for everything else."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How the game figures out what is hidden behind walls so it can skip drawing it. Leave it alone unless something looks wrong."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Ask the graphics driver for detailed complaints. For finding rendering bugs."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Pause the game when you switch to another window. Handy if you often alt-tab and do not want to be attacked while away."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Give up a bit of beauty in several places at once for the sake of speed. Worth turning on if the game stutters."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far away other players are still visible."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The port your server listens on."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How precisely the finishing touches are stored. More precision means smoother light and more video memory."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often the performance report is printed to the log. Zero turns it off."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Address for the server statistics service. For those who watch their server through graphs."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The oldest client version the server still accepts."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Play the game with random input. For testing."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Load mods in a random order, to catch mods that quietly depend on each other."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How many chat lines stay on the screen."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "An address clients can download textures and sounds from, faster than through the server itself."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often you hit the block again while holding the dig button."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often a held gamepad button repeats."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often blocks are placed while you hold the button down."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Require releasing the button between actions, so you do not dig or build by accident."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How tall the game window is when it is not fullscreen. Like the width: a bigger window means a bit fewer frames."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How wide the game window is when it is not fullscreen. A bigger window looks better but the game has to draw more, so the frame rate drops a little."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Take a screenshot automatically this many seconds after entering the world. Zero turns it off; the test stands use it."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "File type for screenshots. PNG keeps the picture exactly; JPG files are smaller but lose a little detail."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The folder your screenshots are saved to."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How good JPG screenshots look. Higher means a better picture and a bigger file. Does nothing for PNG."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Colour of the box around the block you are pointing at."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How thick that box is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The address players connect to."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Announce the server publicly, so anyone can find it in the list."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Also tell the list who is playing right now."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "A short line about your server for the same list."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How often the world is written to disk, in seconds. Rarer saving is faster and loses more when the power goes out."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The name your server shows in the server list."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let the server skip sending pieces of the world hidden behind others. Saves traffic."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long the server keeps a piece of the world nobody is near."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "A website of your server, if there is one."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The file your favourite servers are stored in."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Where the list of public servers comes from."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Folder the drawing programs are loaded from. Leave empty unless you are writing your own."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How soft the shadow edges are. Softer edges look nicer and cost frames."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let coloured glass tint its own shadow. Beautiful, and heavy: the shadows have to be drawn a second time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far away shadows are still drawn. Further means the shadows get blurrier rather than slower."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Store shadows more precisely. Removes ugly stripes in them, but takes twice the video memory."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How sharp the shadows are. Every step up costs a lot: doubling the number roughly quadruples the work."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Blur shadow edges in a scattered pattern, which looks softer than a plain blur."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How slanted the sun's path across the sky is. Changes where the shadows fall."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How wide the blurred edge of a shadow is."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How dark the shadows are. Costs nothing once shadows are on."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Over how many frames the distant shadows are refreshed. More frames means cheaper shadows that lag a little behind."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far around you the block boundary grid is drawn when it is turned on."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Show the technical information panel. Handy when something goes wrong, in the way the rest of the time."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Also draw a box around creatures and items you point at, not only around blocks."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Draw a dark plate behind player names so they stay readable against the sky."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make light fade softly across corners instead of jumping from block to block. Costs a little when the world loads, nothing while you walk around."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let lists glide when you scroll them instead of jumping line by line."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make the edges of the clouds softer, less like cut paper."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Sound file types the game will not load."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How loud the game is overall."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How loud the game stays when you switch to another window."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How carefully the world is written to disk. Safer means slower saving."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "A fixed place everyone appears at. Empty means the game picks one."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Only let in clients of exactly the same version."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Remove colouring from chat messages and show them in plain text."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The smallest size textures are enlarged to. Raise it if pixel art looks muddy with smoothing on."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much faster the in-game day runs compared to a real one."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The same switch behaviour for the special key."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make the sneak key work as a switch: press once to sneak, press again to stand up."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Handle very bright and very dark places the way a camera does, instead of turning them into flat white and flat black."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Also show the technical name of an item in its hint. Useful when writing commands or mods."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long you have to hold the pointer still before a hint appears, in thousandths of a second."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "On-screen controls for playing with fingers."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Lay the interface out for a touchscreen: bigger buttons, on-screen controls."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How a tap is understood on a touchscreen: what digs, what places, what opens."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long a finger must be held down for a long press."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which gesture counts as a hit on a touchscreen."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far the view turns for the same finger movement."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far a finger has to move before it counts as a swipe rather than a tap."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Make water see-through, so you can look at the bottom while swimming."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far away see-through things are sorted so they overlap correctly. Further looks right and costs a little."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Sort see-through things in groups instead of one by one. Faster, occasionally slightly wrong."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Smooth the moment when a distant block switches to a simpler texture, so you do not see the seam."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Draw the world coarser than the screen, keeping menus sharp. The picture becomes blocky, but the game speeds up a lot — a good last resort on a weak computer."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let players see each other at any distance."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Which graphics system the game talks to. Change it only if the picture is broken or the game will not start."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How much the view rocks while you walk. Set it to zero if walking makes you dizzy."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far you can see. This is the setting that changes speed the most: every step further means much more world to load and draw."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Let pushing the on-screen stick to the edge work as the special key."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How thick the clouds are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far into the distance the clouds are drawn. The heaviest of the cloud settings by a wide margin."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How high the clouds float."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Draw the clouds coarser than the screen. The sky looks a little rougher, and the game gets noticeably lighter — the first thing to try if clouds are too heavy."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How round the clouds look."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How big the cloud shapes are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How fast the clouds drift."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How deep the cloud layer is. Thicker clouds cost more."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Match the game to your monitor so the picture never tears in the middle. In return the game feels a touch less responsive. Takes effect after a restart."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Wait for the local server to be ready before entering a single player game."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How long to wait for it before giving up."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "The height the sea stands at."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How high the waves rise."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How far apart the waves are."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How fast the waves run."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Open the window already stretched to the whole screen."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Line textures up with the world instead of with each block, so large walls look like one surface."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "What time of day a new world begins at."
+msgstr ""
