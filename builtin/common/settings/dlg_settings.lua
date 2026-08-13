@@ -802,10 +802,11 @@ local function get_formspec(dialogdata)
 	for i, comp in ipairs(dialogdata.components) do
 		fs[#fs + 1] = ("container[0,%f]"):format(y)
 
-		local avail_w = right_pane_width - 0.25
+		-- Ширина строки — она же ширина разделителя под ней.
+		local row_w = right_pane_width - 0.25
+		local avail_w = row_w
 		if not comp.full_width then
-			-- Room for the reset button; explanations are drawn inline now
-			avail_w = avail_w - 0.65
+			avail_w = avail_w - component_funcs.RESET_ROOM
 		end
 		if comp.max_w then
 			avail_w = math.min(avail_w, comp.max_w)
@@ -859,13 +860,15 @@ local function get_formspec(dialogdata)
 					-- TRANSLATORS: $1 will be replaced with a default setting value
 					fgettext("Reset setting to default: $1", tostring(default)) or
 					fgettext("Reset setting to default")
+			-- Кнопка кончается там же, где разделитель: раньше она вылезала
+			-- за него, и правый край строки выглядел разъехавшимся.
 			fs[#fs + 1] = ("image_button[%f,%f;0.5,0.5;%s;%s;]"):format(
-					right_pane_width - 0.65, info_reset_y, reset_icon_path, "reset_" .. i)
+					row_w - 0.5, info_reset_y, reset_icon_path, "reset_" .. i)
 			fs[#fs + 1] = ("tooltip[%s;%s]"):format("reset_" .. i, reset_tooltip)
 		end
 
 		if show_info then
-			local info_x = right_pane_width - 0.75
+			local info_x = row_w - 0.5
 			fs[#fs + 1] = ("image[%f,%f;0.5,0.5;%s]"):format(info_x, info_reset_y, info_icon_path)
 			fs[#fs + 1] = ("tooltip[%f,%f;0.5,0.5;%s]"):format(info_x, info_reset_y, fgettext(comp.info_text))
 		end
@@ -876,7 +879,7 @@ local function get_formspec(dialogdata)
 
 		if comp.control_y then
 			fs[#fs + 1] = ("box[0,%f;%f,0.015;%s]"):format(
-				y + used_h + 0.05, right_pane_width - 0.25, menu_style.LINE)
+				y + used_h + 0.05, row_w, menu_style.LINE)
 		end
 
 		if used_h > 0 then

@@ -36,6 +36,12 @@ local make = {}
 local ROW_H = 0.8
 local CONTROL_W = 3.6
 local GAP = 0.2
+-- Сколько справа занимает кнопка отката. Знать это нужно и окну настроек,
+-- которое её рисует, и строке: пояснение раскрывается во всю ширину строки,
+-- вместе с этим полем, — иначе оно обрывалось бы, не дойдя до разделителя.
+local RESET_ROOM = 0.65
+-- Разделитель под строкой лежит чуть ниже её самой.
+local DIVIDER_GAP = 0.05
 
 local COLOR_DESC = "#9aa0a6"
 -- Пояснение ложится поверх соседних строк, поэтому фон у него глухой:
@@ -147,8 +153,11 @@ local function render_label(l, label, desc, avail_w)
 	}
 
 	if desc then
+		-- Область наведения кончается ровно на разделителе, поэтому пояснение
+		-- ложится верхушкой на него и по ширине совпадает с ним же.
 		fs[#fs + 1] = ("tooltip_panel[0,0;%f,%f;%s;%s;%s]"):format(
-			avail_w or l.label_w, ROW_H, desc, COLOR_TIP_BG, COLOR_TIP_TEXT)
+			(avail_w or l.label_w) + RESET_ROOM, ROW_H + DIVIDER_GAP,
+			desc, COLOR_TIP_BG, COLOR_TIP_TEXT)
 	end
 
 	return table.concat(fs)
@@ -871,5 +880,7 @@ else
 	make.noise_params_3d = make_noise_params
 end
 
+
+make.RESET_ROOM = RESET_ROOM
 
 return make
