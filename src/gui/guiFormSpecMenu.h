@@ -290,6 +290,9 @@ public:
 	*/
 	void regenerateGui(v2u32 screensize) override;
 
+	//! Тянет ли сейчас кто-то ползунок: пока да, новую форму не применяем.
+	bool isScrollbarDragged() const;
+
 	GUIInventoryList::ItemSpec getItemAtPos(v2s32 p) const;
 	void drawSelectedItem();
 	void drawMenu() override;
@@ -378,6 +381,14 @@ protected:
 	std::vector<std::pair<GUIHyperText *, HyperTipSpec>> m_hypertips;
 	std::map<std::string, HyperTipSpec> m_hypertip_map;
 	std::vector<std::pair<gui::IGUIElement *, TooltipSpec>> m_tooltip_rects;
+	//! Пояснения, раскрывающиеся под своей строкой. От обычной подсказки
+	//! отличаются тем, что не бегают за указателем: текст встаёт ровно под тем,
+	//! о чём он, переносится по ширине строки и растёт вниз, сколько нужно.
+	std::vector<std::pair<gui::IGUIElement *, TooltipSpec>> m_tooltip_panels;
+	//! Панель, над которой сейчас указатель, и насколько она проявилась.
+	gui::IGUIElement *m_tooltip_panel_over = nullptr;
+	f32 m_tooltip_panel_fade = 0.0f;
+	u64 m_tooltip_panel_time = 0;
 	std::vector<std::pair<FieldSpec, GUIScrollBar *>> m_scrollbars;
 	std::vector<std::pair<FieldSpec, std::vector<std::string>>> m_dropdowns;
 	std::vector<gui::IGUIElement *> m_clickthrough_elements;
@@ -522,6 +533,7 @@ private:
 	void parseBackgroundColor(parserData* data, const std::string &element);
 	void parseListColors(parserData* data, const std::string &element);
 	void parseTooltip(parserData* data, const std::string &element);
+	void parseTooltipPanel(parserData *data, const std::string &element);
 	bool parseVersionDirect(const std::string &data);
 	bool parseSizeDirect(parserData* data, const std::string &element);
 	void parseRealCoordinates(parserData* data, const std::string &element);
@@ -547,6 +559,10 @@ private:
 
 	void showTooltip(const std::wstring &text, const video::SColor &color,
 		const video::SColor &bgcolor);
+
+	//! Пояснение под своей строкой: не у указателя, а под rect, по его ширине.
+	void showTooltipPanel(const core::rect<s32> &under, const TooltipSpec &spec,
+			f32 fade);
 	void showHyperTip(GUIHyperText *e, const HyperTipSpec &spec);
 
 	gui::IGUIStaticText *addLabel(const EnrichedString &text, const core::rect<s32> &rect,

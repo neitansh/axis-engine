@@ -34,13 +34,14 @@ local make = {}
 -- Every ordinary setting is drawn as one row: name (and a short explanation)
 -- on the left, the control that changes it on the right.
 local ROW_H = 0.8
-local DESC_H = 0.62
--- Roughly what fits on the two lines a description gets
-local DESC_CHARS = 64
 local CONTROL_W = 3.6
 local GAP = 0.2
 
 local COLOR_DESC = "#9aa0a6"
+-- Пояснение ложится поверх соседних строк, поэтому фон у него глухой:
+-- просвечивающий текст поверх текста не прочесть.
+local COLOR_TIP_BG = "#12161bf2"
+local COLOR_TIP_TEXT = "#dfe3e8"
 local COLOR_HEADING = menu_style.HEADING
 
 
@@ -53,48 +54,18 @@ local function get_label(setting)
 end
 
 
--- LuaJIT has no utf8 library, so character counting is done by hand.
--- Returns the byte index the given character ends at, or nil if the text is
--- shorter than that.
-local function byte_offset_of_char(text, count)
-	local chars, i = 0, 1
-
-	while i <= #text do
-		local byte = text:byte(i)
-		local width = byte < 0x80 and 1
-			or byte < 0xE0 and 2
-			or byte < 0xF0 and 3
-			or 4
-
-		chars = chars + 1
-		if chars > count then
-			return i - 1
-		end
-		i = i + width
-	end
-
-	return nil
-end
-
-
--- Short explanation shown under the name. The area label wraps and truncates
--- on its own, so the text does not need to be shortened here.
+-- Полное пояснение к настройке. Раньше его резали до одной строки, чтобы оно
+-- влезло под названием, — от описания оставался огрызок с многоточием. Теперь
+-- текст никуда не режется: он раскрывается под строкой по наведению и занимает
+-- столько строк, сколько нужно.
 local function get_description(setting)
 	local comment = setting.comment
 	if not comment or comment == "" then
 		return nil
 	end
+	-- Переносы внутри описания расставлены под ширину файла настроек, а не
+	-- окна: сшиваем в сплошной текст и даём перенести его по месту.
 	local text = fgettext_ne(comment):gsub("%s*\n%s*", " ")
-	-- One sentence keeps every row the same height and still says what it does
-	text = text:match("^(.-[%.!%?])%s") or text
-
-	-- The row only has two lines; cut on a word so nothing renders half a line
-	local cut = byte_offset_of_char(text, DESC_CHARS)
-	if cut then
-		local shortened = text:sub(1, cut)
-		text = (shortened:match("^(.*)%s%S*$") or shortened) .. "…"
-	end
-
 	return core.formspec_escape(text)
 end
 
@@ -105,10 +76,10 @@ end
 
 
 -- Geometry of a single row for the given width.
-local function layout(avail_w, has_desc)
+local function layout(avail_w)
 	local control_x = avail_w - CONTROL_W
 	return {
-		height = ROW_H + (has_desc and DESC_H or 0),
+		height = ROW_H,
 		label_w = math.max(1, control_x - GAP),
 		control_x = control_x,
 		-- Vertical centre of the control column
@@ -124,19 +95,20 @@ local function mark_control_line(comp)
 end
 
 
-local function render_label(l, label, desc)
+-- Название настройки и область, по наведению на которую раскрывается пояснение.
+-- Область — вся строка целиком, вместе с самим управлением: целиться в мелкую
+-- надпись, чтобы прочесть, что делает переключатель, было бы издевательством.
+local function render_label(l, label, desc, avail_w)
 	local fs = {
 		"style_type[label;valign=center]",
 		("label[0,0;%f,%f;%s]"):format(l.label_w, ROW_H, label),
+		"style_type[label;valign=top]",
 	}
 
 	if desc then
-		fs[#fs + 1] = ("style_type[label;textcolor=%s;font_size=*0.9;valign=top]"):format(COLOR_DESC)
-		fs[#fs + 1] = ("label[0,%f;%f,%f;%s]"):format(ROW_H - 0.04, l.label_w, DESC_H, desc)
-		fs[#fs + 1] = "style_type[label;textcolor=;font_size=]"
+		fs[#fs + 1] = ("tooltip_panel[0,0;%f,%f;%s;%s;%s]"):format(
+			avail_w or l.label_w, ROW_H, desc, COLOR_TIP_BG, COLOR_TIP_TEXT)
 	end
-
-	fs[#fs + 1] = "style_type[label;valign=top]"
 
 	return table.concat(fs)
 end
@@ -218,12 +190,12 @@ local function make_text_entry(converter, validator, stringifier)
 				self.resettable = core.settings:has(setting.name)
 
 				local desc = get_description(setting)
-				local l = layout(avail_w, desc ~= nil)
+				local l = layout(avail_w)
 				mark_control_line(self)
 				local field_w = CONTROL_W - 0.75
 
 				local fs = {
-					render_label(l, get_label(setting), desc),
+					render_label(l, get_label(setting), desc, avail_w),
 					("field[%f,%f;%f,0.7;%s;;%s]"):format(
 						l.control_x, l.control_y - 0.35, field_w,
 						setting.name, core.formspec_escape(value)),
@@ -332,13 +304,13 @@ local function make_slider(is_int)
 				self.resettable = core.settings:has(setting.name)
 
 				local desc = get_description(setting)
-				local l = layout(avail_w, desc ~= nil)
+				local l = layout(avail_w)
 				mark_control_line(self)
 				local value_w = 1.25
 				local slider_w = CONTROL_W - value_w - 0.15
 
 				local fs = {
-					render_label(l, get_label(setting), desc),
+					render_label(l, get_label(setting), desc, avail_w),
 					("scrollbaroptions[min=%d;max=%d;smallstep=%d;largestep=%d;thumbsize=%d;arrows=hide]")
 						:format(sb_min, sb_max,
 							direct and 1 or math.max(1, math.floor(SLIDER_STEPS / 100)),
@@ -407,12 +379,12 @@ function make.bool(setting)
 			self.resettable = core.settings:has(setting.name)
 
 			local desc = get_description(setting)
-			local l = layout(avail_w, desc ~= nil)
+			local l = layout(avail_w)
 			mark_control_line(self)
 			local button = "toggle_" .. setting.name
 
 			local fs = {
-				render_label(l, get_label(setting), desc),
+				render_label(l, get_label(setting), desc, avail_w),
 				-- A switch reads at a glance where a checkbox needs a second look
 				value and menu_style.accent(button) or "",
 				("button[%f,%f;%f,0.7;%s;%s]"):format(
@@ -451,11 +423,11 @@ function make.enum(setting)
 			end
 
 			local desc = get_description(setting)
-			local l = layout(avail_w, desc ~= nil)
+			local l = layout(avail_w)
 			mark_control_line(self)
 
 			local fs = {
-				render_label(l, get_label(setting), desc),
+				render_label(l, get_label(setting), desc, avail_w),
 				("dropdown[%f,%f;%f,0.7;%s;%s;%d;true]"):format(
 					l.control_x, l.control_y - 0.35, CONTROL_W,
 					setting.name, table.concat(items, ","),

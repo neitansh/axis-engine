@@ -2544,6 +2544,55 @@ void GUIFormSpecMenu::parseListColors(parserData* data, const std::string &eleme
 	}
 }
 
+// Пояснение, раскрывающееся под строкой: tooltip_panel[X,Y;W,H;текст].
+//
+// Обычная подсказка встаёт у указателя и живёт одной строкой — для короткого
+// «что это» этого хватает, для описания настройки нет. Здесь текст переносится
+// по ширине области, растёт вниз сколько нужно и не съезжает вслед за рукой.
+void GUIFormSpecMenu::parseTooltipPanel(parserData *data, const std::string &element)
+{
+	std::vector<std::string> parts;
+	if (!precheckElement("tooltip_panel", element, 3, 5, parts))
+		return;
+
+	std::vector<std::string> v_pos = split(parts[0], ',');
+	std::vector<std::string> v_geom = split(parts[1], ',');
+	MY_CHECKPOS("tooltip_panel", 0);
+	MY_CHECKGEOM("tooltip_panel", 1);
+
+	v2s32 pos;
+	v2s32 geom;
+	if (data->real_coordinates) {
+		pos = getRealCoordinateBasePos(v_pos);
+		geom = getRealCoordinateGeometry(v_geom);
+	} else {
+		pos = getElementBasePos(&v_pos);
+		geom.X = stof(v_geom[0]) * spacing.X;
+		geom.Y = stof(v_geom[1]) * spacing.Y;
+	}
+
+	video::SColor bgcolor = m_default_tooltip_bgcolor;
+	video::SColor color = m_default_tooltip_color;
+	if (parts.size() == 5 &&
+			(!parseColorString(parts[3], bgcolor, false) ||
+					!parseColorString(parts[4], color, false))) {
+		errorstream << "Invalid color in tooltip_panel element: '" << element
+				<< "'" << std::endl;
+		return;
+	}
+
+	FieldSpec fieldspec("", L"", L"", 258 + m_fields.size());
+	core::rect<s32> rect(pos, pos + geom);
+	gui::IGUIElement *e = new gui::IGUIElement(EGUIET_ELEMENT, Environment,
+			data->current_parent, fieldspec.fid, rect);
+	// Область только ловит наведение — нажатия сквозь неё проходят как были.
+	e->setVisible(false);
+
+	m_fields.push_back(fieldspec);
+	m_tooltip_panels.emplace_back(e,
+			TooltipSpec(utf8_to_wide(unescape_string(parts[2])), bgcolor, color));
+}
+
 void GUIFormSpecMenu::parseTooltip(parserData* data, const std::string &element)
 {
 	std::vector<std::string> parts;
@@ -3114,6 +3163,7 @@ const std::unordered_map<std::string, std::function<void(GUIFormSpecMenu*, GUIFo
 		{"bgcolor",                &GUIFormSpecMenu::parseBackgroundColor},
 		{"listcolors",             &GUIFormSpecMenu::parseListColors},
 		{"tooltip",                &GUIFormSpecMenu::parseTooltip},
+		{"tooltip_panel",          &GUIFormSpecMenu::parseTooltipPanel},
 		{"hypertip",               &GUIFormSpecMenu::parseHyperTip},
 		{"scrollbar",              &GUIFormSpecMenu::parseScrollBar},
 		{"real_coordinates",       &GUIFormSpecMenu::parseRealCoordinates},
@@ -3156,6 +3206,16 @@ void GUIFormSpecMenu::parseElement(parserData* data, const std::string &element)
 	// Ignore others
 	infostream << "Unknown DrawSpec: type=" << type << ", data=\"" << description << "\""
 			<< std::endl;
+}
+
+// Тянет ли сейчас кто-то ползунок.
+bool GUIFormSpecMenu::isScrollbarDragged() const
+{
+	for (const auto &scrollbar : m_scrollbars) {
+		if (scrollbar.second->getDragState().dragging)
+			return true;
+	}
+	return false;
 }
 
 void GUIFormSpecMenu::regenerateGui(v2u32 screensize)
@@ -3240,6 +3300,8 @@ void GUIFormSpecMenu::regenerateGui(v2u32 screensize)
 	m_hypertips.clear();
 	m_hypertip_map.clear();
 	m_tooltip_rects.clear();
+	m_tooltip_panels.clear();
+	m_tooltip_panel_over = nullptr;
 	m_inventory_rings.clear();
 	m_dropdowns.clear();
 	m_scroll_containers.clear();
@@ -3701,7 +3763,11 @@ void GUIFormSpecMenu::drawMenu()
 {
 	if (m_form_src) {
 		const std::string &newform = m_form_src->getForm();
-		if (newform != m_formspec_string) {
+		// A slider being dragged sends a change per pixel, and every change
+		// comes back as a new form. Rebuilding the whole screen that often is
+		// wasteful at best and jerky at worst, so the new form waits until the
+		// hand is off: the widget draws its own motion meanwhile.
+		if (newform != m_formspec_string && !isScrollbarDragged()) {
 			m_formspec_string = newform;
 			m_is_form_regenerated = false;
 			regenerateGui(m_screensize_old);
@@ -3745,6 +3811,47 @@ void GUIFormSpecMenu::drawMenu()
 			if (!text.empty()) {
 				showTooltip(text, pair.second.color, pair.second.bgcolor);
 				break;
+			}
+		}
+	}
+
+	/*
+		Раскрывающиеся пояснения. Рисуются после всего остального, поверх
+		соседних строк: в этом и смысл — прочесть, не разъезжая список.
+	*/
+	{
+		gui::IGUIElement *over = nullptr;
+		core::rect<s32> over_rect;
+		for (const auto &pair : m_tooltip_panels) {
+			core::rect<s32> rect = pair.first->getAbsoluteClippingRect();
+			if (rect.getArea() > 0 && rect.isPointInside(m_pointer) &&
+					!pair.second.tooltip.empty()) {
+				over = pair.first;
+				over_rect = rect;
+				break;
+			}
+		}
+
+		const u64 now_ms = porting::getTimeMs();
+		const f32 dtime = m_tooltip_panel_time == 0 ? 0.0f
+				: std::min(0.1f, (now_ms - m_tooltip_panel_time) / 1000.0f);
+		m_tooltip_panel_time = now_ms;
+
+		if (over != m_tooltip_panel_over) {
+			// Перешли на другую строку — новое пояснение начинает с нуля.
+			m_tooltip_panel_over = over;
+			m_tooltip_panel_fade = 0.0f;
+		}
+
+		if (over) {
+			// Полное проявление примерно за шестую долю секунды: заметно, что
+			// панель всплыла, и не приходится её ждать.
+			m_tooltip_panel_fade = std::min(1.0f, m_tooltip_panel_fade + dtime * 6.0f);
+			for (const auto &pair : m_tooltip_panels) {
+				if (pair.first == over) {
+					showTooltipPanel(over_rect, pair.second, m_tooltip_panel_fade);
+					break;
+				}
 			}
 		}
 	}
@@ -3950,6 +4057,60 @@ void GUIFormSpecMenu::positionTooltip(s32 tooltip_width, s32 tooltip_height, s32
 	tooltip_y = m_pointer.Y + tooltip_offset_y;
 }
 
+void GUIFormSpecMenu::showTooltipPanel(const core::rect<s32> &under,
+	const TooltipSpec &spec, f32 fade)
+{
+	// Проявление: пока панель всплывает, и текст, и фон идут от прозрачного.
+	// Резко возникающая под рукой плашка читается как ошибка отрисовки.
+	auto faded = [fade](video::SColor c) {
+		c.setAlpha((u32)(c.getAlpha() * core::clamp(fade, 0.0f, 1.0f)));
+		return c;
+	};
+
+	EnrichedString ntext(spec.tooltip);
+	ntext.setDefaultColor(faded(spec.color));
+	if (!ntext.hasBackground())
+		ntext.setBackground(faded(spec.bgcolor));
+
+	m_tooltip_element->setWordWrap(true);
+	m_tooltip_element->setTextAlignment(gui::EGUIA_UPPERLEFT, gui::EGUIA_UPPERLEFT);
+	m_tooltip_element->setBackgroundColor(faded(spec.bgcolor));
+	m_tooltip_element->setOverrideColor(faded(spec.color));
+
+	const s32 pad_x = m_btn_height / 2;
+	const s32 pad_y = m_btn_height / 3;
+	const s32 width = under.getWidth();
+
+	// Высоту узнаём у самого текста: сколько строк вышло после переноса,
+	// столько панель и займёт. Считать её наперёд — гадать по длине.
+	m_tooltip_element->setRelativePosition(core::rect<s32>(
+			core::position2d<s32>(under.UpperLeftCorner.X, under.LowerRightCorner.Y),
+			core::dimension2d<s32>(width, 1)));
+	setStaticText(m_tooltip_element, ntext);
+	const s32 height = m_tooltip_element->getTextHeight() + 2 * pad_y;
+
+	v2u32 screen = Environment->getVideoDriver()->getScreenSize();
+	s32 x = under.UpperLeftCorner.X;
+	s32 y = under.LowerRightCorner.Y;
+	// Внизу экрана панель раскрывается вверх — иначе её просто не увидеть.
+	if (y + height > (s32)screen.Y)
+		y = std::max(0, under.UpperLeftCorner.Y - height);
+
+	m_tooltip_element->setRelativePosition(core::rect<s32>(
+			core::position2d<s32>(x, y),
+			core::dimension2d<s32>(width, height)));
+	m_tooltip_element->setTextRestrainedInside(false);
+	m_tooltip_element->setDrawBackground(true);
+	m_tooltip_element->setDrawBorder(true);
+	m_tooltip_element->setVisible(true);
+	m_tooltip_element->setOverrideFont(m_font);
+	// Отступ от края берём текстовым выравниванием: своих полей у надписи нет.
+	m_tooltip_element->setRelativePosition(core::rect<s32>(
+			core::position2d<s32>(x, y),
+			core::dimension2d<s32>(width, height)));
+	bringToFront(m_tooltip_element);
+}
+
 void GUIFormSpecMenu::showTooltip(const std::wstring &text,
 	const video::SColor &color, const video::SColor &bgcolor)
 {
@@ -3957,6 +4118,13 @@ void GUIFormSpecMenu::showTooltip(const std::wstring &text,
 	ntext.setDefaultColor(color);
 	if (!ntext.hasBackground())
 		ntext.setBackground(bgcolor);
+
+	// Элемент подсказки один на все виды, а раскрывающаяся панель меняет ему
+	// перенос и выравнивание — возвращаем обычные.
+	m_tooltip_element->setWordWrap(false);
+	m_tooltip_element->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_CENTER);
+	m_tooltip_element->setBackgroundColor(bgcolor);
+	m_tooltip_element->setOverrideColor(color);
 
 	setStaticText(m_tooltip_element, ntext);
 
