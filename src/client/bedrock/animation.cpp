@@ -157,7 +157,15 @@ v3f sampleChannel(const std::vector<Key> &keys, f32 time)
 
 /// Моменты, в которые канал придётся опросить. Прямые участки описываются
 /// концами, гнутые — дробятся.
-void sampleTimes(const std::vector<Key> &keys, std::vector<f32> &out)
+///
+/// Повороты дробятся всегда, и это не перестраховка. Bedrock ведёт кость по
+/// углам, покомпонентно, а дорожка движка хранит повороты целиком и идёт между
+/// ними кратчайшей дугой. Пути расходятся всюду, где угол переваливает за
+/// половину оборота: рука, которой положено развернуть оружие через −180°,
+/// поворачивает его в другую сторону. Частые ключи снимают расхождение —
+/// каждый отрезок становится настолько коротким, что обе дороги совпадают.
+void sampleTimes(const std::vector<Key> &keys, std::vector<f32> &out,
+		bool rotation)
 {
 	for (size_t i = 0; i < keys.size(); ++i) {
 		out.push_back(keys[i].time);
@@ -165,7 +173,7 @@ void sampleTimes(const std::vector<Key> &keys, std::vector<f32> &out)
 			continue;
 
 		const Key &to = keys[i + 1];
-		const bool straight = to.easing.isLinear() && to.constant
+		const bool straight = !rotation && to.easing.isLinear() && to.constant
 				&& keys[i].constant;
 		if (straight)
 			continue;
@@ -264,7 +272,7 @@ u32 loadAnimations(scene::SkinnedMesh *mesh, const std::string &json,
 				if (keys.empty())
 					return;
 				std::vector<f32> times;
-				sampleTimes(keys, times);
+				sampleTimes(keys, times, channel == Channel::ROTATION);
 				// Дорожка, у которой значение одно на всю длину, всё равно
 				// должна дожить до её конца: иначе кость вернётся в исходную
 				// позу раньше, чем анимация кончится.
