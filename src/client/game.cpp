@@ -2925,6 +2925,19 @@ void Game::updatePlayerControl(const CameraOrientation &cam)
 		control.aux1 = control.aux1 ^ true;
 	}
 
+	// В лимбо мир остаётся на экране, но игрок в нём больше не участвует:
+	// шагам некуда уходить, и уйденное за это время всё равно не в счёт —
+	// сервер помнит игрока там, где его застало падение, и на возвращении
+	// вернёт туда же рывком. Поэтому ход в лимбо не берётся вовсе, а вот
+	// камера остаётся при игроке: осматриваться, пока ждёшь, не вредно.
+	if (m_limbo.active)
+	{
+		const float pitch = control.pitch, yaw = control.yaw;
+		control = PlayerControl();
+		control.pitch = pitch;
+		control.yaw = yaw;
+	}
+
 	client->setPlayerControl(control);
 
 	// tt.stop();
