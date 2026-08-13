@@ -160,7 +160,7 @@ local function probe_entries()
 		-- ответ, а не догадка.
 		for i, server in ipairs(servers()) do
 			local r = link[i]
-			core.log("info", ("[matchmaking] %s: %s%s"):format(
+			core.log("action", ("[matchmaking] %s: %s%s"):format(
 				server.name or server.address,
 				r and ("дошло %d из %d, отклик %d мс")
 					:format(r.got or 0, r.want or 0, r.ping or 0)
