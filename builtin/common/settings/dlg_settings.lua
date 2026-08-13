@@ -793,8 +793,8 @@ local function get_formspec(dialogdata)
 
 	local right_x = pad + left_pane_width + scrollbar_w + menu_style.SPACE.lg
 	local right_pane_width = tabsize.width - right_x - scrollbar_w - menu_style.SPACE.md
-	fs[#fs + 1] = menu_style.inset(right_x - menu_style.SPACE.sm, list_top,
-		right_pane_width + scrollbar_w + menu_style.SPACE.md, list_h)
+	-- Подложки под списком настроек нет намеренно: строки и так разделены
+	-- линиями, а лишняя рамка внутри окна дробит его на коробки в коробках.
 	fs[#fs + 1] = ("scroll_container[%f,%f;%f,%f;rightscroll;vertical;0.1;0.25]"):format(
 			right_x, list_top, right_pane_width, list_h)
 

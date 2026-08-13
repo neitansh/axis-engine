@@ -79,6 +79,38 @@ local function get_description(setting)
 end
 
 
+-- Отличается ли значение от стандартного.
+--
+-- Кнопка отката должна висеть именно поэтому, а не потому, что запись есть в
+-- файле настроек. Выставив стандартное значение руками, игрок получал кнопку,
+-- предлагающую откатить его к тому же самому, и она не пропадала, пока на неё
+-- не нажмёшь.
+local function differs_from_default(setting)
+	if not core.settings:has(setting.name) then
+		return false
+	end
+	local value = core.settings:get(setting.name)
+	local default = setting.default
+	if value == nil or default == nil then
+		return value ~= default
+	end
+
+	-- Число, записанное по-разному, остаётся тем же числом: «1.0» — это «1».
+	local a, b = tonumber(value), tonumber(default)
+	if a and b then
+		return a ~= b
+	end
+
+	local low_default = default:lower()
+	if low_default == "true" or low_default == "false" then
+		return core.settings:get_bool(setting.name, low_default == "true")
+			~= (low_default == "true")
+	end
+
+	return value ~= default
+end
+
+
 local function is_valid_number(value)
 	return type(value) == "number" and not (value ~= value or value >= math.huge or value <= -math.huge)
 end
@@ -196,7 +228,7 @@ local function make_text_entry(converter, validator, stringifier)
 
 			get_formspec = function(self, avail_w)
 				local value = core.settings:get(setting.name) or setting.default
-				self.resettable = core.settings:has(setting.name)
+				self.resettable = differs_from_default(setting)
 
 				local desc = get_description(setting)
 				local l = layout(avail_w)
@@ -310,7 +342,7 @@ local function make_slider(is_int)
 				local value = tonumber(core.settings:get(setting.name))
 						or tonumber(setting.default) or min
 				value = math.min(math.max(value, min), max)
-				self.resettable = core.settings:has(setting.name)
+				self.resettable = differs_from_default(setting)
 
 				local desc = get_description(setting)
 				local l = layout(avail_w)
@@ -385,7 +417,7 @@ function make.bool(setting)
 
 		get_formspec = function(self, avail_w)
 			local value = core.settings:get_bool(setting.name, core.is_yes(setting.default))
-			self.resettable = core.settings:has(setting.name)
+			self.resettable = differs_from_default(setting)
 
 			local desc = get_description(setting)
 			local l = layout(avail_w)
@@ -423,7 +455,7 @@ function make.enum(setting)
 
 		get_formspec = function(self, avail_w)
 			local value = core.settings:get(setting.name) or setting.default
-			self.resettable = core.settings:has(setting.name)
+			self.resettable = differs_from_default(setting)
 
 			local labels = setting.option_labels or {}
 			local items = {}
@@ -467,7 +499,7 @@ local function make_path(setting)
 
 		get_formspec = function(self, avail_w)
 			local value = core.settings:get(setting.name) or setting.default
-			self.resettable = core.settings:has(setting.name)
+			self.resettable = differs_from_default(setting)
 
 			local fs = ("field[0,0.3;%f,0.8;%s;%s;%s]"):format(
 				avail_w - 3, setting.name, get_label(setting), core.formspec_escape(value))
@@ -524,7 +556,7 @@ function make.v3f(setting)
 
 		get_formspec = function(self, avail_w)
 			local value = vector.from_string(core.settings:get(setting.name) or setting.default)
-			self.resettable = core.settings:has(setting.name)
+			self.resettable = differs_from_default(setting)
 
 			-- Allocate space for "Set" button
 			avail_w = avail_w - 1
@@ -584,7 +616,7 @@ function make.flags(setting)
 				"label[0,0.1;" .. get_label(setting) .. "]",
 			}
 
-			self.resettable = core.settings:has(setting.name)
+			self.resettable = differs_from_default(setting)
 
 			checkboxes = {}
 			for _, name in ipairs(setting.possible) do
@@ -672,7 +704,7 @@ local function make_noise_params(setting)
 		get_formspec = function(self, avail_w)
 			-- The "defaults" noise parameter flag doesn't reset a noise
 			-- setting to its default value, so we offer a regular reset button.
-			self.resettable = core.settings:has(setting.name)
+			self.resettable = differs_from_default(setting)
 
 			local fs = "label[0,0.4;" .. get_label(setting) .. "]" ..
 					("button[%f,0;2.5,0.8;%s;%s]"):format(avail_w - 2.5, "edit_" .. setting.name, fgettext("Edit"))
@@ -756,7 +788,7 @@ function make.key(setting)
 		get_formspec = function(self, avail_w)
 			local value_string = core.settings:get(setting.name) or ""
 			local default_value = setting.default or ""
-			self.resettable = core.settings:has(setting.name) and (value_string ~= default_value)
+			self.resettable = differs_from_default(setting)
 			local value_width = math.max(2.5, avail_w / 2)
 			local value = get_key_setting(setting.name)
 			local fs = {
