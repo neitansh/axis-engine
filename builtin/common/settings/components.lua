@@ -242,7 +242,11 @@ local function make_text_entry(converter, validator, stringifier)
 				local desc = get_description(setting)
 				local l = layout(avail_w)
 				mark_control_line(self)
-				local field_w = CONTROL_W - 0.75
+				-- Кнопке нужно место под своё слово: «Set» коротко только
+				-- по-английски, а по-русски это «Назначить», и в прежние
+				-- 0.7 от него влезала половина.
+				local button_w = 1.6
+				local field_w = CONTROL_W - button_w - 0.05
 
 				local fs = {
 					render_label(l, get_label(setting), desc, avail_w),
@@ -252,9 +256,9 @@ local function make_text_entry(converter, validator, stringifier)
 					("field_enter_after_edit[%s;true]"):format(setting.name),
 					-- for pause menu env
 					("field_close_on_enter[%s;false]"):format(setting.name),
-					("button[%f,%f;0.7,0.7;%s;%s]"):format(
+					("button[%f,%f;%f,0.7;%s;%s]"):format(
 						l.control_x + field_w + 0.05, l.control_y - 0.35,
-						"set_" .. setting.name, fgettext("Set")),
+						button_w, "set_" .. setting.name, fgettext("Set")),
 				}
 
 				return table.concat(fs), l.height

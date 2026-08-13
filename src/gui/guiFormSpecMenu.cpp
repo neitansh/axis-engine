@@ -3831,9 +3831,19 @@ void GUIFormSpecMenu::drawMenu()
 		соседних строк: в этом и смысл — прочесть, не разъезжая список.
 	*/
 	{
+		// Раскрытый список выбора важнее пояснения: оно всё равно легло бы
+		// поверх него, закрыв половину строк. Пока список открыт, пояснение
+		// уходит — тем же плавным движением, каким появлялось.
+		gui::IGUIElement *focus = Environment->getFocus();
+		const bool list_open = focus &&
+				focus->getType() == gui::EGUIET_LIST_BOX && focus->getParent() &&
+				focus->getParent()->getType() == gui::EGUIET_COMBO_BOX;
+
 		const TooltipSpec *over = nullptr;
 		core::rect<s32> over_rect;
 		for (const auto &pair : m_tooltip_panels) {
+			if (list_open)
+				break;
 			core::rect<s32> rect = pair.first->getAbsoluteClippingRect();
 			if (rect.getArea() > 0 && rect.isPointInside(m_pointer) &&
 					!pair.second.tooltip.empty()) {

@@ -92,7 +92,8 @@ protected:
 
 	IGUIButton *UpButton;
 	IGUIButton *DownButton;
-	ArrowVisibility UpDownVisible = DEFAULT;
+	// Без стрелок по краям, пока их не попросят: полосу и без них видно.
+	ArrowVisibility UpDownVisible = HIDE;
 
 	core::rect<s32> SliderRect;
 

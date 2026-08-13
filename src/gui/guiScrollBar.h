@@ -28,17 +28,6 @@ public:
 		s32 offset = 0;
 	};
 
-	//! Своя отрисовка: рамка и бегунок внутри неё.
-	void draw() override;
-
-	//! Стрелки по краям убраны: полосу и без них видно, а два кубика со
-	//! значками по концам каждой полосы засоряют окно. Показать их можно,
-	//! только попросив об этом прямо.
-	void setArrowsVisible(ArrowVisibility visible)
-	{
-		CGUIScrollBar::setArrowsVisible(visible == DEFAULT ? HIDE : visible);
-	}
-
 	DragState getDragState() const { return {Dragging, DraggedBySlider, DragOffset}; }
 
 	void setDragState(const DragState &state)
