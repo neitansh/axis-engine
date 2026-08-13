@@ -69,10 +69,36 @@ end
 local own_descriptions = dofile(core.get_builtin_path() ..
 	"common" .. DIR_DELIM .. "settings" .. DIR_DELIM .. "descriptions.lua")
 
+-- Требовательность отдельной строкой в конце пояснения — и цветом, чтобы её
+-- было видно, не читая: за что придётся платить кадрами, понятно с одного
+-- взгляда на список.
+local LOAD_COLOR = {
+	high = "#ff8a75",
+	medium = "#f2c14e",
+	low = "#8bd6a0",
+}
+
+local function load_line(load)
+	local name
+	if load == "high" then
+		name = fgettext_ne("high")
+	elseif load == "medium" then
+		name = fgettext_ne("moderate")
+	elseif load == "low" then
+		name = fgettext_ne("light")
+	else
+		return nil
+	end
+	return "\n\n" .. fgettext_ne("Cost:") .. " " ..
+		core.colorize(LOAD_COLOR[load], name)
+end
+
 local function get_description(setting)
 	local own = own_descriptions[setting.name]
 	if own then
-		return core.formspec_escape(own)
+		local text = own.text or own
+		local line = own.load and load_line(own.load)
+		return core.formspec_escape(line and (text .. line) or text)
 	end
 	local comment = setting.comment
 	if not comment or comment == "" then
