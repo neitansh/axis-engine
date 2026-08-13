@@ -38,6 +38,7 @@ local state = {
 	polling = false, -- опрос в полёте
 	drawn = 0,       -- когда экран рисовали в последний раз
 	epoch = 0,       -- ответы прошлых заходов нам не нужны
+	bad = {},        -- входы, чей Диспетчер не отозвался
 }
 
 local function servers()
@@ -47,13 +48,60 @@ local function servers()
 	return serverlistmgr.servers or {}
 end
 
+--- Выбор входа --------------------------------------------------------------
+-- Вход не спрашивают у игрока. Он и не может это решить: какой узел ближе и
+-- через какой вообще дойдёт до матча — вопрос сети, а не вкуса, и ошибка в
+-- ответе разводит друзей по разным матчам.
+--
+-- Решает замер, и он дешёвый: на каждый вход уходит один пакет. Отвечает на
+-- него сам Диспетчер, на порту из того же проброшенного диапазона, что и
+-- матчи, — значит ответ означает не «узел жив», а «отсюда игра дойдёт».
+-- Из ответивших берётся самый быстрый.
+
+-- Годится ли вход: сеть до него дошла, и его Диспетчер нас не подводил.
+local function usable(server)
+	return server.dispatch and server.ping and not state.bad[server.dispatch]
+end
+
+local function pick_entry()
+	-- Пока ждём набора, вход не меняем ни при каких замерах: очередь стоит
+	-- у него, и переезд посреди ожидания — это выход из очереди.
+	if state.queue then
+		return
+	end
+	local best
+	for i, server in ipairs(servers()) do
+		if usable(server) and (not best or server.ping < servers()[best].ping) then
+			best = i
+		end
+	end
+	if not best then
+		-- Никто ещё не отозвался: пробуем тот, что не подводил, — иначе
+		-- экран будет пустым всё время замера.
+		for i, server in ipairs(servers()) do
+			if server.dispatch and not state.bad[server.dispatch] then
+				best = i
+				break
+			end
+		end
+	end
+	state.region = best or 1
+end
+
 local function entry()
 	return servers()[state.region]
 end
 
+-- Настройка сильнее списка: пустой она бывает у всех, а заполняют её те, кто
+-- поднял своего Диспетчера или проверяет его на стенде, — и им нужен именно он,
+-- а не официальный вход.
 local function dispatch_url()
+	local set = core.settings:get("matchmaking_url")
+	if set and set ~= "" then
+		return set
+	end
 	local server = entry()
-	return server and server.dispatch or core.settings:get("matchmaking_url")
+	return server and server.dispatch
 end
 
 local function player_region()
@@ -119,18 +167,68 @@ local function on_screen()
 	return os.time() - state.drawn <= SHOWN_FOR
 end
 
-local function refresh_modes()
-	request("/v1/modes", nil, function(res)
+-- Список арен спрашивают снова и снова, пока экран на виду: на плитках
+-- написано, сколько человек уже ждёт, и цифра эта должна быть живой — иначе
+-- встаёшь в очередь к другу, а на кнопке ноль. Диспетчер придерживает
+-- повторный ответ на секунду, поэтому круг идёт сам собой и никого не молотит.
+local function refresh_modes(again)
+	if state.asking and not again then
+		return
+	end
+	state.asking = true
+	local asked = dispatch_url()
+	request("/v1/modes" .. (again and "?wait=1" or ""), nil, function(res)
 		local body = decode(res)
 		if body then
 			state.modes = body.modes or {}
 			state.status = nil
 		else
+			-- Замер говорил, что сюда дойдёт, а Диспетчер молчит. Больше
+			-- этот вход не предлагаем и сразу пробуем следующий: игроку
+			-- незачем знать, что один из узлов сегодня не в духе.
+			if asked and not state.queue then
+				state.bad[asked] = true
+				pick_entry()
+			end
+			if dispatch_url() and dispatch_url() ~= asked then
+				state.asking = false
+				refresh_modes()
+				return
+			end
 			state.modes = {}
 			state.status = fgettext("Matchmaking is unavailable")
 		end
 		core.event_handler("Refresh")
+
+		-- Пока ждём набора, список не на виду, а с экрана могли и уйти.
+		if on_screen() and not state.queue then
+			refresh_modes(true)
+		else
+			state.asking = false
+		end
 	end)
+end
+
+-- Диспетчер назвал адрес — дальше обычный вход на сервер, только адрес не
+-- набран руками, а получен. Возвращает true, если ушли в игру.
+local function enter(body)
+	if not (body.address and body.port and body.port > 0) then
+		return false
+	end
+	state.queue = nil
+	-- Экрана уже нет: бросать игрока в игру мимо его воли нельзя.
+	if not on_screen() then
+		matchmaking.stop()
+		return true
+	end
+	gamedata.mode = "join"
+	gamedata.address = body.address
+	gamedata.port = body.port
+	gamedata.playername = player_name()
+	gamedata.password = ""
+	gamedata.selected_world = 0
+	core.start()
+	return true
 end
 
 -- Опрос очереди. Диспетчер придерживает ответ на секунду, поэтому цикл идёт
@@ -163,23 +261,7 @@ local function poll()
 		end
 
 		state.queue = body
-
-		if body.address and body.port and body.port > 0 then
-			-- Матч готов. Дальше обычный вход на сервер, только адрес не
-			-- набран руками, а получен. Но если экрана уже нет, бросать
-			-- игрока в игру мимо его воли нельзя.
-			state.queue = nil
-			if not on_screen() then
-				matchmaking.stop()
-				return
-			end
-			gamedata.mode = "join"
-			gamedata.address = body.address
-			gamedata.port = body.port
-			gamedata.playername = player_name()
-			gamedata.password = ""
-			gamedata.selected_world = 0
-			core.start()
+		if enter(body) then
 			return
 		end
 
@@ -206,8 +288,13 @@ local function join(mode)
 			core.event_handler("Refresh")
 			return
 		end
+		-- Диспетчер мог и не ставить в очередь: если на этом режиме уже
+		-- играют и место есть, он сразу называет адрес.
 		state.queue = body
 		state.status = nil
+		if enter(body) then
+			return
+		end
 		core.event_handler("Refresh")
 		poll()
 	end)
@@ -215,32 +302,35 @@ end
 
 local function leave()
 	matchmaking.stop()
+	refresh_modes()
 	core.event_handler("Refresh")
 end
 
 --- Окно ---------------------------------------------------------------------
 
--- Левая карточка: кто и откуда играет.
+-- Левая карточка: кто и откуда играет. Вход не выбирают — его показывают:
+-- решение уже принято замером, а игроку важно видеть, куда он попадёт и
+-- насколько это близко.
 local function side_card(ox, oy, h)
 	local x, w = ox + 0.375, LEFT_W - 0.75
 	local fs = {
 		menu_style.surface(ox, oy, LEFT_W, h),
-		menu_style.heading(x, oy + 0.175, w, 0.6, fgettext("Region")),
+		menu_style.heading(x, oy + 0.175, w, 0.6, fgettext("Connection")),
 	}
 
-	local names = {}
-	for _, server in ipairs(servers()) do
-		local label = server.name or server.address
-		if server.ping then
-			label = ("%s   %d ms"):format(label, math.floor(server.ping * 1000))
-		end
-		names[#names + 1] = ESC(label)
-	end
-
 	local y = oy + 0.85
-	if #names > 0 then
-		fs[#fs + 1] = ("dropdown[%f,%f;%f,0.8;region;%s;%d;true]")
-			:format(x, y, w, table.concat(names, ","), state.region)
+	local own = core.settings:get("matchmaking_url")
+	local server = entry()
+	if own and own ~= "" then
+		-- Свой Диспетчер: замеры и списки тут ни при чём, показываем как есть.
+		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(own))
+	elseif server and server.ping then
+		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(server.name or server.address))
+		fs[#fs + 1] = menu_style.caption(x, y + 0.6, w, 0.5,
+			fgettext("$1 ms", tostring(math.floor(server.ping * 1000))))
+	elseif server then
+		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(server.name or server.address))
+		fs[#fs + 1] = menu_style.caption(x, y + 0.6, w, 0.5, fgettext("Checking..."))
 	else
 		fs[#fs + 1] = menu_style.caption(x, y, w, 0.6, fgettext("No servers"))
 	end
@@ -268,14 +358,33 @@ local function waiting_card(x, y, w, h)
 			ESC(q.title or q.mode or "")),
 	}
 
+	-- Про готовящуюся арену говорим, только когда комната и правда полна:
+	-- греть её начинают раньше, и «все в сборе» при трёх из десяти — неправда.
 	local line
-	if q.room_state == "warming" then
+	if q.room_state == "warming" and (q.waiting or 0) >= (q.needed or 0) then
 		line = fgettext("Everyone is here. Preparing the arena")
 	else
 		line = ("%s  %d / %d"):format(fgettext("Waiting for players"),
 			q.waiting or 0, q.needed or 0)
 	end
 	fs[#fs + 1] = menu_style.body(cx, y + h * 0.28 + 1.0, w - 1, 0.6, ESC(line))
+
+	-- Считаем, пока Диспетчер называет секунды, и не смотрим на состояние
+	-- комнаты: арену он греет заранее, а уходит она всё равно по сроку.
+	-- Сказать «отправляемся» и продержать полминуты — соврать.
+	local left = q.starts_in or 0
+	local below
+	if left > 0 then
+		below = fgettext("Starts in $1 s", tostring(left))
+	elseif (q.waiting or 0) < (q.min or 1) then
+		below = fgettext("Waiting for more players")
+	else
+		below = fgettext("Starting")
+	end
+	if below then
+		fs[#fs + 1] = menu_style.caption(cx, y + h * 0.28 + 1.7, w - 1, 0.6,
+			ESC(below))
+	end
 
 	fs[#fs + 1] = ("button[%f,%f;3.2,0.8;leave;%s]")
 		:format(cx, y + h - 1.4, fgettext("Cancel"))
@@ -345,9 +454,12 @@ end
 ---Нарисовать подбор матча в прямоугольнике (x, y, w, h).
 function matchmaking.get_formspec(x, y, w, h)
 	state.drawn = os.time()
-	-- Первый показ: списка арен ещё нет и никто его не просил.
-	if not state.modes and not state.asked then
-		state.asked = true
+	-- Замер приходит не сразу, поэтому вход пересматриваем на каждом
+	-- рисовании: как только стало известно, кто ближе, экран сам переедет.
+	local was = dispatch_url()
+	pick_entry()
+	if not state.modes or dispatch_url() ~= was then
+		state.modes = nil
 		refresh_modes()
 	end
 	local rx = x + LEFT_W + GAP
@@ -368,20 +480,12 @@ function matchmaking.handle(fields)
 		core.settings:set("name", fields.name)
 	end
 
-	-- Выпадающий список приходит с каждым событием, не только со своим:
-	-- проверять его надо на смену, иначе он съедает нажатия на арены.
-	local picked = tonumber(fields.region)
-	if picked and picked ~= state.region and servers()[picked] then
-		state.region = picked
-		state.modes = nil
-		state.asked = true
-		refresh_modes()
-		return true
-	end
-
 	if fields.retry then
+		-- Ручная попытка прощает всё: если вход отвалился по случайности,
+		-- второй заход по кнопке должен его вернуть.
+		state.bad = {}
 		state.modes = nil
-		state.asked = true
+		pick_entry()
 		refresh_modes()
 		return true
 	end
@@ -404,7 +508,11 @@ end
 function matchmaking.on_enter()
 	state.drawn = os.time()
 	state.modes = nil
-	state.asked = true
+	-- Замер за прошлый заход мог устареть, а вход, объявленный плохим, —
+	-- починиться. Список сам меряет отклик при синхронизации.
+	state.bad = {}
+	serverlistmgr.sync()
+	pick_entry()
 	refresh_modes()
 end
 

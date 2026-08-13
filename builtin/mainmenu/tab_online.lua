@@ -715,6 +715,8 @@ local function on_change(type)
 	if type == "ENTER" then
 		mm_game_theme.set_engine()
 		serverlistmgr.sync()
+		-- Экран открыли заново: список арен мог измениться, пока нас не было.
+		matchmaking.on_enter()
 	elseif type == "LEAVE" then
 		-- Ушли с экрана — значит и ждать матча перестали.
 		matchmaking.stop()

@@ -8282,6 +8282,19 @@ msgstr "Играть"
 msgid "Region"
 msgstr "Регион"
 
+#: builtin/mainmenu/matchmaking.lua
+msgid "Connection"
+msgstr "Подключение"
+
+#: builtin/mainmenu/matchmaking.lua
+msgid "Checking..."
+msgstr "Проверяем…"
+
+#. Отклик выбранного входа, в миллисекундах.
+#: builtin/mainmenu/matchmaking.lua
+msgid "$1 ms"
+msgstr "$1 мс"
+
 #: builtin/mainmenu/tab_play.lua
 msgid "Arenas"
 msgstr "Арены"
@@ -8321,3 +8334,15 @@ msgstr "Матчи"
 #: builtin/mainmenu/tab_online.lua
 msgid "Server List"
 msgstr "Серверы"
+
+#: builtin/mainmenu/matchmaking.lua
+msgid "Starts in $1 s"
+msgstr "Начало через $1 с"
+
+#: builtin/mainmenu/matchmaking.lua
+msgid "Waiting for more players"
+msgstr "Ждём ещё игроков"
+
+#: builtin/mainmenu/matchmaking.lua
+msgid "Starting"
+msgstr "Отправляемся"

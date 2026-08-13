@@ -34,6 +34,10 @@ local OFFICIAL_SERVERS = {
 		-- и путь туда идёт через свой узел.
 		dispatch = "http://135.106.173.139:30090",
 		region = "ru",
+		-- На этом порту Диспетчер отвечает на игровой запрос сведений.
+		-- Порт взят из того же проброшенного диапазона, что и матчи, поэтому
+		-- ответ отсюда означает, что и до матча через этот вход дойдёт.
+		probe_port = 30199,
 	},
 	{
 		name = "Axis · " .. fgettext_ne("Europe"),
@@ -42,6 +46,7 @@ local OFFICIAL_SERVERS = {
 		description = fgettext_ne("Official server of Axis, Europe"),
 		dispatch = "http://65.109.68.114:30090",
 		region = "eu",
+		probe_port = 30199,
 	},
 }
 
@@ -57,7 +62,7 @@ local function measure_pings()
 
 	local targets = {}
 	for i, server in ipairs(serverlistmgr.servers or {}) do
-		targets[i] = { address = server.address, port = server.port }
+		targets[i] = { address = server.address, port = server.probe_port or server.port }
 	end
 
 	core.handle_async(function(list)
