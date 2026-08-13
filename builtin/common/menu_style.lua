@@ -99,11 +99,13 @@ end
 
 --- Marks the current entry in a navigation list. Uses the button's own
 --- background because background9[] is not positioned inside scroll containers.
+--- Отличается от соседей подложкой и обычным белым текстом, а не цветом:
+--- цветная надпись в сером списке кричит громче, чем нужно от «вы здесь».
 function menu_style.selected(names)
 	return ("style[%s;bgimg=%s;bgimg_hovered=%s;bgimg_pressed=%s;bgimg_middle=%d;" ..
 			"border=false;textcolor=%s]"):format(
 		names, tex("axis_surface.png"), tex("axis_surface.png"),
-		tex("axis_surface.png"), BUTTON_MIDDLE, menu_style.ACCENT)
+		tex("axis_surface.png"), BUTTON_MIDDLE, menu_style.TEXT)
 end
 
 --- Icon-only buttons: no 9-slice, which would eat the room the icon needs.
