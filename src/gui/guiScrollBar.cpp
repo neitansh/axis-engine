@@ -42,8 +42,11 @@ namespace
 const video::SColor SCROLLBAR_FRAME(120, 255, 255, 255);
 const video::SColor SCROLLBAR_THUMB(220, 255, 255, 255);
 const video::SColor SCROLLBAR_THUMB_HELD(255, 255, 255, 255);
-//! Отступ бегунка от рамки, в пикселях.
-const s32 SCROLLBAR_PAD = 3;
+//! Толщина рамки, в пикселях.
+const s32 SCROLLBAR_FRAME_W = 2;
+//! Насколько бегунок отступает от внешнего края полосы. За вычетом рамки это
+//! и есть просвет между ней и бегунком.
+const s32 SCROLLBAR_PAD = 7;
 }
 
 void GUIScrollBar::draw()
@@ -61,13 +64,14 @@ void GUIScrollBar::draw()
 		driver->draw2DRectangle(SCROLLBAR_FRAME,
 				core::rect<s32>(x0, y0, x1, y1), &clip);
 	};
+	const s32 w = SCROLLBAR_FRAME_W;
 	line(frame.UpperLeftCorner.X, frame.UpperLeftCorner.Y,
-			frame.LowerRightCorner.X, frame.UpperLeftCorner.Y + 1);
-	line(frame.UpperLeftCorner.X, frame.LowerRightCorner.Y - 1,
+			frame.LowerRightCorner.X, frame.UpperLeftCorner.Y + w);
+	line(frame.UpperLeftCorner.X, frame.LowerRightCorner.Y - w,
 			frame.LowerRightCorner.X, frame.LowerRightCorner.Y);
 	line(frame.UpperLeftCorner.X, frame.UpperLeftCorner.Y,
-			frame.UpperLeftCorner.X + 1, frame.LowerRightCorner.Y);
-	line(frame.LowerRightCorner.X - 1, frame.UpperLeftCorner.Y,
+			frame.UpperLeftCorner.X + w, frame.LowerRightCorner.Y);
+	line(frame.LowerRightCorner.X - w, frame.UpperLeftCorner.Y,
 			frame.LowerRightCorner.X, frame.LowerRightCorner.Y);
 
 	SliderRect = AbsoluteRect;
