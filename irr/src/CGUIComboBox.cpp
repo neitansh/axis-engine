@@ -336,11 +336,15 @@ void CGUIComboBox::sendSelectionChangedEvent()
 void CGUIComboBox::updateListButtonWidth(s32 width)
 {
 	if (ListButton->getRelativePosition().getWidth() != width) {
+		// Кнопка стоит вплотную к правому краю и во всю высоту — ровно там же
+		// и такой же ширины раскрытый список ставит свою полосу прокрутки.
+		// Прежние два пикселя отступа и делали ту кривизну, из-за которой
+		// рамка стрелки не совпадала с рамкой полосы.
 		core::rect<s32> r;
-		r.UpperLeftCorner.X = RelativeRect.getWidth() - width - 2;
-		r.LowerRightCorner.X = RelativeRect.getWidth() - 2;
-		r.UpperLeftCorner.Y = 2;
-		r.LowerRightCorner.Y = RelativeRect.getHeight() - 2;
+		r.UpperLeftCorner.X = RelativeRect.getWidth() - width;
+		r.LowerRightCorner.X = RelativeRect.getWidth();
+		r.UpperLeftCorner.Y = 0;
+		r.LowerRightCorner.Y = RelativeRect.getHeight();
 		ListButton->setRelativePosition(r);
 
 		r.UpperLeftCorner.X = 2;
