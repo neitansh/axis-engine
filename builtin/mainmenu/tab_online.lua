@@ -542,6 +542,8 @@ local function main_button_handler(tabview, fields, name, tabdata)
 			tabdata.mode = mode
 			if mode == "matches" then
 				matchmaking.on_enter()
+			else
+				matchmaking.stop()
 			end
 			return true
 		end
@@ -713,6 +715,9 @@ local function on_change(type)
 	if type == "ENTER" then
 		mm_game_theme.set_engine()
 		serverlistmgr.sync()
+	elseif type == "LEAVE" then
+		-- Ушли с экрана — значит и ждать матча перестали.
+		matchmaking.stop()
 	end
 end
 

@@ -23,6 +23,12 @@ local ESC = core.formspec_escape
 local LEFT_W = 4.5
 local GAP = 0.375
 
+-- Опрос живёт, пока экран на виду. Уйти с него можно как угодно — кнопкой
+-- режима, вкладкой, «назад» со стартовой страницы, — и ловить каждый способ
+-- по отдельности значит однажды пропустить новый. Поэтому признак простой:
+-- экран рисуется. Перестал рисоваться — очередь никого не интересует.
+local SHOWN_FOR = 3
+
 -- Что мы знаем от Диспетчера в последний раз.
 local state = {
 	region = 1,      -- какой из входов выбран
@@ -30,6 +36,8 @@ local state = {
 	queue = nil,     -- своя очередь: room, waiting, needed, room_state
 	status = nil,    -- что пошло не так, если пошло
 	polling = false, -- опрос в полёте
+	drawn = 0,       -- когда экран рисовали в последний раз
+	epoch = 0,       -- ответы прошлых заходов нам не нужны
 }
 
 local function servers()
@@ -90,16 +98,25 @@ end
 
 local function decode(res)
 	if not res or res.error then
-		return nil, res and res.error or "unreachable"
+		return nil, "unreachable"
 	end
 	local body = core.parse_json(res.data or "")
+	if res.code == 404 then
+		-- «Тебя тут нет» — обычный ответ, а не поломка: очередь могла
+		-- разойтись, пока мы отворачивались.
+		return nil, "gone"
+	end
 	if type(body) ~= "table" then
-		return nil, "bad answer"
+		return nil, "unreachable"
 	end
 	if res.code ~= 200 then
-		return nil, body.error or ("code " .. tostring(res.code))
+		return nil, "unreachable"
 	end
 	return body
+end
+
+local function on_screen()
+	return os.time() - state.drawn <= SHOWN_FOR
 end
 
 local function refresh_modes()
@@ -119,23 +136,28 @@ end
 -- Опрос очереди. Диспетчер придерживает ответ на секунду, поэтому цикл идёт
 -- сам собой и никого не молотит.
 local function poll()
-	if state.polling or not state.queue then
+	if state.polling or not state.queue or not on_screen() then
 		return
 	end
 	state.polling = true
+	local epoch = state.epoch
 
 	request("/v1/queue", core.write_json({
 		player = player_name(),
 		region = player_region(),
 	}), function(res)
 		state.polling = false
-		local body = decode(res)
+		-- Ответ из прошлой жизни: экран с тех пор закрыли или очередь сменили.
+		if epoch ~= state.epoch then
+			return
+		end
+		local body, why = decode(res)
 
 		if not body then
-			-- Пропавшая очередь — не беда: Диспетчер мог перезапуститься,
-			-- и тогда стоять в ней больше негде.
 			state.queue = nil
-			state.status = fgettext("Matchmaking is unavailable")
+			-- Пропавшая очередь — не беда: за ней никто уже не стоит.
+			-- А вот молчащий Диспетчер — повод сказать об этом.
+			state.status = why ~= "gone" and fgettext("Matchmaking is unavailable") or nil
 			core.event_handler("Refresh")
 			return
 		end
@@ -144,8 +166,13 @@ local function poll()
 
 		if body.address and body.port and body.port > 0 then
 			-- Матч готов. Дальше обычный вход на сервер, только адрес не
-			-- набран руками, а получен.
+			-- набран руками, а получен. Но если экрана уже нет, бросать
+			-- игрока в игру мимо его воли нельзя.
 			state.queue = nil
+			if not on_screen() then
+				matchmaking.stop()
+				return
+			end
 			gamedata.mode = "join"
 			gamedata.address = body.address
 			gamedata.port = body.port
@@ -187,11 +214,8 @@ local function join(mode)
 end
 
 local function leave()
-	local name = player_name()
-	state.queue = nil
-	request("/v1/leave", core.write_json({ player = name }), function()
-		core.event_handler("Refresh")
-	end)
+	matchmaking.stop()
+	core.event_handler("Refresh")
 end
 
 --- Окно ---------------------------------------------------------------------
@@ -307,8 +331,20 @@ local function arenas_card(x, y, w, h)
 	return table.concat(fs)
 end
 
+---Уйти с экрана: снять себя с очереди и забыть ответы, которые ещё в пути.
+function matchmaking.stop()
+	state.epoch = state.epoch + 1
+	if state.queue then
+		local name = player_name()
+		state.queue = nil
+		request("/v1/leave", core.write_json({ player = name }), function() end)
+	end
+	state.status = nil
+end
+
 ---Нарисовать подбор матча в прямоугольнике (x, y, w, h).
 function matchmaking.get_formspec(x, y, w, h)
+	state.drawn = os.time()
 	-- Первый показ: списка арен ещё нет и никто его не просил.
 	if not state.modes and not state.asked then
 		state.asked = true
@@ -366,6 +402,7 @@ end
 
 ---Экран открыли: список арен мог измениться, пока нас не было.
 function matchmaking.on_enter()
+	state.drawn = os.time()
 	state.modes = nil
 	state.asked = true
 	refresh_modes()
