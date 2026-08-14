@@ -5,8 +5,7 @@ start, it is worth deciding which of the two your change belongs to:
 
 - **Send it here** if it touches something Axis added or changed: the
   configuration directories, Bedrock model loading, first-person objects, camera
-  impulses, matchmaking, `dispatch/`, `physics_lab/`, or anything else listed in
-  the README.
+  impulses, matchmaking, or anything else listed in the README.
 - **Send it upstream** if it is a fix or an improvement to engine code Axis has
   not touched. It will reach far more people there, and Axis will get it when it
   merges upstream. See

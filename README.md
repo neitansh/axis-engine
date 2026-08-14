@@ -81,12 +81,16 @@ next to the server list. The public Luanti server list is not used.
 **Network diagnostics.** A client-side recorder for packet timing, plus a
 server-side impairment layer for reproducing bad links on purpose.
 
-**`dispatch/`** — a small Go service that starts, stops and hands out game
-server instances. See [dispatch/README.md](dispatch/README.md).
 
-**`physics_lab/`** — a standalone Lua test bench for the physics used by
-in-game contraptions, with no engine dependency. See
-[physics_lab/README.md](physics_lab/README.md).
+## What this repository does not contain
+
+Axis is the engine. The games that run on it, the matchmaking service and the
+servers behind it are developed separately and are not part of this repository.
+A clone of this repository builds a working engine, not a playable product —
+the same way Luanti builds without a game.
+
+That split is deliberate and it is not about licensing: LGPL-2.1 covers the
+engine and does not reach the games loaded into it.
 
 ## Building
 
