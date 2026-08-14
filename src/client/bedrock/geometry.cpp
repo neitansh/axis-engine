@@ -227,25 +227,20 @@ void faceUVs(const FaceUV &face, f32 tex_w, f32 tex_h, bool mirror, v2f out[4])
 		out[i] = corners[(i + shift) % 4];
 }
 
-/// Поворот куба вокруг собственной точки, в пикселях Bedrock.
+/*
+ * Поворот куба вокруг собственной точки — в осях движка, а не в пикселях
+ * Bedrock. Разница не косметическая: перевод осей меняет знаки у поворотов
+ * вокруг X и Z, поэтому куб, повёрнутый в исходных осях, ляжет зеркально
+ * тому, как его кладёт Minecraft. Поворот у куба ровно тот же, что у кости,
+ * и берётся тем же переводом — другого правила у формата нет.
+ */
 v3f rotateAroundPivot(const v3f &point, const Cube &cube)
 {
 	if (!cube.has_rotation)
 		return point;
 
-	core::matrix4 mat;
-	// Порядок тот же, что у костей: X, затем Y, затем Z.
-	mat.setRotationDegrees(v3f(0, 0, cube.rotation.Z));
-	core::matrix4 my, mx;
-	my.setRotationDegrees(v3f(0, cube.rotation.Y, 0));
-	mx.setRotationDegrees(v3f(cube.rotation.X, 0, 0));
-	mat *= my;
-	mat *= mx;
-
-	v3f local = point - cube.pivot;
-	v3f rotated;
-	mat.transformVect(rotated, local);
-	return rotated + cube.pivot;
+	const v3f pivot = toEngine(cube.pivot);
+	return bedrockRotation(cube.rotation) * (point - pivot) + pivot;
 }
 
 bool readBones(const Json::Value &bones_json, std::vector<Bone> &bones,
@@ -458,17 +453,15 @@ scene::SkinnedMesh *GeometryLoader::build(const std::string &json,
 				v3f normal = faceNormal(geom_face);
 				if (cube.has_rotation) {
 					// Нормаль поворачивается вместе с кубом — иначе свет
-					// ложится так, будто куб не поворачивали.
-					const v3f origin = rotateAroundPivot(v3f(0, 0, 0), cube);
-					const v3f tip = rotateAroundPivot(
-							toBedrockDir(normal), cube);
-					normal = toEngineDir(tip - origin).normalize();
+					// ложится так, будто куб не поворачивали. Точка вращения
+					// направлению не нужна, только сам поворот.
+					normal = bedrockRotation(cube.rotation) * normal;
 				}
 
 				const u16 base = static_cast<u16>(vertices.size());
 				for (int i = 0; i < 4; ++i) {
-					const v3f pos = toEngine(
-							rotateAroundPivot(corner_pos[i], cube));
+					const v3f pos = rotateAroundPivot(
+							toEngine(corner_pos[i]), cube);
 					vertices.emplace_back(pos, normal,
 							video::SColor(0xFFFFFFFF), uvs[i]);
 					builder.addWeight(joints[bone_index], 0,

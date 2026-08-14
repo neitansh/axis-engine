@@ -52,6 +52,7 @@ set(unittest_SRCS
 
 set(unittest_client_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/mesh_compare.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/test_bedrock.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/test_clientactiveobjectmgr.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/test_content_mapblock.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/test_eventmanager.cpp

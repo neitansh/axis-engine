@@ -38,9 +38,30 @@
  * же, куда смотрит сущность с нулевым поворотом.
  *
  * Углы. В Bedrock они в градусах и применяются в порядке X, Y, Z (матрицей —
- * Rz·Ry·Rx). После поворота на 180° вокруг Y углы вокруг X и Y меняли бы знак
- * дважды — сперва при зеркале по X, как в Minecraft, затем при зеркале по Z, —
- * поэтому здесь они берутся ровно такими, как записаны в файле.
+ * Rz·Ry·Rx). Знаки же по дороге меняются дважды, и оба раза по одной причине:
+ * зеркало разворачивает повороты вокруг двух осей, кроме своей собственной.
+ *
+ *   зеркало по X (Minecraft)   −X, −Y, +Z   BakedModelFactory.constructBone:
+ *                                           updateRotation(−rx, −ry, +rz)
+ *   зеркало по Z (наше)        −X, −Y, +Z   поверх предыдущего
+ *                              ──────────
+ *                      итого   +X, +Y, +Z
+ *
+ * Поэтому поворот кости в осях движка — это Rz·Ry·Rx ровно с теми градусами,
+ * что записаны в файле. Совпадение это не случайное, но и не тождественное:
+ * оно держится на том, что зеркала идут по разным осям, а порядок X→Y→Z общий.
+ *
+ * Хранение. И последнее, уже не про Bedrock, а про сам движок: core::Transform
+ * держит поворот ОБРАТНЫМ. Transform::buildMatrix берёт у кватерниона
+ * транспонированную матрицу, то есть применяет поворот, обратный записанному.
+ * Так устроено везде: BoneSceneNode::setRotation кладёт в поле makeInverse(),
+ * загрузчик glTF хранит сопряжённый кватернион. Отсюда две разные функции:
+ * bedrockRotation отдаёт прямой поворот, которым можно крутить векторы,
+ * toEngineRotation — тот же поворот в том виде, в каком его ждёт сустав.
+ *
+ * Мелочь того же рода: у Irrlicht произведение кватернионов записано задом
+ * наперёд, a * b — это привычное b·a (сказано прямо над quaternion::operator*).
+ * Поэтому множители ниже идут в обратном порядке от того, в каком применяются.
  */
 
 namespace bedrock
@@ -55,22 +76,28 @@ inline v3f toEngine(const v3f &pixels)
 	return v3f(-pixels.X * PIXEL, pixels.Y * PIXEL, -pixels.Z * PIXEL);
 }
 
-/// То же для направления, у которого нет единиц (нормаль).
-inline v3f toEngineDir(const v3f &dir)
+/// Углы Bedrock (градусы, порядок X→Y→Z) — в поворот в осях движка. Этим
+/// кватернионом вращают напрямую: `rotation * v` даёт повёрнутый вектор.
+inline core::quaternion bedrockRotation(const v3f &degrees)
 {
-	return v3f(-dir.X, dir.Y, -dir.Z);
+	const f32 rad = core::DEGTORAD;
+	const core::quaternion qx(degrees.X * rad, 0, 0);
+	const core::quaternion qy(0, degrees.Y * rad, 0);
+	const core::quaternion qz(0, 0, degrees.Z * rad);
+	// Порядок именно такой: сперва X, затем Y, затем Z. Записан наоборот —
+	// см. про operator* выше. Обратный порядок даёт ту же тройку углов, но
+	// другую позу, и расхождение видно сразу — на костях, повёрнутых больше
+	// чем по одной оси.
+	return qx * qy * qz;
 }
 
-/// Обратный ход: направление движка — в оси Bedrock. Нужен там, где поворот
-/// считается в исходных координатах, а вектор пришёл из наших.
-inline v3f toBedrockDir(const v3f &dir)
+/// Тот же поворот в том виде, в каком его хранит core::Transform, — обратным.
+inline core::quaternion toEngineRotation(const v3f &degrees)
 {
-	// Преобразование — поворот на 180°, оно обратно самому себе.
-	return v3f(-dir.X, dir.Y, -dir.Z);
+	core::quaternion rotation = bedrockRotation(degrees);
+	rotation.makeInverse();
+	return rotation;
 }
-
-/// Углы Bedrock (градусы, порядок X→Y→Z) — в поворот движка.
-inline core::quaternion toEngineRotation(const v3f &degrees);
 
 /// Обратный ход: поворот движка — в те самые углы Bedrock.
 ///
@@ -81,8 +108,10 @@ inline core::quaternion toEngineRotation(const v3f &degrees);
 inline v3f fromEngineRotation(const core::quaternion &rotation)
 {
 	// Матрицу собираем из образов базисных векторов: так не приходится
-	// гадать, как именно уложены числа внутри matrix4.
+	// гадать, как именно уложены числа внутри matrix4. Разворачиваем: в
+	// суставе лежит обратный поворот, а разложить нужно применяемый.
 	core::quaternion q = rotation;
+	q.makeInverse();
 	const v3f col0 = q * v3f(1, 0, 0);
 	const v3f col1 = q * v3f(0, 1, 0);
 	const v3f col2 = q * v3f(0, 0, 1);
@@ -101,18 +130,6 @@ inline v3f fromEngineRotation(const core::quaternion &rotation)
 		z = std::atan2(col0.Y, col0.X);
 	}
 	return v3f(x, y, z) * core::RADTODEG;
-}
-
-inline core::quaternion toEngineRotation(const v3f &degrees)
-{
-	const f32 rad = core::DEGTORAD;
-	// Порядок именно такой: сперва X, затем Y, затем Z. Обратный порядок даёт
-	// ту же тройку углов, но другую позу, и расхождение видно сразу — на
-	// костях, повёрнутых больше чем по одной оси.
-	core::quaternion qx(degrees.X * rad, 0, 0);
-	core::quaternion qy(0, degrees.Y * rad, 0);
-	core::quaternion qz(0, 0, degrees.Z * rad);
-	return qz * qy * qx;
 }
 
 } // namespace bedrock
