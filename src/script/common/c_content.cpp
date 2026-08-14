@@ -333,7 +333,8 @@ const std::array<const char *, 37> object_property_keys = {
 	"nametag_fontsize",
 	"nametag_scale_z",
 	"step_up_mode",
-	"first_person"
+	"first_person",
+	"first_person_only"
 };
 
 /******************************************************************************/
@@ -558,6 +559,10 @@ void read_object_properties(lua_State *L, int index,
 	}
 	lua_pop(L, 1);
 
+	// Вещь, которую видит только сам владелец: руки перед глазами и прочее,
+	// чему со стороны взяться неоткуда.
+	getboolfield(L, -1, "first_person_only", prop->first_person_only);
+
 	// Remember to update object_property_keys above
 	// when adding a new property
 }
@@ -677,6 +682,8 @@ void push_object_properties(lua_State *L, const ObjectProperties *prop)
 		lua_pushboolean(L, false);
 	}
 	lua_setfield(L, -2, "first_person");
+	lua_pushboolean(L, prop->first_person_only);
+	lua_setfield(L, -2, "first_person_only");
 
 	// Remember to update object_property_keys above
 	// when adding a new property

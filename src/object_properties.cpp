@@ -115,7 +115,9 @@ static inline auto tie(const ObjectProperties &o)
 	o.node, o.hp_max, o.breath_max, o.glow, o.pointable, o.physical,
 	o.collideWithObjects, o.rotate_selectionbox, o.is_visible, o.makes_footstep_sound,
 	o.automatic_face_movement_dir, o.backface_culling, o.static_save, o.use_texture_alpha,
-	o.shaded, o.show_on_minimap, o.nametag_scale_z, o.step_up_mode
+	o.shaded, o.show_on_minimap, o.nametag_scale_z, o.step_up_mode,
+	o.first_person, o.first_person_position, o.first_person_rotation,
+	o.first_person_only
 	);
 }
 
@@ -230,6 +232,8 @@ void ObjectProperties::serialize(std::ostream &os) const
 	writeU8(os, first_person);
 	writeV3F32(os, first_person_position);
 	writeV3F32(os, first_person_rotation);
+
+	writeU8(os, first_person_only);
 
 	// Add stuff only at the bottom.
 	// Never remove anything, because we don't want new versions of this!
@@ -346,6 +350,11 @@ void ObjectProperties::deSerialize(std::istream &is)
 	first_person = readU8(is);
 	first_person_position = readV3F32(is);
 	first_person_rotation = readV3F32(is);
+
+	if (!canRead(is))
+		return;
+
+	first_person_only = readU8(is);
 
 	//if (!canRead(is))
 	//	return;

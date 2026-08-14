@@ -10275,6 +10275,16 @@ Player properties need to be saved manually.
     -- owner in third person.
     -- Meant for what belongs in front of the eyes: a weapon, a tool, a lamp.
     -- `false` (the default) means the object is always drawn on its bone.
+
+    first_person_only = false,
+    -- Draw this object only for the player it belongs to, and only while that
+    -- player looks through their own eyes.
+    -- Unlike `first_person`, this does not move the object anywhere: it only
+    -- decides whether it is drawn at all. The object may be attached to
+    -- anything, not just to the player directly -- the whole attachment chain
+    -- is followed to find whose object it is.
+    -- Meant for what exists only in the first-person view: the arms a shooter
+    -- sees on their weapon, of which everyone else already sees the real ones.
 }
 ```
 

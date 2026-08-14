@@ -1045,6 +1045,12 @@ void GenericCAO::step(float dtime, ClientEnvironment *env)
 		}
 	}
 
+	// А вещь, которую видно только своими глазами, при том же переходе не
+	// переезжает, а просто пропадает. Решение принимается здесь и каждый шаг:
+	// камерой распоряжается клиент, серверу о ней знать неоткуда.
+	if (m_prop.first_person_only)
+		m_is_visible = ownerInFirstPersonView();
+
 	// Handle model animations and update positions instantly to prevent lags
 	if (m_is_local_player) {
 		LocalPlayer *player = m_env->getLocalPlayer();
@@ -1563,6 +1569,22 @@ bool GenericCAO::inFirstPersonView() const
 	return m_prop.first_person && m_attached_to_local && !m_is_local_player
 			&& m_client->getCamera()
 			&& m_client->getCamera()->getCameraMode() == CAMERA_MODE_FIRST;
+}
+
+// То же, но для вещи, висящей не на самом игроке, а на другой его вещи: руки
+// держатся за кость оружия, а оружие — за игрока. Поэтому вопрос задаётся всей
+// цепочке разом: держится ли она в конце концов на том, кто сейчас смотрит
+// своими глазами. Замкнуться цепочка не может — setAttachment это проверяет.
+bool GenericCAO::ownerInFirstPersonView() const
+{
+	if (!m_client->getCamera()
+			|| m_client->getCamera()->getCameraMode() != CAMERA_MODE_FIRST)
+		return false;
+	for (const ClientActiveObject *obj = getParent(); obj; obj = obj->getParent()) {
+		if (obj->isLocalPlayer())
+			return true;
+	}
+	return false;
 }
 
 void GenericCAO::updateAttachments()
