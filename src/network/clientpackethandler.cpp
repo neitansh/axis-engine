@@ -1985,3 +1985,41 @@ void Client::handleCommand_Transfer(NetworkPacket *pkt)
 			<< ":" << port << "\", which leads nowhere. Staying." << std::endl;
 	}
 }
+
+void Client::handleCommand_CameraImpulse(NetworkPacket *pkt)
+{
+	LocalPlayer *player = m_env.getLocalPlayer();
+	assert(player);
+
+	u8 kind;
+	*pkt >> kind;
+
+	switch (kind) {
+	case 0: { // отдача
+		f32 pitch, yaw, roll, stiffness, damping;
+		*pkt >> pitch >> yaw >> roll >> stiffness >> damping;
+		player->camera_fx.addRecoil(v3f(pitch, yaw, roll), stiffness, damping);
+		break;
+	}
+	case 1: { // удар взрывной волны
+		f32 pitch, yaw, roll, x, y, z, stiffness, damping;
+		*pkt >> pitch >> yaw >> roll >> x >> y >> z >> stiffness >> damping;
+		player->camera_fx.addBlast(v3f(pitch, yaw, roll), v3f(x, y, z),
+				stiffness, damping);
+		break;
+	}
+	case 2: { // дрожь
+		f32 amplitude, frequency, decay, duration;
+		*pkt >> amplitude >> frequency >> decay >> duration;
+		player->camera_fx.addShake(amplitude, frequency, decay, duration);
+		break;
+	}
+	case 3: // сброс
+		player->camera_fx.reset();
+		break;
+	default:
+		errorstream << "Client: unknown camera impulse kind " << (int)kind
+			<< ", ignored." << std::endl;
+		break;
+	}
+}

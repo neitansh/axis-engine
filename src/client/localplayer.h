@@ -5,6 +5,7 @@
 #pragma once
 
 #include "player.h"
+#include "camera_fx.h"
 #include "constants.h"
 #include "lighting.h"
 #include <string>
@@ -98,6 +99,10 @@ public:
 
 	float hurt_tilt_timer = 0.0f;
 	float hurt_tilt_strength = 0.0f;
+
+	// Отдача, удар взрывной волны и дрожь. Живут здесь, а не в Camera,
+	// потому что приходят пакетом: обработчику проще дотянуться до игрока.
+	CameraFx camera_fx;
 
 	PlayerHud csm_hud;
 

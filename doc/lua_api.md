@@ -9316,6 +9316,48 @@ You **must not** mix names and track numbers to refer to the same animation.
     * Server-sent FOV value. Returns 0 if an FOV override doesn't exist.
     * Boolean indicating whether the FOV value is a multiplier.
     * Time (in seconds) taken for the FOV transition. Set by `set_fov`.
+* `add_camera_impulse(definition)`: Nudges the player's camera without touching
+  their look direction. Player only.
+    * The offset is added on top of the player's own aim and decays back to zero
+      on the client, which integrates it every frame. Mouse look keeps working
+      untouched throughout: unlike `set_look_vertical`, this sends no
+      `MOVE_PLAYER`, so it neither overwrites the client's look accumulators nor
+      snaps the player's position back.
+    * Because the client owns the decay, one message per event is enough; do not
+      send a stream of them to animate the motion yourself.
+    * The camera sums three independent layers, so a shot during an explosion
+      produces both effects rather than one replacing the other.
+    * Nothing here is random per frame: springs use a fixed integration step and
+      shake is a closed-form damped oscillation, so the same impulse always
+      produces the same motion at any framerate.
+    * Returns `true` if the impulse was sent, `false` if the client is older
+      than protocol version 54 and cannot show it.
+    * `definition` is a table:
+      * `kind = "recoil"`: rotational spring, meant for weapon recoil.
+      * `kind = "blast"`: rotational **and** positional spring, meant for the
+        shockwave of an explosion.
+      * `kind = "shake"`: damped oscillation, meant for tremor.
+      * `kind = "reset"`: drops every layer instantly. Only sensible where
+        continuity does not matter, such as respawning.
+      * `rotation`: vector of angular impulses in **radians per second**, in the
+        same axes as the player's look: `x` is pitch (positive is downwards),
+        `y` is yaw (positive is counter-clockwise), `z` is roll.
+        This is a velocity, not an angle — how far the camera actually swings is
+        decided by the spring.
+      * `position`: vector of linear impulse in **nodes per second**, in the
+        player's horizontal frame: `x` right, `y` up, `z` forward.
+        `blast` only.
+      * `stiffness = 90`, `damping = 19`: how the spring returns. Sent with each
+        impulse so different weapons can feel different. `damping` at
+        `2 * sqrt(stiffness)` is critical damping: a fast rise and a clean
+        return with no overshoot.
+      * `amplitude`: peak swing in radians. `shake` only.
+      * `frequency`: oscillations per second. `shake` only.
+      * `decay`: e-foldings per second of the envelope. `shake` only.
+      * `duration`: seconds after which the shake is dropped. `shake` only.
+    * Note that this affects what the player *sees*, not where the server thinks
+      they are aiming. A game that wants recoil to move the aim as well has to
+      mirror the same spring server-side and offset the shot direction itself.
 * `set_attribute(attribute, value)`:  DEPRECATED, use get_meta() instead
     * Sets an extra attribute with value on player.
     * `value` must be a string, or a number which will be converted to a

@@ -81,10 +81,13 @@
 	PROTOCOL VERSION 53
 		Support for TOCLIENT_TRANSFER: moving a player to another server
 		without leaving the world
+	PROTOCOL VERSION 54
+		Support for TOCLIENT_CAMERA_IMPULSE: recoil, blast and shake offsets
+		applied on top of the player's own look
 */
 
 // Note: Also update core.protocol_versions in builtin when bumping
-const u16 LATEST_PROTOCOL_VERSION = 53;
+const u16 LATEST_PROTOCOL_VERSION = 54;
 
 // See also formspec [Version History] in doc/lua_api.md
 const u16 FORMSPEC_API_VERSION = 10;

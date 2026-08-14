@@ -1643,6 +1643,40 @@ bool Server::SendTransfer(session_t peer_id, const std::string &address,
 	return true;
 }
 
+bool Server::SendCameraImpulse(session_t peer_id, const CameraImpulse &impulse)
+{
+	{
+		ClientInterface::AutoLock clientlock(m_clients);
+		RemoteClient *client = m_clients.lockedGetClientNoEx(peer_id, CS_Created);
+		if (!client || client->net_proto_version < 54)
+			return false;
+	}
+
+	NetworkPacket pkt(TOCLIENT_CAMERA_IMPULSE, 0, peer_id);
+	pkt << (u8)impulse.kind;
+
+	switch (impulse.kind) {
+	case CameraImpulse::RECOIL:
+		pkt << impulse.rotation.X << impulse.rotation.Y << impulse.rotation.Z
+			<< impulse.stiffness << impulse.damping;
+		break;
+	case CameraImpulse::BLAST:
+		pkt << impulse.rotation.X << impulse.rotation.Y << impulse.rotation.Z
+			<< impulse.position.X << impulse.position.Y << impulse.position.Z
+			<< impulse.stiffness << impulse.damping;
+		break;
+	case CameraImpulse::SHAKE:
+		pkt << impulse.amplitude << impulse.frequency
+			<< impulse.decay << impulse.duration;
+		break;
+	case CameraImpulse::RESET:
+		break;
+	}
+
+	Send(&pkt);
+	return true;
+}
+
 void Server::SendChatCommands(session_t peer_id,
 							  const std::vector<std::tuple<std::string, std::string, std::string>> &commands)
 {

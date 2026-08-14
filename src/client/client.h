@@ -218,6 +218,7 @@ public:
 	void handleCommand_SpawnParticleBatch(NetworkPacket *pkt);
 	void handleCommand_ChatCommands(NetworkPacket *pkt);
 	void handleCommand_Transfer(NetworkPacket *pkt);
+	void handleCommand_CameraImpulse(NetworkPacket *pkt);
 
 	/// Commands the server said this player may use, for completing them
 	std::vector<ChatCommand> m_chat_commands;

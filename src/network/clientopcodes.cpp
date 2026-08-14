@@ -114,6 +114,7 @@ const ToClientCommandHandler toClientCommandTable[TOCLIENT_NUM_MSG_TYPES] =
 	{ "TOCLIENT_SPAWN_PARTICLE_BATCH",     TOCLIENT_STATE_CONNECTED, &Client::handleCommand_SpawnParticleBatch }, // 0x64,
 	{ "TOCLIENT_CHAT_COMMANDS",            TOCLIENT_STATE_CONNECTED, &Client::handleCommand_ChatCommands }, // 0x65,
 	{ "TOCLIENT_TRANSFER",                 TOCLIENT_STATE_CONNECTED, &Client::handleCommand_Transfer }, // 0x66,
+	{ "TOCLIENT_CAMERA_IMPULSE",           TOCLIENT_STATE_CONNECTED, &Client::handleCommand_CameraImpulse }, // 0x67,
 };
 
 const static ServerCommandFactory null_command_factory = { nullptr, 0, false };

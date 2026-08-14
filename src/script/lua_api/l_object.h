@@ -253,6 +253,9 @@ private:
 	// set_fov(self, degrees, is_multiplier, transition_time)
 	static int l_set_fov(lua_State *L);
 
+	// add_camera_impulse(self, def)
+	static int l_add_camera_impulse(lua_State *L);
+
 	// set_look_vertical(self, radians)
 	static int l_set_look_vertical(lua_State *L);
 

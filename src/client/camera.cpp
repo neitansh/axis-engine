@@ -352,6 +352,14 @@ void Camera::update(LocalPlayer *player, f32 frametime, f32 tool_reload_ratio)
 	f32 yaw = player->getYaw();
 	f32 pitch = player->getPitch();
 
+	// Всё, что двигает камеру помимо мыши, собирается в одном месте и одним
+	// слагаемым: отдача оружия, удар взрывной волны, дрожь. Обзор при этом
+	// остаётся целиком за игроком — сюда приходит смещение поверх него, а не
+	// новый поворот, поэтому мышь ничего не теряет и никуда не дёргается.
+	const CameraFx::Result fx = player->camera_fx.step(frametime);
+	pitch += fx.rotation.X;
+	yaw += fx.rotation.Y;
+
 	// This is worse than `LocalPlayer::getPosition()` but
 	// mods expect the player head to be at the parent's position
 	// plus eye height.
@@ -428,9 +436,13 @@ void Camera::update(LocalPlayer *player, f32 frametime, f32 tool_reload_ratio)
 
 		// Set head node transformation
 		eye_offset.Y += cameratilt * -player->hurt_tilt_strength;
+		// Линейный толчок взрывной волны. Он задан в горизонтальной системе
+		// игрока (X вправо, Y вверх, Z вперёд) — ровно та же система, в
+		// которой стоит сама голова, поэтому доворачивать ничего не нужно.
+		eye_offset += fx.offset * BS;
 		m_headnode->setPosition(eye_offset);
 		m_headnode->setRotation(v3f(pitch, 0,
-									cameratilt * player->hurt_tilt_strength));
+									cameratilt * player->hurt_tilt_strength + fx.rotation.Z));
 		m_headnode->updateAbsolutePosition();
 	}
 

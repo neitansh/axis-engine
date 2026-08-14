@@ -17,6 +17,7 @@
 #include "threading/ordered_mutex.h"
 #include "translation.h"
 #include "sound_spec.h"
+#include "camera_impulse.h"
 #include <atomic>
 #include <csignal>
 #include <string>
@@ -426,6 +427,14 @@ public:
 	 */
 	bool SendTransfer(session_t peer_id, const std::string &address, u16 port,
 			const std::string &message);
+	/**
+	 * Толкнуть камеру игрока: отдача, удар, дрожь.
+	 *
+	 * Возвращает false, если клиент слишком стар и пакета не поймёт, — тогда
+	 * ничего не отправлено. Игра при этом продолжается как была: толчок
+	 * камеры украшение, а не правило.
+	 */
+	bool SendCameraImpulse(session_t peer_id, const CameraImpulse &impulse);
 	void SendPlayerBreath(PlayerSAO *sao);
 	void SendInventory(RemotePlayer *player, bool incremental, bool skip_wield_anim = false);
 	void SendMovePlayer(PlayerSAO *sao);

@@ -3,6 +3,7 @@
 // Copyright (C) 2013 celeron55, Perttu Ahola <celeron55@gmail.com>
 
 #include "lua_api/l_object.h"
+#include <algorithm>
 #include <cmath>
 #include <lauxlib.h>
 #include <lua.h>
@@ -1700,6 +1701,59 @@ int ObjectRef::l_set_fov(lua_State *L)
 	return 0;
 }
 
+// add_camera_impulse(self, def)
+int ObjectRef::l_add_camera_impulse(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	ObjectRef *ref = checkObject<ObjectRef>(L, 1);
+	RemotePlayer *player = getplayer(ref);
+	if (player == nullptr)
+		return 0;
+
+	luaL_checktype(L, 2, LUA_TTABLE);
+
+	CameraImpulse impulse;
+	std::string kind = getstringfield_default(L, 2, "kind", "recoil");
+	if (kind == "recoil") {
+		impulse.kind = CameraImpulse::RECOIL;
+	} else if (kind == "blast") {
+		impulse.kind = CameraImpulse::BLAST;
+	} else if (kind == "shake") {
+		impulse.kind = CameraImpulse::SHAKE;
+	} else if (kind == "reset") {
+		impulse.kind = CameraImpulse::RESET;
+	} else {
+		throw LuaError("add_camera_impulse: unknown kind \"" + kind + "\"");
+	}
+
+	lua_getfield(L, 2, "rotation");
+	if (!lua_isnil(L, -1))
+		impulse.rotation = check_v3f(L, -1);
+	lua_pop(L, 1);
+
+	lua_getfield(L, 2, "position");
+	if (!lua_isnil(L, -1))
+		impulse.position = check_v3f(L, -1);
+	lua_pop(L, 1);
+
+	impulse.stiffness = getfloatfield_default(L, 2, "stiffness", impulse.stiffness);
+	impulse.damping = getfloatfield_default(L, 2, "damping", impulse.damping);
+	impulse.amplitude = getfloatfield_default(L, 2, "amplitude", 0.0f);
+	impulse.frequency = getfloatfield_default(L, 2, "frequency", 0.0f);
+	impulse.decay = getfloatfield_default(L, 2, "decay", 0.0f);
+	impulse.duration = getfloatfield_default(L, 2, "duration", 0.0f);
+
+	// Отрицательная жёсткость или вязкость раскачали бы пружину до бесконечности
+	// за пару секунд — и камеру вместе с ней. Мусор сюда попадает из формулы,
+	// а не из злого умысла, поэтому просто зажимаем.
+	impulse.stiffness = std::max(0.0f, impulse.stiffness);
+	impulse.damping = std::max(0.0f, impulse.damping);
+
+	lua_pushboolean(L,
+			getServer(L)->SendCameraImpulse(player->getPeerId(), impulse));
+	return 1;
+}
+
 // get_fov(self)
 int ObjectRef::l_get_fov(lua_State *L)
 {
@@ -3216,6 +3270,7 @@ luaL_Reg ObjectRef::methods[] = {
 	luamethod(ObjectRef, set_look_pitch),
 	luamethod(ObjectRef, get_fov),
 	luamethod(ObjectRef, set_fov),
+	luamethod(ObjectRef, add_camera_impulse),
 	luamethod(ObjectRef, get_breath),
 	luamethod(ObjectRef, set_breath),
 	luamethod(ObjectRef, get_attribute),

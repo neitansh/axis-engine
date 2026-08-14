@@ -215,4 +215,5 @@ const ClientCommandFactory clientCommandFactoryTable[TOCLIENT_NUM_MSG_TYPES] =
 	{ "TOCLIENT_SPAWN_PARTICLE_BATCH",     0, true }, // 0x64
 	{ "TOCLIENT_CHAT_COMMANDS",            0, true }, // 0x65
 	{ "TOCLIENT_TRANSFER",                 0, true }, // 0x66
+	{ "TOCLIENT_CAMERA_IMPULSE",           0, true }, // 0x67
 };
