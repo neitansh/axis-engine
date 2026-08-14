@@ -1,8 +1,5 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Submit issues about Minetest Game
-    url: https://github.com/luanti-org/minetest_game/issues/new
-    about: Only submit issues of the engine in this repository's issue tracker. Submit those of Minetest Game in its own issue tracker.
-  - name: Search for issue trackers of third-party games
-    url: https://content.luanti.org/packages/?type=game
-    about: For issues of third-party games, search for the game in the ContentDB and then submit an issue in their issue tracker.
+  - name: Report a bug in upstream Luanti
+    url: https://github.com/luanti-org/luanti/issues
+    about: Axis is a fork of Luanti. If the problem also happens in unmodified Luanti, it is better reported upstream — it will be fixed for everyone, Axis included.

@@ -1,5 +1,7 @@
-// Luanti
+// Axis
 // SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2026 the Axis contributors
+
 // Copyright (C) 2025 Luanti contributors
 
 #include "builtin_files.h"

@@ -7,21 +7,21 @@ body:
       value: |
         Please note the following:
 
-        1. **Update Luanti to the latest stable or dev version** before submitting a bug report. Make sure the bug is still reproducible on the latest version.
-        2. This page is for reporting the bugs of **the engine itself**. For bugs in a particular game, please [search for the game on ContentDB](https://content.luanti.org/packages/?type=game) and submit a bug report to its developers.
-            * For example, issues about Minetest Game are submitted to [its own repository](https://github.com/luanti-org/minetest_game/issues).
-        3. Please provide as many relevant details as possible.
-        4. If you have used an LLM/AI to format your issue description, disclose this. Try to keep it concise. No walls of text please.
+        1. **Build Axis from the latest `main`** and make sure the bug is still reproducible there.
+        2. This page is for bugs of **the Axis engine itself**, not of the games running on it — report those to whoever made the game.
+        3. If the same bug happens in upstream [Luanti](https://github.com/luanti-org/luanti), say so. It is probably better fixed there, and it tells us at once that the cause is not in Axis.
+        4. Please provide as many relevant details as possible.
+        5. If you have used an LLM/AI to format your issue description, disclose this. Try to keep it concise. No walls of text please.
 
   - type: textarea
     attributes:
-      label: Luanti version
+      label: Axis version
       description: |
-        Paste the Luanti version below.
-        Refer to the "About" tab of the menu or run `luanti --version` on the command line.
+        Paste the Axis version below.
+        Refer to the "About" tab of the menu or run `axis --version` on the command line.
       placeholder: |
         Example:
-        Luanti 5.10.0-3ad6aee9b (Linux)
+        Axis 0.0.1-dev-3ad6aee9b (Linux)
         Using LuaJIT 2.1.1727870382
         Built by GCC 14.2
         Running on Linux/6.11.5 x86_64
@@ -85,7 +85,7 @@ body:
         Explain how the problem has happened.
 
         To the extent possible, the reproduction steps should describe not just what you did (e.g. "I open my world and it crashes")
-        but be detailed enough so that anyone with a fresh installation of Luanti could follow these steps to encounter the same problem.
+        but be detailed enough so that anyone with a fresh build of Axis could follow these steps to encounter the same problem.
         In case of modding issues it is often useful to include a code snippet.
         This will help us diagnose the problem quicker and more efficiently. Thank you.
     validations:

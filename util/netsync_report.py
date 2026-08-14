@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Axis
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Copyright (C) 2026 the Axis contributors
+
 """Turns the CSV written by netsync_diagnostics into a verdict.
 
 Shaking is a change of speed between frames, so the numbers that matter are

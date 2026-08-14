@@ -1,5 +1,9 @@
 name: lua_api_deploy
 
+# Оставлено от upstream и здесь не работает: условие ниже пускает сборку только
+# в репозитории Luanti. Так и задумано — этот процесс публикует api.luanti.org,
+# домен которого принадлежит upstream. Файл держится ради чистых слияний.
+
 permissions:
   contents: read
   pages: write

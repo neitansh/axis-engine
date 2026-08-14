@@ -1,5 +1,6 @@
 -- Axis
 -- SPDX-License-Identifier: LGPL-2.1-or-later
+-- Copyright (C) 2026 the Axis contributors
 
 -- Что делает настройка и во что она обходится.
 --

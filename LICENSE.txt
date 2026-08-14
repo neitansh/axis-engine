@@ -1,9 +1,20 @@
 
+Media licenses
+==============
+
+Axis is a fork of Luanti, and most of the media shipped with it comes from
+Luanti unchanged. This file lists every media file that is not covered by the
+default below, together with its author and licence — whether it came from
+upstream, from a third party, or was made for Axis.
+
+The engine source code is licensed separately, under LGPL-2.1-or-later; see
+COPYING.LESSER.
+
+
 License of Luanti textures and sounds
 ---------------------------------------
 
-This applies to textures and sounds contained in the main Luanti
-distribution.
+This applies to textures and sounds inherited from Luanti.
 
 Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
 http://creativecommons.org/licenses/by-sa/3.0/
@@ -45,7 +56,23 @@ erle:
   misc/luanti-icon-24x24.png
   misc/luanti-icon.ico
   misc/luanti.svg
+
+the Axis contributors (CC BY-SA 3.0):
   textures/base/pack/logo.png
+  textures/base/pack/menu_header.png
+  textures/base/pack/progress_bar.png
+  textures/base/pack/progress_bar_bg.png
+  textures/base/pack/axis_button.png
+  textures/base/pack/axis_button_accent.png
+  textures/base/pack/axis_button_accent_hover.png
+  textures/base/pack/axis_button_accent_pressed.png
+  textures/base/pack/axis_button_disabled.png
+  textures/base/pack/axis_button_hover.png
+  textures/base/pack/axis_button_pressed.png
+  textures/base/pack/axis_inset.png
+  textures/base/pack/axis_panel.png
+  textures/base/pack/axis_shadow.png
+  textures/base/pack/axis_surface.png
 
 JRottm:
   textures/base/pack/player_marker.png
@@ -220,6 +247,14 @@ Bitstream Vera Fonts Copyright:
 
   Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved. Bitstream Vera is
   a trademark of Bitstream, Inc.
+
+Inter - SIL Open Font License, version 1.1
+  Copyright (c) 2016 The Inter Project Authors
+  (https://github.com/rsms/inter). Full text: fonts/Inter-LICENSE.txt
+
+Departure Mono - SIL Open Font License, version 1.1
+  Copyright 2022-2024 Helena Zhang (helenazhang.com).
+  Full text: fonts/DepartureMono-LICENSE.txt
 
 Arimo - Apache License, version 2.0
   Digitized data copyright (c) 2010-2012 Google Corporation.

@@ -1,20 +1,41 @@
 # Security Policy
 
-## Supported Versions
+## Scope
 
-We only support the latest stable version for security issues.
-See the [releases page](https://github.com/luanti-org/luanti/releases).
+This policy covers **Axis**, the engine in this repository.
 
-## Reporting a Vulnerability
+Axis is a fork of [Luanti](https://github.com/luanti-org/luanti) and shares most
+of its code with it. That matters for where a report should go:
 
-We ask that you report vulnerabilities privately, by contacting a core developer,
-to give us time to fix them. You can do that by emailing one of the following addresses:
+- A vulnerability in code Axis wrote or changed → report it here.
+- A vulnerability that also exists in unmodified upstream code → please report
+  it to Luanti as well, following
+  [their security policy](https://github.com/luanti-org/luanti/blob/master/.github/SECURITY.md).
+  Fixing it upstream fixes it for everyone, not only for Axis.
 
-* celeron55@gmail.com
-* rw@rubenwardy.com
+If you cannot tell which of the two it is, report it here and say so; sorting
+that out is our job, not yours.
 
-Depending on severity, we will either create a private issue for the vulnerability
-and release a patch version of Luanti, or give you permission to file the issue publicly.
+## Supported versions
 
-For more information on the justification of this policy, see
+Only the latest state of the `main` branch is supported. Axis has no released
+versions to backport fixes to yet.
+
+## Reporting a vulnerability
+
+Please report privately, so that a fix can exist before the problem is public.
+
+Use GitHub's private vulnerability reporting on this repository: the
+**Security** tab → **Report a vulnerability**. If that is not available to you,
+open an issue that says only that you have found a security problem and asks for
+a private channel — without any details of the problem itself.
+
+Please include, as far as you can:
+
+- what the problem is and what an attacker can do with it,
+- the steps to reproduce it,
+- the version or commit you tested,
+- whether you believe it affects upstream Luanti too.
+
+For the reasoning behind private reporting, see
 [Responsible Disclosure](https://en.wikipedia.org/wiki/Responsible_disclosure).

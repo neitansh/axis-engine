@@ -1,5 +1,6 @@
 -- Axis
 -- SPDX-License-Identifier: LGPL-2.1-or-later
+-- Copyright (C) 2026 the Axis contributors
 
 -- Landing page shown on startup: the sidebar of the main tabview, centred on
 -- screen below the engine logo. Picking an entry opens the tabview itself.

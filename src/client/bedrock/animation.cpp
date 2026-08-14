@@ -1,5 +1,6 @@
-// Copyright (C) 2026 the-axis
+// Axis
 // SPDX-License-Identifier: LGPL-2.1-or-later
+// Copyright (C) 2026 the Axis contributors
 
 #include "animation.h"
 #include "convert.h"

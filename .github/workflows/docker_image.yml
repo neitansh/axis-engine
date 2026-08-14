@@ -50,14 +50,14 @@ jobs:
         type=semver,pattern={{major}}.{{minor}}
         type=semver,pattern={{major}}
       labels: |
-        org.opencontainers.image.title=Luanti
-        org.opencontainers.image.vendor=Luanti
-        org.opencontainers.image.description=Luanti (formerly Minetest) is an open source voxel game-creation platform with easy modding and game creation
+        org.opencontainers.image.title=Axis
+        org.opencontainers.image.vendor=Axis
+        org.opencontainers.image.description=Axis is a voxel game engine, forked from Luanti
         org.opencontainers.image.licenses=LGPL-2.1-only
       annotations: |
-        org.opencontainers.image.title=Luanti
-        org.opencontainers.image.vendor=Luanti
-        org.opencontainers.image.description=Luanti (formerly Minetest) is an open source voxel game-creation platform with easy modding and game creation
+        org.opencontainers.image.title=Axis
+        org.opencontainers.image.vendor=Axis
+        org.opencontainers.image.description=Axis is a voxel game engine, forked from Luanti
         org.opencontainers.image.licenses=LGPL-2.1-only
 
     secrets:

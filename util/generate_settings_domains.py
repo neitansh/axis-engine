@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Axis
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Copyright (C) 2026 the Axis contributors
+
 """Generates the setting -> config domain table used by ConfigManager.
 
 Every setting the engine knows lives in exactly one configuration file. The

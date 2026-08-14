@@ -1,7 +1,8 @@
 ---
-# Github repository is cloned every day on Gitlab.com
-# https://gitlab.com/minetest/minetest
-# Pipelines URL: https://gitlab.com/minetest/minetest/pipelines
+# Осталось от upstream: у Luanti есть ежедневное зеркало на GitLab, у Axis его
+# нет. Этот файл здесь ничего не собирает — единственная задача deploy'ит
+# страницу перенаправлений (misc/make_redirects.sh) в проект, которого у нас не
+# существует.
 
 
 pages:

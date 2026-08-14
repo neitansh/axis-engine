@@ -267,13 +267,19 @@ install(FILES "doc/configuration.md" DESTINATION "${DOCDIR}" COMPONENT "Docs")
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/config.example" DESTINATION "${EXAMPLE_CONF_DIR}")
 
 if(UNIX AND NOT APPLE)
-	install(FILES "doc/luanti.6" "doc/luantiserver.6" DESTINATION "${MANDIR}/man6")
-	install(FILES "misc/org.luanti.luanti.desktop" DESTINATION "${XDG_APPS_DIR}")
-	install(FILES "misc/org.luanti.luanti.metainfo.xml" DESTINATION "${METAINFODIR}")
-	install(FILES "misc/luanti.svg" DESTINATION "${ICONDIR}/hicolor/scalable/apps")
+	install(FILES "doc/axis.6" "doc/axisserver.6" DESTINATION "${MANDIR}/man6")
+	install(FILES "misc/io.github.neitansh.axis.desktop" DESTINATION "${XDG_APPS_DIR}")
+	install(FILES "misc/io.github.neitansh.axis.metainfo.xml" DESTINATION "${METAINFODIR}")
+	# Рисунок иконки пока Luanti'евский (автор erle, CC BY-SA 3.0 — см.
+	# LICENSE.txt), поэтому исходные файлы зовутся по-старому. Ставится он под
+	# именем axis: иначе установленный рядом Luanti и Axis затирали бы иконки
+	# друг друга, а ярлык ссылался бы на чужое имя.
+	install(FILES "misc/luanti.svg"
+		DESTINATION "${ICONDIR}/hicolor/scalable/apps"
+		RENAME "axis.svg")
 	install(FILES "misc/luanti-xorg-icon-128.png"
 		DESTINATION "${ICONDIR}/hicolor/128x128/apps"
-		RENAME "luanti.png")
+		RENAME "axis.png")
 endif()
 
 if(APPLE)

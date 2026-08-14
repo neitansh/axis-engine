@@ -1,5 +1,6 @@
 -- Axis
 -- SPDX-License-Identifier: LGPL-2.1-or-later
+-- Copyright (C) 2026 the Axis contributors
 
 -- Подбор матча: выбор арены и ожидание набора.
 --

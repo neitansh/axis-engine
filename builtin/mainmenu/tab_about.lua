@@ -55,7 +55,12 @@ return {
 
 		local credits = get_credits()
 
+		-- Axis: списки ниже — это авторы Luanti, движка, из которого Axis
+		-- вырос. Без этой строки их читают как список авторов Axis, а это
+		-- присвоение чужой работы.
 		table.insert_all(hypertext, {
+			"<gray>", fgettext_ne("Axis is a fork of Luanti. The engine below was written by:"),
+			"</gray>\n\n",
 			"<heading>", fgettext_ne("Core Developers"), "</heading>\n",
 		})
 		prepare_credits(hypertext, credits.core_developers)
@@ -86,7 +91,8 @@ return {
 			"style_type[label;valign=center;halign=center]" ..
 			"label[0.1,3.4;5.3,0.5;" ..
 			core.formspec_escape(version.project .. " " .. version.string) .. "]" ..
-			"button_url[1.5,4.1;2.5,0.8;homepage;luanti.org;https://www.luanti.org/]"
+			"button_url[0.4,4.1;2.4,0.8;homepage;axis-engine;https://github.com/neitansh/axis-engine]" ..
+			"button_url[2.9,4.1;2.1,0.8;upstream;luanti.org;https://www.luanti.org/]"
 
 		if PLATFORM == "Android" then
 			fs = fs .. "button[0.5,5.1;4.5,0.8;share_debug;" .. fgettext("Share debug log") .. "]"

@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Axis
+GenericName=Voxel game engine
+Comment=Voxel game engine, forked from Luanti
+Exec=axis
+Icon=axis
+Terminal=false
+# Note: don't add PrefersNonDefaultGPU here, see #16095
+Type=Application
+Categories=Game;Simulation;
+StartupNotify=false
+StartupWMClass=axis
+Keywords=sandbox;world;mining;crafting;blocks;nodes;multiplayer;voxel;
+X-Purism-FormFactor=Mobile;Workstation

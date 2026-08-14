@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>io.github.neitansh.axis</id>
+    <provides>
+        <binary>axis</binary>
+    </provides>
+
+    <name>Axis</name>
+    <summary>Voxel game engine, forked from Luanti</summary>
+
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>LGPL-2.1+ AND CC-BY-SA-3.0 AND MIT AND Apache-2.0</project_license>
+
+    <developer id="io.github.neitansh">
+        <name>the Axis contributors</name>
+    </developer>
+
+    <supports>
+        <control>pointing</control>
+        <control>keyboard</control>
+        <control>touch</control>
+        <internet>offline-only</internet>
+    </supports>
+
+    <requires>
+        <display_length compare="ge">360</display_length>
+    </requires>
+
+    <content_rating type="oars-1.1">
+        <content_attribute id="violence-cartoon">mild</content_attribute>
+        <content_attribute id="violence-fantasy">mild</content_attribute>
+        <content_attribute id="violence-realistic">none</content_attribute>
+        <content_attribute id="violence-bloodshed">none</content_attribute>
+        <content_attribute id="violence-sexual">none</content_attribute>
+        <content_attribute id="violence-desecration">none</content_attribute>
+        <content_attribute id="violence-slavery">none</content_attribute>
+        <content_attribute id="drugs-alcohol">none</content_attribute>
+        <content_attribute id="drugs-narcotics">none</content_attribute>
+        <content_attribute id="drugs-tobacco">none</content_attribute>
+        <content_attribute id="sex-nudity">none</content_attribute>
+        <content_attribute id="sex-themes">none</content_attribute>
+        <content_attribute id="language-profanity">none</content_attribute>
+        <content_attribute id="language-humor">none</content_attribute>
+        <content_attribute id="language-discrimination">none</content_attribute>
+        <content_attribute id="social-chat">intense</content_attribute>
+        <content_attribute id="social-info">mild</content_attribute>
+        <content_attribute id="social-audio">none</content_attribute>
+        <content_attribute id="social-location">none</content_attribute>
+        <content_attribute id="social-contacts">none</content_attribute>
+        <content_attribute id="money-purchasing">none</content_attribute>
+        <content_attribute id="money-advertising">none</content_attribute>
+        <content_attribute id="money-gambling">none</content_attribute>
+    </content_rating>
+
+    <description>
+        <p>
+            Axis is a voxel game engine, forked from Luanti.
+        </p>
+        <p>
+            It renders and simulates a near-infinite voxel world, runs dedicated
+            multiplayer servers, and exposes a Lua modding API for building games
+            on top of it.
+        </p>
+        <p>
+            Axis adds to the engine it was forked from: a configuration split
+            into per-subject files, loading of Bedrock/Blockbench models and
+            animations, objects drawn at the player's camera in first person,
+            camera impulses for recoil and blasts, transfer of a player between
+            servers, and matchmaking in the main menu.
+        </p>
+    </description>
+
+    <launchable type="desktop-id">io.github.neitansh.axis.desktop</launchable>
+
+    <icon type="stock">axis</icon>
+
+    <categories>
+        <category>Game</category>
+        <category>Simulation</category>
+    </categories>
+
+    <keywords>
+        <keyword>sandbox</keyword>
+        <keyword>world</keyword>
+        <keyword>mining</keyword>
+        <keyword>crafting</keyword>
+        <keyword>blocks</keyword>
+        <keyword>nodes</keyword>
+        <keyword>multiplayer</keyword>
+        <keyword>voxel</keyword>
+    </keywords>
+
+    <url type="homepage">https://github.com/neitansh/axis-engine</url>
+    <url type="bugtracker">https://github.com/neitansh/axis-engine/issues</url>
+    <url type="vcs-browser">https://github.com/neitansh/axis-engine</url>
+    <url type="contribute">https://github.com/neitansh/axis-engine/blob/main/.github/CONTRIBUTING.md</url>
+
+    <!-- Домен перевода остался от upstream: файлы в po/ и locale/ приходят
+         оттуда и зовутся так же. -->
+    <translation type="gettext">luanti</translation>
+</component>
