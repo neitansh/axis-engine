@@ -35,6 +35,7 @@ local state = {
 	region = 1,      -- какой из входов выбран
 	modes = nil,     -- список арен; nil — ещё не спрашивали
 	queue = nil,     -- своя очередь: room, waiting, needed, room_state
+	pass = nil,      -- пропуск: им доказывается право на своё место в очереди
 	status = nil,    -- что пошло не так, если пошло
 	polling = false, -- опрос в полёте
 	drawn = 0,       -- когда экран рисовали в последний раз
@@ -340,8 +341,10 @@ local function poll()
 	state.polling = true
 	local epoch = state.epoch
 
+	-- Имя здесь больше не посылается: чьё это ожидание, Диспетчер знает по
+	-- пропуску. Раньше хватало чужого имени, чтобы подглядеть в чужую очередь.
 	request("/v1/queue", core.write_json({
-		player = player_name(),
+		pass = state.pass,
 		region = player_region(),
 	}), function(res)
 		state.polling = false
@@ -381,6 +384,9 @@ local function join(mode)
 		player = name,
 		mode = mode,
 		region = player_region(),
+		-- Свой пропуск, если он уже есть: смена режима не должна выглядеть
+		-- как новый игрок и не должна выдавать второй пропуск.
+		pass = state.pass,
 	}), function(res)
 		local body = decode(res)
 		if not body then
@@ -388,6 +394,9 @@ local function join(mode)
 			core.event_handler("Refresh")
 			return
 		end
+		-- Пропуск — единственное, чем потом доказывается право на своё место
+		-- в очереди. Живёт только в памяти меню: на диск ему незачем.
+		state.pass = body.pass or state.pass
 		-- Диспетчер мог и не ставить в очередь: если на этом режиме уже
 		-- играют и место есть, он сразу называет адрес.
 		state.queue = body
@@ -572,9 +581,11 @@ end
 function matchmaking.stop()
 	state.epoch = state.epoch + 1
 	if state.queue then
-		local name = player_name()
 		state.queue = nil
-		request("/v1/leave", core.write_json({ player = name }), function() end)
+		-- Снимает с очереди пропуск, а не имя: иначе уйти можно было бы за
+		-- любого, назвав его ник.
+		request("/v1/leave", core.write_json({ pass = state.pass }), function() end)
+		state.pass = nil
 	end
 	state.status = nil
 end
