@@ -8,8 +8,10 @@ on:
         required: true
         default: "v0.0.1"
 
+# Записывать в репозиторий больше нечего: сборка уезжает в свою раздачу, а не
+# в релизы GitHub.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build_and_release:
@@ -245,8 +247,9 @@ jobs:
           AXIS_FILES_URL: ${{ vars.AXIS_FILES_URL }}
         run: |
           if [ -z "$AXIS_FILES_TOKEN" ] || [ -z "$AXIS_FILES_URL" ]; then
-            echo "Раздача не настроена (нет AXIS_FILES_TOKEN или AXIS_FILES_URL) — пропускаю."
-            exit 0
+            echo "::error::Раздача не настроена: нет AXIS_FILES_TOKEN или AXIS_FILES_URL."
+            echo "::error::Сборке больше некуда деться — в релизы она не публикуется."
+            exit 1
           fi
 
           # Версия без ведущей v: раздача ждёт 0.1.0, а тег обычно v0.1.0.
@@ -259,13 +262,3 @@ jobs:
             -H "X-Axis-Platform: windows" \
             --data-binary "@axis_client_windows.zip"
           echo
-
-      - name: Create GitHub Release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "${{ github.event.inputs.tag_name }}" axis_client_windows.zip \
-            --title "Alpha Release ${{ github.event.inputs.tag_name }}" \
-            --notes "Сборка клиента Axis." \
-            || gh release upload "${{ github.event.inputs.tag_name }}" axis_client_windows.zip --clobber

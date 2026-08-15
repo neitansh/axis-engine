@@ -8,8 +8,10 @@ on:
         required: true
         default: "v0.0.1"
 
+# Записывать в репозиторий больше нечего: сборка уезжает в свою раздачу, а не
+# в релизы GitHub.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build_and_release:
@@ -272,17 +274,29 @@ jobs:
           AXIS_FILES_URL: ${{ vars.AXIS_FILES_URL }}
         run: |
           if [ -z "$AXIS_FILES_TOKEN" ] || [ -z "$AXIS_FILES_URL" ]; then
-            echo "Раздача не настроена (нет AXIS_FILES_TOKEN или AXIS_FILES_URL) — пропускаю."
-            exit 0
+            echo "::error::Раздача не настроена: нет AXIS_FILES_TOKEN или AXIS_FILES_URL."
+            echo "::error::Сборке больше некуда деться — в релизы она не публикуется."
+            exit 1
           fi
 
           # Версия без ведущей v: раздача ждёт 0.1.0, а тег обычно v0.1.0.
           version="${{ github.event.inputs.tag_name }}"
           version="${version#v}"
 
+          # Пустые каталоги должны пережить упаковку: игра приходит с
+          # сервера, и games/ с mods/ обязаны существовать, оставаясь пустыми.
+          # Своей записи в архиве у пустого каталога нет ничего, кроме него
+          # самого, — поэтому проверяем.
           # zip, а не tar.gz: лаунчер распаковывает своими силами, а из
           # форматов он умеет только zip.
           ( cd axis_linux && zip -qr "../axis-$version-linux.zip" . )
+
+          for d in games mods; do
+            if ! unzip -l "axis-$version-linux.zip" | grep -q "$d/"; then
+              echo "::error::$d/ не пережил упаковку."
+              exit 1
+            fi
+          done
 
           curl -sSf --max-time 900 -X POST "$AXIS_FILES_URL/upload" \
             -H "Authorization: Bearer $AXIS_FILES_TOKEN" \
@@ -290,23 +304,3 @@ jobs:
             -H "X-Axis-Platform: linux" \
             --data-binary "@axis-$version-linux.zip"
           echo
-
-      - name: Create GitHub Release and Upload Asset
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tar -czf axis_client_linux.tar.gz axis_linux
-
-          # An empty directory carries no files to pull it into the archive,
-          # so its own entry is the only thing that recreates it on unpacking.
-          for d in games mods; do
-            if ! tar -tzf axis_client_linux.tar.gz | grep -qx "axis_linux/$d/"; then
-              echo "::error::$d/ did not survive into the archive."
-              exit 1
-            fi
-          done
-
-          gh release create "${{ github.event.inputs.tag_name }}" axis_client_linux.tar.gz \
-            --title "Alpha Release ${{ github.event.inputs.tag_name }}" \
-            --notes "Сборка клиента Axis." \
-            || gh release upload "${{ github.event.inputs.tag_name }}" axis_client_linux.tar.gz --clobber
