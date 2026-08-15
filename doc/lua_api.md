@@ -6696,11 +6696,11 @@ Call these functions only at load time!
     * If it returns a string, the client is disconnected with that string as
       reason.
     * `ticket`: what the client sent to prove who it is, verbatim and
-      unchecked, or `""` when it sent nothing. The engine does not know what a
-      ticket is worth, who issues them or by what key — that is the game's
-      business, and a game that does not care can ignore this argument.
-    * Clients that know nothing about tickets always pass `""`, so a game may
-      treat "no ticket" as a normal case rather than an error.
+      unchecked, or `""` when it had none to send. The engine does not know
+      what a ticket is worth, who issues them or by what key — that is the
+      game's business, and a game that does not care can ignore this argument.
+    * A client that does not send the field at all is refused by the engine
+      before this callback runs: the field is part of the handshake.
 * `core.register_on_joinplayer(function(ObjectRef, last_login))`
     * Called when a player joins the game
     * `last_login`: The timestamp of the previous login, or nil if player is new

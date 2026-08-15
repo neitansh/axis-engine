@@ -86,12 +86,24 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 			>> min_net_proto_version >> max_net_proto_version
 			>> playerName;
 
-	// The ticket comes last so that a client which knows nothing about
-	// tickets still sends a packet we can read to the end. Nothing is
-	// verified here: the engine only carries the string over to the game.
+	// Every Axis client sends this field, empty or not. A packet without it
+	// was written by something else — an older build, another engine, someone
+	// poking at the port — and such a client is turned away here rather than
+	// let through as a special case. Compatibility with foreign clients is not
+	// a goal of this engine; the field is part of the handshake, not an
+	// extension to it.
+	//
+	// What is inside the field the engine does not judge. Whether an empty
+	// ticket is acceptable is the game's decision, and it makes it in
+	// register_on_prejoinplayer.
 	std::string ticket;
-	if (pkt->getRemainingBytes() > 0)
-		*pkt >> ticket;
+	if (pkt->getRemainingBytes() == 0) {
+		actionstream << "Server: A client without a ticket field tried to "
+			"connect from " << addr_s << std::endl;
+		DenyAccess(peer_id, SERVER_ACCESSDENIED_WRONG_VERSION);
+		return;
+	}
+	*pkt >> ticket;
 
 	// A ticket is a short signed string; anything longer is either a mistake
 	// or someone probing. Cheaper to drop it here than to hand a kilobyte of

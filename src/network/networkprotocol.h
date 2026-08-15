@@ -787,13 +787,13 @@ enum ToServerCommand : u16
 		u16 minimum supported network protocol version
 		u16 maximum supported network protocol version
 		std::string player name
-		std::string ticket (optional, Axis)
+		std::string ticket (Axis)
 
-		The ticket is what the client shows to prove who it is. It comes last
-		and may be missing entirely: a client that knows nothing about tickets
-		sends the packet as it always did, and the server reads an empty
-		string. Nothing about it is checked by the engine — the game decides
-		what a ticket means and who may issue one.
+		The ticket is what the client shows to prove who it is. The field is
+		required: a packet without it comes from something that is not an Axis
+		client, and the server refuses it. The string itself may be empty —
+		whether an empty ticket is good enough is decided by the game, not by
+		the engine, which never looks inside.
 	*/
 
 	TOSERVER_INIT2 = 0x11,
