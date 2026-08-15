@@ -724,6 +724,7 @@ if(BUILD_CLIENT)
 		${LUA_BIT_LIBRARY}
 		lstrpack
 		sha256
+		tweetnacl
 		${FREETYPE_LIBRARY}
 		${PLATFORM_LIBS}
 		# on Android, Luanti depends on SDL2 directly
@@ -815,6 +816,7 @@ if(BUILD_SERVER)
 		${LUA_BIT_LIBRARY}
 		lstrpack
 		sha256
+		tweetnacl
 		${GMP_LIBRARY}
 		${PLATFORM_LIBS}
 	)
