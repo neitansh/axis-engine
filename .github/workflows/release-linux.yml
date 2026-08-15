@@ -271,13 +271,18 @@ jobs:
       - name: Upload to distribution
         env:
           AXIS_FILES_TOKEN: ${{ secrets.AXIS_FILES_TOKEN }}
-          AXIS_FILES_URL: ${{ vars.AXIS_FILES_URL }}
+          # Адрес раздачи — не секрет, он и так зашит в лаунчере. Поэтому у
+          # него есть значение по умолчанию, а переопределить его можно и
+          # переменной, и секретом: настройка, которую можно задать не туда, —
+          # это настройка, которая однажды окажется не там.
+          AXIS_FILES_URL: ${{ vars.AXIS_FILES_URL || secrets.AXIS_FILES_URL || 'https://api.axis.theivy.ru' }}
         run: |
-          if [ -z "$AXIS_FILES_TOKEN" ] || [ -z "$AXIS_FILES_URL" ]; then
-            echo "::error::Раздача не настроена: нет AXIS_FILES_TOKEN или AXIS_FILES_URL."
-            echo "::error::Сборке больше некуда деться — в релизы она не публикуется."
+          if [ -z "$AXIS_FILES_TOKEN" ]; then
+            echo "::error::Нет секрета AXIS_FILES_TOKEN — раздача не примет сборку."
+            echo "::error::Сборке больше некуда деться: в релизы она не публикуется."
             exit 1
           fi
+          echo "Раздача: $AXIS_FILES_URL"
 
           # Версия без ведущей v: раздача ждёт 0.1.0, а тег обычно v0.1.0.
           version="${{ github.event.inputs.tag_name }}"
