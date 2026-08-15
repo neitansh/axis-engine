@@ -38,6 +38,10 @@ constexpr SettingDomainEntry SETTING_DOMAIN_TABLE[] = {
 	{"autoscale_mode", ConfigDomain::ClientGraphics},
 	{"aux1_descends", ConfigDomain::ClientInput},
 	{"axis_ticket", ConfigDomain::ClientSession},
+	// Дверца лаунчера: куда просить билет и чем назваться. Живут один запуск,
+	// приезжают в командной строке и на диск не сохраняются.
+	{"axis_ticket_url", ConfigDomain::ClientSession},
+	{"axis_ticket_key", ConfigDomain::ClientSession},
 	{"basic_privs", ConfigDomain::ServerSecurity},
 	{"bilinear_filter", ConfigDomain::ClientGraphics},
 	{"bind_address", ConfigDomain::ServerNetwork},

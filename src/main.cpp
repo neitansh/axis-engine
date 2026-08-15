@@ -430,6 +430,10 @@ static void set_allowed_options(OptionList *allowed_options)
 			_("Set password from contents of file"))));
 	allowed_options->insert(std::make_pair("ticket", ValueSpec(VALUETYPE_STRING,
 			_("Set the ticket that proves who the player is"))));
+	allowed_options->insert(std::make_pair("ticket-url", ValueSpec(VALUETYPE_STRING,
+			_("Where to ask the launcher for a ticket"))));
+	allowed_options->insert(std::make_pair("ticket-key", ValueSpec(VALUETYPE_STRING,
+			_("Key that lets this client ask the launcher for tickets"))));
 	allowed_options->insert(std::make_pair("go", ValueSpec(VALUETYPE_FLAG,
 			_("Skip main menu, go directly in-game"))));
 	allowed_options->insert(std::make_pair("console", ValueSpec(VALUETYPE_FLAG,
@@ -766,6 +770,20 @@ static bool init_common(const Settings &cmd_args, int argc, char *argv[])
 		return false;
 
 	migrate_settings();
+
+	// Куда клиент ходит за билетом и чем себя при этом называет.
+	//
+	// Билет вперёд не выдаётся: при запуске ещё неизвестно, на какой сервер
+	// пойдёт игрок, а билет действует на одном. Лаунчер вместо билета даёт
+	// адрес своей дверцы и ключ этого запуска; меню просит билет тогда, когда
+	// сервер выбран (см. builtin/mainmenu/init.lua).
+	//
+	// Кладём в настройки, а не в GameStartData: спрашивает меню, а оно живёт
+	// в Lua и знает только настройки.
+	if (cmd_args.exists("ticket-url"))
+		g_settings->set("axis_ticket_url", cmd_args.get("ticket-url"));
+	if (cmd_args.exists("ticket-key"))
+		g_settings->set("axis_ticket_key", cmd_args.get("ticket-key"));
 
 	init_log_streams(cmd_args);
 
