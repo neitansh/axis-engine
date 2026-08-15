@@ -124,6 +124,13 @@ BY_NAME = {
     # settingtypes.txt, as none of it is meant to be edited by hand.
     "mainmenu_last_selected_world": "ClientSession",
     "maintab_LAST": "ClientSession",
+    # Which screen the menu opens on. Test stands set it to reach a screen
+    # without anyone there to click; the table had it, this list did not, so
+    # regenerating quietly dropped it.
+    "mainmenu_start_tab": "ClientSession",
+    # Свой Диспетчер вместо того, что пришёл со списком серверов: тем же
+    # порядком потерялся при регенерации.
+    "matchmaking_url": "ClientNetwork",
     "menu_last_game": "ClientSession",
     "world_config_selected_mod": "ClientSession",
     "enable_server": "ClientSession",
@@ -134,6 +141,14 @@ BY_NAME = {
     "netsync_diagnostics": "SharedLogging",
     "netsync_diagnostics_log": "SharedLogging",
     "disable_anticheat": "ServerSecurity",
+    # Who this server is and where it asks about tickets. Not in
+    # settingtypes.txt: a server operator sets these once, and they belong to
+    # the deployment rather than to anyone's taste.
+    "server_id": "ServerSecurity",
+    "auth_url": "ServerSecurity",
+    "auth_token": "ServerSecurity",
+    # The ticket the launcher hands to the client on start.
+    "axis_ticket": "ClientSession",
     "dpi_change_notifier": "ClientGraphics",
     "enable_touch": "ClientInput",
     "main_menu_path": "ClientInterface",
@@ -280,8 +295,9 @@ def build_table(source):
 
 def render(table):
     lines = [
-        "// Luanti",
+        "// Axis",
         "// SPDX-License-Identifier: LGPL-2.1-or-later",
+        "// Copyright (C) 2026 the Axis contributors",
         "",
         "// GENERATED FILE, DO NOT EDIT.",
         "// Produced by util/generate_settings_domains.py from",
