@@ -298,6 +298,13 @@ public:
 
 	void setName(const std::string &name) { m_name = name; }
 
+	// The ticket this client showed on connect, verbatim and unchecked.
+	// Checking it is the game's business: the engine has no idea who issues
+	// tickets or by what key, and servers run by other people answer to
+	// nobody. Empty means the client showed none.
+	const std::string &getTicket() const { return m_ticket; }
+	void setTicket(const std::string &ticket) { m_ticket = ticket; }
+
 	/* update internal client state */
 	void notifyEvent(ClientStateEvent event);
 
@@ -409,6 +416,7 @@ private:
 		name of player using this client
 	*/
 	std::string m_name = "";
+	std::string m_ticket = "";
 
 	/*
 		client information

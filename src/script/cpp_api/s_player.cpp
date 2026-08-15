@@ -117,6 +117,7 @@ bool ScriptApiPlayer::on_respawnplayer(ServerActiveObject *player)
 bool ScriptApiPlayer::on_prejoinplayer(
 	const std::string &name,
 	const std::string &ip,
+	const std::string &ticket,
 	std::string *reason)
 {
 	SCRIPTAPI_PRECHECKHEADER
@@ -126,7 +127,11 @@ bool ScriptApiPlayer::on_prejoinplayer(
 	lua_getfield(L, -1, "registered_on_prejoinplayers");
 	lua_pushstring(L, name.c_str());
 	lua_pushstring(L, ip.c_str());
-	runCallbacks(2, RUN_CALLBACKS_MODE_OR);
+	// Third argument: the ticket the client showed, or an empty string. It
+	// arrives unchecked — whoever wrote the game decides what a ticket is
+	// worth and who is allowed to issue one.
+	lua_pushstring(L, ticket.c_str());
+	runCallbacks(3, RUN_CALLBACKS_MODE_OR);
 	if (lua_isstring(L, -1)) {
 		reason->assign(readParam<std::string>(L, -1));
 		return true;

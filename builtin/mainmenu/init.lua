@@ -175,5 +175,22 @@ local function init_globals()
 	check_reinstall_mtg(parent)
 end
 
+-- Билет к запуску игры.
+--
+-- Билет — короткая подписанная строка, которой игрок доказывает серверу, что
+-- он тот, за кого себя выдаёт. Выдаёт её служба аккаунтов лаунчеру, лаунчер
+-- кладёт в настройку, а меню отсюда передаёт клиенту.
+--
+-- Одно место на все пути к игре — подбор матча, список серверов, прямой адрес
+-- — потому что дорога до сервера у них разная, а билет один и тот же. Кто
+-- положил его в gamedata сам, тому не мешаем.
+local start_game = core.start
+function core.start()
+	if gamedata and (gamedata.ticket == nil or gamedata.ticket == "") then
+		gamedata.ticket = core.settings:get("axis_ticket") or ""
+	end
+	return start_game()
+end
+
 assert(os.execute == nil)
 init_globals()

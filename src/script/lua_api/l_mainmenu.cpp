@@ -149,6 +149,9 @@ int ModApiMainMenu::l_start(lua_State *L)
 		// on Android, which would then cause SERVER_ACCESSDENIED_WRONG_CHARS_IN_NAME).
 		data->name     = trim(getTextData(L, "playername"));
 		data->password = getTextData(L, "password");
+		// Ticket for servers that ask who you are. Empty is normal: not
+		// every server asks, and not every launcher has one to give.
+		data->ticket   = getTextData(L, "ticket");
 		// There's no reason for these to have leading/trailing whitespace either.
 		data->address  = trim(getTextData(L, "address"));
 		data->port     = trim(getTextData(L, "port"));

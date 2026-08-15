@@ -428,6 +428,8 @@ static void set_allowed_options(OptionList *allowed_options)
 			_("Set password"))));
 	allowed_options->insert(std::make_pair("password-file", ValueSpec(VALUETYPE_STRING,
 			_("Set password from contents of file"))));
+	allowed_options->insert(std::make_pair("ticket", ValueSpec(VALUETYPE_STRING,
+			_("Set the ticket that proves who the player is"))));
 	allowed_options->insert(std::make_pair("go", ValueSpec(VALUETYPE_FLAG,
 			_("Skip main menu, go directly in-game"))));
 	allowed_options->insert(std::make_pair("console", ValueSpec(VALUETYPE_FLAG,

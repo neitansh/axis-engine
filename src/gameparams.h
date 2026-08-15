@@ -36,6 +36,17 @@ struct GameClientData
 	std::string password;
 	std::string address; //< non-empty when joining a server
 
+	// Signed proof of who the player is, issued by an account service and
+	// handed to the server on connect. Empty when nobody vouched for this
+	// player: the server then decides on its own whether to let them in.
+	//
+	// This is not a password and never travels as one. A password proves a
+	// secret the server already knows; a ticket carries a name the server can
+	// check against a public key without knowing anything in advance. Servers
+	// run by other people are the reason for the difference: they must be able
+	// to tell who is connecting without being trusted with any secret of ours.
+	std::string ticket;
+
 	enum Mode {
 		GM_SINGLEPLAYER,
 		GM_HOST_AND_JOIN,

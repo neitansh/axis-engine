@@ -141,6 +141,7 @@ public:
 	Client(
 			const char *playername,
 			const std::string &password,
+			const std::string &ticket,
 			MapDrawControl &control,
 			IWritableTextureSource *tsrc,
 			IWritableShaderSource *shsrc,
@@ -732,6 +733,9 @@ private:
 	// Auth data
 	std::string m_playername;
 	std::string m_password;
+	// Signed proof of who this player is, handed to the server on connect.
+	// Empty when nobody vouched for them; see GameClientData::ticket.
+	std::string m_ticket;
 	// If set, this will be sent (and cleared) upon a TOCLIENT_ACCEPT_SUDO_MODE
 	std::string m_new_password;
 	// Usable by auth mechanisms.

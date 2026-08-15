@@ -132,6 +132,7 @@ static void enrich_exception(BaseException &e, const NetworkPacket &pkt, bool in
 Client::Client(
 	const char *playername,
 	const std::string &password,
+	const std::string &ticket,
 	MapDrawControl &control,
 	IWritableTextureSource *tsrc,
 	IWritableShaderSource *shsrc,
@@ -158,6 +159,7 @@ Client::Client(
 											  m_server_ser_ver(SER_FMT_VER_INVALID),
 											  m_last_chat_message_sent(time(NULL)),
 											  m_password(password),
+											  m_ticket(ticket),
 											  m_chosen_auth_mech(AUTH_MECHANISM_NONE),
 											  m_media_downloader(std::make_unique<ClientMediaDownloader>()),
 											  m_state(LC_Created),
@@ -1683,11 +1685,20 @@ AuthMechanism Client::choseAuthMech(const u32 mechs)
 
 void Client::sendInit(const std::string &playerName)
 {
-	NetworkPacket pkt(TOSERVER_INIT, 1 + 2 + 2 + (1 + playerName.size()));
+	NetworkPacket pkt(TOSERVER_INIT,
+			1 + 2 + 2 + (2 + playerName.size()) + (2 + m_ticket.size()));
 
 	pkt << SER_FMT_VER_HIGHEST_READ << (u16)0 /* unused */;
 	pkt << CLIENT_PROTOCOL_VERSION_MIN << LATEST_PROTOCOL_VERSION;
 	pkt << playerName;
+	// The ticket rides along with the very first packet on purpose: the server
+	// has to decide whether to let this player in before anything else
+	// happens, and by then there is no other channel to ask over.
+	//
+	// An empty string is written when there is no ticket, so the field is
+	// always there and the packet always looks the same. A server that does
+	// not care simply never reads it.
+	pkt << m_ticket;
 
 	Send(&pkt);
 }

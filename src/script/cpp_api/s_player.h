@@ -24,6 +24,7 @@ public:
 	void on_dieplayer(ServerActiveObject *player, const PlayerHPChangeReason &reason);
 	bool on_respawnplayer(ServerActiveObject *player);
 	bool on_prejoinplayer(const std::string &name, const std::string &ip,
+			const std::string &ticket,
 			std::string *reason);
 	bool can_bypass_userlimit(const std::string &name, const std::string &ip);
 	void on_joinplayer(ServerActiveObject *player, s64 last_login);

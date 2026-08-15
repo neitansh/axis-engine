@@ -446,6 +446,12 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 	if (cmd_args.exists("password"))
 		start_data.password = cmd_args.get("password");
 
+	// A launcher signs the player in on its own and hands the client a
+	// ticket. It lives for minutes, so passing it on the command line is
+	// acceptable; a password there would not be.
+	if (cmd_args.exists("ticket"))
+		start_data.ticket = cmd_args.get("ticket");
+
 	if (cmd_args.exists("password-file"))
 	{
 		std::ifstream passfile(cmd_args.get("password-file"));

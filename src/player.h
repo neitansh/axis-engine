@@ -14,6 +14,11 @@
 
 #define PLAYERNAME_SIZE 20
 
+// Longest ticket a client may show on connect. A real one is a few hundred
+// bytes — a name, a key, a signature — and the limit is generous on purpose:
+// it exists to cut off nonsense, not to constrain whoever issues tickets.
+#define MAX_TICKET_SIZE 1024
+
 #define PLAYERNAME_ALLOWED_CHARS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 #define PLAYERNAME_ALLOWED_CHARS_USER_EXPL "'a' to 'z', 'A' to 'Z', '0' to '9', '-', '_'"
 

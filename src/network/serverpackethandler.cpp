@@ -86,6 +86,23 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 			>> min_net_proto_version >> max_net_proto_version
 			>> playerName;
 
+	// The ticket comes last so that a client which knows nothing about
+	// tickets still sends a packet we can read to the end. Nothing is
+	// verified here: the engine only carries the string over to the game.
+	std::string ticket;
+	if (pkt->getRemainingBytes() > 0)
+		*pkt >> ticket;
+
+	// A ticket is a short signed string; anything longer is either a mistake
+	// or someone probing. Cheaper to drop it here than to hand a kilobyte of
+	// someone's imagination to the game.
+	if (ticket.size() > MAX_TICKET_SIZE) {
+		actionstream << "Server: A client from " << addr_s <<
+			" sent an oversized ticket (" << ticket.size() << " bytes)" << std::endl;
+		DenyAccess(peer_id, SERVER_ACCESSDENIED_WRONG_NAME);
+		return;
+	}
+
 	// Use the highest version supported by both
 	const u8 serialization_ver = std::min(max_ser_ver, SER_FMT_VER_HIGHEST_WRITE);
 
@@ -177,10 +194,11 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 	}
 
 	client->setName(playerName);
+	client->setTicket(ticket);
 
 	{
 		std::string reason;
-		if (m_script->on_prejoinplayer(playername, addr_s, &reason)) {
+		if (m_script->on_prejoinplayer(playername, addr_s, ticket, &reason)) {
 			actionstream << "Server: Player with the name \"" << playerName <<
 				"\" tried to connect from " << addr_s <<
 				" but was disallowed for the following reason: " << reason <<
