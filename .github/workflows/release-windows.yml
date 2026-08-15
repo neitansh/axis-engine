@@ -263,6 +263,7 @@ jobs:
 
           curl -sSf --max-time 900 -X POST "$AXIS_FILES_URL/upload" \
             -H "Authorization: Bearer $AXIS_FILES_TOKEN" \
+            -H "X-Axis-Product: game" \
             -H "X-Axis-Version: $version" \
             -H "X-Axis-Platform: windows" \
             --data-binary "@axis_client_windows.zip"
