@@ -69,3 +69,22 @@ TicketError checkTicket(const std::string &ticket, const std::string &expect_log
 
 /// Human-readable reason, for the log and for the player being turned away.
 const char *ticketErrorText(TicketError err);
+
+/**
+ * Ask the account service about a ticket that already passed the signature
+ * check.
+ *
+ * Two things only the service knows: whether the account has been closed since
+ * the ticket was issued, and what the player is called right now — a ticket
+ * lives for minutes, and both can change inside them.
+ *
+ * Only servers holding a service token can ask; a stranger's server has none
+ * and does not need one, since the signature already told it who came.
+ *
+ * @param reason  set to what the service said when it refuses
+ * @return false when the service refused the player. A service that cannot be
+ *         reached does NOT refuse: the signature is proof enough on its own,
+ *         and a network hiccup must not close the door on everybody.
+ */
+bool askAccountService(const std::string &ticket, const std::string &server_id,
+		TicketIdentity *id, std::string *reason);

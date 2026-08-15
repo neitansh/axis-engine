@@ -231,6 +231,18 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 					ticketErrorText(err));
 			return;
 		}
+		// The signature is proof of who this is. The service, when this server
+		// has one, adds what the signature cannot know: whether the account was
+		// closed in the last few minutes, and the name the player goes by now.
+		std::string refusal;
+		if (!askAccountService(ticket, g_settings->get("server_id"), &id, &refusal)) {
+			actionstream << "Server: \"" << playerName << "\" from " << addr_s <<
+				" was refused by the account service: " << refusal << std::endl;
+			DenyAccess(peer_id, SERVER_ACCESSDENIED_CUSTOM_STRING,
+					"Account service refused: " + refusal);
+			return;
+		}
+
 		client->setIdentity(id);
 		infostream << "Server: \"" << playerName << "\" is " << id.uid <<
 			" (" << id.display << ")" << std::endl;

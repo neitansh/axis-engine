@@ -634,6 +634,13 @@ void set_default_settings()
 	// it. Empty means "not registered": tickets that name a server will be
 	// refused, which is the safe way round.
 	settings->setDefault("server_id", "");
+	// Account service, for servers that have an agreement with one. Given
+	// these, the server also asks whether the account has been closed since
+	// the ticket was issued, and what the player is called right now. Without
+	// them the signature stands on its own — which is all a stranger's server
+	// gets, and all it needs.
+	settings->setDefault("auth_url", "");
+	settings->setDefault("auth_token", "");
 	settings->setDefault("server_description", "");
 	settings->setDefault("server_announce_send_players", "true");
 

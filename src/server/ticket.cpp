@@ -4,10 +4,13 @@
 
 #include "ticket.h"
 
+#include "httpfetch.h"
 #include "log.h"
 #include "settings.h"
 #include "util/base64.h"
 #include "util/ed25519.h"
+
+#include "convert_json.h"
 
 #include <json/json.h>
 
@@ -141,6 +144,81 @@ TicketError checkTicket(const std::string &ticket, const std::string &expect_log
 
 	*out = id;
 	return TicketError::None;
+}
+
+bool askAccountService(const std::string &ticket, const std::string &server_id,
+		TicketIdentity *id, std::string *reason)
+{
+	const std::string url = g_settings->get("auth_url");
+	const std::string token = g_settings->get("auth_token");
+	if (url.empty() || token.empty())
+		return true; // nothing to ask, and nothing was promised
+
+	Json::Value body;
+	body["ticket"] = ticket;
+	body["server"] = server_id;
+	// Not spending the ticket. It would be the stronger check — one entry per
+	// ticket — but the dispatcher moves players between matches, and the
+	// client shows the same ticket to the next server. Spending belongs with a
+	// client that can ask for a fresh ticket each time; until then it would
+	// break moving from a lobby into a match.
+	body["once"] = false;
+
+	HTTPFetchRequest req;
+	req.url = url + "/v1/verify";
+	req.method = HTTP_POST;
+	req.raw_data = fastWriteJson(body);
+	req.extra_headers.emplace_back("Content-Type: application/json");
+	req.extra_headers.emplace_back("Authorization: Bearer " + token);
+	// The service stands next to the server, in the same docker network, and
+	// answers in milliseconds. The timeout is here for the case where it does
+	// not answer at all, and it is short because this runs on the server
+	// thread: everyone else waits meanwhile.
+	req.connect_timeout = 1000;
+	req.timeout = 2000;
+	req.quiet = true;
+
+	HTTPFetchResult res;
+	httpfetch_sync_interruptible(req, res);
+
+	if (!res.succeeded) {
+		warningstream << "Ticket: account service did not answer; letting "
+			<< id->login << " in on the signature alone" << std::endl;
+		return true;
+	}
+
+	Json::Value answer;
+	{
+		Json::CharReaderBuilder builder;
+		std::string errors;
+		const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+		if (!reader->parse(res.data.data(), res.data.data() + res.data.size(),
+				&answer, &errors) || !answer.isObject()) {
+			warningstream << "Ticket: account service answered with nonsense" << std::endl;
+			return true;
+		}
+	}
+
+	if (res.response_code != 200) {
+		*reason = answer.get("error", "refused").asString();
+		return false;
+	}
+
+	// Names as of this moment: the display name may have changed since the
+	// ticket was written, and the player should be called what they are called
+	// now.
+	const std::string login = answer.get("login", "").asString();
+	const std::string display = answer.get("display", "").asString();
+	if (!login.empty() && login != id->login) {
+		// The service says this ticket belongs to somebody else than the
+		// signature did. That should be impossible; refuse and let the logs
+		// show it.
+		*reason = "ticket_mismatch";
+		return false;
+	}
+	if (!display.empty())
+		id->display = display;
+	return true;
 }
 
 const char *ticketErrorText(TicketError err)
