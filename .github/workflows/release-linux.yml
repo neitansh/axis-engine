@@ -261,6 +261,36 @@ jobs:
           echo "Starting the packaged client:"
           ./axis_linux/bin/axis --version
 
+
+      # Выкладка в раздачу. Игроки качают игру отсюда, а не с GitHub: релизы
+      # GitHub из России открываются через раз, а лаунчер должен работать
+      # всегда. Токен и адрес живут в настройках репозитория; нет их — шаг
+      # молча пропускается, и сборка всё равно остаётся в релизах.
+      - name: Upload to distribution
+        env:
+          AXIS_FILES_TOKEN: ${{ secrets.AXIS_FILES_TOKEN }}
+          AXIS_FILES_URL: ${{ vars.AXIS_FILES_URL }}
+        run: |
+          if [ -z "$AXIS_FILES_TOKEN" ] || [ -z "$AXIS_FILES_URL" ]; then
+            echo "Раздача не настроена (нет AXIS_FILES_TOKEN или AXIS_FILES_URL) — пропускаю."
+            exit 0
+          fi
+
+          # Версия без ведущей v: раздача ждёт 0.1.0, а тег обычно v0.1.0.
+          version="${{ github.event.inputs.tag_name }}"
+          version="${version#v}"
+
+          # zip, а не tar.gz: лаунчер распаковывает своими силами, а из
+          # форматов он умеет только zip.
+          ( cd axis_linux && zip -qr "../axis-$version-linux.zip" . )
+
+          curl -sSf --max-time 900 -X POST "$AXIS_FILES_URL/upload" \
+            -H "Authorization: Bearer $AXIS_FILES_TOKEN" \
+            -H "X-Axis-Version: $version" \
+            -H "X-Axis-Platform: linux" \
+            --data-binary "@axis-$version-linux.zip"
+          echo
+
       - name: Create GitHub Release and Upload Asset
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
