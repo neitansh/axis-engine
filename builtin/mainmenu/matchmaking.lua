@@ -196,6 +196,15 @@ end
 -- Настройка сильнее списка: пустой она бывает у всех, а заполняют её те, кто
 -- поднял своего Диспетчера или проверяет его на стенде, — и им нужен именно он,
 -- а не официальный вход.
+-- На какой сервер выписывать билет. Имя берётся у выбранного входа, а не
+-- вписывается сюда: входов два, сервер за ними один, и знать это должен список
+-- серверов, а не подбор матча.
+local function server_id()
+	local server = entry()
+	return server and server.id
+end
+
+
 local function dispatch_url()
 	local set = core.settings:get("matchmaking_url")
 	if set and set ~= "" then
@@ -323,6 +332,9 @@ local function enter(body)
 		return true
 	end
 	gamedata.mode = "join"
+	-- На какой сервер идём. Адрес у матча свой и живёт полчаса, а билет
+	-- выписывается на сервер целиком — на лобби и на все его матчи.
+	gamedata.server_id = server_id()
 	gamedata.address = body.address
 	gamedata.port = body.port
 	gamedata.playername = player_name()

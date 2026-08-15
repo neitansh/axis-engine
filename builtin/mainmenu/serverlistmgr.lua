@@ -23,8 +23,13 @@ do
 end
 
 -- The public Luanti list is not used: Axis only talks to its own servers.
+--
+-- `id` — это имя сервера в реестре, и на него выписывается билет. У обоих
+-- входов оно одно: Россия и Европа — две дороги к одному и тому же серверу, а
+-- не два разных сервера. Билет, взятый на одном входе, годен и на другом.
 local OFFICIAL_SERVERS = {
 	{
+		id = "salvo-official",
 		name = "Axis · " .. fgettext_ne("Russia"),
 		address = "135.106.173.139",
 		port = 30000,
@@ -40,6 +45,7 @@ local OFFICIAL_SERVERS = {
 		probe_port = 30199,
 	},
 	{
+		id = "salvo-official",
 		name = "Axis · " .. fgettext_ne("Europe"),
 		address = "65.109.68.114",
 		port = 30000,

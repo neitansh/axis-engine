@@ -175,21 +175,114 @@ local function init_globals()
 	check_reinstall_mtg(parent)
 end
 
+-- Спросить билет у лаунчера и, когда он придёт, запустить игру.
+--
+-- Запрос уходит в асинхронное состояние: главный поток стоять не имеет права,
+-- пока ответа нет, — меню перестанет рисоваться. Отсюда и устройство: core.start
+-- не запускает игру сразу, а уходит за билетом и запускает её в ответе.
+--
+-- В асинхронном состоянии живёт только то, что туда передали: ни fgettext_ne,
+-- ни gamedata там нет. Поэтому оттуда возвращаются короткие пометки, а
+-- человеческие слова подбираются уже здесь.
+local asking = false
+
+local function ask_for_ticket(url, key, server_id, done)
+	core.handle_async(function(p)
+		local http = core.get_http_api()
+		if not http then
+			return { trouble = "no_http" }
+		end
+		local res = http.fetch_sync({
+			url = p.url .. "/ticket",
+			method = "POST",
+			timeout = 10,
+			extra_headers = {
+				"Authorization: Bearer " .. p.key,
+				"Content-Type: application/json",
+			},
+			data = p.body,
+		})
+		if not res.succeeded then
+			return { trouble = "silent" }
+		end
+		local body = res.data and core.parse_json(res.data) or nil
+		if res.code ~= 200 or not body or not body.ticket then
+			return { trouble = "refused", said = body and body.message or nil }
+		end
+		return { ticket = body.ticket }
+	end, {
+		url = url,
+		key = key,
+		body = core.write_json({ server = server_id }),
+	}, done)
+end
+
 -- Билет к запуску игры.
 --
--- Билет — короткая подписанная строка, которой игрок доказывает серверу, что
--- он тот, за кого себя выдаёт. Выдаёт её служба аккаунтов лаунчеру, лаунчер
--- кладёт в настройку, а меню отсюда передаёт клиенту.
+-- Билет — короткая подписанная строка, которой игрок доказывает серверу, что он
+-- тот, за кого себя выдаёт. Выписывает её служба аккаунтов, и **на конкретный
+-- сервер**: на другом он не работает.
 --
--- Одно место на все пути к игре — подбор матча, список серверов, прямой адрес
--- — потому что дорога до сервера у них разная, а билет один и тот же. Кто
--- положил его в gamedata сам, тому не мешаем.
+-- Отсюда порядок. Билет берётся не при запуске клиента, а здесь — когда уже
+-- известно, куда игрок идёт. Раньше лаунчер выписывал билет вперёд, на
+-- вписанный в него сервер, и это разваливалось на втором: на любой другой
+-- уезжал бы билет, выписанный не ему.
+--
+-- Просить билет ходим к лаунчеру: сессия игрока есть только у него, и клиенту
+-- её не дают. Адрес его дверцы и ключ этого запуска приходят в командной строке
+-- (--ticket-url, --ticket-key) и лежат в настройках.
+--
+-- Одно место на все пути к серверу — подбор матча, список серверов, прямой
+-- адрес: дорога у них разная, а спрашивать билет надо одинаково. Кто положил
+-- билет в gamedata сам, тому не мешаем.
 local start_game = core.start
 function core.start()
-	if gamedata and (gamedata.ticket == nil or gamedata.ticket == "") then
-		gamedata.ticket = core.settings:get("axis_ticket") or ""
+	if not gamedata or (gamedata.ticket and gamedata.ticket ~= "") then
+		return start_game()
 	end
-	return start_game()
+
+	local url = core.settings:get("axis_ticket_url") or ""
+	local key = core.settings:get("axis_ticket_key") or ""
+	if url == "" or key == "" then
+		-- Клиент запустили без лаунчера. Билета не будет, и это не наша беда:
+		-- сервер, который его спрашивает, откажет и скажет почему. Своя игра и
+		-- свой сервер при этом работают как работали.
+		gamedata.ticket = ""
+		return start_game()
+	end
+
+	if not gamedata.server_id or gamedata.server_id == "" then
+		gamedata.errormessage =
+			fgettext_ne("This server is not in the registry, so no ticket can be issued for it.")
+		ui.update()
+		return
+	end
+
+	-- Второе нажатие, пока билет в пути, ни к чему: получилось бы два билета и
+	-- два запуска.
+	if asking then
+		return
+	end
+	asking = true
+
+	ask_for_ticket(url, key, gamedata.server_id, function(answer)
+		asking = false
+		if answer.trouble == "refused" then
+			-- Лаунчер уже перевёл отказ службы на человеческий; показываем его
+			-- как есть, а не своё «не удалось подключиться».
+			gamedata.errormessage = answer.said or
+				fgettext_ne("The launcher refused to give a ticket.")
+		elseif answer.trouble then
+			gamedata.errormessage =
+				fgettext_ne("The launcher is not answering. Is it still running?")
+		end
+		if answer.trouble then
+			ui.update()
+			return
+		end
+		gamedata.ticket = answer.ticket
+		start_game()
+	end)
 end
 
 assert(os.execute == nil)
