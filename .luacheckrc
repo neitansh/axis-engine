@@ -1,6 +1,13 @@
 unused_args = false
 allow_defined_top = true
 
+-- Описания настроек — таблица текстов, которые читает игрок. Предложение,
+-- разорванное посередине ради ширины в 120 символов, читается хуже, а
+-- переносить его придётся заново при каждой правке формулировки.
+files["builtin/common/settings/descriptions.lua"] = {
+	max_line_length = false,
+}
+
 ignore = {
 	"131", -- Unused global variable
 	"431", -- Shadowing an upvalue

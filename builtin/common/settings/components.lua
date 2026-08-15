@@ -872,8 +872,6 @@ function make.key(setting)
 		spacing = 0.1,
 
 		get_formspec = function(self, avail_w)
-			local value_string = core.settings:get(setting.name) or ""
-			local default_value = setting.default or ""
 			self.resettable = differs_from_default(setting)
 			local value_width = math.max(2.5, avail_w / 2)
 			local value = get_key_setting(setting.name)
