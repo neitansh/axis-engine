@@ -30,14 +30,20 @@ jobs:
     - name: Install LuaJIT
       run: ./util/ci/build_luajit.sh
 
+    # Инструменты ставятся в рабочий каталог прогона, а не в домашний.
+    #
+    # Раннер здесь свой и запускает работы в нескольких каталогах сразу, а
+    # $HOME у них общий. Скрипты luarocks несут в себе абсолютный путь к тому
+    # lua, с которым их ставили, — и работа, которой достался другой каталог,
+    # падала на «lua: not found», хотя код был ни при чём.
     - name: Install luarocks tools
       run: |
-        luarocks install --local luacheck
-        luarocks install --local busted
+        luarocks install --tree "$GITHUB_WORKSPACE/.luarocks" luacheck
+        luarocks install --tree "$GITHUB_WORKSPACE/.luarocks" busted
 
     - name: Run checks (builtin)
       run: |
-        $HOME/.luarocks/bin/luacheck builtin
-        $HOME/.luarocks/bin/busted builtin
-        $HOME/.luarocks/bin/busted builtin --lua=$HOME/LuaJIT/src/luajit
+        "$GITHUB_WORKSPACE/.luarocks/bin/luacheck" builtin
+        "$GITHUB_WORKSPACE/.luarocks/bin/busted" builtin
+        "$GITHUB_WORKSPACE/.luarocks/bin/busted" builtin --lua=$HOME/LuaJIT/src/luajit
 
