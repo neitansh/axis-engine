@@ -6909,6 +6909,16 @@ Authentication
 * `core.get_player_ip(name)`: returns an IP address string for the player
   `name`.
     * The player needs to be online for this to be successful.
+* `core.get_player_account(name)`: who this player is, according to the ticket
+  they showed when connecting.
+    * Returns a table `{uid = ..., login = ..., display = ..., expires = ...}`,
+      or `nil` if nobody was checked (a single player game).
+    * `uid` is the account key: it is assigned once and never changes.
+      Anything a game remembers about a person should hang off this, not off a
+      name — logins and display names change.
+    * `display` is what to call the player; it is not unique.
+    * There is no counterpart that sets any of this. A game is told who came
+      in; deciding who came in is not a game's business.
 
 * `core.get_auth_handler()`: Return the currently active auth handler
     * Must be called *after* load time, to ensure that any custom auth handler was

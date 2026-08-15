@@ -10,6 +10,7 @@
 #include "network/networkprotocol.h" // session_t
 #include "threading/mutex_auto_lock.h"
 #include "clientdynamicinfo.h"
+#include "server/ticket.h"
 #include "constants.h" // PEER_ID_INEXISTENT
 
 #include <memory>
@@ -298,12 +299,14 @@ public:
 
 	void setName(const std::string &name) { m_name = name; }
 
-	// The ticket this client showed on connect, verbatim and unchecked.
-	// Checking it is the game's business: the engine has no idea who issues
-	// tickets or by what key, and servers run by other people answer to
-	// nobody. Empty means the client showed none.
+	// The ticket this client showed on connect, verbatim.
 	const std::string &getTicket() const { return m_ticket; }
 	void setTicket(const std::string &ticket) { m_ticket = ticket; }
+
+	// Who the ticket said this is. Filled in once, when the ticket held up;
+	// empty in a single player game, where there is nobody to check.
+	const TicketIdentity &getIdentity() const { return m_identity; }
+	void setIdentity(const TicketIdentity &id) { m_identity = id; }
 
 	/* update internal client state */
 	void notifyEvent(ClientStateEvent event);
@@ -417,6 +420,7 @@ private:
 	*/
 	std::string m_name = "";
 	std::string m_ticket = "";
+	TicketIdentity m_identity;
 
 	/*
 		client information

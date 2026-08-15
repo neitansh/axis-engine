@@ -629,6 +629,11 @@ void set_default_settings()
 	settings->setDefault("server_url", "");
 	settings->setDefault("server_address", "");
 	settings->setDefault("server_name", "");
+	// This server's name in the account registry. Tickets are issued for one
+	// server, and this is how a server knows whether a ticket was meant for
+	// it. Empty means "not registered": tickets that name a server will be
+	// refused, which is the safe way round.
+	settings->setDefault("server_id", "");
 	settings->setDefault("server_description", "");
 	settings->setDefault("server_announce_send_players", "true");
 

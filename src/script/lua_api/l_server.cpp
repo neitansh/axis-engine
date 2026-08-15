@@ -142,6 +142,44 @@ int ModApiServer::l_get_player_ip(lua_State *L)
 	return 1;
 }
 
+// get_player_account(name)
+//
+// Who this player is, as their ticket said when they connected: the account
+// key that never changes, the login they are known by, and the name to call
+// them. nil when nobody was checked — a single player game.
+//
+// There is no counterpart that sets any of this. A game is told who came in;
+// deciding who came in is not a game's business, and if it were, every server
+// owner would decide it for themselves.
+int ModApiServer::l_get_player_account(lua_State *L)
+{
+	GET_ENV_PTR_NO_MAP_LOCK;
+
+	const char *name = luaL_checkstring(L, 1);
+	RemotePlayer *player = env->getPlayer(name);
+	if (!player) {
+		lua_pushnil(L); // no such player
+		return 1;
+	}
+
+	TicketIdentity id;
+	if (!env->getServer()->getClientIdentity(player->getPeerId(), id) || id.uid.empty()) {
+		lua_pushnil(L); // nobody was checked
+		return 1;
+	}
+
+	lua_newtable(L);
+	lua_pushstring(L, id.uid.c_str());
+	lua_setfield(L, -2, "uid");
+	lua_pushstring(L, id.login.c_str());
+	lua_setfield(L, -2, "login");
+	lua_pushstring(L, id.display.c_str());
+	lua_setfield(L, -2, "display");
+	lua_pushinteger(L, id.expires);
+	lua_setfield(L, -2, "expires");
+	return 1;
+}
+
 // get_player_information(name)
 // send_chat_commands(name, {{name=, params=, description=}, ...})
 int ModApiServer::l_send_chat_commands(lua_State *L)
@@ -780,6 +818,7 @@ void ModApiServer::Initialize(lua_State *L, int top)
 	API_FCT(get_player_window_information);
 	API_FCT(get_player_privs);
 	API_FCT(get_player_ip);
+	API_FCT(get_player_account);
 	API_FCT(get_ban_list);
 	API_FCT(get_ban_description);
 	API_FCT(ban_player);

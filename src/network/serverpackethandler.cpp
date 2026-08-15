@@ -13,6 +13,7 @@
 #include "nodedef.h"
 #include "porting.h" // strcasecmp
 #include "remoteplayer.h"
+#include "server/ticket.h"
 #include "rollback_interface.h"
 #include "scripting_server.h"
 #include "serialization.h"
@@ -207,6 +208,33 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 
 	client->setName(playerName);
 	client->setTicket(ticket);
+
+	// Who is this, really?
+	//
+	// The check is here, in the engine, and not in the game. Games are written
+	// by whoever runs the server, and a check somebody has to remember to
+	// write is a check that will not be there — that is exactly the hole
+	// "offline mode" leaves in other games. There is no setting to skip it and
+	// no mod that can.
+	//
+	// A single player game is the one place without a ticket, and it is not an
+	// exception to the rule: there the server lives inside the client, a second
+	// player is refused a few lines above, and there is nobody to check.
+	if (!isSingleplayer()) {
+		TicketIdentity id;
+		const TicketError err = checkTicket(ticket, playerName,
+				g_settings->get("server_id"), &id);
+		if (err != TicketError::None) {
+			actionstream << "Server: \"" << playerName << "\" from " << addr_s <<
+				" was refused: " << ticketErrorText(err) << std::endl;
+			DenyAccess(peer_id, SERVER_ACCESSDENIED_CUSTOM_STRING,
+					ticketErrorText(err));
+			return;
+		}
+		client->setIdentity(id);
+		infostream << "Server: \"" << playerName << "\" is " << id.uid <<
+			" (" << id.display << ")" << std::endl;
+	}
 
 	{
 		std::string reason;

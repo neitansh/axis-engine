@@ -300,6 +300,7 @@ if(NOT USE_LUAJIT)
 endif()
 add_subdirectory(lib/lstrpack)
 add_subdirectory(lib/sha256)
+add_subdirectory(lib/tweetnacl)
 
 if(BUILD_UNITTESTS OR BUILD_BENCHMARKS)
 	add_subdirectory(lib/catch2)

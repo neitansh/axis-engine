@@ -636,6 +636,7 @@ add_library(EngineCommon OBJECT
 add_dependencies(EngineCommon GenerateVersion GenerateBuiltinFilesCpp)
 target_link_libraries(EngineCommon
 	sha256
+	tweetnacl
 )
 if(USE_OPENSSL)
 	target_link_libraries(EngineCommon OpenSSL::Crypto)

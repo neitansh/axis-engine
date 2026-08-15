@@ -411,6 +411,14 @@ public:
 	void DisconnectPeer(session_t peer_id);
 	bool getClientConInfo(session_t peer_id, con::rtt_stat_type type, float *retval);
 	bool getClientInfo(session_t peer_id, ClientInfo &ret);
+
+	/**
+	 * Who this player turned out to be when they connected.
+	 *
+	 * Read-only on purpose: the game is told who came in, and cannot say who
+	 * came in. Empty uid means nobody was checked — a single player game.
+	 */
+	bool getClientIdentity(session_t peer_id, TicketIdentity &ret);
 	const ClientDynamicInfo *getClientDynamicInfo(session_t peer_id);
 
 	void printToConsoleOnly(const std::string &text);
