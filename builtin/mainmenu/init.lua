@@ -233,13 +233,19 @@ end
 -- (--ticket-url, --ticket-key) и лежат в настройках.
 --
 -- Одно место на все пути к серверу — подбор матча, список серверов, прямой
--- адрес: дорога у них разная, а спрашивать билет надо одинаково. Кто положил
--- билет в gamedata сам, тому не мешаем.
+-- адрес: дорога у них разная, а спрашивать билет надо одинаково.
+--
+-- Билет одноразовый: сервер гасит его при входе, и второй раз он не сработает.
+-- А в gamedata он остаётся с прошлого захода — таблица между входами не
+-- чистится, — поэтому старый выбрасывается здесь же. Иначе второй вход за
+-- запуск предъявлял бы погашенный билет и получал отказ, а выглядело бы это
+-- поломкой входа.
 local start_game = core.start
 function core.start()
-	if not gamedata or (gamedata.ticket and gamedata.ticket ~= "") then
+	if not gamedata then
 		return start_game()
 	end
+	gamedata.ticket = nil
 
 	local url = core.settings:get("axis_ticket_url") or ""
 	local key = core.settings:get("axis_ticket_key") or ""

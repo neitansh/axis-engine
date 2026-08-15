@@ -157,12 +157,14 @@ bool askAccountService(const std::string &ticket, const std::string &server_id,
 	Json::Value body;
 	body["ticket"] = ticket;
 	body["server"] = server_id;
-	// Not spending the ticket. It would be the stronger check — one entry per
-	// ticket — but the dispatcher moves players between matches, and the
-	// client shows the same ticket to the next server. Spending belongs with a
-	// client that can ask for a fresh ticket each time; until then it would
-	// break moving from a lobby into a match.
-	body["once"] = false;
+	// Spend the ticket: one entry per ticket, and a second try with the same
+	// one is refused. This is safe now that the client asks the launcher for a
+	// fresh ticket at every connection rather than carrying one from startup;
+	// while it carried one, spending would have broken the second join.
+	//
+	// A ticket that leaked — from the process list, from a log, from anywhere —
+	// is worth one entry at most, and only until its owner uses it.
+	body["once"] = true;
 
 	HTTPFetchRequest req;
 	req.url = url + "/v1/verify";
