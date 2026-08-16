@@ -432,8 +432,6 @@ static void set_allowed_options(OptionList *allowed_options)
 			_("Set the ticket that proves who the player is"))));
 	allowed_options->insert(std::make_pair("ticket-url", ValueSpec(VALUETYPE_STRING,
 			_("Where to ask the launcher for a ticket"))));
-	allowed_options->insert(std::make_pair("ticket-key", ValueSpec(VALUETYPE_STRING,
-			_("Key that lets this client ask the launcher for tickets"))));
 	allowed_options->insert(std::make_pair("go", ValueSpec(VALUETYPE_FLAG,
 			_("Skip main menu, go directly in-game"))));
 	allowed_options->insert(std::make_pair("console", ValueSpec(VALUETYPE_FLAG,
@@ -782,8 +780,13 @@ static bool init_common(const Settings &cmd_args, int argc, char *argv[])
 	// в Lua и знает только настройки.
 	if (cmd_args.exists("ticket-url"))
 		g_settings->set("axis_ticket_url", cmd_args.get("ticket-url"));
-	if (cmd_args.exists("ticket-key"))
-		g_settings->set("axis_ticket_key", cmd_args.get("ticket-key"));
+
+	// Ключ приходит переменной окружения, а не аргументом, и это не вкус:
+	// /proc/PID/cmdline читает любой пользователь машины, а /proc/PID/environ —
+	// только владелец. Ключом в аргументах чужой процесс на том же компьютере
+	// брал бы билеты от имени игрока.
+	if (const char *key = std::getenv("AXIS_TICKET_KEY"))
+		g_settings->set("axis_ticket_key", key);
 
 	init_log_streams(cmd_args);
 
