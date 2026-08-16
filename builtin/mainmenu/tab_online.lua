@@ -11,7 +11,7 @@ local function get_sorted_servers()
 
 	local favs = serverlistmgr.get_favorites()
 	local taken_favs = {}
-	local result = menudata.search_result or serverlistmgr.servers
+	local result = menudata.search_result or serverlistmgr.shown
 	for _, server in ipairs(result) do
 		server.is_favorite = false
 		for index, fav in ipairs(favs) do
@@ -74,7 +74,7 @@ end
 local function find_selected_server()
 	local address = core.settings:get("address")
 	local port = tonumber(core.settings:get("remote_port"))
-	for _, server in ipairs(serverlistmgr.servers) do
+	for _, server in ipairs(serverlistmgr.shown) do
 		if server.address == address and server.port == port then
 			return server
 		end
@@ -470,7 +470,7 @@ end
 
 local function search_server_list(input, tabdata)
 	menudata.search_result = nil
-	if #serverlistmgr.servers < 2 then
+	if #serverlistmgr.shown < 2 then
 		return
 	end
 
@@ -487,10 +487,10 @@ local function search_server_list(input, tabdata)
 
 	-- Search the serverlist
 	local search_result = {}
-	for i, server in ipairs(serverlistmgr.servers) do
+	for i, server in ipairs(serverlistmgr.shown) do
 		local match = matches_query(server, query)
 		if match then
-			server.points = #serverlistmgr.servers - i + match
+			server.points = #serverlistmgr.shown - i + match
 			table.insert(search_result, server)
 		end
 	end

@@ -185,6 +185,52 @@ end
 -- человеческие слова подбираются уже здесь.
 local asking = false
 
+-- Под каким именем игрок вошёл.
+--
+-- Спрашивается отдельно от билета, потому что нужно раньше него: очередь
+-- подбора матча ведётся по имени — им Диспетчер отличает игроков и не даёт
+-- одному занять два места, — а билет берётся уже на выходе из очереди, на
+-- найденный матч.
+--
+-- Прав это имя не даёт никаких, и подменить им ничего нельзя: правами
+-- распоряжается билет, а сервер сверяет имя с тем, что в билете записано. Взять
+-- его самому клиенту неоткуда — сессия есть только у лаунчера, и логин могли
+-- сменить с другой машины.
+local function ask_for_login()
+	local url = core.settings:get("axis_ticket_url") or ""
+	local key = core.settings:get("axis_ticket_key") or ""
+	if url == "" or key == "" then
+		-- Без лаунчера имени нет, и придумывать его за игрока незачем: без
+		-- билета его всё равно никуда не пустят.
+		return
+	end
+
+	core.handle_async(function(p)
+		local http = core.get_http_api()
+		if not http then
+			return nil
+		end
+		local res = http.fetch_sync({
+			url = p.url .. "/login",
+			method = "GET",
+			timeout = 10,
+			extra_headers = { "Authorization: Bearer " .. p.key },
+		})
+		if not res.succeeded then
+			return nil
+		end
+		local body = res.data and core.parse_json(res.data) or nil
+		if res.code ~= 200 or type(body) ~= "table" then
+			return nil
+		end
+		return body.login
+	end, { url = url, key = key }, function(login)
+		if type(login) == "string" and login ~= "" then
+			core.settings:set("name", login)
+		end
+	end)
+end
+
 local function ask_for_ticket(url, key, server_id, done)
 	core.handle_async(function(p)
 		local http = core.get_http_api()
@@ -301,3 +347,7 @@ end
 
 assert(os.execute == nil)
 init_globals()
+
+-- Имя спрашивается один раз за запуск и после того, как меню построено: ответ
+-- приходит асинхронно и только записывает настройку, так что ждать его некому.
+ask_for_login()

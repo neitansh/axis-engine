@@ -137,6 +137,9 @@ local function decided()
 	if not core.probe_link then
 		return true -- проверять нечем
 	end
+	-- Список приходит от лаунчера и приходит не мгновенно. Пока его нет,
+	-- решать не из чего: показать «арен нет» в эту секунду значит соврать —
+	-- через мгновение вход появится, и арены вместе с ним.
 	return not probing and probed_at > 0
 end
 
@@ -145,7 +148,7 @@ local function probe_entries()
 	if probing or not core.probe_link then
 		return
 	end
-	if next(link) and os.time() - probed_at < PROBE_FRESH then
+	if probed_at > 0 and os.time() - probed_at < PROBE_FRESH then
 		return
 	end
 	local targets = {}
@@ -157,7 +160,9 @@ local function probe_entries()
 		end
 	end
 	if #targets == 0 then
-		probed_at = os.time()
+		-- Мерить нечего — но и решить нечего. Отметить это как сделанный замер
+		-- значит объявить решённым выбор из пустоты: список ещё едет от
+		-- лаунчера, и через мгновение входы появятся.
 		return
 	end
 
@@ -231,7 +236,10 @@ end
 local function request(path, body, callback)
 	local url = dispatch_url()
 	if not url or url == "" then
-		callback({ error = "no server" })
+		-- Отказ уходит тем же путём, что и настоящий ответ, а не сразу.
+		-- Ответить сразу значит ответить раньше, чем спрашивавший договорил:
+		-- зовут это и с ещё не построенного экрана, а обновлять там нечего.
+		core.handle_async(function() return { error = "no server" } end, {}, callback)
 		return
 	end
 
@@ -337,7 +345,9 @@ local function enter(body)
 	gamedata.server_id = server_id()
 	gamedata.address = body.address
 	gamedata.port = body.port
-	gamedata.playername = player_name()
+	-- Имя не проставляется здесь: его выдаёт билет, и подставит его тот, кто
+	-- билет получил (core.start). Записать сюда своё значило бы дать игроку
+	-- войти под именем, которого в билете нет, — а сервер такого не пустит.
 	gamedata.password = ""
 	gamedata.selected_world = 0
 	core.start()
@@ -477,14 +487,10 @@ local function side_card(ox, oy, h)
 		y = y + 1.15
 	end
 
-	fs[#fs + 1] = menu_style.divider(x, y, w)
-	y = y + menu_style.SPACE.lg
-
-	fs[#fs + 1] = menu_style.heading(x, y, w, 0.6, fgettext("Name"))
-	fs[#fs + 1] = menu_style.inset(x, y + 0.7, w, 0.8)
-	fs[#fs + 1] = ("field[%f,%f;%f,0.8;name;;%s]")
-		:format(x + 0.1, y + 0.7, w - 0.2, ESC(player_name()))
-	fs[#fs + 1] = "field_close_on_enter[name;false]"
+	-- Поля имени здесь нет: имя приходит вместе с билетом, и сервер сверяет
+	-- его с тем, что в билете записано. Дать игроку строку, куда можно печатать
+	-- что угодно без всякого последствия, — обещание, которого клиент не
+	-- держит.
 
 	return table.concat(fs)
 end
@@ -605,6 +611,10 @@ end
 ---Нарисовать подбор матча в прямоугольнике (x, y, w, h).
 function matchmaking.get_formspec(x, y, w, h)
 	state.drawn = os.time()
+	-- Список приходит от лаунчера позже, чем открывается экран, поэтому замер
+	-- заводится и отсюда: на входе в экран мерить было нечего. Сам он дешёвый —
+	-- пока замер свеж или идёт, вызов ничего не делает.
+	probe_entries()
 	-- Замер приходит не сразу, поэтому вход пересматриваем на каждом
 	-- рисовании: как только стало известно, кто ближе, экран сам переедет.
 	local was = dispatch_url()
