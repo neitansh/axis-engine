@@ -288,16 +288,22 @@ jobs:
           version="${{ github.event.inputs.tag_name }}"
           version="${version#v}"
 
+          # tar, сжатый brotli. Был zip; brotli жмёт заметно плотнее, а игру
+          # качает каждый игрок и каждый раз целиком — обновление приносит
+          # сборку, а не разницу. Tar вдобавок несёт права на файл, поэтому
+          # клиент приезжает исполняемым, и лаунчеру не приходится гадать,
+          # кому это право проставить.
+          #
+          # -q 11 — самое плотное, какое умеет brotli. Время сборки здесь
+          # ничего не стоит: пакуем раз, качают многие.
+          ( cd axis_linux && tar -cf - . | brotli -q 11 > "../axis-$version-linux.tar.br" )
+
           # Пустые каталоги должны пережить упаковку: игра приходит с
           # сервера, и games/ с mods/ обязаны существовать, оставаясь пустыми.
           # Своей записи в архиве у пустого каталога нет ничего, кроме него
           # самого, — поэтому проверяем.
-          # zip, а не tar.gz: лаунчер распаковывает своими силами, а из
-          # форматов он умеет только zip.
-          ( cd axis_linux && zip -qr "../axis-$version-linux.zip" . )
-
           for d in games mods; do
-            if ! unzip -l "axis-$version-linux.zip" | grep -q "$d/"; then
+            if ! tar -tf "axis-$version-linux.tar.br" --use-compress-program=brotli | grep -q "$d/"; then
               echo "::error::$d/ не пережил упаковку."
               exit 1
             fi
@@ -308,5 +314,5 @@ jobs:
             -H "X-Axis-Product: game" \
             -H "X-Axis-Version: $version" \
             -H "X-Axis-Platform: linux" \
-            --data-binary "@axis-$version-linux.zip"
+            --data-binary "@axis-$version-linux.tar.br"
           echo

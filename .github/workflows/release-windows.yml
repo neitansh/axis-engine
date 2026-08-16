@@ -35,7 +35,8 @@ jobs:
           update: true
           install: >-
             git
-            zip
+            tar
+            mingw-w64-clang-x86_64-brotli
             mingw-w64-clang-x86_64-clang
             mingw-w64-clang-x86_64-cmake
             mingw-w64-clang-x86_64-ninja
@@ -196,41 +197,39 @@ jobs:
           Write-Host 'Portable package validation passed.'
 
       # ================================================================
-      # Create ZIP
+      # Create the archive
       # ================================================================
-      - name: Create Portable ZIP
+      - name: Create Portable Archive
         shell: msys2 {0}
         run: |
-          rm -f axis_client_windows.zip
+          # tar, сжатый brotli — тот же формат, что и под linux. Был zip;
+          # brotli жмёт заметно плотнее, а игру качает каждый игрок и каждый
+          # раз целиком: обновление приносит сборку, а не разницу.
+          #
+          # -q 11 — самое плотное, какое умеет brotli. Время сборки здесь
+          # ничего не стоит: пакуем раз, качают многие.
+          rm -f axis_client_windows.tar.br
 
-          cd axis_windows
-          zip -r ../axis_client_windows.zip .
-
-          cd ..
+          ( cd axis_windows && tar -cf - . | brotli -q 11 > ../axis_client_windows.tar.br )
 
           echo "Package size:"
-          du -h axis_client_windows.zip
+          du -h axis_client_windows.tar.br
 
       - name: Verify Empty Content Directories
-        shell: pwsh
+        shell: msys2 {0}
         run: |
           # An empty directory carries no files to pull it into the archive,
           # so its own entry is the only thing that recreates it on unpacking.
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          $zip = [System.IO.Compression.ZipFile]::OpenRead((Join-Path $PWD 'axis_client_windows.zip'))
-          try {
-            $names = $zip.Entries | ForEach-Object { $_.FullName }
-          } finally {
-            $zip.Dispose()
-          }
+          names="$(brotli -dc axis_client_windows.tar.br | tar -tf -)"
 
-          foreach ($d in @('games/', 'mods/')) {
-            if ($names -notcontains $d) {
-              throw "$d did not survive into the archive."
-            }
-          }
+          for d in games mods; do
+            if ! printf '%s\n' "$names" | grep -q "$d/"; then
+              echo "::error::$d/ did not survive into the archive."
+              exit 1
+            fi
+          done
 
-          Write-Host 'Empty content directories are present in the archive.'
+          echo 'Empty content directories are present in the archive.'
 
       # ================================================================
       # GitHub Release
@@ -266,5 +265,5 @@ jobs:
             -H "X-Axis-Product: game" \
             -H "X-Axis-Version: $version" \
             -H "X-Axis-Platform: windows" \
-            --data-binary "@axis_client_windows.zip"
+            --data-binary "@axis_client_windows.tar.br"
           echo
