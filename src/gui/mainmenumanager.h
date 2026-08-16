@@ -24,7 +24,6 @@ public:
 	virtual void exitToOS() = 0;
 	virtual void openSettings() = 0;
 	virtual void disconnect() = 0;
-	virtual void changePassword() = 0;
 	virtual void changeVolume() = 0;
 	virtual void showOpenURLDialog(const std::string &url) = 0;
 	virtual void touchscreenLayout() = 0;
@@ -143,11 +142,6 @@ public:
 		disconnect_requested = true;
 	}
 
-	void changePassword() override
-	{
-		changepassword_requested = true;
-	}
-
 	void changeVolume() override
 	{
 		changevolume_requested = true;
@@ -165,7 +159,6 @@ public:
 
 	bool disconnect_requested = false;
 	bool settings_requested = false;
-	bool changepassword_requested = false;
 	bool changevolume_requested = false;
 	bool touchscreenlayout_requested = false;
 	bool shutdown_requested = false;

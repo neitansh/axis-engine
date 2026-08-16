@@ -74,11 +74,6 @@ core.register_privilege("give", {
 	description = S("Can use /give, /giveme, /pulverize and /clearinv"),
 	give_to_singleplayer = false,
 })
-core.register_privilege("password", {
-	description = S("Can use /setpassword and /clearpassword"),
-	give_to_singleplayer = false,
-	give_to_admin = true,
-})
 core.register_privilege("fly", {
 	description = S("Can use fly mode"),
 	give_to_singleplayer = false,

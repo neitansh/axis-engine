@@ -627,10 +627,6 @@ end
 
 ---Разобрать нажатия. true — своё, разобрали.
 function matchmaking.handle(fields)
-	if fields.name then
-		core.settings:set("name", fields.name)
-	end
-
 	if fields.retry then
 		-- Ручная попытка прощает всё: если вход отвалился по случайности,
 		-- второй заход по кнопке должен его вернуть.

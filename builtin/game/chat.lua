@@ -415,62 +415,9 @@ core.register_chatcommand("revokeme", {
 	end,
 })
 
-core.register_chatcommand("setpassword", {
-	params = S("<name> <password>"),
-	description = S("Set player's password (sent unencrypted, thus insecure)"),
-	privs = {password=true},
-	func = function(name, param)
-		local toname, raw_password = string.match(param, "^([^ ]+) +(.+)$")
-		if not toname then
-			toname = param:match("^([^ ]+) *$")
-			raw_password = nil
-		end
-
-		if not toname then
-			return false, S("Name field required.")
-		end
-
-		local msg_chat, msg_log, msg_ret
-		if not raw_password then
-			core.set_player_password(toname, "")
-			msg_chat = S("Your password was cleared by @1.", name)
-			msg_log = name .. " clears password of " .. toname .. "."
-			msg_ret = S("Password of player \"@1\" cleared.", toname)
-		else
-			core.set_player_password(toname,
-					core.get_password_hash(toname,
-							raw_password))
-			msg_chat = S("Your password was set by @1.", name)
-			msg_log = name .. " sets password of " .. toname .. "."
-			msg_ret = S("Password of player \"@1\" set.", toname)
-		end
-
-		if toname ~= name then
-			core.chat_send_player(toname, msg_chat)
-		end
-
-		core.log("action", msg_log)
-
-		return true, msg_ret
-	end,
-})
-
-core.register_chatcommand("clearpassword", {
-	params = S("<name>"),
-	description = S("Set empty password for a player"),
-	privs = {password=true},
-	func = function(name, param)
-		local toname = param
-		if toname == "" then
-			return false, S("Name field required.")
-		end
-		core.set_player_password(toname, '')
-
-		core.log("action", name .. " clears password of " .. toname .. ".")
-
-		return true, S("Password of player \"@1\" cleared.", toname)
-	end,
-})
+-- Паролей у игроков нет: кто вошёл, доказывает билет, а сам билет выписывает
+-- axis-auth по сессии лаунчера. Поэтому /setpassword и /clearpassword убраны —
+-- вместе с привилегией password. Менять пароль игрок ходит на сайт.
 
 core.register_chatcommand("auth_reload", {
 	params = "",

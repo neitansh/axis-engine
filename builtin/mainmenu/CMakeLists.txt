@@ -11,8 +11,7 @@ set(BUILTIN_MAINMENU_SRCS
 	mainmenu/dlg_delete_content.lua
 	mainmenu/dlg_delete_world.lua
 	mainmenu/dlg_rebind_keys.lua
-	mainmenu/dlg_register.lua
-	mainmenu/dlg_reinstall_mtg.lua
+	mainmenu/	mainmenu/dlg_reinstall_mtg.lua
 	mainmenu/dlg_rename_modpack.lua
 	mainmenu/dlg_server_list_mods.lua
 	mainmenu/dlg_start.lua

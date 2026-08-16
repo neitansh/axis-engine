@@ -272,3 +272,20 @@ function serverlistmgr.delete_favorite(del_favorite)
 	delete_favorite(favorites, del_favorite)
 	save_favorites(favorites)
 end
+
+--------------------------------------------------------------------------------
+--- На какой сервер реестра ведёт этот адрес.
+---
+--- Билет выписывается на сервер из реестра, а не на адрес: адресов у одного
+--- сервера бывает несколько — Россия и Европа это две дороги к одному и тому
+--- же. Введённый руками адрес ищется здесь; не нашёлся — билета не будет, и
+--- игрок узнаёт об этом в меню, а не получает невнятный отказ сервера.
+function serverlistmgr.id_of(address, port)
+	port = tonumber(port)
+	for _, server in ipairs(serverlistmgr.servers or {}) do
+		if server.address == address and tonumber(server.port) == port then
+			return server.id
+		end
+	end
+	return nil
+end

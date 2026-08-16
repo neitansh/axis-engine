@@ -34,7 +34,6 @@ dofile(menupath .. DIR_DELIM .. "dlg_confirm_exit.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_create_world.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_delete_content.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_delete_world.lua")
-dofile(menupath .. DIR_DELIM .. "dlg_register.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_rename_modpack.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_reinstall_mtg.lua")
 dofile(menupath .. DIR_DELIM .. "dlg_rebind_keys.lua")
@@ -209,7 +208,7 @@ local function ask_for_ticket(url, key, server_id, done)
 		if res.code ~= 200 or not body or not body.ticket then
 			return { trouble = "refused", said = body and body.message or nil }
 		end
-		return { ticket = body.ticket }
+		return { ticket = body.ticket, login = body.login }
 	end, {
 		url = url,
 		key = key,
@@ -286,6 +285,15 @@ function core.start()
 			ui.update()
 			return
 		end
+		-- Имя приходит вместе с билетом, а не задаётся игроком: сервер сверяет
+		-- его с тем, что записано в билете, и не сойдётся — не пустит. Логин
+		-- могли сменить с другой машины, поэтому спрашиваем его каждый раз, а
+		-- не помним однажды записанное.
+		if answer.login and answer.login ~= "" then
+			gamedata.playername = answer.login
+			core.settings:set("name", answer.login)
+		end
+
 		gamedata.ticket = answer.ticket
 		start_game()
 	end)

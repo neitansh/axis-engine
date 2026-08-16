@@ -168,26 +168,15 @@ local function get_formspec(tabview, name, tabdata)
 
 		-- Description Background
 		"label[0.25,1.6;" .. fgettext("Server Description") .. "]" ..
-		menu_style.inset(0.25, 1.85, 5.25, 2.7) ..
+		menu_style.inset(0.25, 1.85, 5.25, 2.7)
 
-		-- Name / Password
-		"container[0,3.85]" ..
-		"label[0.25,0;" .. fgettext("Name") .. "]" ..
-		"label[2.875,0;" .. fgettext("Password") .. "]" ..
-		menu_style.inset(0.25, 0.2, 2.625, 0.75) ..
-		"field[0.35,0.2;2.425,0.75;te_name;;" .. core.formspec_escape(core.settings:get("name")) .. "]" ..
-		menu_style.inset(2.875, 0.2, 2.625, 0.75) ..
-		"pwdfield[2.975,0.2;2.425,0.75;te_pwd;]" ..
-		"container_end[]"
-
-	-- Connect
-	if core.settings:get_bool("enable_split_login_register") then
-		-- TRANSLATORS: Register an account on a server
-		retval = retval .. "button[0.25,5.05;2.5,0.75;btn_mp_register;" .. fgettext("Register") .. "]"
-	end
-	-- TRANSLATORS: Login to server
+	-- Ни имени, ни пароля здесь больше нет: игрок доказывает, кто он, билетом,
+	-- а билет выписывает axis-auth по сессии лаунчера. Имя приходит вместе с
+	-- билетом — см. builtin/mainmenu/init.lua.
+	--
+	-- TRANSLATORS: Join a server
 	retval = retval .. menu_style.accent("btn_mp_login") ..
-			"button[3,5.05;2.5,0.75;btn_mp_login;" .. fgettext("Login") .. "]"
+			"button[3,5.05;2.5,0.75;btn_mp_login;" .. fgettext("Join") .. "]"
 
 	local selected_server = find_selected_server()
 
@@ -553,11 +542,6 @@ local function main_button_handler(tabview, fields, name, tabdata)
 		return matchmaking.handle(fields)
 	end
 
-	if fields.te_name then
-		gamedata.playername = fields.te_name
-		core.settings:set("name", fields.te_name)
-	end
-
 	if fields.servers then
 		local event = core.explode_table_event(fields.servers)
 		local server = tabdata.lookup[event.row]
@@ -572,12 +556,8 @@ local function main_button_handler(tabview, fields, name, tabdata)
 				gamedata.mode       = "join"
 				gamedata.address    = server.address
 				gamedata.port       = server.port
-				gamedata.playername = fields.te_name
+				gamedata.server_id  = server.id
 				gamedata.selected_world = 0
-
-				if fields.te_pwd then
-					gamedata.password = fields.te_pwd
-				end
 
 				if gamedata.address and gamedata.port then
 					set_selected_server(server)
@@ -654,17 +634,17 @@ local function main_button_handler(tabview, fields, name, tabdata)
 
 	if (fields.btn_mp_login or fields.key_enter) and host_filled then
 		gamedata.mode       = "join"
-		gamedata.playername = fields.te_name
-		gamedata.password   = fields.te_pwd
 		gamedata.address    = fields.te_address
 		gamedata.port       = te_port_number
-
-		local enable_split_login_register = core.settings:get_bool("enable_split_login_register")
-		gamedata.allow_login_or_register = enable_split_login_register and "login" or "any"
 		gamedata.selected_world = 0
 
 		local idx = core.get_table_index("servers")
 		local server = idx and tabdata.lookup[idx]
+
+		-- Билет выписывается на сервер из реестра, а не на адрес. Введённый
+		-- руками адрес ищется в том же списке: не нашёлся — билета не будет, и
+		-- игрок должен узнать об этом здесь, а не получить отказ от сервера.
+		gamedata.server_id = serverlistmgr.id_of(gamedata.address, gamedata.port)
 
 		if server and server.address == gamedata.address and
 				server.port == gamedata.port then
@@ -686,25 +666,6 @@ local function main_button_handler(tabview, fields, name, tabdata)
 		core.settings:set("remote_port", gamedata.port)
 
 		core.start()
-		return true
-	end
-
-	if fields.btn_mp_register and host_filled then
-		local idx = core.get_table_index("servers")
-		local server = idx and tabdata.lookup[idx]
-		if server and (server.address ~= fields.te_address or server.port ~= te_port_number) then
-			server = nil
-		end
-
-		if server and not is_server_protocol_compat_or_error(
-					server.proto_min, server.proto_max) then
-			return true
-		end
-
-		local dlg = create_register_dialog(fields.te_address, te_port_number, server)
-		dlg:set_parent(tabview)
-		tabview:hide()
-		dlg:show()
 		return true
 	end
 

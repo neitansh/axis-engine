@@ -15,8 +15,6 @@
 #include "gui/mainmenumanager.h"
 #include "gui/touchcontrols.h"
 #include "gui/touchscreeneditor.h"
-#include "gui/guiPasswordChange.h"
-#include "gui/guiPasswordChange.h"
 #include "gui/guiOpenURL.h"
 #include "gui/guiVolumeChange.h"
 #include "localplayer.h"
@@ -109,10 +107,6 @@ struct HardcodedPauseFormspecHandler : public TextDest
 			return;
 		}
 
-		if (fields.find("btn_change_password") != fields.end()) {
-			g_gamecallback->changePassword();
-			return;
-		}
 	}
 };
 
@@ -455,11 +449,6 @@ void GameFormSpec::showPauseMenu()
 	// TRANSLATORS: Pause menu button, try to keep the translation short
 	button("btn_continue", strgettext("Continue"), true);
 
-	if (!simple_singleplayer_mode) {
-		// TRANSLATORS: Pause menu button, try to keep the translation short
-		button("btn_change_password", strgettext("Change Password"), false);
-	}
-
 	// TRANSLATORS: Try to keep the translation short
 	button("btn_settings", strgettext("Settings"), false);
 
@@ -567,12 +556,6 @@ bool GameFormSpec::handleCallbacks()
 	if (g_gamecallback->settings_requested) {
 		m_pause_script->open_settings();
 		g_gamecallback->settings_requested = false;
-	}
-
-	if (g_gamecallback->changepassword_requested) {
-		(void)make_irr<GUIPasswordChange>(guienv, guiroot, -1,
-				       &g_menumgr, m_client, texture_src);
-		g_gamecallback->changepassword_requested = false;
 	}
 
 	if (g_gamecallback->changevolume_requested) {

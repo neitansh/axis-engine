@@ -11,7 +11,6 @@ local valid_disabled_settings = {
 }
 
 -- Name and port stored to persist when updating the formspec
-local current_name = core.settings:get("name")
 local current_port = core.settings:get("port")
 
 -- Currently chosen game in gamebar for theming and filtering
@@ -171,14 +170,8 @@ local function get_formspec(tabview, name, tabdata)
 		-- regardless of whether some of the checkboxes are hidden.
 		y = 0.2 + 4 * yo + 0.35
 
-		retval = retval .. "field[0," .. y .. ";4.5,0.75;te_playername;" .. fgettext("Name") .. ";" ..
-				core.formspec_escape(current_name) .. "]"
-
-		y = y + 1.15 + 0.25
-
-		retval = retval .. "pwdfield[0," .. y .. ";4.5,0.75;te_passwd;" .. fgettext("Password") .. "]"
-
-		y = y + 1.15 + 0.25
+		-- Имени и пароля здесь нет: имя игрока приходит из его аккаунта, а
+		-- паролей у Axis не бывает вовсе — кто вошёл, доказывает билет.
 
 		local bind_addr = core.settings:get("bind_address")
 		if bind_addr ~= nil and bind_addr ~= "" then
@@ -222,10 +215,6 @@ local function main_button_handler(this, fields, name, tabdata)
 	end
 
 	local world_doubleclick = false
-
-	if fields["te_playername"] then
-		current_name = fields["te_playername"]
-	end
 
 	if fields["te_serverport"] then
 		current_port = fields["te_serverport"]
@@ -317,8 +306,6 @@ local function main_button_handler(this, fields, name, tabdata)
 
 		if core.settings:get_bool("enable_server") then
 			gamedata.mode       = "host"
-			gamedata.playername = fields["te_playername"]
-			gamedata.password   = fields["te_passwd"]
 			gamedata.port       = fields["te_serverport"]
 			gamedata.address    = ""
 
