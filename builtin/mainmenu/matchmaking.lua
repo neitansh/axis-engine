@@ -224,11 +224,6 @@ local function player_region()
 	return server and server.region or ""
 end
 
-local function player_name()
-	local name = core.settings:get("name") or ""
-	return (name:gsub("^%s*(.-)%s*$", "%1"))
-end
-
 --- Запросы ------------------------------------------------------------------
 -- HTTP уходит в асинхронное состояние: главное не имеет права стоять, пока
 -- ответа нет, — меню перестанет рисоваться.
@@ -395,20 +390,64 @@ local function poll()
 	end)
 end
 
-local function join(mode)
-	local name = player_name()
-	if name == "" then
-		state.status = fgettext("Enter a name first")
-		core.event_handler("Refresh")
+-- Билет для входа в очередь.
+--
+-- Диспетчер пускает в очередь по билету, а не по имени: имя игрок называл сам,
+-- и подтвердить его было нечем, а подпись билета подделать нельзя. Билет тот
+-- же, что и при входе на сервер (на этот же salvo-official), только нужен
+-- раньше — на выходе из меню в очередь. Берём его у лаунчера: сессия есть
+-- только у него. Дальше личность несёт пропуск, и билет уже не нужен.
+local function ticket_for_join(server, done)
+	local url = core.settings:get("axis_ticket_url") or ""
+	local key = core.settings:get("axis_ticket_key") or ""
+	if url == "" or key == "" then
+		done(nil, "no_launcher")
 		return
 	end
+	if not server or server == "" then
+		done(nil, "no_server")
+		return
+	end
+	core.handle_async(function(p)
+		local http = core.get_http_api()
+		if not http then
+			return { trouble = "no_http" }
+		end
+		local res = http.fetch_sync({
+			url = p.url .. "/ticket",
+			method = "POST",
+			timeout = 10,
+			extra_headers = {
+				"Authorization: Bearer " .. p.key,
+				"Content-Type: application/json",
+			},
+			data = p.body,
+		})
+		if not res.succeeded then
+			return { trouble = "silent" }
+		end
+		local body = res.data and core.parse_json(res.data) or nil
+		if res.code ~= 200 or not body or not body.ticket then
+			return { trouble = "refused" }
+		end
+		return { ticket = body.ticket }
+	end, {
+		url = url,
+		key = key,
+		body = core.write_json({ server = server }),
+	}, function(answer)
+		done(answer and answer.ticket or nil, answer and answer.trouble)
+	end)
+end
+
+-- Отправить запрос в очередь. cred — чем доказана личность: пропуск (уже
+-- стоим, распоряжаемся местом) или билет (впервые).
+local function do_join(mode, cred)
 	request("/v1/join", core.write_json({
-		player = name,
 		mode = mode,
 		region = player_region(),
-		-- Свой пропуск, если он уже есть: смена режима не должна выглядеть
-		-- как новый игрок и не должна выдавать второй пропуск.
-		pass = state.pass,
+		pass = cred.pass,
+		ticket = cred.ticket,
 	}), function(res)
 		local body = decode(res)
 		if not body then
@@ -428,6 +467,26 @@ local function join(mode)
 		end
 		core.event_handler("Refresh")
 		poll()
+	end)
+end
+
+local function join(mode)
+	-- Пропуск уже есть — личность несёт он: смена режима не выписывает второй
+	-- пропуск и не требует нового билета.
+	if state.pass then
+		do_join(mode, { pass = state.pass })
+		return
+	end
+	-- Первый вход: берём билет на этот сервер и им доказываем, кто мы.
+	ticket_for_join(server_id(), function(ticket, trouble)
+		if not ticket then
+			state.status = trouble == "no_launcher"
+					and fgettext("Start the game through the launcher to play online")
+				or fgettext("Matchmaking is unavailable")
+			core.event_handler("Refresh")
+			return
+		end
+		do_join(mode, { ticket = ticket })
 	end)
 end
 
