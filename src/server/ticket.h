@@ -5,6 +5,7 @@
 #pragma once
 
 #include "irrlichttypes.h"
+#include "httpfetch.h"
 
 #include <string>
 
@@ -81,10 +82,34 @@ const char *ticketErrorText(TicketError err);
  * Only servers holding a service token can ask; a stranger's server has none
  * and does not need one, since the signature already told it who came.
  *
- * @param reason  set to what the service said when it refuses
- * @return false when the service refused the player. A service that cannot be
- *         reached does NOT refuse: the signature is proof enough on its own,
- *         and a network hiccup must not close the door on everybody.
+ * The question and the answer are separate calls on purpose. Asking used to
+ * block the server thread for as long as it took — up to two seconds, with
+ * every player in the match frozen meanwhile, and one unanswered request per
+ * incoming connection. Now the request goes out and the server keeps running;
+ * the answer is picked up later, on the same thread, where it is safe to talk
+ * to the game again.
+ *
+ * @param caller  a caller id from httpfetch_caller_alloc_secure()
+ * @return false when there is nothing to ask: this server has no service.
+ *         Then the signature is all there is, and it is all that was promised.
  */
-bool askAccountService(const std::string &ticket, const std::string &server_id,
-		TicketIdentity *id, std::string *reason);
+bool startAccountServiceCheck(u64 caller, const std::string &ticket,
+		const std::string &server_id);
+
+/**
+ * Read what the account service said. Call once the fetch for @p caller is in.
+ *
+ * @param res     the fetch result, as httpfetch_async_get() delivered it
+ * @param id      identity from the signature; the display name is updated from
+ *                the answer
+ * @param reason  set to what the service said when it refuses
+ * @return false when the player is not let in — the service refused them, or
+ *         the server has a service and could not reach it.
+ *
+ * A silent service refuses everyone, and that is the point. The signature
+ * cannot spend a ticket, so while the service is down `once` never happens and
+ * a leaked ticket works again and again; a closed account reopens too. The
+ * fallback would fire exactly in the hour somebody took the service down.
+ */
+bool readAccountServiceAnswer(const HTTPFetchResult &res, TicketIdentity *id,
+		std::string *reason);

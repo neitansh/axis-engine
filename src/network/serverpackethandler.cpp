@@ -231,22 +231,55 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 					ticketErrorText(err));
 			return;
 		}
+
 		// The signature is proof of who this is. The service, when this server
 		// has one, adds what the signature cannot know: whether the account was
 		// closed in the last few minutes, and the name the player goes by now.
-		std::string refusal;
-		if (!askAccountService(ticket, g_settings->get("server_id"), &id, &refusal)) {
-			actionstream << "Server: \"" << playerName << "\" from " << addr_s <<
-				" was refused by the account service: " << refusal << std::endl;
-			DenyAccess(peer_id, SERVER_ACCESSDENIED_CUSTOM_STRING,
-					"Account service refused: " + refusal);
+		//
+		// The question goes out and this handler ends here. Waiting for the
+		// answer used to happen right here, on the server thread, and everyone
+		// already playing waited along with it — up to two seconds per incoming
+		// connection, and a knocking stranger could hold the whole match still.
+		// finishInit() picks it up from here once the answer is in.
+		client->setIdentity(id);
+		const u64 caller = httpfetch_caller_alloc_secure();
+		if (startAccountServiceCheck(caller, ticket, g_settings->get("server_id"))) {
+			m_awaiting_auth[peer_id] = AwaitingAuth{caller, porting::getTimeMs()};
 			return;
 		}
+		httpfetch_caller_free(caller);
 
-		client->setIdentity(id);
+		// No service to ask: a stranger's server was promised nothing, and the
+		// signature is all it ever had.
 		infostream << "Server: \"" << playerName << "\" is " << id.uid <<
 			" (" << id.display << ")" << std::endl;
 	}
+
+	finishInit(peer_id);
+}
+
+/**
+ * The rest of the handshake, once we know who came.
+ *
+ * Split off from handleCommand_Init because the account service is asked
+ * without blocking: everything below talks to the game and to the player
+ * database, so it has to run on the server thread — but it no longer has to run
+ * in the same breath as the question.
+ */
+void Server::finishInit(session_t peer_id)
+{
+	RemoteClient *client = m_clients.getClientNoEx(peer_id, CS_Created);
+	if (!client || client->getState() != CS_Created)
+		return; // left, or moved on, while we were asking
+
+	const std::string playerName = client->getName();
+	const char *playername = playerName.c_str();
+	// The cached address, not the connection's: the peer may be gone by now,
+	// and asking for it would throw where there is nothing to catch.
+	const std::string addr_s = client->getAddress().serializeString();
+	const u8 serialization_ver = client->getPendingSerializationVersion();
+	const u16 net_proto_version = client->net_proto_version;
+	const std::string &ticket = client->getTicket();
 
 	{
 		std::string reason;

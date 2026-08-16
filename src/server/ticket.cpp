@@ -146,13 +146,13 @@ TicketError checkTicket(const std::string &ticket, const std::string &expect_log
 	return TicketError::None;
 }
 
-bool askAccountService(const std::string &ticket, const std::string &server_id,
-		TicketIdentity *id, std::string *reason)
+bool startAccountServiceCheck(u64 caller, const std::string &ticket,
+		const std::string &server_id)
 {
 	const std::string url = g_settings->get("auth_url");
 	const std::string token = g_settings->get("auth_token");
 	if (url.empty() || token.empty())
-		return true; // nothing to ask, and nothing was promised
+		return false; // nothing to ask, and nothing was promised
 
 	Json::Value body;
 	body["ticket"] = ticket;
@@ -167,6 +167,7 @@ bool askAccountService(const std::string &ticket, const std::string &server_id,
 	body["once"] = true;
 
 	HTTPFetchRequest req;
+	req.caller = caller;
 	req.url = url + "/v1/verify";
 	req.method = HTTP_POST;
 	req.raw_data = fastWriteJson(body);
@@ -174,19 +175,41 @@ bool askAccountService(const std::string &ticket, const std::string &server_id,
 	req.extra_headers.emplace_back("Authorization: Bearer " + token);
 	// The service stands next to the server, in the same docker network, and
 	// answers in milliseconds. The timeout is here for the case where it does
-	// not answer at all, and it is short because this runs on the server
-	// thread: everyone else waits meanwhile.
-	req.connect_timeout = 1000;
-	req.timeout = 2000;
+	// not answer at all. It can afford to be generous now that nobody waits on
+	// it: the player who is connecting waits, and only that player.
+	req.connect_timeout = 2000;
+	req.timeout = 5000;
 	req.quiet = true;
 
-	HTTPFetchResult res;
-	httpfetch_sync_interruptible(req, res);
+	httpfetch_async(req);
+	return true;
+}
 
+bool readAccountServiceAnswer(const HTTPFetchResult &res, TicketIdentity *id,
+		std::string *reason)
+{
+	// A server that has a service and cannot reach it lets nobody in.
+	//
+	// It used to let the player through "on the signature alone", and that was
+	// the one shape of hole this whole mechanism exists to avoid. The signature
+	// says who wrote the ticket; it cannot say whether the account was closed a
+	// minute ago, and — the part that matters — it cannot spend the ticket.
+	// While the service is down, `once` never happens: a leaked ticket works
+	// again and again, for as long as it is fresh.
+	//
+	// So the fallback fired exactly when it must not: a service taken down on
+	// purpose turned one-time tickets into reusable ones and reopened banned
+	// accounts. A server nobody can vouch for turns everyone away instead; that
+	// is worse for a few minutes and better than the alternative forever.
+	//
+	// This is not about strangers' servers: one without a service has no
+	// `auth_url`, was promised nothing and returns above.
 	if (!res.succeeded) {
-		warningstream << "Ticket: account service did not answer; letting "
-			<< id->login << " in on the signature alone" << std::endl;
-		return true;
+		*reason = "service_unreachable";
+		errorstream << "Ticket: account service did not answer; refusing "
+			<< id->login << " — a ticket cannot be spent while it is down"
+			<< std::endl;
+		return false;
 	}
 
 	Json::Value answer;
@@ -196,8 +219,10 @@ bool askAccountService(const std::string &ticket, const std::string &server_id,
 		const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
 		if (!reader->parse(res.data.data(), res.data.data() + res.data.size(),
 				&answer, &errors) || !answer.isObject()) {
-			warningstream << "Ticket: account service answered with nonsense" << std::endl;
-			return true;
+			*reason = "service_unreadable";
+			errorstream << "Ticket: account service answered with nonsense; "
+				"refusing " << id->login << std::endl;
+			return false;
 		}
 	}
 

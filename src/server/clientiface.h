@@ -315,6 +315,10 @@ public:
 	void setPendingSerializationVersion(u8 version)
 		{ m_pending_serialization_version = version; }
 
+	/* the version agreed on at INIT, before the handshake confirms it */
+	u8 getPendingSerializationVersion() const
+		{ return m_pending_serialization_version; }
+
 	void confirmSerializationVersion()
 		{ serialization_version = m_pending_serialization_version; }
 

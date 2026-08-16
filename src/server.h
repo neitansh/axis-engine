@@ -221,6 +221,10 @@ public:
 	void handleCommand_Null(NetworkPacket* pkt) {};
 	void handleCommand_Deprecated(NetworkPacket* pkt);
 	void handleCommand_Init(NetworkPacket* pkt);
+	/// The rest of the handshake, once the account service has answered.
+	void finishInit(session_t peer_id);
+	/// Pick up answers from the account service and let those players in.
+	void stepAwaitingAuth();
 	void handleCommand_Init2(NetworkPacket* pkt);
 	void handleCommand_ModChannelJoin(NetworkPacket *pkt);
 	void handleCommand_ModChannelLeave(NetworkPacket *pkt);
@@ -809,6 +813,18 @@ private:
 	// pending dynamic media callbacks, clients inform the server when they have a file fetched
 	std::unordered_map<u32, PendingDynamicMediaCallback> m_pending_dyn_media;
 	float m_step_pending_dyn_media_timer = 0.0f;
+
+	/// A player whose ticket is with the account service right now.
+	///
+	/// They wait here instead of on the server thread. That is the whole point:
+	/// the question travels over the network, and while it does, the match must
+	/// keep running for everyone already in it.
+	struct AwaitingAuth
+	{
+		u64 caller;   ///< httpfetch caller id, freed when the answer is in
+		u64 asked_at; ///< when we asked, in ms — a stuck request must not linger
+	};
+	std::unordered_map<session_t, AwaitingAuth> m_awaiting_auth;
 
 	/*
 		Sounds

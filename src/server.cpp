@@ -15,6 +15,7 @@
 #include "filesys.h"
 #include "gameparams.h"
 #include "gettext.h"
+#include "httpfetch.h"
 #include "irr_v2d.h"
 #include "itemdef.h"
 #include "log.h"
@@ -885,6 +886,10 @@ void Server::AsyncRunStep(float dtime, bool initial_step)
 			counter = 0;
 		}
 	}
+
+	// Every step, not on a timer: somebody is holding a half-open connection
+	// waiting for this, and the answer usually takes milliseconds.
+	stepAwaitingAuth();
 
 #if USE_CURL
 	// send masterserver announce
@@ -3293,6 +3298,60 @@ void Server::stepPendingDynMediaCallbacks(float dtime)
 		}
 		getScriptIface()->freeDynamicMediaCallback(token);
 		return true; });
+}
+
+void Server::stepAwaitingAuth()
+{
+	if (m_awaiting_auth.empty())
+		return;
+
+	// A request that never comes back must not hold a connection open forever.
+	// httpfetch has its own timeout and normally answers by itself; this is the
+	// backstop for the case where it does not.
+	const u64 patience = 15000;
+	const u64 now = porting::getTimeMs();
+
+	erase_if(m_awaiting_auth, [&](decltype(m_awaiting_auth)::value_type &it) {
+		const session_t peer_id = it.first;
+		AwaitingAuth &waiting = it.second;
+
+		HTTPFetchResult res;
+		const bool answered = httpfetch_async_get(waiting.caller, res);
+		if (!answered) {
+			if (now - waiting.asked_at < patience)
+				return false;
+			res.succeeded = false; // fall through and refuse
+		}
+
+		RemoteClient *client = m_clients.getClientNoEx(peer_id, CS_Created);
+		if (!client) {
+			// Left while we were asking. Nobody to let in and nobody to refuse.
+			httpfetch_caller_free(waiting.caller);
+			return true;
+		}
+
+		TicketIdentity id = client->getIdentity();
+		std::string refusal;
+		const bool allowed = readAccountServiceAnswer(res, &id, &refusal);
+		httpfetch_caller_free(waiting.caller);
+
+		if (!allowed) {
+			actionstream << "Server: \"" << client->getName() <<
+				"\" was refused by the account service: " << refusal << std::endl;
+			DenyAccess(peer_id, SERVER_ACCESSDENIED_CUSTOM_STRING,
+					"Account service refused: " + refusal);
+			return true;
+		}
+
+		client->setIdentity(id);
+		infostream << "Server: \"" << client->getName() << "\" is " << id.uid <<
+			" (" << id.display << ")" << std::endl;
+
+		// Erase before continuing: finishInit() can end in DenyAccess, and this
+		// entry has no business outliving the answer it was waiting for.
+		finishInit(peer_id);
+		return true;
+	});
 }
 
 void Server::SendMinimapModes(session_t peer_id,
