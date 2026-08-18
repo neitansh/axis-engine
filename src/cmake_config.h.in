@@ -17,6 +17,7 @@
 #cmakedefine01 RUN_IN_PLACE
 #cmakedefine01 DEVELOPMENT_BUILD
 #cmakedefine01 ENFORCE_BUILTIN_INTEGRITY
+#cmakedefine01 REQUIRE_LAUNCHER
 #cmakedefine01 USE_GETTEXT
 #cmakedefine01 USE_CURL
 #cmakedefine01 USE_SOUND

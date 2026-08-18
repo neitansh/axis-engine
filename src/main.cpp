@@ -131,6 +131,29 @@ static FileLogOutput file_log_output;
 
 static OptionList allowed_options;
 
+#if CHECK_CLIENT_BUILD()
+/// Запустил ли нас лаунчер.
+///
+/// Спрашивается у аргументов и окружения, а не у настроек, куда те же значения
+/// потом ложатся: настройки клиент пишет себе на диск между запусками, и
+/// прошлый запуск оставил бы пропуск следующему — навсегда.
+///
+/// Билетов клиент себе не выписывает: за ними он ходит в дверцу лаунчера, и без
+/// неё дальше главного меню всё равно не уйти. Отказ здесь не добавляет
+/// защиты — он лишь говорит вслух то, что иначе выяснится ошибкой подключения.
+static bool started_by_the_launcher(const Settings &cmd_args)
+{
+	if (!REQUIRE_LAUNCHER)
+		return true;
+	if (cmd_args.exists("ticket-url") && std::getenv("AXIS_TICKET_KEY"))
+		return true;
+
+	errorstream << "Axis is started by the Axis launcher, not on its own. "
+		<< "Close this and run the launcher." << std::endl;
+	return false;
+}
+#endif
+
 int main(int argc, char *argv[])
 {
 	int retval;
@@ -268,6 +291,13 @@ int main(int argc, char *argv[])
 	game_params.is_dedicated_server = wants_dedicated_server(cmd_args);
 	if (game_params.is_dedicated_server)
 		porting::attachOrCreateConsole();
+
+#if CHECK_CLIENT_BUILD()
+	// До того, как трогать миры и игры: отказ должен быть виден отказом, а не
+	// первой попавшейся ошибкой на пути к нему.
+	if (!game_params.is_dedicated_server && !started_by_the_launcher(cmd_args))
+		return 1;
+#endif
 
 	if (!game_configure(&game_params, cmd_args))
 		return 1;

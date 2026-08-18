@@ -67,6 +67,7 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DENFORCE_BUILTIN_INTEGRITY=TRUE \
+            -DREQUIRE_LAUNCHER=TRUE \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
             -DRUN_IN_PLACE=TRUE \
@@ -194,6 +195,18 @@ jobs:
           }
           if ($proc.ExitCode -ne 0) {
             throw "The packaged client failed to start (exit code $($proc.ExitCode))."
+          }
+
+          # The package is built with REQUIRE_LAUNCHER, and a build that forgot
+          # it would open the main menu here instead of refusing. Started with
+          # no ticket door, the client must stop before it opens a window.
+          $alone = Start-Process -FilePath $exe -PassThru
+          if (-not $alone.WaitForExit(60000)) {
+            $alone.Kill()
+            throw 'The packaged client kept running without the launcher.'
+          }
+          if ($alone.ExitCode -eq 0) {
+            throw 'The packaged client started without the launcher.'
           }
 
           Write-Host 'Portable package validation passed.'

@@ -32,6 +32,14 @@ endif()
 set(ENFORCE_BUILTIN_INTEGRITY ${DEFAULT_ENFORCE_BUILTIN_INTEGRITY} CACHE BOOL
 	"Refuse to load modified builtin Lua files")
 
+# Refuse to run the client unless the Axis launcher started it. Off for
+# development builds, where starting the client by hand is the normal way to
+# work; the released package turns it on. There is no runtime switch on
+# purpose: one would be a way to hand a player a build that starts without the
+# launcher, and that build is exactly the one nobody would notice going stale.
+set(REQUIRE_LAUNCHER ${DEFAULT_ENFORCE_BUILTIN_INTEGRITY} CACHE BOOL
+	"Refuse to start the client unless the launcher started it")
+
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 if(VERSION_EXTRA)
 	set(VERSION_STRING "${VERSION_STRING}-${VERSION_EXTRA}")

@@ -31,6 +31,7 @@ jobs:
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DENFORCE_BUILTIN_INTEGRITY=TRUE \
+            -DREQUIRE_LAUNCHER=TRUE \
             -DRUN_IN_PLACE=TRUE \
             -DBUILD_SERVER=FALSE \
             -DBUILD_CLIENT=TRUE \
