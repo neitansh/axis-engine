@@ -147,8 +147,17 @@ BY_NAME = {
     "server_id": "ServerSecurity",
     "auth_url": "ServerSecurity",
     "auth_token": "ServerSecurity",
-    # The ticket the launcher hands to the client on start.
-    "axis_ticket": "ClientSession",
+    # The launcher's ticket door: where to ask, and the key of this run. Never
+    # saved — see ConfigDomain::NotSaved. The table used to be edited by hand to
+    # add these, and being out of sorted order made the binary search miss the
+    # key, which then landed in custom.conf as a setting nobody knows.
+    #
+    # axis_ticket is what the launcher handed over when a ticket was still
+    # issued up front. Nothing reads it now; it stays listed so that bringing
+    # it back cannot bring back saving it too.
+    "axis_ticket": "NotSaved",
+    "axis_ticket_url": "NotSaved",
+    "axis_ticket_key": "NotSaved",
     "dpi_change_notifier": "ClientGraphics",
     "enable_touch": "ClientInput",
     "main_menu_path": "ClientInterface",

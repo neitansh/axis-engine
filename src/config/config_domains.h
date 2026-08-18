@@ -41,6 +41,20 @@ enum class ConfigDomain : unsigned char {
 	ServerWorldgen,
 	ServerCustom,
 
+	/**
+	 * Belongs to no file: what carries this domain is never written to disk.
+	 *
+	 * For what lives one run and is a secret besides — the address of the
+	 * launcher's ticket door and the key to it. Saving those would both hand
+	 * the next run a pass it did not earn and leave a key of the player lying
+	 * in a plain text file that goes out with any bug report.
+	 *
+	 * There is no spec for it, so it matches no file and nothing writes it.
+	 * A line that is already in a file is dropped the next time that file is
+	 * rewritten.
+	 */
+	NotSaved,
+
 	Count
 };
 
