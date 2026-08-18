@@ -278,25 +278,27 @@ if(UNIX AND NOT APPLE)
 	install(FILES "doc/axis.6" "doc/axisserver.6" DESTINATION "${MANDIR}/man6")
 	install(FILES "misc/io.github.neitansh.axis.desktop" DESTINATION "${XDG_APPS_DIR}")
 	install(FILES "misc/io.github.neitansh.axis.metainfo.xml" DESTINATION "${METAINFODIR}")
-	# Рисунок иконки пока Luanti'евский (автор erle, CC BY-SA 3.0 — см.
-	# LICENSE.txt), поэтому исходные файлы зовутся по-старому. Ставится он под
-	# именем axis: иначе установленный рядом Luanti и Axis затирали бы иконки
-	# друг друга, а ярлык ссылался бы на чужое имя.
-	install(FILES "misc/luanti.svg"
-		DESTINATION "${ICONDIR}/hicolor/scalable/apps"
-		RENAME "axis.svg")
-	install(FILES "misc/luanti-xorg-icon-128.png"
+	# Иконка ставится под именем axis: установленный рядом Luanti иначе затирал
+	# бы её своей, а ярлык ссылался бы на чужое имя.
+	#
+	# Растром, а не в scalable/: вектора у логотипа нет, а класть в «scalable»
+	# картинку из точек — обещать то, чего там не лежит. Два размера покрывают
+	# и панель, и крупный вид; больше 256 исходник всё равно не даёт.
+	install(FILES "misc/axis-icon-128.png"
 		DESTINATION "${ICONDIR}/hicolor/128x128/apps"
+		RENAME "axis.png")
+	install(FILES "misc/axis-icon-256.png"
+		DESTINATION "${ICONDIR}/hicolor/256x256/apps"
 		RENAME "axis.png")
 endif()
 
 if(APPLE)
-	install(FILES "misc/luanti-icon.icns" DESTINATION "${SHAREDIR}")
+	install(FILES "misc/axis-icon.icns" DESTINATION "${SHAREDIR}")
 	install(FILES "${CMAKE_BINARY_DIR}/Info.plist" DESTINATION "${BUNDLE_PATH}/Contents")
 endif()
 
 if(CMAKE_GENERATOR STREQUAL "Xcode")
-	set(client_RESOURCES "${CMAKE_SOURCE_DIR}/misc/luanti-icon.icns")
+	set(client_RESOURCES "${CMAKE_SOURCE_DIR}/misc/axis-icon.icns")
 endif()
 
 # Library pack

@@ -52,12 +52,11 @@ rubenwardy, paramat:
   textures/base/pack/start_icon.png
   textures/base/pack/end_icon.png
 
-erle:
-  misc/luanti-icon-24x24.png
-  misc/luanti.svg
-
 the Axis contributors (CC BY-SA 3.0):
   misc/axis-icon.ico
+  misc/axis-icon.icns
+  misc/axis-icon-128.png
+  misc/axis-icon-256.png
   textures/base/pack/logo.png
   textures/base/pack/menu_header.png
   textures/base/pack/progress_bar.png

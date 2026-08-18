@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>@PROJECT_NAME@</string>
 	<key>CFBundleIconFile</key>
-	<string>luanti-icon.icns</string>
+	<string>axis-icon.icns</string>
 	<key>CFBundleName</key>
 	<string>@PROJECT_NAME_CAPITALIZED@</string>
 	<key>CFBundleDisplayName</key>

@@ -55,4 +55,4 @@ script: |
 
     # Is a backup icon location in case
     mkdir -p AppDir/usr/share/axis/misc
-    cp AppDir/usr/share/icons/hicolor/128x128/apps/axis.png AppDir/usr/share/axis/misc/luanti-xorg-icon-128.png
+    cp AppDir/usr/share/icons/hicolor/128x128/apps/axis.png AppDir/usr/share/axis/misc/axis-icon-128.png

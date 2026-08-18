@@ -1,7 +1,7 @@
 # Project properties
 PROJECT_NAME           = @PROJECT_NAME_CAPITALIZED@
 PROJECT_NUMBER         = @VERSION_STRING@
-PROJECT_LOGO           = @CMAKE_CURRENT_SOURCE_DIR@/misc/luanti.svg
+PROJECT_LOGO           = @CMAKE_CURRENT_SOURCE_DIR@/misc/axis-icon-256.png
 
 # Parsing
 JAVADOC_AUTOBRIEF      = YES
