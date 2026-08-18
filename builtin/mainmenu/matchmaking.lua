@@ -514,7 +514,6 @@ local function side_card(ox, oy, h)
 	if own and own ~= "" then
 		-- Свой Диспетчер: замеры и списки тут ни при чём, показываем как есть.
 		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(own))
-		y = y + 1.15
 	elseif server then
 		-- Пока идёт проверка, вход не называется. Назвать его заранее — значит
 		-- сказать «пойдёшь отсюда» до того, как это решено: сменится он через
@@ -540,10 +539,8 @@ local function side_card(ox, oy, h)
 				fs[#fs + 1] = menu_style.caption(x, y + 0.6, w, 0.5, note)
 			end
 		end
-		y = y + 1.15
 	else
 		fs[#fs + 1] = menu_style.caption(x, y, w, 0.6, fgettext("No servers"))
-		y = y + 1.15
 	end
 
 	-- Поля имени здесь нет: имя приходит вместе с билетом, и сервер сверяет

@@ -91,14 +91,27 @@ void TestConfigManager::testDomainLookup()
 	UASSERTEQ(int, (int)findSettingDomain("some_mod_setting"),
 			(int)ConfigDomain::Count);
 
-	// Every domain has a file of its own
+	// The ticket door of the launcher is never written to disk: where to ask
+	// for a ticket and the key of this run live one run and are a secret
+	// besides. See ConfigDomain::NotSaved.
+	UASSERTEQ(int, (int)findSettingDomain("axis_ticket_url"),
+			(int)ConfigDomain::NotSaved);
+	UASSERTEQ(int, (int)findSettingDomain("axis_ticket_key"),
+			(int)ConfigDomain::NotSaved);
+	UASSERTEQ(int, (int)findSettingDomain("axis_ticket"),
+			(int)ConfigDomain::NotSaved);
+
+	// Every domain has a file of its own, and NotSaved has none on purpose:
+	// that is what keeps anything carrying it off the disk.
 	std::set<std::string> paths;
 	for (const ConfigDomainSpec &spec : getConfigDomainSpecs()) {
 		UASSERT(spec.path && *spec.path);
 		UASSERT(spec.summary && *spec.summary);
+		UASSERT(spec.domain != ConfigDomain::NotSaved);
 		UASSERT(paths.insert(spec.path).second);
 	}
-	UASSERTEQ(size_t, paths.size(), (size_t)ConfigDomain::Count);
+	// Минус один — NotSaved: он единственный, у кого файла нет.
+	UASSERTEQ(size_t, paths.size(), (size_t)ConfigDomain::Count - 1);
 }
 
 void TestConfigManager::testLayoutOnLoad()
