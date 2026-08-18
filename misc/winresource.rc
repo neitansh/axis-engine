@@ -36,21 +36,26 @@ LANGUAGE 0, SUBLANG_NEUTRAL
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904b0"
+        // 0000 — language-neutral, not 0409 (English). Windows looks up the
+        // block by the user's language and falls back to the first one, so an
+        // English-only block makes the file look untranslated on every other
+        // system. The strings here are names and a copyright line; they are
+        // the same in every language.
+        BLOCK "000004b0"
     BEGIN
-        VALUE "CompanyName", PROJECT_NAME_C " community"
+        VALUE "CompanyName", "the iVy Studio"
         VALUE "FileDescription", PROJECT_NAME_C " engine"
         VALUE "FileVersion", VERSION_STRING
         VALUE "InternalName", PROJECT_NAME
         VALUE "OriginalFilename", PROJECT_NAME ".exe"
-        VALUE "LegalCopyright", "(c) 2010-2026 Perttu Ahola (celeron55) and contributors"
+        VALUE "LegalCopyright", "\251 the iVy Studio"
         VALUE "ProductName", PROJECT_NAME_C
         VALUE "ProductVersion", PRODUCT_VERSION_STRING
     END
 END
 BLOCK "VarFileInfo"
 BEGIN
-    VALUE "Translation", 0x409, 1200
+    VALUE "Translation", 0x0000, 1200
 END
 END
 
