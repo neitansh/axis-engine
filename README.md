@@ -257,7 +257,8 @@ Axis exists because Luanti exists.
 - **Irrlicht / IrrlichtMt** — the rendering library the engine uses, bundled in
   [`irr/`](irr/).
 - Third-party libraries in [`lib/`](lib/), each with its own license.
-- Media by the authors listed in [LICENSE.txt](LICENSE.txt). The application
-  icon (`misc/luanti-icon.*`, `misc/luanti.svg`) is still Luanti's, by erle,
-  under CC BY-SA 3.0.
+- Media by the authors listed in [LICENSE.txt](LICENSE.txt). The Windows
+  executable carries Axis' own icon (`misc/axis-icon.ico`); the icons the other
+  platforms install (`misc/luanti-icon-24x24.png`, `misc/luanti.svg`,
+  `misc/luanti-icon.icns`) are still Luanti's, by erle, under CC BY-SA 3.0.
 - **Axis** — maintained by [Neitansh](https://github.com/neitansh).

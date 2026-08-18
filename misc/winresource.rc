@@ -14,7 +14,7 @@ CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "luanti.exe.manifest"
 #endif
 
 LANGUAGE 0, SUBLANG_NEUTRAL
-130        ICON         "luanti-icon.ico"
+130        ICON         "axis-icon.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

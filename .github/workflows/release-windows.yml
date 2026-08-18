@@ -128,10 +128,11 @@ jobs:
           fi
 
           # Windows resolves imported DLLs next to the executable or through
-          # PATH, it has no equivalent of RPATH. This launcher is what makes
-          # the libs/ directory usable.
-          printf '@echo off\r\nsetlocal\r\nset "PATH=%%~dp0libs;%%PATH%%"\r\n"%%~dp0bin\\axis.exe" %%*\r\n' \
-            > axis_windows/axis.cmd
+          # PATH, it has no equivalent of RPATH. A .cmd wrapper used to add
+          # libs/ to PATH here; it is gone on purpose. The launcher starts the
+          # client itself and prepends libs/ to the child's PATH, and a wrapper
+          # sitting in the package is a second way in — one that starts the
+          # game with no launcher behind it.
 
           echo ""
           echo "Bundled DLLs:"
@@ -161,8 +162,9 @@ jobs:
             throw 'DLLs must be shipped in libs\, not next to the executable.'
           }
 
-          if (-not (Test-Path (Join-Path $root 'axis.cmd'))) {
-            throw 'axis.cmd launcher is missing from the package.'
+          $wrappers = @(Get-ChildItem $root -Filter '*.cmd' -ErrorAction SilentlyContinue)
+          if ($wrappers.Count -ne 0) {
+            throw 'The package must ship no .cmd wrapper: the launcher starts the client.'
           }
 
           # The configuration template must survive packaging, otherwise a
@@ -182,7 +184,7 @@ jobs:
             throw 'A stale minetest.conf.example found its way into the package.'
           }
 
-          # Resolve DLLs exactly the way axis.cmd does. A missing dependency
+          # Resolve DLLs exactly the way the launcher does. A missing dependency
           # makes the loader fail before main() with STATUS_DLL_NOT_FOUND.
           $env:PATH = (Join-Path $root 'libs') + ';' + $env:PATH
           $proc = Start-Process -FilePath $exe -ArgumentList '--version' -PassThru

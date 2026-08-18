@@ -54,10 +54,10 @@ rubenwardy, paramat:
 
 erle:
   misc/luanti-icon-24x24.png
-  misc/luanti-icon.ico
   misc/luanti.svg
 
 the Axis contributors (CC BY-SA 3.0):
+  misc/axis-icon.ico
   textures/base/pack/logo.png
   textures/base/pack/menu_header.png
   textures/base/pack/progress_bar.png
