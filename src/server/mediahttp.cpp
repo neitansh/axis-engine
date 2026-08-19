@@ -18,6 +18,11 @@
 #include <ws2tcpip.h>
 #define CLOSE_SOCKET(s) closesocket(s)
 typedef int socklen_t;
+// Winsock зовёт то же самое по-своему: опроса дескрипторов под именем poll там
+// нет, а обрывать процесс сигналом на закрытом сокете некому и незачем.
+typedef WSAPOLLFD PollFd;
+#define POLL_SOCKETS(fds, n, ms) WSAPoll(fds, n, ms)
+#define MSG_NOSIGNAL 0
 #else
 #include <cerrno>
 #include <netinet/in.h>
@@ -27,6 +32,8 @@ typedef int socklen_t;
 #include <sys/types.h>
 #include <unistd.h>
 #define CLOSE_SOCKET(s) ::close(s)
+typedef struct pollfd PollFd;
+#define POLL_SOCKETS(fds, n, ms) ::poll(fds, n, ms)
 #endif
 
 namespace
@@ -44,7 +51,7 @@ namespace
 	bool sendAll(int sock, const char *data, size_t size)
 	{
 		while (size > 0) {
-			ssize_t sent = ::send(sock, data, size, MSG_NOSIGNAL);
+			const auto sent = ::send(sock, data, (int)size, MSG_NOSIGNAL);
 			if (sent <= 0)
 				return false;
 			data += sent;
@@ -208,14 +215,14 @@ bool MediaHttpServer::serveOnce(int sock)
 		if (request.size() > REQUEST_MAX_SIZE)
 			return false;
 
-		pollfd pfd{};
+		PollFd pfd{};
 		pfd.fd = sock;
 		pfd.events = POLLIN;
-		if (::poll(&pfd, 1, REQUEST_TIMEOUT_MS) <= 0)
+		if (POLL_SOCKETS(&pfd, 1, REQUEST_TIMEOUT_MS) <= 0)
 			return false;
 
 		char buf[1024];
-		ssize_t got = ::recv(sock, buf, sizeof(buf), 0);
+		const auto got = ::recv(sock, buf, (int)sizeof(buf), 0);
 		if (got <= 0)
 			return false;
 		request.append(buf, got);
@@ -266,10 +273,10 @@ bool MediaHttpServer::serveOnce(int sock)
 void MediaHttpServer::threadMain()
 {
 	while (!m_stop) {
-		pollfd pfd{};
+		PollFd pfd{};
 		pfd.fd = m_listen_sock;
 		pfd.events = POLLIN;
-		const int ready = ::poll(&pfd, 1, 200);
+		const int ready = POLL_SOCKETS(&pfd, 1, 200);
 		if (ready < 0)
 			break;
 		if (ready == 0)
