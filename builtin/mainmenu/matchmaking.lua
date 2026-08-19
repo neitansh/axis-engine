@@ -106,7 +106,8 @@ local function pick_entry()
 	local chosen = serverlistmgr.entry
 	local first
 	for i, server in ipairs(servers()) do
-		if server.dispatch and not state.bad[server.dispatch]
+		if server.role == "matches" and server.dispatch
+				and not state.bad[server.dispatch]
 				and matchmaking.entry_usable(server) then
 			first = first or i
 			if chosen and server.region == chosen then

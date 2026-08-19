@@ -114,6 +114,11 @@ local function unfold(servers)
 						-- Умолчание — не показывать: реестр говорит об этом
 						-- прямо, и молчание значит «нет».
 						listed = server.listed == true,
+						-- Чем сервер занят: лобби подбора матчей или обычный
+						-- игровой. Реестр говорит это прямо, и гадать по
+						-- наличию Диспетчера больше не нужно — раньше из-за
+						-- такого гадания обычный сервер попадал в матчи.
+						role = server.role or "server",
 					}
 				end
 			end
@@ -214,9 +219,13 @@ function serverlistmgr.sync()
 		serverlistmgr.entry = answer.entry
 		serverlistmgr.usable = answer.usable
 
+		-- В список серверов идёт только то, что им и является. Лобби подбора
+		-- матчей туда не попадает ни при каких настройках: строка в списке
+		-- звала бы игрока туда, где играть не во что, — играют на арене, а
+		-- адрес её выдаёт Диспетчер.
 		local shown = {}
 		for _, server in ipairs(serverlistmgr.servers) do
-			if server.listed then
+			if server.listed and server.role ~= "matches" then
 				shown[#shown + 1] = server
 			end
 		end
