@@ -81,7 +81,7 @@ void TestServerModManager::runTests(IPlaceDef *placedef)
 	const auto gamemods = game + (DIR_DELIM "mods" DIR_DELIM);
 
 	fs::CreateAllDirs(game);
-	writeFile(game + (DIR_DELIM "game.conf"),
+	writeFile(game + (DIR_DELIM "place.conf"),
 			"title = Test Game\n"
 			"first_mod = first_mod\n"
 			"last_mod = last_mod\n");

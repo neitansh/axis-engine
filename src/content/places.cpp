@@ -25,18 +25,15 @@ namespace
 
 bool getPlaceConfig(const std::string &place_path, Settings &conf)
 {
-	// Settings a game wants on top of the engine defaults. "minetest.conf" is
-	// what games have been shipping for years, so it is still read.
-	std::string conf_path = place_path + DIR_DELIM + "game_defaults.conf";
-	if (conf.readConfigFile(conf_path.c_str()))
-		return true;
-
-	conf_path = place_path + DIR_DELIM + "minetest.conf";
+	// Настройки, которые плейс хочет поверх умолчаний движка. Рядом читался
+	// ещё и "minetest.conf" — так годами возили свои настройки чужие игры;
+	// наши плейсы свои, и второго имени у файла нет.
+	const std::string conf_path = place_path + DIR_DELIM + "place_defaults.conf";
 	return conf.readConfigFile(conf_path.c_str());
 }
 
-// Keep in sync with pkgmgr.lua, `pkgmgr.normalize_game_id()`.
-std::string normalizeGameId(std::string_view id)
+// Keep in sync with pkgmgr.lua, `pkgmgr.normalize_place_id()`.
+std::string normalizePlaceId(std::string_view id)
 {
 	static const char *ends[] = {"_game", nullptr};
 	auto shorter = removeStringEnd(id, ends);
@@ -51,7 +48,7 @@ std::unordered_set<std::string> getAliasesFromSettings(const Settings &conf)
 
 	std::vector<std::string> aliases_raw = str_split(conf.get("aliases"), ',');
 	for (const std::string &alias : aliases_raw)
-		aliases.insert(normalizeGameId(trim(alias)));
+		aliases.insert(normalizePlaceId(trim(alias)));
 	return aliases;
 }
 
@@ -144,11 +141,11 @@ static GamePathMap getAvailableGamePaths()
 			// If configuration file is not found or broken, ignore game
 			Settings conf;
 			const std::string place_path = search_path.path + DIR_DELIM + dln.name;
-			if (!conf.readConfigFile((place_path + DIR_DELIM "game.conf").c_str()))
+			if (!conf.readConfigFile((place_path + DIR_DELIM "place.conf").c_str()))
 				continue;
 
 			// Add it to result
-			gamepaths.try_emplace(normalizeGameId(dln.name),
+			gamepaths.try_emplace(normalizePlaceId(dln.name),
 				place_path, search_path.user_specific, getAliasesFromSettings(conf)
 			);
 		}
@@ -162,7 +159,7 @@ static PlaceSpec getPlaceSpec(const std::string &place_id,
 {
 	const auto placemods_path = place_path + DIR_DELIM + "mods";
 	// Get meta
-	const std::string conf_path = place_path + DIR_DELIM + "game.conf";
+	const std::string conf_path = place_path + DIR_DELIM + "place.conf";
 	Settings conf;
 	conf.readConfigFile(conf_path.c_str());
 
@@ -196,7 +193,7 @@ static PlaceSpec getPlaceSpec(const std::string &place_id,
 			game_author, game_release, first_mod, last_mod, aliases);
 
 	if (conf.exists("name") && !conf.exists("title"))
-		spec.deprecation_msgs.push_back("\"name\" setting in game.conf is deprecated, please use \"title\" instead");
+		spec.deprecation_msgs.push_back("\"name\" setting in place.conf is deprecated, please use \"title\" instead");
 
 	return spec;
 }
@@ -226,7 +223,7 @@ PlaceSpec findPlace(const std::string &id)
 	if (id.empty())
 		return PlaceSpec();
 
-	std::string idv = normalizeGameId(id);
+	std::string idv = normalizePlaceId(id);
 
 	GamePathMap gamepaths = getAvailableGamePaths();
 	auto found = gamepaths.find(idv);
@@ -267,7 +264,7 @@ PlaceSpec findWorldPlace(const std::string &world_path)
 {
 	std::string world_gameid = getWorldPlaceId(world_path, true);
 	// See if world contains an embedded game; if so, use it.
-	std::string world_placepath = world_path + DIR_DELIM + "game";
+	std::string world_placepath = world_path + DIR_DELIM + "place";
 	if (fs::PathExists(world_placepath))
 		return getPlaceSpec(world_gameid, world_placepath, {});
 	return findPlace(world_gameid);
@@ -400,7 +397,7 @@ void loadPlaceConfAndInitWorld(const std::string &path, const std::string &name,
 	std::string worldmt_path = final_path + DIR_DELIM "world.mt";
 	if (!fs::PathExists(worldmt_path)) {
 		Settings gameconf;
-		std::string gameconf_path = placespec.path + DIR_DELIM "game.conf";
+		std::string gameconf_path = placespec.path + DIR_DELIM "place.conf";
 		gameconf.readConfigFile(gameconf_path.c_str());
 
 		Settings conf; // for world.mt

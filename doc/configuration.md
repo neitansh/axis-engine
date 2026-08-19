@@ -89,7 +89,7 @@ Other configuration files
 These are not part of this system and keep their own names and places:
 
 - `world.mt` - per world, see [world_format.md](world_format.md)
-- `game_defaults.conf` - defaults a game ships, in its own directory
+- `place_defaults.conf` - defaults a game ships, in its own directory
   (`minetest.conf` is still read there for compatibility with existing games)
 - `mod.conf`, `modpack.conf`, `texture_pack.conf` - metadata of content
 - `clientmods/mods.conf` - which client-side mods to load

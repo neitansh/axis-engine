@@ -118,7 +118,7 @@ Blockbench: редактор показывает эти модели зерка
 | 13 | Локальная матрица | `core::Transform::buildMatrix` | T·(Rᵀ·S) — **транспонированный** поворот | да, §3 |
 | 14 | Глобальные матрицы | `SkinnedMesh::calculateGlobalMatrices` | `parent × local` | да |
 | 15 | Матрица скиннинга | `SkinnedMesh::calculateSkinMatrices` | `global × GlobalInversed` | да, тождественна цепочке GeckoLib |
-| 16 | Сущность, камера, GPU | `content_cao.cpp`, посадка в `games/salvo/.../viewmodel.lua` | вне этого аудита: посадка собрана из `GunRenderingHandler.onRenderHand` и `display.firstperson_righthand` | не сверялось численно |
+| 16 | Сущность, камера, GPU | `content_cao.cpp`, посадка в `places/salvo/.../viewmodel.lua` | вне этого аудита: посадка собрана из `GunRenderingHandler.onRenderHand` и `display.firstperson_righthand` | не сверялось численно |
 
 Узлы 1–15 сверены с GeckoLib по матрицам. Узел 16 — посадка ствола перед
 глазами — числами не проверялся: он не влияет на позу кости внутри модели.
@@ -263,8 +263,8 @@ X и Z совпадают, значит боковые грани остаютс
 
 Отсюда и вывод, к которому пришли: раз мод рисует на этом месте свою руку,
 и нам следует. Пустой куб с костей снимается при подготовке ассетов
-(`games/salvo/util/guns_from_jeg.sh`), а рука приезжает отдельной вещью на
-кость — `games/salvo/models/sv_weapons_arm_*.geo.json`, посадка в
+(`places/salvo/util/guns_from_jeg.sh`), а рука приезжает отдельной вещью на
+кость — `places/salvo/models/sv_weapons_arm_*.geo.json`, посадка в
 `sv_weapons/viewmodel.lua`. Размер её (2.68 × 9.6 × 2.68) — ванильная рука
 Minecraft под доворотом мода, а не то, что нарисовал автор ствола; текстура —
 скин игрока целиком, в рантайме. Развёртка в этих моделях перевёрнута по той
@@ -284,7 +284,7 @@ Minecraft под доворотом мода, а не то, что нарисо�
   одном ключе не выразить. Так же поступает и наш эталонный расчёт, поэтому
   цифрами это расхождение не покрыто.
 - **Посадка ствола перед глазами** (узел 16) числами не сверялась. Она собрана
-  из кода мода вручную и живёт в `games/salvo/mods/ITEMS/sv_weapons/viewmodel.lua`.
+  из кода мода вручную и живёт в `places/salvo/mods/ITEMS/sv_weapons/viewmodel.lua`.
 - **Картинка.** Исправление проверено по матрицам, но не глазами: для снимка
   нужен пересобранный `bin/axis`, после чего `tests/bedrock/shoot.sh <имя>
   <дорожка>` снимет кадр сам.
@@ -294,7 +294,7 @@ Minecraft под доворотом мода, а не то, что нарисо�
 ## Чем пользоваться
 
 - `tests/bedrock/shoot.sh` — стенд: сам достаёт ассеты из мода и снимает кадр.
-- `games/salvo/util/guns_from_jeg.sh` — готовит стволы для salvo из того же мода.
+- `places/salvo/util/guns_from_jeg.sh` — готовит стволы для salvo из того же мода.
 - `src/unittest/test_bedrock.cpp` — сверка с GeckoLib по матрицам.
 - Декомпиляция GeckoLib: `java -jar vineflower.jar -dgs=1 <распакованный jar>
   <куда>`; нужные места — `util/RenderUtils.prepMatrixForBone`,

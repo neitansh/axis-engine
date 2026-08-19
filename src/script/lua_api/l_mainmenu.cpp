@@ -344,7 +344,7 @@ int ModApiMainMenu::l_get_places(lua_State *L)
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "type");
-		lua_pushstring(L,  "game");
+		lua_pushstring(L,  "place");
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "placemods_path");

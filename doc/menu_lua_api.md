@@ -313,11 +313,11 @@ Package - content which is downloadable from the content db, may or may not be i
 
 * `core.get_clientmodpath()` (possible in async calls)
     * returns path to global client-side modpath
-* `core.get_gamepath()` (possible in async calls)
+* `core.get_placepath()` (possible in async calls)
     * returns path to global gamepath
 * `core.get_texturepath()` (possible in async calls)
     * returns path to default textures
-* `core.get_games()` -> table of all games (possible in async calls)
+* `core.get_places()` -> table of all games (possible in async calls)
     * `name` in return value is deprecated, use `title` instead.
     * returns a table (ipairs) with values:
       ```lua
@@ -406,11 +406,11 @@ Worlds
         [1] = {
             path   = <full path to world>,
             name   = <name of world>,
-            gameid = <gameid of world>,
+            placeid = <placeid of world>,
         },
     }
     ```
-* `core.create_world(worldname, gameid, init_settings)`
+* `core.create_world(worldname, placeid, init_settings)`
 * `core.delete_world(index)`
 
 

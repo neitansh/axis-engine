@@ -14,7 +14,7 @@ ContentType getContentType(const std::string &path)
 	if (fs::IsFile(path + DIR_DELIM "init.lua"))
 		return ContentType::MOD;
 
-	if (fs::IsFile(path + DIR_DELIM "game.conf"))
+	if (fs::IsFile(path + DIR_DELIM "place.conf"))
 		return ContentType::GAME;
 
 	if (fs::IsFile(path + DIR_DELIM "texture_pack.conf"))
@@ -37,8 +37,8 @@ void parseContentInfo(ContentSpec &spec)
 		conf_path = spec.path + DIR_DELIM "modpack.conf";
 		break;
 	case ContentType::GAME:
-		spec.type = "game";
-		conf_path = spec.path + DIR_DELIM "game.conf";
+		spec.type = "place";
+		conf_path = spec.path + DIR_DELIM "place.conf";
 		break;
 	case ContentType::TXP:
 		spec.type = "txp";
@@ -53,16 +53,16 @@ void parseContentInfo(ContentSpec &spec)
 	if (!conf_path.empty() && conf.readConfigFile(conf_path.c_str())) {
 		if (conf.exists("title"))
 			spec.title = conf.get("title");
-		else if (spec.type == "game" && conf.exists("name"))
+		else if (spec.type == "place" && conf.exists("name"))
 			spec.title = conf.get("name");
 
-		if (spec.type != "game" && conf.exists("name"))
+		if (spec.type != "place" && conf.exists("name"))
 			spec.name = conf.get("name");
 
 		if (conf.exists("title"))
 			spec.title = conf.get("title");
 
-		if (spec.type == "game") {
+		if (spec.type == "place") {
 			if (spec.title.empty())
 				spec.title = spec.name;
 			spec.name = "";

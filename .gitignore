@@ -61,7 +61,7 @@ AppDir
 
 ## Non-static Luanti directories or symlinks to these
 /bin/
-/games/*
+/places/*
 /cache
 /textures/*
 !/textures/base/

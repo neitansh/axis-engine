@@ -94,7 +94,7 @@ local function create_world_formspec(dialogdata)
 
 	local disallowed_mapgen_settings = {}
 	if place ~= nil then
-		local placeconfig = Settings(place.path.."/game.conf")
+		local placeconfig = Settings(place.path.."/place.conf")
 
 		current_mg = current_mg or placeconfig:get("default_mapgen") or core.settings:get("mg_name")
 

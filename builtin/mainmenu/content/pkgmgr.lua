@@ -177,10 +177,10 @@ function pkgmgr.get_folder_type(path)
 		return { type = "modpack", path = path }
 	end
 
-	testfile = io.open(path .. DIR_DELIM .. "game.conf","r")
+	testfile = io.open(path .. DIR_DELIM .. "place.conf","r")
 	if testfile ~= nil then
 		testfile:close()
-		return { type = "game", path = path }
+		return { type = "place", path = path }
 	end
 
 	testfile = io.open(path .. DIR_DELIM .. "texture_pack.conf","r")
@@ -299,7 +299,7 @@ function pkgmgr.render_packagelist(render_list, use_technical_names, with_icon)
 			color = mt_color_blue
 
 			-- Parent icon depends on contained mods
-			if v.type == "game" or v.type == "worldmods" then
+			if v.type == "place" or v.type == "worldmods" then
 				local rawlist = render_list:get_raw_list()
 				for _, mod in ipairs(rawlist) do
 					if v.type == mod.loc then
@@ -329,7 +329,7 @@ function pkgmgr.render_packagelist(render_list, use_technical_names, with_icon)
 		retval[#retval + 1] = color
 		-- `v.modpack_depth` is `nil` for the selected place (treated as level 0)
 		retval[#retval + 1] = (v.modpack_depth or 0) +
-				((v.loc == "game" or v.loc == "worldmods") and 1 or 0)
+				((v.loc == "place" or v.loc == "worldmods") and 1 or 0)
 
 		if with_icon then
 			retval[#retval + 1] = icon
@@ -521,7 +521,7 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 	assert(targetpath == nil or type(targetpath) == "string")
 
 	local delete_old_dir
-	if expected_type == "game" and targetpath then
+	if expected_type == "place" and targetpath then
 		-- Extract top folder name from path
 		local name = pkgmgr.normalize_place_id(targetpath:match("[^/\\]+[/\\]?$"))
 		-- Relevant when updating: prepare to remove the old directory if the names differ
@@ -569,7 +569,7 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 				basename = get_last_folder(cleanup_path(basefolder.path))
 			end
 			content_path = core.get_modpath()
-		elseif basefolder.type == "game" then
+		elseif basefolder.type == "place" then
 			content_path = core.get_placepath()
 		else
 			error("Unknown content type")
@@ -622,7 +622,7 @@ function pkgmgr.preparemodlist(data)
 	if #place_mods > 0 then
 		-- Add title
 		retval[#retval + 1] = {
-			type = "game",
+			type = "place",
 			always_on = true,
 			name = fgettext("$1 mods", placespec.title),
 			path = placespec.path
@@ -630,7 +630,7 @@ function pkgmgr.preparemodlist(data)
 
 		for _, mod in ipairs(place_mods) do
 			mod.type = "mod"
-			mod.loc = "game"
+			mod.loc = "place"
 			mod.always_on = true
 			retval[#retval + 1] = mod
 		end
@@ -792,7 +792,7 @@ end
 
 --------------------------------------------------------------------------------
 function pkgmgr.reload_by_type(type)
-	if type == "game" then
+	if type == "place" then
 		pkgmgr.reload_places()
 	elseif type == "txp" then
 		pkgmgr.reload_texture_packs()
@@ -843,7 +843,7 @@ end
 function pkgmgr.get_contentdb_id(content)
 	-- core.get_places() will return "" instead of nil if there is no "author" field.
 	if content.author and content.author ~= "" and content.release > 0 then
-		if content.type == "game" then
+		if content.type == "place" then
 			return content.author:lower() .. "/" .. content.id
 		end
 		return content.author:lower() .. "/" .. content.name
@@ -851,10 +851,10 @@ function pkgmgr.get_contentdb_id(content)
 
 	-- Until version 5.8.0, Minetest Place was bundled with the engine.
 	-- Unfortunately, the bundled MTG was not versioned (missing "release"
-	-- field in game.conf).
+	-- field in place.conf).
 	-- Therefore, we consider any installation of MTG that is not versioned,
 	-- has not been cloned from Git, and is not system-wide to be updatable.
-	if content.type == "game" and content.id == "minetest" and content.release == 0 and
+	if content.type == "place" and content.id == "minetest" and content.release == 0 and
 			not core.is_dir(content.path .. "/.git") and core.may_modify_path(content.path) then
 		return "minetest/minetest"
 	end
@@ -863,7 +863,7 @@ function pkgmgr.get_contentdb_id(content)
 end
 
 --------------------------------------------------------------------------------
--- Normalizes ID of a place. Keep in sync with places.cpp, `normalizeGameId`.
+-- Normalizes ID of a place. Keep in sync with places.cpp, `normalizePlaceId`.
 function pkgmgr.normalize_place_id(name)
 	return name:match("(.*)_place$") or name
 end

@@ -98,8 +98,8 @@ local function start_install(package, reason)
 					else
 						conf_path = path .. DIR_DELIM .. "mod.conf"
 					end
-				elseif package.type == "game" then
-					conf_path = path .. DIR_DELIM .. "game.conf"
+				elseif package.type == "place" then
+					conf_path = path .. DIR_DELIM .. "place.conf"
 					name_is_title = true
 				elseif package.type == "txp" then
 					conf_path = path .. DIR_DELIM .. "texture_pack.conf"
@@ -180,7 +180,7 @@ end
 
 
 local function strip_place_suffix(type, name)
-	if type == nil or type == "game" then
+	if type == nil or type == "place" then
 		return pkgmgr.normalize_place_id(name)
 	else
 		return name
@@ -302,7 +302,7 @@ local function resolve_dependencies_2_co(raw_deps, installed_mods, out, resumer)
 		-- Find exact name matches
 		local fallback
 		for _, package in pairs(dep.packages) do
-			if package.type ~= "game" then
+			if package.type ~= "place" then
 				if package.name == dep.name then
 					return {
 						is_optional = dep.is_optional,
@@ -395,7 +395,7 @@ local function fetch_pkgs()
 	local version = core.get_version()
 	local base_url = core.settings:get("contentdb_url")
 	local url = base_url ..
-			"/api/packages/?type=mod&type=place&type=txp&protocol_version=" ..
+			"/api/packages/?type=mod&type=game&type=txp&protocol_version=" ..
 			core.get_max_supp_proto() .. "&engine_version=" .. core.urlencode(version.string)
 	for _, item in pairs(core.settings:get("contentdb_flag_blacklist"):split(",")) do
 		item = item:trim()
@@ -428,6 +428,13 @@ function contentdb.set_packages_from_api(packages)
 	contentdb.aliases = {}
 
 	for _, package in pairs(packages) do
+		-- ContentDB зовёт плейсы играми, и переучить её мы не можем. Чужое
+		-- слово переводится здесь, на самой границе: дальше по коду тип
+		-- называется так же, как везде в движке.
+		if package.type == "place" then
+			package.type = "place"
+		end
+
 		package.id = contentdb.calculate_package_id(package.type, package.author, package.name)
 		package.url_part = core.urlencode(package.author) .. "/" .. core.urlencode(package.name)
 
@@ -437,7 +444,7 @@ function contentdb.set_packages_from_api(packages)
 			local suffix = "/" .. package.name
 			for _, alias in ipairs(package.aliases) do
 				-- We currently only support placeid and author changing
-				if package.type == "game" or alias:sub(-#suffix) == suffix then
+				if package.type == "place" or alias:sub(-#suffix) == suffix then
 					contentdb.aliases[strip_place_suffix(packages.type, alias:lower())] = package.id
 				end
 			end
@@ -497,7 +504,7 @@ function contentdb.update_paths()
 		local content
 		if package.type == "mod" then
 			content = mod_hash[package.id]
-		elseif package.type == "game" then
+		elseif package.type == "place" then
 			content = place_hash[package.id]
 		elseif package.type == "txp" then
 			content = txp_hash[package.id]

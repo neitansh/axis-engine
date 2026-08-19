@@ -52,7 +52,7 @@ local function get_disabled_settings(place)
 		return {}
 	end
 
-	local placeconfig = Settings(place.path .. "/game.conf")
+	local placeconfig = Settings(place.path .. "/place.conf")
 	local disabled_settings = {}
 	if placeconfig then
 		local disabled_settings_str = (placeconfig:get("disabled_settings") or ""):split()
@@ -66,7 +66,7 @@ local function get_disabled_settings(place)
 			if valid_disabled_settings[value] then
 				disabled_settings[value] = state
 			else
-				core.log("error", "Invalid disabled setting in game.conf: "..tostring(value))
+				core.log("error", "Invalid disabled setting in place.conf: "..tostring(value))
 			end
 		end
 	end
@@ -203,7 +203,7 @@ local function main_button_handler(this, fields, name, tabdata)
 
 	if fields.place_open_cdb then
 		local maintab = ui.find_by_name("maintab")
-		local dlg = create_contentdb_dlg("game")
+		local dlg = create_contentdb_dlg("place")
 		dlg:set_parent(maintab)
 		maintab:hide()
 		dlg:show()
@@ -298,7 +298,7 @@ local function main_button_handler(this, fields, name, tabdata)
 			local v = disabled_settings[k]
 			if v ~= nil then
 				if k == "enable_server" and v == true then
-					error("Setting 'enable_server' cannot be force-enabled! The game.conf needs to be fixed.")
+					error("Setting 'enable_server' cannot be force-enabled! The place.conf needs to be fixed.")
 				end
 				core.settings:set_bool(k, disabled_settings[k])
 			end

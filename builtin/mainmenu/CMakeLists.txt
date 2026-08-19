@@ -15,7 +15,7 @@ set(BUILTIN_MAINMENU_SRCS
 	mainmenu/dlg_rename_modpack.lua
 	mainmenu/dlg_server_list_mods.lua
 	mainmenu/dlg_start.lua
-	mainmenu/game_theme.lua
+	mainmenu/place_theme.lua
 	mainmenu/init.lua
 	mainmenu/serverlistmgr.lua
 	mainmenu/tab_about.lua

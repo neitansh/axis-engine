@@ -178,9 +178,9 @@ jobs:
           cp -r fonts axis_linux/
 
           # Content directories the engine looks for next to the executable.
-          # They ship empty on purpose: neither the game nor the mods live in
+          # They ship empty on purpose: neither the place nor the mods live in
           # this repository, so the package only provides the place for them.
-          mkdir -p axis_linux/games axis_linux/mods
+          mkdir -p axis_linux/places axis_linux/mods
 
           # The engine writes its own config/ next to the executable on first
           # run; this is the documented copy players read and copy lines from.
@@ -348,9 +348,9 @@ jobs:
           # -q 11 — самое плотное: пакуем раз, качают многие.
           ( cd axis_linux && tar -cf - . | brotli -q 11 > "../axis-$version-linux.tar.br" )
 
-          # games/ и mods/ приезжают пустыми, а держится пустой каталог в
+          # places/ и mods/ приезжают пустыми, а держится пустой каталог в
           # архиве одной своей записью — потерять её легко и незаметно.
-          for d in games mods; do
+          for d in places mods; do
             if ! tar -tf "axis-$version-linux.tar.br" --use-compress-program=brotli | grep -q "$d/"; then
               echo "::error::$d/ не пережил упаковку."
               exit 1
@@ -453,9 +453,9 @@ jobs:
           cp -r fonts axis_windows/
 
           # Content directories the engine looks for next to the executable.
-          # They ship empty on purpose: neither the game nor the mods live in
+          # They ship empty on purpose: neither the place nor the mods live in
           # this repository, so the package only provides the place for them.
-          mkdir -p axis_windows/games axis_windows/mods
+          mkdir -p axis_windows/places axis_windows/mods
 
           cp -r config.example axis_windows/
 
@@ -562,7 +562,7 @@ jobs:
           # archive by its own entry alone.
           names="$(brotli -dc axis_client_windows.tar.br | tar -tf -)"
 
-          for d in games mods; do
+          for d in places mods; do
             if ! printf '%s\n' "$names" | grep -q "$d/"; then
               echo "::error::$d/ did not survive into the archive."
               exit 1

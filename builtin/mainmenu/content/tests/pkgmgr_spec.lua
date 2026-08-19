@@ -117,10 +117,10 @@ describe("install_dir", function()
 	it("installs place", function()
 		local env = reset()
 		env.pkgmgr.get_base_folder = function()
-			return { type = "game", path = "/tmp/123" }
+			return { type = "place", path = "/tmp/123" }
 		end
 
-		local path, message = env.pkgmgr.install_dir("game", "/tmp/123", "myplace", nil)
+		local path, message = env.pkgmgr.install_dir("place", "/tmp/123", "myplace", nil)
 		assert.is.equal(places_dir .. "/myplace", path)
 		assert.is._nil(message)
 		env.assert_calls({
@@ -135,10 +135,10 @@ describe("install_dir", function()
 		-- Temporary download directory of the content
 		local DL_DIR = "/tmp/123"
 		env.pkgmgr.get_base_folder = function()
-			return { type = "game", path = DL_DIR }
+			return { type = "place", path = DL_DIR }
 		end
 
-		local path, message = env.pkgmgr.install_dir("game", DL_DIR, "mynewplace", old_place_path)
+		local path, message = env.pkgmgr.install_dir("place", DL_DIR, "mynewplace", old_place_path)
 		assert.is.equal(places_dir .. "/mynewplace", path)
 		assert.is._nil(message)
 		env.assert_calls({
@@ -200,7 +200,7 @@ describe("install_dir", function()
 		assert.is._not._nil(path)
 		assert.is._nil(message)
 
-		path, message = env.pkgmgr.install_dir("game", "/tmp/123", "name", nil)
+		path, message = env.pkgmgr.install_dir("place", "/tmp/123", "name", nil)
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a $2", message)
 
@@ -208,13 +208,13 @@ describe("install_dir", function()
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a texture pack", message)
 
-		actual_type = "game"
+		actual_type = "place"
 
 		path, message = env.pkgmgr.install_dir("mod", "/tmp/123", "name", nil)
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a $2", message)
 
-		path, message = env.pkgmgr.install_dir("game", "/tmp/123", "name", nil)
+		path, message = env.pkgmgr.install_dir("place", "/tmp/123", "name", nil)
 		assert.is._not._nil(path)
 		assert.is._nil(message)
 
@@ -228,7 +228,7 @@ describe("install_dir", function()
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a $2", message)
 
-		path, message = env.pkgmgr.install_dir("game", "/tmp/123", "name", nil)
+		path, message = env.pkgmgr.install_dir("place", "/tmp/123", "name", nil)
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a $2", message)
 

@@ -28,7 +28,7 @@ local function update_packages()
 	end
 
 	local function is_equal(element, uid) --uid match
-		return (element.type == "game" and element.id == uid) or
+		return (element.type == "place" and element.id == uid) or
 				element.name == uid
 	end
 
@@ -116,7 +116,7 @@ local function get_formspec(tabview, name, tabdata)
 		local info = core.get_content_info(selected_pkg.path)
 
 		local title_and_name
-		if selected_pkg.type == "game" then
+		if selected_pkg.type == "place" then
 			title_and_name = selected_pkg.title or selected_pkg.name
 		else
 			title_and_name = (selected_pkg.title or selected_pkg.name) .. "\n" ..

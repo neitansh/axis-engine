@@ -140,14 +140,14 @@ Games
 
 Games are looked up from:
 
-* `$path_share/games/<gameid>/`
-* `$path_user/games/<gameid>/`
+* `$path_share/places/<placeid>/`
+* `$path_user/places/<placeid>/`
 
-Where `<gameid>` is unique to each game.
+Where `<placeid>` is unique to each game.
 
 The game directory can contain the following files:
 
-* `game.conf`, with the following keys:
+* `place.conf`, with the following keys:
     * `title`: Required, a human-readable title to address the game, e.g. `title = Minetest Game`.
     * `name`: (Deprecated) same as title.
     * `description`: Short description to be shown in the content tab.
@@ -187,11 +187,11 @@ The game directory can contain the following files:
                  an internal ID used to track versions.
     * `textdomain`: Textdomain used to translate description. Defaults to game id.
       See [Translating content meta](#translating-content-meta).
-    * `aliases = <comma-separated gameid aliases>`
+    * `aliases = <comma-separated placeid aliases>`
       e.g. `aliases = foo, bar` (where "foo" and "bar" are the legacy names)
-      This allows automatic loading of worlds using a gameid from this list.
+      This allows automatic loading of worlds using a placeid from this list.
       This is intended to allow a full rename of a game, including its id.
-* `game_defaults.conf` (`minetest.conf` is still read for compatibility):
+* `place_defaults.conf` (`minetest.conf` is still read for compatibility):
   Used to set default settings when running this game.
 * `screenshot.{png,jpg,jpeg}`:
   Preview image, shown in the main menu.
@@ -242,7 +242,7 @@ Mod load path
 
 Paths are relative to the directories listed in the [Paths](#paths) section above.
 
-* `games/<gameid>/mods/`
+* `places/<placeid>/mods/`
 * `mods/`
 * `worlds/<worldname>/worldmods/`
 
@@ -5005,7 +5005,7 @@ This is the short description=Voici la description succincte
 
 For games and modpacks, Luanti will look for the textdomain in all mods.
 
-Say you have a game called `mygame` with the following game.conf:
+Say you have a game called `mygame` with the following place.conf:
 
 ```
 description = This is the game's short description
@@ -6142,9 +6142,9 @@ Utilities
         * Available since 5.16.0
         * `true`: Sorted according to the load order.
         * `false`: Sorted alphabetically.
-* `core.get_game_info()`: returns a table containing information about the
+* `core.get_place_info()`: returns a table containing information about the
   current game. Note that other meta information (e.g. version/release number)
-  can be manually read from `game.conf` in the game's root directory.
+  can be manually read from `place.conf` in the game's root directory.
 
   ```lua
   {
@@ -7518,7 +7518,7 @@ Item handling
     * Returns list of itemstrings that are dropped by `node` when dug with the
       item `toolname` (not limited to tools). The default implementation doesn't
       use `tool`, `digger`, and `pos`, but these are provided by `core.node_dig`
-      since 5.12.0 for games/mods implementing customized drops.
+      since 5.12.0 for places/mods implementing customized drops.
     * `node`: node as table or node name
     * `toolname`: name of the item used to dig (can be `nil`)
     * `tool`: `ItemStack` used to dig (can be `nil`)
@@ -9473,7 +9473,7 @@ You **must not** mix names and track numbers to refer to the same animation.
           is used for the specific old sneak behavior (default: `true`)
     * Note: All numeric fields above modify a corresponding `movement_*` setting.
     * For games, we recommend for simpler code to first modify the `movement_*`
-      settings (e.g. via the game's `game_defaults.conf`) to set a global base value
+      settings (e.g. via the game's `place_defaults.conf`) to set a global base value
       for all players and only use `set_physics_override` when you need to change
       from the base value on a per-player basis
     * Note: Some of the fields don't exist in old API versions, see feature
@@ -11591,7 +11591,7 @@ to decide, if they choose to use cooking at all.
 
 The engine does not implement anything specific to cooking recipes, but
 the recipes can be retrieved later using `core.get_craft_result` to
-have a consistent interface across different games/mods.
+have a consistent interface across different places/mods.
 
 Parameters:
 

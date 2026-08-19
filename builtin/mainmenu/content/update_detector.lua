@@ -122,7 +122,7 @@ function update_detector.get_all()
 		if cdb_id and core.may_modify_path(content.path) then
 			-- The backend will account for aliases in `latest_releases`
 			local latest_release = latest_releases[cdb_id]
-			if not latest_release and content.type == "game" then
+			if not latest_release and content.type == "place" then
 				latest_release = latest_releases[cdb_id .. "_place"]
 			end
 

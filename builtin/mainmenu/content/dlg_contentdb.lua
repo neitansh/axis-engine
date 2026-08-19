@@ -21,7 +21,7 @@ local auto_install_spec = nil
 
 local filter_type_names = {
 	{ "type_all", nil },
-	{ "type_place", "game" },
+	{ "type_place", "place" },
 	{ "type_mod", "mod" },
 	{ "type_txp", "txp" },
 }
@@ -225,7 +225,7 @@ local function get_formspec(dlgdata)
 
 		-- Top-left: categories
 		make_category_button("type_all", fgettext("All"), selected_type == nil),
-		make_category_button("type_place", fgettext("Places"), selected_type == "game"),
+		make_category_button("type_place", fgettext("Places"), selected_type == "place"),
 		make_category_button("type_mod", fgettext("Mods"), selected_type == "mod"),
 		make_category_button("type_txp", fgettext("Texture Packs"), selected_type == "txp"),
 
@@ -509,7 +509,7 @@ end
 --- Creates a ContentDB dialog.
 ---
 --- @param type string | nil
---- Sets initial package filter. "game", "mod", "txp" or nil (no filter).
+--- Sets initial package filter. "place", "mod", "txp" or nil (no filter).
 --- @param install_spec table | nil
 --- ContentDB ID of package as returned by pkgmgr.get_contentdb_id().
 --- Sets package to install or update automatically.

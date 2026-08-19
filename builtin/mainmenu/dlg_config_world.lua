@@ -103,7 +103,7 @@ local function get_formspec(data)
 		"label[0.5,0;" .. fgettext("World:") .. "]" ..
 		"label[1.75,0;" .. core.formspec_escape(data.worldspec.name) .. "]"
 
-	if mod.is_modpack or mod.type == "game" then
+	if mod.is_modpack or mod.type == "place" then
 		local info = core.formspec_escape(
 			core.get_content_info(mod.path).description)
 		if info == "" then
