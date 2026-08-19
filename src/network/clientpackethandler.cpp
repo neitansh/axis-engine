@@ -694,10 +694,16 @@ void Client::handleCommand_AnnounceMedia(NetworkPacket* pkt)
 		Strfnd sf(str);
 		while (!sf.at_end()) {
 			std::string baseurl = trim(sf.next(","));
-			if (!baseurl.empty()) {
-				m_remote_media_servers.emplace_back(baseurl);
-				m_media_downloader->addRemoteServer(baseurl);
+			if (baseurl.empty())
+				continue;
+			if (!mediaUrlBelongsToServer(baseurl, this)) {
+				warningstream << "Client: ignoring media server \"" << baseurl
+					<< "\": it does not belong to the server we are on"
+					<< std::endl;
+				continue;
 			}
+			m_remote_media_servers.emplace_back(baseurl);
+			m_media_downloader->addRemoteServer(baseurl);
 		}
 	}
 

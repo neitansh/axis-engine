@@ -24,6 +24,32 @@ extern const u16 FORMSPEC_API_VERSION;
 // This is a bit lower to include safety margin.
 #define MEDIAFILE_MAX_SIZE (16700000U)
 
+// Сколько медиа один сервер вправе прислать за подключение. Ограничения нет ни
+// в объявлении, ни в самой пересылке: без этих двух чисел сервер льёт файлы,
+// пока у игрока не кончится диск. Взято с большим запасом — самый крупный наш
+// плейс это 4783 файла и 17 МБ.
+#define MEDIA_MAX_FILES (32768U)
+#define MEDIA_MAX_TOTAL_SIZE (512U * 1024U * 1024U)
+
+// Что вообще бывает медиа. Список один на сервер и клиент нарочно: сервер
+// отбирает по нему файлы плейса, клиент — то, что ему объявили. Разойдись они,
+// и клиент брал бы то, чего никто не собирался отдавать.
+//
+// Разбирает каждый из этих типов свой чужой разборщик — freetype, Irrlicht,
+// libpng, vorbis, — и присланный файл попадает туда до того, как игрок что-то
+// увидит. Поэтому список закрытый: чего в нём нет, то не скачивается вовсе.
+inline const char *MEDIA_SUPPORTED_EXT[] = {
+	".png", ".jpg", ".tga",
+	".ogg",
+	".x", ".b3d", ".obj", ".gltf", ".glb",
+	// Модели Bedrock/Blockbench: геометрия и анимации к ней
+	".geo.json", ".animation.json",
+	// Translation file formats
+	".tr", ".po", ".mo",
+	// Fonts
+	".ttf", ".woff",
+	nullptr};
+
 typedef u16 session_t;
 
 enum ToClientCommand : u16

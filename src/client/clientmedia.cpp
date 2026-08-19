@@ -14,6 +14,9 @@
 #include "util/hex.h"
 #include "util/serialize.h"
 #include "util/hashing.h"
+#include "exceptions.h"
+#include "util/string.h"
+#include "network/networkprotocol.h"
 #include "util/string.h"
 #include <sstream>
 
@@ -84,6 +87,23 @@ void ClientMediaDownloader::addFile(const std::string &name, const std::string &
 		errorstream << "Client: ignoring illegal file name "
 				<< "sent by server: \"" << name << "\""
 				<< std::endl;
+		return;
+	}
+
+	// Тип файла решает, какому разборщику он достанется: шрифт уйдёт во
+	// freetype, модель в Irrlicht, картинка в libpng. Чего нет в общем списке,
+	// то не скачивается вовсе — иначе сервер выбирал бы, чем нас разбирать.
+	if (removeStringEnd(name, MEDIA_SUPPORTED_EXT).empty()) {
+		errorstream << "Client: ignoring media of unsupported type "
+				<< "sent by server: \"" << name << "\"" << std::endl;
+		return;
+	}
+
+	// Сколько файлов сервер обещает. Сам объём в объявлении не назван, его
+	// считаем по приходу (см. checkAndLoad).
+	if (m_files.size() >= MEDIA_MAX_FILES) {
+		errorstream << "Client: server announced more than " << MEDIA_MAX_FILES
+				<< " media files, ignoring the rest" << std::endl;
 		return;
 	}
 
@@ -166,6 +186,35 @@ void ClientMediaDownloader::step(Client *client)
 			startConventionalTransfers(client);
 		}
 	}
+}
+
+// Раздачу медиа называет сам сервер, и клиент по этому адресу идёт. Хэш не
+// даёт подсунуть подделку, но не мешает отправить игрока на чужой хост — и тот
+// узнает его адрес, ничего для этого не сделав. Поэтому раздача принимается
+// только со своего же сервера: он и так знает, откуда игрок пришёл.
+bool mediaUrlBelongsToServer(const std::string &baseurl, Client *client)
+{
+	auto scheme_end = baseurl.find("://");
+	if (scheme_end == std::string::npos)
+		return false;
+	const std::string scheme = baseurl.substr(0, scheme_end);
+	if (scheme != "http" && scheme != "https")
+		return false;
+
+	std::string rest = baseurl.substr(scheme_end + 3);
+	// Хост кончается там, где начинается путь или порт; адрес IPv6 в скобках
+	// содержит двоеточия сам, поэтому у него конец — закрывающая скобка.
+	std::string host;
+	if (!rest.empty() && rest[0] == '[') {
+		auto close = rest.find(']');
+		if (close == std::string::npos)
+			return false;
+		host = rest.substr(1, close - 1);
+	} else {
+		host = rest.substr(0, rest.find_first_of(":/"));
+	}
+
+	return !host.empty() && host == client->getAddressName();
 }
 
 std::string ClientMediaDownloader::makeReferer(Client *client)
@@ -351,7 +400,19 @@ void ClientMediaDownloader::remoteMediaReceived(
 			assert(m_uncached_received_count < m_uncached_count);
 			m_uncached_received_count++;
 			m_received_file_size += fetch_result.data.size();
+			checkTotalSize();
 		}
+	}
+}
+
+// Сколько всего сервер прислал. Объявление размеров не несёт, поэтому счёт
+// идёт по приходу — и на нём же обрывается связь: сервер, который льёт сверх
+// всякой меры, либо сломан, либо делает это нарочно, и разговаривать с ним
+// дальше незачем.
+void ClientMediaDownloader::checkTotalSize()
+{
+	if (m_received_file_size > MEDIA_MAX_TOTAL_SIZE) {
+		throw PacketError("server sent more media than the client accepts");
 	}
 }
 
@@ -503,6 +564,7 @@ bool ClientMediaDownloader::conventionalTransferDone(
 	assert(m_uncached_received_count < m_uncached_count);
 	m_uncached_received_count++;
 	m_received_file_size += data.size();
+	checkTotalSize();
 
 	// Check that received file matches announced checksum
 	// If so, load it
@@ -540,6 +602,15 @@ bool IClientMediaDownloader::checkAndLoad(
 	const char *cached_or_received = is_from_cache ? "cached" : "received";
 	const char *cached_or_received_uc = is_from_cache ? "Cached" : "Received";
 	std::string sha1_hex = hex_encode(sha1);
+
+	// Предел на файл проверяет и сервер, когда собирает своё, — но это его
+	// сервера дело, а верить чужому серверу нам нечем.
+	if (data.size() > MEDIAFILE_MAX_SIZE) {
+		errorstream << "Client: " << cached_or_received << " media file "
+			<< sha1_hex << " \"" << name << "\" is too big ("
+			<< (data.size() >> 10) << "KiB), ignoring it" << std::endl;
+		return false;
+	}
 
 	// Compute actual checksum of data
 	std::string data_sha1 = hashing::sha1(data);

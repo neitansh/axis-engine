@@ -2947,18 +2947,7 @@ bool Server::addMediaFile(const std::string &filename,
 	}
 
 	// If name is not in a supported format, ignore it
-	const char *supported_ext[] = {
-		".png", ".jpg", ".tga",
-		".ogg",
-		".x", ".b3d", ".obj", ".gltf", ".glb",
-		// Модели Bedrock/Blockbench: геометрия и анимации к ней
-		".geo.json", ".animation.json",
-		// Translation file formats
-		".tr", ".po", ".mo",
-		// Fonts
-		".ttf", ".woff",
-		nullptr};
-	if (removeStringEnd(filename, supported_ext).empty())
+	if (removeStringEnd(filename, MEDIA_SUPPORTED_EXT).empty())
 	{
 		infostream << "Server: ignoring unsupported file extension: \""
 				   << filename << "\"" << std::endl;

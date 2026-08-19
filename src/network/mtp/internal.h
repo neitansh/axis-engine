@@ -394,7 +394,15 @@ private:
 #define MAX_RELIABLE_WINDOW_SIZE 0x8000
 #define MAX_RELIABLE_WINDOW_SIZE_SEND 2048
 /* starting value for window size */
-#define START_RELIABLE_WINDOW_SIZE 64
+//
+// Было 64, то есть 32 КБ в полёте: на пинге в 30 мс это чуть больше мегабайта
+// в секунду. Пока окно разгонялось (см. UpdateTimers в impl.cpp), первый заход
+// на плейс с большим набором медиа успевал целиком пройти на этой скорости —
+// игрок ждал полминуты там, где канал позволял секунды.
+//
+// 256 — это 128 КБ в полёте. Столько отдаёт без потерь и слабый канал, а если
+// потери всё-таки есть, окно тут же срезается тем же алгоритмом.
+#define START_RELIABLE_WINDOW_SIZE 256
 /* minimum value for window size */
 #define MIN_RELIABLE_WINDOW_SIZE 32
 

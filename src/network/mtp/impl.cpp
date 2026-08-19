@@ -785,8 +785,14 @@ void Channel::UpdateTimers(float dtime)
 			if (successful_to_lost_ratio < 0.01f) {
 				/* don't even think about increasing if we didn't even
 				 * use major parts of our window */
+				//
+				// Растём удвоением, а не на сотню за раз. Прибавка была
+				// линейной, а проверка эта — раз в секунду: от старта до
+				// потолка выходило двадцать секунд, и всё это время скачивание
+				// медиа шло на скорости начала разгона. Канал без потерь
+				// заслуживает того, чтобы его нашли за пару секунд.
 				if (reasonable_amount_of_data_transmitted)
-					setWindowSize(m_window_size + 100);
+					setWindowSize(m_window_size * 2);
 			} else if (successful_to_lost_ratio < 0.05f) {
 				/* don't even think about increasing if we didn't even
 				 * use major parts of our window */

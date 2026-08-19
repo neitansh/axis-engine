@@ -29,6 +29,10 @@ bool clientMediaUpdateCacheCopy(const std::string &raw_hash,
 	const std::string &path);
 
 // more of a base class than an interface but this name was most convenient...
+// Годится ли эта раздача медиа: адрес должен вести на тот же сервер, к
+// которому подключён игрок (см. clientmedia.cpp).
+bool mediaUrlBelongsToServer(const std::string &baseurl, Client *client);
+
 class IClientMediaDownloader
 {
 public:
@@ -137,6 +141,7 @@ private:
 	void remoteMediaReceived(const HTTPFetchResult &fetch_result,
 			Client *client);
 	s32 selectRemoteServer(FileStatus *filestatus);
+	void checkTotalSize();
 	void startRemoteMediaTransfers();
 	void startConventionalTransfers(Client *client);
 
