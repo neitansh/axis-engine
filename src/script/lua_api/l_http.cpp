@@ -9,6 +9,7 @@
 #include "cpp_api/s_security.h"
 #include "util/enum_string.h"
 #include "httpfetch.h"
+#include "porting.h"
 #include "log.h"
 
 #define HTTP_API(name) \
@@ -96,8 +97,14 @@ int ModApiHttp::l_http_fetch_sync(lua_State *L)
 
 	infostream << "Mod performs HTTP request with URL " << req.url << std::endl;
 
+	// Со временем: такой запрос идёт в рабочем потоке, а закрытие меню ждёт
+	// эти потоки. Долгий запрос — это задержка перед входом в игру, и по
+	// журналу должно быть видно, какой именно.
 	HTTPFetchResult res;
+	const u64 started = porting::getTimeMs();
 	bool completed = httpfetch_sync_interruptible(req, res);
+	infostream << "HTTP " << req.url << " took "
+		<< (porting::getTimeMs() - started) << "ms" << std::endl;
 
 	push_http_fetch_result(L, res, completed);
 

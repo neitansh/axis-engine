@@ -12,6 +12,11 @@ serverlistmgr = {
 	-- Все входы, какие есть: по ним ходит подбор матча и по ним ищется
 	-- вписанный руками адрес.
 	servers = nil,
+	-- Что лаунчер намерил при запуске: каким входом он ходит сам («ru», «eu»)
+	-- и какие входы вообще годны. Забракованный вход отвечает не отказом, а
+	-- молчанием до срока — ходить туда клиенту незачем.
+	entry = nil,
+	usable = nil,
 
 	-- Те из них, что показываются во вкладке серверов. Официальный Salvo сюда
 	-- не попадает: он лобби для подбора матча, и попадают туда через «Матчи»,
@@ -63,7 +68,9 @@ local function ask_for_servers(url, key, done)
 		if res.code ~= 200 or type(body) ~= "table" or type(body.servers) ~= "table" then
 			return { trouble = "refused" }
 		end
-		return { servers = body.servers }
+		-- Вместе со списком лаунчер сообщает, каким входом он сам ходит: он
+		-- померил их при запуске, и мерить те же адреса ещё раз незачем.
+		return { servers = body.servers, entry = body.entry, usable = body.usable }
 	end, { url = url, key = key }, done)
 end
 
@@ -204,6 +211,8 @@ function serverlistmgr.sync()
 		end
 
 		serverlistmgr.servers = unfold(answer.servers)
+		serverlistmgr.entry = answer.entry
+		serverlistmgr.usable = answer.usable
 
 		local shown = {}
 		for _, server in ipairs(serverlistmgr.servers) do

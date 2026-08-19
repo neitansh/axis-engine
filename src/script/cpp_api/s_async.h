@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include <vector>
 #include <deque>
 #include <unordered_set>
@@ -70,6 +72,13 @@ private:
 };
 
 // Asynchronous thread and job management
+// Просят ли рабочие потоки закругляться.
+//
+// Закрытие меню ждёт их до последнего, а задача, ушедшая в сеть на секунды,
+// держит весь переход в игру. Долгие ожидания смотрят сюда и бросают начатое:
+// их ответ всё равно уже некому показывать.
+extern std::atomic<bool> g_async_stopping;
+
 class AsyncEngine {
 	friend class AsyncWorkerThread;
 	typedef void (*StateInitializer)(lua_State *L, int top);

@@ -3,6 +3,7 @@
 // Copyright (C) 2013 sapier
 
 #include "lua_api/l_mainmenu.h"
+#include "cpp_api/s_async.h"
 #include "config/config_manager.h"
 #include "lua_api/l_internal.h"
 #include "common/c_content.h"
@@ -1284,8 +1285,16 @@ int ModApiMainMenu::l_ping_server(lua_State *L)
 		if ((int)elapsed >= timeout_ms)
 			break;
 
-		if (!socket.WaitData(timeout_ms - (int)elapsed))
+		// Меню закрывают — бросаем замер. Ответ уже некому показывать, а ждать
+		// его игрок будет стоя перед кнопкой: закрытие меню ждёт этот поток.
+		if (g_async_stopping)
 			break;
+
+		// Ждём порциями, а не одним куском: иначе просьбу закругляться мы
+		// заметили бы только по истечении всего срока.
+		const int slice = MYMIN(200, timeout_ms - (int)elapsed);
+		if (!socket.WaitData(slice))
+			continue;
 
 		int received = socket.Receive(sender, buffer, sizeof(buffer));
 		if (received < BASE_HEADER_SIZE)

@@ -66,63 +66,58 @@ end
 -- Стоит это двух обменов и полусотни килобайт на вход — раз на открытие
 -- экрана.
 
-local BURST = 48        -- пакетов в очереди, по 1200 байт
-local PROBE_TIMEOUT = 3000
-local DELIVERED = 0.9   -- меньше — путь рвётся, играть на нём нечего
 -- Сколько замер считается свежим. Сеть за полминуты не переделывается, а
 -- Диспетчер отсекает слишком частые просьбы — и отказ выглядел бы как обрыв.
-local PROBE_FRESH = 30
 
 -- Что показала проверка каждого входа: { ping, got, want }.
-local link = {}
-local probed_at = 0
-local probing = false
 
-local function delivery(i)
-	local r = link[i]
-	if not r or not r.want or r.want == 0 then
-		return nil
+-- Годен ли вход по замеру лаунчера.
+--
+-- Пока список не приехал, годно всё: молчать в эту секунду — значит соврать,
+-- что входов нет. Приехал — верим замеру: он свежий и сделан по тем же адресам.
+function matchmaking.entry_usable(server)
+	local usable = serverlistmgr.usable
+	if type(usable) ~= "table" or #usable == 0 then
+		return true
 	end
-	return (r.got or 0) / r.want
+	for _, region in ipairs(usable) do
+		if server.region == region then
+			return true
+		end
+	end
+	return false
 end
 
--- Годится ли вход: очередь дошла, и его Диспетчер нас не подводил.
-local function usable(i, server)
-	local part = delivery(i)
-	return server.dispatch and part and part >= DELIVERED
-		and not state.bad[server.dispatch]
-end
-
+-- Каким входом идти.
+--
+-- Не меряем ничего сами. Лаунчер меряет те же самые входы при запуске — те же
+-- адреса и тот же порт (см. axis-config) — и присылает свой выбор вместе со
+-- списком. Замер стоит секунд, а делался бы он ровно в ту минуту, когда игрок
+-- уже нажал на кнопку: закрытие меню ждёт рабочие потоки, и ожидание доставалось
+-- ему.
 local function pick_entry()
-	-- Пока ждём набора, вход не меняем ни при каких замерах: очередь стоит
-	-- у него, и переезд посреди ожидания — это выход из очереди.
+	-- Пока ждём набора, вход не меняем: очередь стоит у него, и переезд посреди
+	-- ожидания — это выход из очереди.
 	if state.queue then
 		return
 	end
-	local best
+
+	local chosen = serverlistmgr.entry
+	local first
 	for i, server in ipairs(servers()) do
-		if usable(i, server) and
-				(not best or (link[i].ping or 0) < (link[best].ping or 0)) then
-			best = i
-		end
-	end
-	if not best then
-		-- Ни один вход не прошёл проверку целиком. Отказывать игроку из-за
-		-- этого нельзя — берём тот, где потери меньше, а если не мерили ещё,
-		-- то первый годный, чтобы экран не пустовал.
-		local most
-		for i, server in ipairs(servers()) do
-			if server.dispatch and not state.bad[server.dispatch] then
-				local part = delivery(i)
-				if part and (not most or part > delivery(most)) then
-					most = i
-				end
-				best = best or i
+		if server.dispatch and not state.bad[server.dispatch]
+				and matchmaking.entry_usable(server) then
+			first = first or i
+			if chosen and server.region == chosen then
+				state.region = i
+				return
 			end
 		end
-		best = most or best
 	end
-	state.region = best or 1
+
+	-- Лаунчер не назвал вход или названный подвёл — берём первый годный, чтобы
+	-- экран не пустовал.
+	state.region = first or 1
 end
 
 -- Известно ли уже, каким входом идти. Пока нет — арены не показываются и
@@ -134,66 +129,13 @@ local function decided()
 	if own and own ~= "" then
 		return true -- свой Диспетчер, выбирать не из чего
 	end
-	if not core.probe_link then
-		return true -- проверять нечем
-	end
 	-- Список приходит от лаунчера и приходит не мгновенно. Пока его нет,
 	-- решать не из чего: показать «арен нет» в эту секунду значит соврать —
-	-- через мгновение вход появится, и арены вместе с ним.
-	return not probing and probed_at > 0
+	-- через мгновение список приедет, а с ним и выбранный вход.
+	return serverlistmgr.servers ~= nil
 end
 
 ---Проверить входы. Замер идёт в стороне: главное не имеет права стоять.
-local function probe_entries()
-	if probing or not core.probe_link then
-		return
-	end
-	if probed_at > 0 and os.time() - probed_at < PROBE_FRESH then
-		return
-	end
-	local targets = {}
-	for i, server in ipairs(servers()) do
-		if server.dispatch and server.probe_port then
-			targets[#targets + 1] = {
-				i = i, address = server.address, port = server.probe_port,
-			}
-		end
-	end
-	if #targets == 0 then
-		-- Мерить нечего — но и решить нечего. Отметить это как сделанный замер
-		-- значит объявить решённым выбор из пустоты: список ещё едет от
-		-- лаунчера, и через мгновение входы появятся.
-		return
-	end
-
-	probing = true
-	core.handle_async(function(p)
-		local out = {}
-		for _, t in ipairs(p.targets) do
-			out[t.i] = core.probe_link(t.address, t.port, p.burst, p.wait)
-		end
-		return out
-	end, { targets = targets, burst = BURST, wait = PROBE_TIMEOUT }, function(out)
-		probing = false
-		link = out or {}
-		probed_at = os.time()
-		pick_entry()
-
-		-- В журнал — чтобы на вопрос «почему меня увело в Германию» был
-		-- ответ, а не догадка.
-		for i, server in ipairs(servers()) do
-			local r = link[i]
-			core.log("action", ("[matchmaking] %s: %s%s"):format(
-				server.name or server.address,
-				r and ("дошло %d из %d, отклик %d мс")
-					:format(r.got or 0, r.want or 0, r.ping or 0)
-					or "не отвечает",
-				i == state.region and " — выбран" or ""))
-		end
-		core.event_handler("Refresh")
-	end)
-end
-
 local function entry()
 	return servers()[state.region]
 end
@@ -296,9 +238,11 @@ local function refresh_modes(again)
 			state.modes = body.modes or {}
 			state.status = nil
 		else
-			-- Замер говорил, что сюда дойдёт, а Диспетчер молчит. Больше
+			-- Лаунчер говорил, что сюда дойдёт, а Диспетчер молчит. Больше
 			-- этот вход не предлагаем и сразу пробуем следующий: игроку
-			-- незачем знать, что один из узлов сегодня не в духе.
+			-- незачем знать, что один из узлов сегодня не в духе. Следующий
+			-- берётся из годных — в забракованном молчание длится до срока, и
+			-- ждать его пришлось бы игроку.
 			if asked and not state.queue then
 				state.bad[asked] = true
 				pick_entry()
@@ -515,30 +459,10 @@ local function side_card(ox, oy, h)
 		-- Свой Диспетчер: замеры и списки тут ни при чём, показываем как есть.
 		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(own))
 	elseif server then
-		-- Пока идёт проверка, вход не называется. Назвать его заранее — значит
-		-- сказать «пойдёшь отсюда» до того, как это решено: сменится он через
-		-- секунду или нет, игрок уже прочитал не то.
-		local part = delivery(state.region)
-		if probing and not part then
-			fs[#fs + 1] = menu_style.body(x, y, w, 0.6, fgettext("Checking..."))
-		else
-			fs[#fs + 1] = menu_style.body(x, y, w, 0.6,
-				ESC(server.name or server.address))
-			local note
-			if not part then
-				note = probed_at > 0 and fgettext("No answer") or nil
-			elseif part < DELIVERED then
-				-- Путь отвечает, но теряет: играть на нём можно, только зная,
-				-- что рвётся не игра, а дорога до неё.
-				note = fgettext("Unstable: $1% delivered",
-					tostring(math.floor(part * 100)))
-			else
-				note = fgettext("$1 ms", tostring(math.floor(link[state.region].ping or 0)))
-			end
-			if note then
-				fs[#fs + 1] = menu_style.caption(x, y + 0.6, w, 0.5, note)
-			end
-		end
+		-- Вход называется тот, что выбрал лаунчер: он мерил эти же адреса при
+		-- запуске, и качество дороги известно ему, а не нам.
+		fs[#fs + 1] = menu_style.body(x, y, w, 0.6,
+			ESC(server.name or server.address))
 	else
 		fs[#fs + 1] = menu_style.caption(x, y, w, 0.6, fgettext("No servers"))
 	end
@@ -670,7 +594,7 @@ function matchmaking.get_formspec(x, y, w, h)
 	-- Список приходит от лаунчера позже, чем открывается экран, поэтому замер
 	-- заводится и отсюда: на входе в экран мерить было нечего. Сам он дешёвый —
 	-- пока замер свеж или идёт, вызов ничего не делает.
-	probe_entries()
+	pick_entry()
 	-- Замер приходит не сразу, поэтому вход пересматриваем на каждом
 	-- рисовании: как только стало известно, кто ближе, экран сам переедет.
 	local was = dispatch_url()
@@ -727,7 +651,7 @@ function matchmaking.on_enter()
 	-- починиться: сеть меняется чаще, чем открывают меню.
 	state.bad = {}
 	serverlistmgr.sync()
-	probe_entries()
+	pick_entry()
 	pick_entry()
 	if decided() then
 		refresh_modes()

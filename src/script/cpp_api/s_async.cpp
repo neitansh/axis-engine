@@ -31,8 +31,13 @@ static constexpr int AUTOSCALE_DELAY_MS = 1000;
 static constexpr int STUCK_DELAY_MS = 11500;
 
 /******************************************************************************/
+// Просят ли рабочие потоки закругляться (см. s_async.h).
+std::atomic<bool> g_async_stopping{false};
+
 AsyncEngine::~AsyncEngine()
 {
+	// Потоки сейчас будут остановлены: долгие ожидания могут бросать начатое.
+	g_async_stopping = true;
 	// Request all threads to stop
 	for (AsyncWorkerThread *workerThread : workerThreads) {
 		workerThread->stop();
@@ -71,6 +76,7 @@ void AsyncEngine::registerStateInitializer(StateInitializer func)
 /******************************************************************************/
 void AsyncEngine::initialize(unsigned int numEngines)
 {
+	g_async_stopping = false;
 	initDone = true;
 
 	if (numEngines == 0) {
@@ -394,8 +400,18 @@ void* AsyncWorkerThread::run()
 			lua_pushlstring(L, j.params.data(), j.params.size());
 
 		// Call it
+		//
+		// Со временем: закрытие меню ждёт эти потоки, и одна задача, ушедшая в
+		// сеть на несколько секунд, держит весь переход в игру. По журналу
+		// видно, кто именно держал.
 		setOriginDirect(j.mod_origin.empty() ? nullptr : j.mod_origin.c_str());
+		const u64 job_started = porting::getTimeMs();
 		int result = lua_pcall(L, 2, 1, error_handler);
+		const u64 job_took = porting::getTimeMs() - job_started;
+		if (job_took > 200) {
+			infostream << "ASYNC WORKER: a job took " << job_took << "ms"
+				<< std::endl;
+		}
 		if (result) {
 			try {
 				scriptError(result, "<async>");
