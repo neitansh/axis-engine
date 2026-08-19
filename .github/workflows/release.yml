@@ -26,11 +26,21 @@ on:
 permissions:
   contents: read
 
+# Один выпуск за раз. Два внахлёст полезли бы в раздачу вместе, а она при смене
+# версии забывает прошлую — чья сборка осталась бы у игроков, решил бы порядок
+# ответов. Начатое не отменяем: собранное почти до конца дешевле подождать.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   linux:
     name: Build & Upload Linux Client
     if: inputs.platform != 'windows'
     runs-on: ubuntu-22.04
+    # Сборка укладывается в восемь минут; час — это про зависший шаг, который
+    # иначе держал бы раннер до умолчания GitHub, то есть шесть часов.
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v7
@@ -263,9 +273,46 @@ jobs:
             fi
           done
 
+          # A gate, not advice: glibc is compatible backwards but not
+          # forwards, so a client built against a newer one dies on the
+          # player's machine with GLIBC_x.y not found. It stays inside the
+          # floor only because the runner image is ubuntu-22.04 — when GitHub
+          # retires it, the build has to stop here instead of quietly shipping.
+          # Steps run with pipefail, so a file objdump cannot read and a grep
+          # that matches nothing would both take the whole step down with no
+          # word about what happened. The empty answer is checked below instead.
+          floor=2.35
+          symbols="$(objdump -T axis_linux/bin/axis axis_linux/libs/* 2>/dev/null || true)"
+          needs="$(printf '%s\n' "$symbols" |
+            grep -oE 'GLIBC_[0-9]+\.[0-9]+' | sed 's/GLIBC_//' | sort -uV | tail -1 || true)"
+          if [ -z "$needs" ]; then
+            echo "::error::Could not tell which glibc the package needs."
+            exit 1
+          fi
+          if [ "$(printf '%s\n%s\n' "$needs" "$floor" | sort -V | head -1)" != "$needs" ]; then
+            echo "::error::The package needs glibc $needs, and we ship no newer than $floor."
+            exit 1
+          fi
+          echo "glibc: needs $needs, floor $floor"
+
           echo ""
           echo "Starting the packaged client:"
           ./axis_linux/bin/axis --version
+
+          # The build carries REQUIRE_LAUNCHER, and a build that forgot it
+          # would open the main menu instead of refusing. Checked the same way
+          # under windows. The message matters as much as the exit code: with
+          # no display around, the client would fail here anyway, and a bare
+          # failure would pass for a refusal it never made.
+          if out="$(timeout 60 ./axis_linux/bin/axis 2>&1)"; then
+            echo "::error::The packaged client started without the launcher."
+            exit 1
+          fi
+          if ! printf '%s' "$out" | grep -q "not on its own"; then
+            echo "::error::The client refused for some other reason:"
+            printf '%s\n' "$out"
+            exit 1
+          fi
 
 
       # Игроки качают игру из раздачи, а не с GitHub: релизы GitHub из России
@@ -324,6 +371,7 @@ jobs:
     name: Build & Upload Windows Client
     if: inputs.platform != 'linux'
     runs-on: windows-latest
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
