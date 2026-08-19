@@ -41,6 +41,7 @@ local state = {
 	drawn = 0,       -- когда экран рисовали в последний раз
 	epoch = 0,       -- ответы прошлых заходов нам не нужны
 	bad = {},        -- входы, чей Диспетчер не отозвался
+	answered = false, -- отозвался ли выбранный: до того имя входа не пишем
 }
 
 local function servers()
@@ -237,6 +238,8 @@ local function refresh_modes(again)
 		if body then
 			state.modes = body.modes or {}
 			state.status = nil
+			-- С этого мгновения вход можно называть: он ответил.
+			state.answered = true
 		else
 			-- Лаунчер говорил, что сюда дойдёт, а Диспетчер молчит. Больше
 			-- этот вход не предлагаем и сразу пробуем следующий: игроку
@@ -245,6 +248,7 @@ local function refresh_modes(again)
 			-- ждать его пришлось бы игроку.
 			if asked and not state.queue then
 				state.bad[asked] = true
+				state.answered = false
 				pick_entry()
 			end
 			if dispatch_url() and dispatch_url() ~= asked then
@@ -458,11 +462,16 @@ local function side_card(ox, oy, h)
 	if own and own ~= "" then
 		-- Свой Диспетчер: замеры и списки тут ни при чём, показываем как есть.
 		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, ESC(own))
-	elseif server then
+	elseif server and state.answered then
 		-- Вход называется тот, что выбрал лаунчер: он мерил эти же адреса при
 		-- запуске, и качество дороги известно ему, а не нам.
 		fs[#fs + 1] = menu_style.body(x, y, w, 0.6,
 			ESC(server.name or server.address))
+	elseif server then
+		-- Пока Диспетчер не отозвался, вход не называется. Назвать его
+		-- заранее — значит сказать «пойдёшь отсюда» до того, как это решено:
+		-- не ответит — уйдём к следующему, а игрок уже прочитал не то.
+		fs[#fs + 1] = menu_style.body(x, y, w, 0.6, fgettext("Checking..."))
 	else
 		fs[#fs + 1] = menu_style.caption(x, y, w, 0.6, fgettext("No servers"))
 	end
