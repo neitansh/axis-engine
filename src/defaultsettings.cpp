@@ -584,6 +584,9 @@ void set_default_settings()
 	settings->setDefault("nodetimer_interval", "0.2");
 	settings->setDefault("ignore_world_load_errors", "false");
 	settings->setDefault("remote_media", "");
+	// Раздача медиа рядом с игровым портом: пусто — тот же номер порта, что у
+	// игры, 0 — не раздавать вовсе и слать медиа игровым протоколом.
+	settings->setDefault("media_http_port", "");
 	settings->setDefault("debug_log_level", "action");
 	settings->setDefault("debug_log_size_max", "50");
 	settings->setDefault("chat_log_level", "error");

@@ -707,6 +707,23 @@ void Client::handleCommand_AnnounceMedia(NetworkPacket* pkt)
 		}
 	}
 
+	// Раздача самого сервера. Адрес собираем здесь, а не берём у него: сервер
+	// своего внешнего имени не знает, зато мы точно знаем, куда подключились, —
+	// и заодно никуда, кроме этого адреса, не пойдём.
+	if (pkt->getRemainingBytes() >= 2) {
+		u16 media_port;
+		*pkt >> media_port;
+		if (media_port != 0) {
+			std::string host = getAddressName();
+			if (host.find(':') != std::string::npos)
+				host = '[' + host + ']';
+			const std::string baseurl = "http://" + host + ':'
+					+ std::to_string(media_port) + '/';
+			m_remote_media_servers.emplace_back(baseurl);
+			m_media_downloader->addRemoteServer(baseurl);
+		}
+	}
+
 	m_media_downloader->step(this);
 }
 

@@ -666,6 +666,27 @@ void Server::start()
 	// Initialize connection
 	m_con->Serve(m_bind_addr);
 
+	// Раздача медиа. Тот же номер порта, что у игры, только TCP: одна дырка в
+	// firewall на два дела, и игроку не надо ничего знать сверх адреса.
+	//
+	// В одиночной игре не поднимается вовсе: клиент и сервер здесь один
+	// процесс, медиа берётся из своего же каталога, и открытый порт был бы
+	// чистой раздачей себя наружу.
+	if (!m_simple_singleplayer_mode) {
+		const std::string want = g_settings->get("media_http_port");
+		const u16 port = want.empty() ? m_bind_addr.getPort()
+									  : (u16)mystoi(want, 0, U16_MAX);
+		if (port != 0) {
+			m_media_http = std::make_unique<MediaHttpServer>(port);
+			if (m_media_http->isRunning()) {
+				m_media_http_port = port;
+				updateMediaHttp();
+			} else {
+				m_media_http.reset();
+			}
+		}
+	}
+
 	// Start thread
 	m_thread->start();
 
@@ -2983,6 +3004,9 @@ bool Server::addMediaFile(const std::string &filename,
 
 	// Put in list
 	m_media.insert_or_assign(filename, MediaInfo(filepath, sha1));
+	// Раздача узнаёт о файле тогда же, когда и сервер: медиа появляется и
+	// посреди игры, а клиент за ней приходит сразу.
+	updateMediaHttp();
 	verbosestream << "Server: " << sha1_hex << " is " << filename
 				  << " (" << (filedata.size() >> 10) << "KiB)" << std::endl;
 
@@ -3036,6 +3060,23 @@ void Server::fillMediaCache()
 	}
 
 	infostream << "Server: " << m_media.size() << " media files collected" << std::endl;
+}
+
+void Server::updateMediaHttp()
+{
+	if (!m_media_http)
+		return;
+
+	// Раздаче нужен разворот той же таблицы: клиент просит файл по хэшу, а не
+	// по имени. Одинаковые файлы под разными именами схлопываются сами — им и
+	// на диске у игрока лежать одной копией.
+	std::unordered_map<std::string, std::string> by_hash;
+	by_hash.reserve(m_media.size());
+	for (const auto &it : m_media) {
+		if (it.second.sha1_digest.size() == 20)
+			by_hash.emplace(hex_encode(it.second.sha1_digest), it.second.path);
+	}
+	m_media_http->setMedia(std::move(by_hash));
 }
 
 void Server::sendMediaAnnouncement(session_t peer_id, const std::string &lang_code)
@@ -3105,6 +3146,9 @@ void Server::sendMediaAnnouncement(session_t peer_id, const std::string &lang_co
 
 	// and the remote media server(s)
 	pkt << g_settings->get("remote_media");
+	// Своя раздача: адрес клиент соберёт сам из того, куда он подключён, —
+	// сервер своего внешнего адреса не знает, да и знать ему незачем.
+	pkt << m_media_http_port;
 	Send(&pkt);
 
 	verbosestream << "Server: Announcing files to id(" << peer_id
@@ -3284,6 +3328,7 @@ void Server::stepPendingDynMediaCallbacks(float dtime)
 
 			fs::DeleteSingleFileOrEmptyDirectory(it->second.path, true);
 			m_media.erase(it);
+			updateMediaHttp();
 		}
 		getScriptIface()->freeDynamicMediaCallback(token);
 		return true; });

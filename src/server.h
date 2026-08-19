@@ -14,6 +14,7 @@
 #include "util/basic_macros.h"
 #include "util/metricsbackend.h"
 #include "server/clientiface.h"
+#include "server/mediahttp.h"
 #include "threading/ordered_mutex.h"
 #include "translation.h"
 #include "sound_spec.h"
@@ -626,6 +627,8 @@ private:
 	bool addMediaFile(const std::string &filename, const std::string &filepath,
 			std::string *filedata = nullptr, std::string *digest = nullptr);
 	void fillMediaCache();
+	// Сказать раздаче, какие файлы у нас теперь есть.
+	void updateMediaHttp();
 	void sendMediaAnnouncement(session_t peer_id, const std::string &lang_code);
 	void sendRequestedMedia(session_t peer_id,
 			const std::unordered_set<std::string> &tosend);
@@ -809,6 +812,12 @@ private:
 
 	// media files known to server
 	std::unordered_map<std::string, MediaInfo> m_media;
+
+	// Раздача медиа по HTTP рядом с игровым портом. Пусто — раздачи нет, и
+	// медиа едет игровым протоколом, как раньше.
+	std::unique_ptr<MediaHttpServer> m_media_http;
+	// Номер порта, который объявляется клиенту (0 — раздачи нет).
+	u16 m_media_http_port = 0;
 
 	// pending dynamic media callbacks, clients inform the server when they have a file fetched
 	std::unordered_map<u32, PendingDynamicMediaCallback> m_pending_dyn_media;
