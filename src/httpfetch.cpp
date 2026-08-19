@@ -221,6 +221,17 @@ private:
 };
 
 
+// Ведёт ли этот адрес на свою же машину.
+static bool isLocalHost(const std::string &url)
+{
+	const size_t scheme = url.find("://");
+	if (scheme == std::string::npos)
+		return false;
+	const std::string rest = url.substr(scheme + 3);
+	const std::string host = rest.substr(0, rest.find_first_of(":/"));
+	return host == "127.0.0.1" || host == "localhost" || host == "[::1]";
+}
+
 HTTPFetchOngoing::HTTPFetchOngoing(const HTTPFetchRequest &request_,
 		CurlHandlePool *pool_):
 	pool(pool_),
@@ -243,8 +254,15 @@ HTTPFetchOngoing::HTTPFetchOngoing(const HTTPFetchRequest &request_,
 
 	// Пустая строка — это «никакого прокси», в том числе того, что libcurl
 	// сам бы взял из окружения; nullptr так не умеет.
+	//
+	// Своя машина — всегда мимо прокси. Обходной прокси в окружении libcurl
+	// применяет и к 127.0.0.1: запрос к дверце лаунчера, живущей в соседнем
+	// процессе, уходил в чужую страну и висел там секундами, пока игрок стоял
+	// перед кнопкой. Обхода это не требует по определению — свой же компьютер.
 	std::string proxy = g_settings->get("secure.curl_proxy");
-	if (!proxy.empty())
+	if (isLocalHost(request.url))
+		curl_easy_setopt(curl, CURLOPT_PROXY, "");
+	else if (!proxy.empty())
 		curl_easy_setopt(curl, CURLOPT_PROXY, proxy.c_str());
 	else if (request.bypass_proxy)
 		curl_easy_setopt(curl, CURLOPT_PROXY, "");
