@@ -452,7 +452,7 @@ end
 --- Returns table of setting types
 --
 -- @param read_all Whether to ignore certain setting types for GUI or not
--- @parse_mods Whether to parse settingtypes.txt in mods and games
+-- @parse_mods Whether to parse settingtypes.txt in mods and places
 function settingtypes.parse_config_file(read_all, parse_mods)
 	local settings = {}
 
@@ -469,34 +469,34 @@ function settingtypes.parse_config_file(read_all, parse_mods)
 		file:close()
 	end
 
-	-- TODO: Support game/mod settings in the pause menu too
+	-- TODO: Support place/mod settings in the pause menu too
 	-- Note that this will need to work different from how it's done in the
 	-- mainmenu:
-	-- * Only show settings for the active game and mods
+	-- * Only show settings for the active place and mods
 	--   (add API function to get them, can return nil if on a remote server)
 	--   (names are probably not enough, will need paths for uniqueness)
 	-- This means just making "pkgmgr.lua" work won't get you very far.
 
 	if INIT == "mainmenu" and parse_mods then
-		-- Parse games
-		local games_category_initialized = false
-		for _, game in ipairs(pkgmgr.games) do
-			local path = game.path .. DIR_DELIM .. FILENAME
+		-- Parse places
+		local places_category_initialized = false
+		for _, place in ipairs(pkgmgr.places) do
+			local path = place.path .. DIR_DELIM .. FILENAME
 			local file = io.open(path, "r")
 			if file then
-				if not games_category_initialized then
-					fgettext_ne("Content: Games") -- not used, but needed for xgettext
+				if not places_category_initialized then
+					fgettext_ne("Content: Places") -- not used, but needed for xgettext
 					table.insert(settings, {
-						name = "Content: Games",
+						name = "Content: Places",
 						level = 0,
 						type = "category",
 					})
-					games_category_initialized = true
+					places_category_initialized = true
 				end
 
 				table.insert(settings, {
-					name = game.path,
-					readable_name = game.title,
+					name = place.path,
+					readable_name = place.title,
 					level = 1,
 					type = "category",
 				})

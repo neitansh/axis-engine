@@ -49,7 +49,7 @@ local function get_formspec(dialogdata)
 
 	local heading
 	if server.placeid then
-		heading = fgettext("The $1 server uses a game called $2 and the following mods:",
+		heading = fgettext("The $1 server uses a place called $2 and the following mods:",
 			"<b>" .. core.hypertext_escape(server.name) .. "</b>",
 			"<style font=mono>" .. core.hypertext_escape(server.placeid) .. "</style>")
 	else

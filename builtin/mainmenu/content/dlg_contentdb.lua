@@ -21,7 +21,7 @@ local auto_install_spec = nil
 
 local filter_type_names = {
 	{ "type_all", nil },
-	{ "type_game", "game" },
+	{ "type_place", "game" },
 	{ "type_mod", "mod" },
 	{ "type_txp", "txp" },
 }
@@ -225,7 +225,7 @@ local function get_formspec(dlgdata)
 
 		-- Top-left: categories
 		make_category_button("type_all", fgettext("All"), selected_type == nil),
-		make_category_button("type_game", fgettext("Games"), selected_type == "game"),
+		make_category_button("type_place", fgettext("Places"), selected_type == "game"),
 		make_category_button("type_mod", fgettext("Mods"), selected_type == "mod"),
 		make_category_button("type_txp", fgettext("Texture Packs"), selected_type == "txp"),
 
@@ -489,7 +489,7 @@ end
 local function handle_events(event)
 	if event == "DialogShow" then
 		-- Don't show the header image behind the dialog.
-		mm_game_theme.set_engine(true)
+		mm_place_theme.set_engine(true)
 
 		-- If ContentDB is already loaded, auto-install packages here.
 		do_auto_install()

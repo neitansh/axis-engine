@@ -136,7 +136,7 @@ local function get_formspec(tabview, name, tabdata)
 		"field[0.25,0.25;7,0.75;te_search;;" .. core.formspec_escape(tabdata.search_for) .. "]" ..
 		"tooltip[te_search;" .. core.formspec_escape(table.concat({
 				fgettext("Possible filters"),
-				"game:<name>",
+				"place:<name>",
 				"mod:<name>",
 				"player:<name>",
 				"sort:[-](name|relevance|players|mods|uptime|ping|lag)",
@@ -202,7 +202,7 @@ local function get_formspec(tabview, name, tabdata)
 		if mods and #mods > 0 then
 			local tooltip = ""
 			if selected_server.placeid then
-				tooltip = fgettext("Game: $1", selected_server.placeid) .. "\n"
+				tooltip = fgettext("Place: $1", selected_server.placeid) .. "\n"
 			end
 			tooltip = tooltip .. fgettext("Number of mods: $1", #mods)
 
@@ -353,11 +353,11 @@ local function parse_search_input(input)
 		table.insert(query.mods, mod)
 		local player = word:match("^player:(.*)")
 		table.insert(query.players, player)
-		local game = word:match("^game:(.*)")
-		query.game = query.game or game
+		local place = word:match("^place:(.*)")
+		query.place = query.place or place
 		local sort = word:match("^sort:(.*)")
 		query.sort = query.sort or sort
-		if not (mod or player or game or sort) then
+		if not (mod or player or place or sort) then
 			table.insert(query.keywords, word)
 		end
 	end
@@ -404,8 +404,8 @@ local function matches_query(server, query)
 		end
 	end
 
-	-- Check if game matches
-	if query.game and query.game ~= server.placeid then
+	-- Check if place matches
+	if query.place and query.place ~= server.placeid then
 		return false
 	end
 
@@ -674,7 +674,7 @@ end
 
 local function on_change(type)
 	if type == "ENTER" then
-		mm_game_theme.set_engine()
+		mm_place_theme.set_engine()
 		serverlistmgr.sync()
 		-- Экран открыли заново: список арен мог измениться, пока нас не было.
 		matchmaking.on_enter()
@@ -686,7 +686,7 @@ end
 
 return {
 	name = "online",
-	caption = fgettext("Join Game"),
+	caption = fgettext("Join Place"),
 	cbf_formspec = get_formspec,
 	cbf_button_handler = main_button_handler,
 	on_change = on_change

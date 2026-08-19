@@ -38,7 +38,7 @@ end
 
 local function event_handler(event)
 	if event == "DialogShow" then
-		mm_game_theme.set_engine(true) -- hide the menu header
+		mm_place_theme.set_engine(true) -- hide the menu header
 		return true
 	end
 	return false

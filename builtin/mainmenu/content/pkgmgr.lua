@@ -147,8 +147,8 @@ function pkgmgr.get_all()
 	for _, mod in pairs(pkgmgr.global_mods:get_list()) do
 		result[#result + 1] = mod
 	end
-	for _, game in pairs(pkgmgr.games) do
-		result[#result + 1] = game
+	for _, place in pairs(pkgmgr.places) do
+		result[#result + 1] = place
 	end
 	for _, txp in pairs(pkgmgr.texture_packs) do
 		result[#result + 1] = txp
@@ -327,7 +327,7 @@ function pkgmgr.render_packagelist(render_list, use_technical_names, with_icon)
 		end
 
 		retval[#retval + 1] = color
-		-- `v.modpack_depth` is `nil` for the selected game (treated as level 0)
+		-- `v.modpack_depth` is `nil` for the selected place (treated as level 0)
 		retval[#retval + 1] = (v.modpack_depth or 0) +
 				((v.loc == "game" or v.loc == "worldmods") and 1 or 0)
 
@@ -421,7 +421,7 @@ function pkgmgr.enable_mod(this, toset)
 	-- Enable mods' depends after activation
 
 	-- Make a list of mod ids indexed by their names. Among mods with the
-	-- same name, enabled mods take precedence, after which game mods take
+	-- same name, enabled mods take precedence, after which place mods take
 	-- precedence, being last in the mod list.
 	local mod_ids = {}
 	for id, mod2 in pairs(list) do
@@ -490,7 +490,7 @@ function pkgmgr.get_worldconfig(worldpath)
 
 	local worldconfig = {}
 	worldconfig.global_mods = {}
-	worldconfig.game_mods = {}
+	worldconfig.place_mods = {}
 
 	for key,value in pairs(worldfile:to_table()) do
 		if key == "placeid" then
@@ -505,9 +505,9 @@ function pkgmgr.get_worldconfig(worldpath)
 		end
 	end
 
-	--read gamemods
-	local gamespec = pkgmgr.find_by_placeid(worldconfig.id)
-	pkgmgr.get_game_mods(gamespec, worldconfig.game_mods)
+	--read placemods
+	local placespec = pkgmgr.find_by_placeid(worldconfig.id)
+	pkgmgr.get_place_mods(placespec, worldconfig.place_mods)
 
 	return worldconfig
 end
@@ -553,7 +553,7 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 		return targetpath, nil
 
 	elseif not basefolder then
-		return nil, fgettext_ne("Unable to find a valid mod, modpack, or game")
+		return nil, fgettext_ne("Unable to find a valid mod, modpack, or place")
 	end
 
 	-- Check type
@@ -614,21 +614,21 @@ function pkgmgr.preparemodlist(data)
 		retval[#retval + 1] = mod
 	end
 
-	-- read game mods
-	local game_mods = {}
-	local gamespec = pkgmgr.find_by_placeid(data.placeid)
-	pkgmgr.get_game_mods(gamespec, game_mods)
+	-- read place mods
+	local place_mods = {}
+	local placespec = pkgmgr.find_by_placeid(data.placeid)
+	pkgmgr.get_place_mods(placespec, place_mods)
 
-	if #game_mods > 0 then
+	if #place_mods > 0 then
 		-- Add title
 		retval[#retval + 1] = {
 			type = "game",
 			always_on = true,
-			name = fgettext("$1 mods", gamespec.title),
-			path = gamespec.path
+			name = fgettext("$1 mods", placespec.title),
+			path = placespec.path
 		}
 
-		for _, mod in ipairs(game_mods) do
+		for _, mod in ipairs(place_mods) do
 			mod.type = "mod"
 			mod.loc = "game"
 			mod.always_on = true
@@ -752,48 +752,48 @@ function pkgmgr.find_by_placeid(placeid)
 		return nil, nil
 	end
 	placeid = pkgmgr.normalize_place_id(placeid)
-	for i, game in ipairs(pkgmgr.games) do
-		if game.id == placeid then
-			return game, i
+	for i, place in ipairs(pkgmgr.places) do
+		if place.id == placeid then
+			return place, i
 		end
 	end
 	local ret, val
-	for i, game in ipairs(pkgmgr.games) do
-		if game.aliases[placeid] then
+	for i, place in ipairs(pkgmgr.places) do
+		if place.aliases[placeid] then
 			if ret then
 				core.log("warning",
-					"Found two games using alias " .. placeid .. ": " ..
-					game.id .. " and " .. ret.id
+					"Found two places using alias " .. placeid .. ": " ..
+					place.id .. " and " .. ret.id
 				)
 			end
-			ret, val = game, i
+			ret, val = place, i
 		end
 	end
 	return ret, val
 end
 
 --------------------------------------------------------------------------------
-function pkgmgr.get_game_mods(gamespec, retval)
-	if gamespec ~= nil and
-		gamespec.placemods_path ~= nil and
-		gamespec.placemods_path ~= "" then
-		pkgmgr.get_mods(gamespec.placemods_path, ("games/%s/mods"):format(gamespec.id), retval)
+function pkgmgr.get_place_mods(placespec, retval)
+	if placespec ~= nil and
+		placespec.placemods_path ~= nil and
+		placespec.placemods_path ~= "" then
+		pkgmgr.get_mods(placespec.placemods_path, ("places/%s/mods"):format(placespec.id), retval)
 	end
 end
 
 --------------------------------------------------------------------------------
-function pkgmgr.reload_games()
-	pkgmgr.games = core.get_places()
-	table.sort(pkgmgr.games, function(a, b)
+function pkgmgr.reload_places()
+	pkgmgr.places = core.get_places()
+	table.sort(pkgmgr.places, function(a, b)
 		return a.title:lower() < b.title:lower()
 	end)
-	pkgmgr.update_translations(pkgmgr.games)
+	pkgmgr.update_translations(pkgmgr.places)
 end
 
 --------------------------------------------------------------------------------
 function pkgmgr.reload_by_type(type)
 	if type == "game" then
-		pkgmgr.reload_games()
+		pkgmgr.reload_places()
 	elseif type == "txp" then
 		pkgmgr.reload_texture_packs()
 	elseif type == "mod" or type == "modpack" then
@@ -808,8 +808,8 @@ function pkgmgr.load_all()
 	if not pkgmgr.global_mods then
 		pkgmgr.reload_global_mods()
 	end
-	if not pkgmgr.games then
-		pkgmgr.reload_games()
+	if not pkgmgr.places then
+		pkgmgr.reload_places()
 	end
 	if not pkgmgr.texture_packs then
 		pkgmgr.reload_texture_packs()
@@ -849,7 +849,7 @@ function pkgmgr.get_contentdb_id(content)
 		return content.author:lower() .. "/" .. content.name
 	end
 
-	-- Until version 5.8.0, Minetest Game was bundled with the engine.
+	-- Until version 5.8.0, Minetest Place was bundled with the engine.
 	-- Unfortunately, the bundled MTG was not versioned (missing "release"
 	-- field in game.conf).
 	-- Therefore, we consider any installation of MTG that is not versioned,
@@ -863,13 +863,13 @@ function pkgmgr.get_contentdb_id(content)
 end
 
 --------------------------------------------------------------------------------
--- Normalizes ID of a game. Keep in sync with subgames.cpp, `normalizeGameId`.
+-- Normalizes ID of a place. Keep in sync with places.cpp, `normalizeGameId`.
 function pkgmgr.normalize_place_id(name)
-	return name:match("(.*)_game$") or name
+	return name:match("(.*)_place$") or name
 end
 
 
 --------------------------------------------------------------------------------
 -- read initial data
 --------------------------------------------------------------------------------
-pkgmgr.reload_games()
+pkgmgr.reload_places()

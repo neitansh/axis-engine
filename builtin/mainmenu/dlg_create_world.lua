@@ -85,25 +85,25 @@ local function create_world_formspec(dialogdata)
 
 	local flags = dialogdata.flags
 
-	local game = pkgmgr.find_by_placeid(core.settings:get("menu_last_game"))
-	if game == nil then
-		-- should never happen but just pick the first game
-		game = pkgmgr.games[1]
-		core.settings:set("menu_last_game", game.id)
+	local place = pkgmgr.find_by_placeid(core.settings:get("menu_last_place"))
+	if place == nil then
+		-- should never happen but just pick the first place
+		place = pkgmgr.places[1]
+		core.settings:set("menu_last_place", place.id)
 	end
 
 	local disallowed_mapgen_settings = {}
-	if game ~= nil then
-		local gameconfig = Settings(game.path.."/game.conf")
+	if place ~= nil then
+		local placeconfig = Settings(place.path.."/game.conf")
 
-		current_mg = current_mg or gameconfig:get("default_mapgen") or core.settings:get("mg_name")
+		current_mg = current_mg or placeconfig:get("default_mapgen") or core.settings:get("mg_name")
 
-		local allowed_mapgens = (gameconfig:get("allowed_mapgens") or ""):split()
+		local allowed_mapgens = (placeconfig:get("allowed_mapgens") or ""):split()
 		for key, value in pairs(allowed_mapgens) do
 			allowed_mapgens[key] = value:trim()
 		end
 
-		local disallowed_mapgens = (gameconfig:get("disallowed_mapgens") or ""):split()
+		local disallowed_mapgens = (placeconfig:get("disallowed_mapgens") or ""):split()
 		for key, value in pairs(disallowed_mapgens) do
 			disallowed_mapgens[key] = value:trim()
 		end
@@ -124,7 +124,7 @@ local function create_world_formspec(dialogdata)
 			end
 		end
 
-		local ds = (gameconfig:get("disallowed_mapgen_settings") or ""):split()
+		local ds = (placeconfig:get("disallowed_mapgen_settings") or ""):split()
 		for _, value in pairs(ds) do
 			disallowed_mapgen_settings[value:trim()] = true
 		end
@@ -325,11 +325,11 @@ local function create_world_buttonhandler(this, fields)
 		end
 
 		local worldname = fields["te_world_name"]
-		local game, _ = pkgmgr.find_by_placeid(core.settings:get("menu_last_game"))
+		local place, _ = pkgmgr.find_by_placeid(core.settings:get("menu_last_place"))
 
 		local message
-		if game == nil then
-			message = fgettext_ne("No game selected")
+		if place == nil then
+			message = fgettext_ne("No place selected")
 		end
 
 		if message == nil then
@@ -369,12 +369,12 @@ local function create_world_buttonhandler(this, fields)
 				mgvalleys_spflags = table_to_flags(this.data.flags.valleys),
 				mgflat_spflags = table_to_flags(this.data.flags.flat),
 			}
-			message = core.create_world(worldname, game.id, settings)
+			message = core.create_world(worldname, place.id, settings)
 		end
 
 		if message == nil then
-			core.settings:set("menu_last_game", game.id)
-			menudata.worldlist:set_filtercriteria(game.id)
+			core.settings:set("menu_last_place", place.id)
+			menudata.worldlist:set_filtercriteria(place.id)
 			menudata.worldlist:refresh()
 			core.settings:set("mainmenu_last_selected_world",
 					menudata.worldlist:raw_index_by_uid(worldname))
@@ -389,8 +389,8 @@ local function create_world_buttonhandler(this, fields)
 	this.data.seed = fields["te_seed"] or ""
 
 	if fields["games"] then
-		local gameindex = core.get_textlist_index("games")
-		core.settings:set("menu_last_game", pkgmgr.games[gameindex].id)
+		local placeindex = core.get_textlist_index("games")
+		core.settings:set("menu_last_place", pkgmgr.places[placeindex].id)
 		return true
 	end
 

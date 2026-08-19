@@ -27,34 +27,34 @@ local function get_formspec(data)
 		return get_loading_formspec()
 	end
 
-	local selected_game, selected_game_idx = pkgmgr.find_by_placeid(core.settings:get("menu_last_game"))
-	if not selected_game_idx then
-		selected_game_idx = 1
-		selected_game = pkgmgr.games[1]
+	local selected_place, selected_place_idx = pkgmgr.find_by_placeid(core.settings:get("menu_last_place"))
+	if not selected_place_idx then
+		selected_place_idx = 1
+		selected_place = pkgmgr.places[1]
 	end
 
-	local game_list = {}
-	for i, game in ipairs(pkgmgr.games) do
-		game_list[i] = core.formspec_escape(game.title)
+	local place_list = {}
+	for i, place in ipairs(pkgmgr.places) do
+		place_list[i] = core.formspec_escape(place.title)
 	end
 
-	if not data.deps_ready[selected_game_idx] and
-			not data.deps_loading[selected_game_idx] then
-		data.deps_loading[selected_game_idx] = true
+	if not data.deps_ready[selected_place_idx] and
+			not data.deps_loading[selected_place_idx] then
+		data.deps_loading[selected_place_idx] = true
 
-		contentdb.resolve_dependencies(data.package, selected_game, function(deps)
+		contentdb.resolve_dependencies(data.package, selected_place, function(deps)
 			if not is_still_visible(data.dlg) then
 				return
 			end
-			data.deps_ready[selected_game_idx] = deps
+			data.deps_ready[selected_place_idx] = deps
 			ui.update()
 		end)
 	end
 
-	-- The value of `data.deps_ready[selected_game_idx]` may have changed
+	-- The value of `data.deps_ready[selected_place_idx]` may have changed
 	-- since the last if statement since `contentdb.resolve_dependencies`
 	-- calls the callback immediately if the dependencies are already cached.
-	if not data.deps_ready[selected_game_idx] then
+	if not data.deps_ready[selected_place_idx] then
 		return get_loading_formspec()
 	end
 
@@ -64,7 +64,7 @@ local function get_formspec(data)
 	local deps_to_install = 0
 	local deps_not_found = 0
 
-	data.deps_chosen = data.deps_ready[selected_game_idx]
+	data.deps_chosen = data.deps_ready[selected_place_idx]
 	local formatted_deps = {}
 	for _, dep in pairs(data.deps_chosen) do
 		formatted_deps[#formatted_deps + 1] = "#fff"
@@ -95,7 +95,7 @@ local function get_formspec(data)
 	end
 	if deps_not_found > 0 then
 		message = fgettext("$1 required dependencies could not be found.", deps_not_found) ..
-				" " .. fgettext("Please check that the base game is correct.", deps_not_found) ..
+				" " .. fgettext("Please check that the base place is correct.", deps_not_found) ..
 				"\n" .. message
 		message_bg = mt_color_orange
 	end
@@ -118,9 +118,9 @@ local function get_formspec(data)
 
 		"container[0.375,1]",
 
-		"label[0,0.4;", fgettext("Base Game:"), "]",
-		"dropdown[", padded_w - dropdown_w, ",0;", dropdown_w, ",0.8;selected_game;",
-				table.concat(game_list, ","), ";", selected_game_idx, "]",
+		"label[0,0.4;", fgettext("Base Place:"), "]",
+		"dropdown[", padded_w - dropdown_w, ",0;", dropdown_w, ",0.8;selected_place;",
+				table.concat(place_list, ","), ";", selected_place_idx, "]",
 
 		"label[0,1.1;", fgettext("Dependencies:"), "]",
 
@@ -173,10 +173,10 @@ local function handle_submit(this, fields)
 		return true
 	end
 
-	if fields.selected_game then
-		for _, game in pairs(pkgmgr.games) do
-			if game.title == fields.selected_game then
-				core.settings:set("menu_last_game", game.id)
+	if fields.selected_place then
+		for _, place in pairs(pkgmgr.places) do
+			if place.title == fields.selected_place then
+				core.settings:set("menu_last_place", place.id)
 				break
 			end
 		end
@@ -261,9 +261,9 @@ function install_or_update_package(parent, package)
 		dlg:load_deps()
 	end
 
-	if package.type == "mod" and #pkgmgr.games == 0 then
-		local dlg = messagebox("install_game",
-				fgettext("You need to install a game before you can install a mod"))
+	if package.type == "mod" and #pkgmgr.places == 0 then
+		local dlg = messagebox("install_place",
+				fgettext("You need to install a place before you can install a mod"))
 		dlg:set_parent(parent)
 		parent:hide()
 		dlg:show()

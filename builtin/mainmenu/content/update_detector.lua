@@ -38,7 +38,7 @@ local function fetch_latest_releases()
 	local version = core.get_version()
 	local base_url = core.settings:get("contentdb_url")
 	local url = base_url ..
-			"/api/updates/?type=mod&type=game&type=txp&protocol_version=" ..
+			"/api/updates/?type=mod&type=place&type=txp&protocol_version=" ..
 			core.get_max_supp_proto() .. "&engine_version=" .. core.urlencode(version.string)
 	local http = core.get_http_api()
 	local response = http.fetch_sync({ url = url })
@@ -123,7 +123,7 @@ function update_detector.get_all()
 			-- The backend will account for aliases in `latest_releases`
 			local latest_release = latest_releases[cdb_id]
 			if not latest_release and content.type == "game" then
-				latest_release = latest_releases[cdb_id .. "_game"]
+				latest_release = latest_releases[cdb_id .. "_place"]
 			end
 
 			if latest_release and latest_release > content.release then

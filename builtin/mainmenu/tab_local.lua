@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
 
-local current_game
+local current_place
 local valid_disabled_settings = {
 	["enable_damage"]=true,
 	["creative_mode"]=true,
@@ -13,26 +13,26 @@ local valid_disabled_settings = {
 -- Name and port stored to persist when updating the formspec
 local current_port = core.settings:get("port")
 
--- Currently chosen game in gamebar for theming and filtering
-function current_game()
-	local placeid = core.settings:get("menu_last_game")
-	local game = placeid and pkgmgr.find_by_placeid(placeid)
-	-- Fall back to first game installed if one exists.
-	if not game and #pkgmgr.games > 0 then
-		game = pkgmgr.games[1]
-		placeid = game.id
-		core.settings:set("menu_last_game", placeid)
+-- Currently chosen place in placebar for theming and filtering
+function current_place()
+	local placeid = core.settings:get("menu_last_place")
+	local place = placeid and pkgmgr.find_by_placeid(placeid)
+	-- Fall back to first place installed if one exists.
+	if not place and #pkgmgr.places > 0 then
+		place = pkgmgr.places[1]
+		placeid = place.id
+		core.settings:set("menu_last_place", placeid)
 	end
 
-	return game
+	return place
 end
 
--- Apply menu changes from given game
-function apply_game(game)
-	core.settings:set("menu_last_game", game.id)
-	menudata.worldlist:set_filtercriteria(game.id)
+-- Apply menu changes from given place
+function apply_place(place)
+	core.settings:set("menu_last_place", place.id)
+	menudata.worldlist:set_filtercriteria(place.id)
 
-	mm_game_theme.set_game(game)
+	mm_place_theme.set_place(place)
 
 	local index = filterlist.get_current_index(menudata.worldlist,
 		tonumber(core.settings:get("mainmenu_last_selected_world")))
@@ -47,15 +47,15 @@ function apply_game(game)
 	menu_worldmt_legacy(index)
 end
 
-local function get_disabled_settings(game)
-	if not game then
+local function get_disabled_settings(place)
+	if not place then
 		return {}
 	end
 
-	local gameconfig = Settings(game.path .. "/game.conf")
+	local placeconfig = Settings(place.path .. "/game.conf")
 	local disabled_settings = {}
-	if gameconfig then
-		local disabled_settings_str = (gameconfig:get("disabled_settings") or ""):split()
+	if placeconfig then
+		local disabled_settings_str = (placeconfig:get("disabled_settings") or ""):split()
 		for _, value in pairs(disabled_settings_str) do
 			local state = false
 			value = value:trim()
@@ -75,19 +75,19 @@ end
 
 local function get_formspec(tabview, name, tabdata)
 
-	-- Point the player to ContentDB when no games are found
-	if #pkgmgr.games == 0 then
+	-- Point the player to ContentDB when no places are found
+	if #pkgmgr.places == 0 then
 		local W = tabview.width
 		local H = tabview.height
 
 		local hypertext = "<global valign=middle halign=center size=18>" ..
-				fgettext_ne("Axis is a game engine: it runs games, and does not come with one.") .. "\n" ..
-				fgettext_ne("You need to install a game before you can create a world.")
+				fgettext_ne("Axis is a place engine: it runs places, and does not come with one.") .. "\n" ..
+				fgettext_ne("You need to install a place before you can create a world.")
 
 		local button_y = H * 2/3 - 0.6
 		return table.concat({
 			"hypertext[0.375,0;", W - 2*0.375, ",", button_y, ";ht;", core.formspec_escape(hypertext), "]",
-			"button[5.25,", button_y, ";5,1.2;game_open_cdb;", fgettext("Install a game"), "]"})
+			"button[5.25,", button_y, ";5,1.2;place_open_cdb;", fgettext("Install a place"), "]"})
 	end
 
 	local retval = ""
@@ -99,18 +99,18 @@ local function get_formspec(tabview, name, tabdata)
 	-- When changing tabs to a world list with fewer entries, the last index is selected (visually).
 	-- However, the formspec fields lag behind, thus 'index > #list' can be a valid choice.
 	local world = list and list[math.min(index, #list)]
-	local game
+	local place
 
 	if world then
-		game = pkgmgr.find_by_placeid(world.placeid)
+		place = pkgmgr.find_by_placeid(world.placeid)
 	else
-		game = current_game()
+		place = current_place()
 	end
-	local disabled_settings = get_disabled_settings(game)
+	local disabled_settings = get_disabled_settings(place)
 
 	local creative, damage, host = "", "", ""
 
-	-- Y offsets for game settings checkboxes
+	-- Y offsets for place settings checkboxes
 	local y = 0.2
 	local yo = 0.5625
 
@@ -136,7 +136,7 @@ local function get_formspec(tabview, name, tabdata)
 	retval = retval ..
 			menu_style.surface(0.375, 0.375, 4.5, tabview.height - 0.75) ..
 			menu_style.surface(5.25, 0.375, 9.875, 4.5) ..
-			menu_style.heading(0.75, 0.55, 3.9, 0.6, fgettext("Game")) ..
+			menu_style.heading(0.75, 0.55, 3.9, 0.6, fgettext("Place")) ..
 			"container[5.25,4.875]"
 	if world then
 		retval = retval ..
@@ -161,7 +161,7 @@ local function get_formspec(tabview, name, tabdata)
 	if core.settings:get_bool("enable_server") and disabled_settings["enable_server"] == nil then
 		retval = retval ..
 				menu_style.accent("play") ..
-				"button[10.1875,5.925;4.9375,0.8;play;".. fgettext("Host Game") .. "]" ..
+				"button[10.1875,5.925;4.9375,0.8;play;".. fgettext("Host Place") .. "]" ..
 				"container[0.375,0.375]" ..
 				"checkbox[0,"..y..";cb_server_announce;" .. fgettext("Announce Server") .. ";" ..
 				dump(core.settings:get_bool("server_announce")) .. "]"
@@ -191,7 +191,7 @@ local function get_formspec(tabview, name, tabdata)
 	elseif world then
 		retval = retval ..
 				menu_style.accent("play") ..
-				"button[10.1875,5.925;4.9375,0.8;play;" .. fgettext("Play Game") .. "]"
+				"button[10.1875,5.925;4.9375,0.8;play;" .. fgettext("Play Place") .. "]"
 	end
 
 	return retval
@@ -201,7 +201,7 @@ local function main_button_handler(this, fields, name, tabdata)
 
 	assert(name == "local")
 
-	if fields.game_open_cdb then
+	if fields.place_open_cdb then
 		local maintab = ui.find_by_name("maintab")
 		local dlg = create_contentdb_dlg("game")
 		dlg:set_parent(maintab)
@@ -285,15 +285,15 @@ local function main_button_handler(this, fields, name, tabdata)
 			return true
 		end
 
-		-- Update last game
+		-- Update last place
 		local world = menudata.worldlist:get_raw_element(gamedata.selected_world)
-		local game_obj
+		local place_obj
 		if world then
-			game_obj = pkgmgr.find_by_placeid(world.placeid)
-			core.settings:set("menu_last_game", game_obj.id)
+			place_obj = pkgmgr.find_by_placeid(world.placeid)
+			core.settings:set("menu_last_place", place_obj.id)
 		end
 
-		local disabled_settings = get_disabled_settings(game_obj)
+		local disabled_settings = get_disabled_settings(place_obj)
 		for k, _ in pairs(valid_disabled_settings) do
 			local v = disabled_settings[k]
 			if v ~= nil then
@@ -369,15 +369,15 @@ end
 
 local function on_change(type)
 	if type == "ENTER" then
-		local game = current_game()
-		if game then
-			apply_game(game)
+		local place = current_place()
+		if place then
+			apply_place(place)
 		else
-			mm_game_theme.set_engine()
+			mm_place_theme.set_engine()
 		end
 
-		-- Раньше здесь поднималась панель выбора игры (game_button_bar).
-		-- Панель убрана вместе с функцией singleplayer_refresh_gamebar,
+		-- Раньше здесь поднималась панель выбора игры (place_button_bar).
+		-- Панель убрана вместе с функцией singleplayer_refresh_placebar,
 		-- которая её собирала: строить её незачем, пока игра в репозитории
 		-- одна. Если панель понадобится обратно, код лежит в истории —
 		-- искать в builtin/mainmenu/tab_local.lua до этого коммита.
@@ -389,7 +389,7 @@ end
 --------------------------------------------------------------------------------
 return {
 	name = "local",
-	caption = fgettext("Start Game"),
+	caption = fgettext("Start Place"),
 	cbf_formspec = get_formspec,
 	cbf_button_handler = main_button_handler,
 	on_change = on_change

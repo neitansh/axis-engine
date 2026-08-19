@@ -19,7 +19,7 @@ local function update_packages()
 	pkgmgr.load_all()
 
 	packages_raw = {}
-	table.insert_all(packages_raw, pkgmgr.games)
+	table.insert_all(packages_raw, pkgmgr.places)
 	table.insert_all(packages_raw, pkgmgr.texture_packs)
 	table.insert_all(packages_raw, pkgmgr.global_mods:get_list())
 
@@ -38,7 +38,7 @@ end
 
 local function on_change(type)
 	if type == "ENTER" then
-		mm_game_theme.set_engine()
+		mm_place_theme.set_engine()
 		update_packages()
 	end
 end
@@ -203,8 +203,8 @@ local function handle_doubleclick(pkg)
 		packages = nil
 		pkgmgr.reload_texture_packs()
 
-		mm_game_theme.init()
-		mm_game_theme.set_engine()
+		mm_place_theme.init()
+		mm_place_theme.set_engine()
 	end
 end
 
@@ -268,8 +268,8 @@ local function handle_buttons(tabview, fields, tabname, tabdata)
 		packages = nil
 		pkgmgr.reload_texture_packs()
 
-		mm_game_theme.init()
-		mm_game_theme.set_engine()
+		mm_place_theme.init()
+		mm_place_theme.set_engine()
 		return true
 	end
 

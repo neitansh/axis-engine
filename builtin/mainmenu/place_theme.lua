@@ -2,7 +2,7 @@
 -- Copyright (C) 2013 sapier
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
-mm_game_theme = {}
+mm_place_theme = {}
 
 local COLORS = {
 	dark = { clouds = "#1c2a47", sky = "#090b1a" },
@@ -10,35 +10,35 @@ local COLORS = {
 }
 
 --------------------------------------------------------------------------------
-function mm_game_theme.init()
-	mm_game_theme.texturepack = core.settings:get("texture_path")
+function mm_place_theme.init()
+	mm_place_theme.texturepack = core.settings:get("texture_path")
 
-	mm_game_theme.placeid = nil
+	mm_place_theme.placeid = nil
 
-	mm_game_theme.music_handle = nil
+	mm_place_theme.music_handle = nil
 end
 
 --------------------------------------------------------------------------------
-function mm_game_theme.set_engine(hide_decorations)
-	mm_game_theme.placeid = nil
-	mm_game_theme.stop_music()
+function mm_place_theme.set_engine(hide_decorations)
+	mm_place_theme.placeid = nil
+	mm_place_theme.stop_music()
 
 	core.set_topleft_text("")
 
 	local have_bg = false
-	local have_overlay = mm_game_theme.set_engine_single("overlay")
+	local have_overlay = mm_place_theme.set_engine_single("overlay")
 
 	if not have_overlay then
-		have_bg = mm_game_theme.set_engine_single("background")
+		have_bg = mm_place_theme.set_engine_single("background")
 	end
 
-	mm_game_theme.clear_single("header")
-	mm_game_theme.clear_single("footer")
+	mm_place_theme.clear_single("header")
+	mm_place_theme.clear_single("footer")
 	core.set_clouds(false)
 
 	if not hide_decorations then
-		mm_game_theme.set_engine_single("header")
-		mm_game_theme.set_engine_single("footer")
+		mm_place_theme.set_engine_single("header")
+		mm_place_theme.set_engine_single("footer")
 	end
 
 	local c = COLORS[core.settings:get("menu_theme")]
@@ -55,30 +55,30 @@ function mm_game_theme.set_engine(hide_decorations)
 end
 
 --------------------------------------------------------------------------------
-function mm_game_theme.set_game(gamedetails)
-	assert(gamedetails ~= nil)
+function mm_place_theme.set_place(placedetails)
+	assert(placedetails ~= nil)
 
-	if mm_game_theme.placeid == gamedetails.id then
+	if mm_place_theme.placeid == placedetails.id then
 		return
 	end
-	mm_game_theme.placeid = gamedetails.id
-	mm_game_theme.set_music(gamedetails)
+	mm_place_theme.placeid = placedetails.id
+	mm_place_theme.set_music(placedetails)
 
-	core.set_topleft_text(gamedetails.name)
+	core.set_topleft_text(placedetails.name)
 
 	local have_bg = false
-	local have_overlay = mm_game_theme.set_game_single("overlay", gamedetails)
+	local have_overlay = mm_place_theme.set_place_single("overlay", placedetails)
 
 	if not have_overlay then
-		have_bg = mm_game_theme.set_game_single("background", gamedetails)
+		have_bg = mm_place_theme.set_place_single("background", placedetails)
 	end
 
-	mm_game_theme.clear_single("header")
-	mm_game_theme.clear_single("footer")
+	mm_place_theme.clear_single("header")
+	mm_place_theme.clear_single("footer")
 	core.set_clouds(false)
 
-	mm_game_theme.set_game_single("header", gamedetails)
-	mm_game_theme.set_game_single("footer", gamedetails)
+	mm_place_theme.set_place_single("header", placedetails)
+	mm_place_theme.set_place_single("footer", placedetails)
 
 	local c = COLORS[core.settings:get("menu_theme")]
 	if not c then
@@ -94,7 +94,7 @@ function mm_game_theme.set_game(gamedetails)
 end
 
 --------------------------------------------------------------------------------
-function mm_game_theme.clear_single(identifier)
+function mm_place_theme.clear_single(identifier)
 	core.set_background(identifier, "")
 end
 
@@ -105,11 +105,11 @@ local valid_image_extensions = {
 	".jpeg",
 }
 
-function mm_game_theme.set_engine_single(identifier)
+function mm_place_theme.set_engine_single(identifier)
 	--try texture pack first
-	if mm_game_theme.texturepack ~= nil then
+	if mm_place_theme.texturepack ~= nil then
 		for _, extension in pairs(valid_image_extensions) do
-			local path = mm_game_theme.texturepack .. DIR_DELIM .. "menu_" .. identifier .. extension
+			local path = mm_place_theme.texturepack .. DIR_DELIM .. "menu_" .. identifier .. extension
 			if core.set_background(identifier, path) then
 				return true
 			end
@@ -125,23 +125,23 @@ function mm_game_theme.set_engine_single(identifier)
 end
 
 --------------------------------------------------------------------------------
-function mm_game_theme.set_game_single(identifier, gamedetails)
+function mm_place_theme.set_place_single(identifier, placedetails)
 	local extensions_randomised = table.copy(valid_image_extensions)
 	table.shuffle(extensions_randomised)
 	for _, extension in pairs(extensions_randomised) do
-		assert(gamedetails ~= nil)
+		assert(placedetails ~= nil)
 
-		if mm_game_theme.texturepack ~= nil then
-			local path = mm_game_theme.texturepack .. DIR_DELIM .. gamedetails.id .. "_menu_" .. identifier .. extension
+		if mm_place_theme.texturepack ~= nil then
+			local path = mm_place_theme.texturepack .. DIR_DELIM .. placedetails.id .. "_menu_" .. identifier .. extension
 			if core.set_background(identifier, path) then
 				return true
 			end
 		end
 
-		-- Find out how many randomized textures the game provides
+		-- Find out how many randomized textures the place provides
 		local n = 0
 		local filename
-		local menu_files = core.get_dir_list(gamedetails.path .. DIR_DELIM .. "menu", false)
+		local menu_files = core.get_dir_list(placedetails.path .. DIR_DELIM .. "menu", false)
 		for i = 1, #menu_files do
 			filename = identifier .. "." .. i .. extension
 			if table.indexof(menu_files, filename) == -1 then
@@ -157,7 +157,7 @@ function mm_game_theme.set_game_single(identifier, gamedetails)
 			filename = identifier .. "." .. n .. extension
 		end
 
-		local path = gamedetails.path .. DIR_DELIM .. "menu" .. DIR_DELIM .. filename
+		local path = placedetails.path .. DIR_DELIM .. "menu" .. DIR_DELIM .. filename
 		if core.set_background(identifier, path) then
 			return true
 		end
@@ -167,18 +167,18 @@ function mm_game_theme.set_game_single(identifier, gamedetails)
 end
 
 --------------------------------------------------------------------------------
-function mm_game_theme.stop_music()
-	if mm_game_theme.music_handle ~= nil then
-		core.sound_stop(mm_game_theme.music_handle)
+function mm_place_theme.stop_music()
+	if mm_place_theme.music_handle ~= nil then
+		core.sound_stop(mm_place_theme.music_handle)
 	end
 end
 
 --------------------------------------------------------------------------------
-function mm_game_theme.set_music(gamedetails)
-	mm_game_theme.stop_music()
+function mm_place_theme.set_music(placedetails)
+	mm_place_theme.stop_music()
 
-	assert(gamedetails ~= nil)
+	assert(placedetails ~= nil)
 
-	local music_path = gamedetails.path .. DIR_DELIM .. "menu" .. DIR_DELIM .. "theme"
-	mm_game_theme.music_handle = core.sound_play(music_path, true)
+	local music_path = placedetails.path .. DIR_DELIM .. "menu" .. DIR_DELIM .. "theme"
+	mm_place_theme.music_handle = core.sound_play(music_path, true)
 end

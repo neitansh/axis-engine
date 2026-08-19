@@ -22,9 +22,9 @@ function check_reinstall_mtg(parent)
 		return parent
 	end
 
-	local games = core.get_places()
-	for _, game in ipairs(games) do
-		if game.id == "minetest" then
+	local places = core.get_places()
+	for _, place in ipairs(places) do
+		if place.id == "minetest" then
 			cache_settings:set_bool(SETTING_NAME, true)
 			return parent
 		end
@@ -54,10 +54,10 @@ end
 
 local function get_formspec(dialogdata)
 	local markup = table.concat({
-		"<big>", hgettext("Minetest Game is no longer installed by default"), "</big>\n",
-		hgettext("For a long time, Luanti shipped with a default game called \"Minetest Game\". " ..
-				"Since version 5.8.0, Luanti ships without a default game."), "\n",
-		hgettext("If you want to continue playing in your Minetest Game worlds, you need to reinstall Minetest Game."),
+		"<big>", hgettext("Minetest Place is no longer installed by default"), "</big>\n",
+		hgettext("For a long time, Luanti shipped with a default place called \"Minetest Place\". " ..
+				"Since version 5.8.0, Luanti ships without a default place."), "\n",
+		hgettext("If you want to continue playing in your Minetest Place worlds, you need to reinstall Minetest Place."),
 	})
 
 	return table.concat({
@@ -68,7 +68,7 @@ local function get_formspec(dialogdata)
 		"style[dismiss;bgcolor=red]",
 		-- TRANSLATORS: Dismiss a dialog window/message
 		"button[0,0;4,0.8;dismiss;", fgettext("Dismiss"), "]",
-		"button[4.25,0;8,0.8;reinstall;", fgettext("Reinstall Minetest Game"), "]",
+		"button[4.25,0;8,0.8;reinstall;", fgettext("Reinstall Minetest Place"), "]",
 		"container_end[]",
 	})
 end
@@ -98,7 +98,7 @@ end
 
 local function eventhandler(event)
 	if event == "DialogShow" then
-		mm_game_theme.set_engine()
+		mm_place_theme.set_engine()
 		return true
 	elseif event == "MenuQuit" then
 		-- Don't allow closing the dialog with ESC, but still allow exiting

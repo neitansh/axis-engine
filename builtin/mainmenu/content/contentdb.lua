@@ -119,14 +119,14 @@ local function start_install(package, reason)
 					conf:set("author",     package.author)
 					conf:set("release",    package.release)
 					if package.aliases then
-						local gameid_aliases = {}
+						local placeid_aliases = {}
 						for _, alias in ipairs(package.aliases) do
 							local alias_cut = alias:match("[^/]+$")
 							if alias_cut ~= package.name then
-								gameid_aliases[#gameid_aliases + 1] = alias_cut
+								placeid_aliases[#placeid_aliases + 1] = alias_cut
 							end
 						end
-						conf:set("aliases", table.concat(gameid_aliases, ","))
+						conf:set("aliases", table.concat(placeid_aliases, ","))
 					end
 					conf:write()
 				end
@@ -179,7 +179,7 @@ function contentdb.get_package_by_id(id)
 end
 
 
-local function strip_game_suffix(type, name)
+local function strip_place_suffix(type, name)
 	if type == nil or type == "game" then
 		return pkgmgr.normalize_place_id(name)
 	else
@@ -188,7 +188,7 @@ local function strip_game_suffix(type, name)
 end
 
 function contentdb.calculate_package_id(type, author, name)
-	return author:lower() .. "/" .. strip_game_suffix(type, name)
+	return author:lower() .. "/" .. strip_place_suffix(type, name)
 end
 
 
@@ -350,14 +350,14 @@ local function resolve_dependencies_2_co(raw_deps, installed_mods, out, resumer)
 end
 
 
-local function resolve_dependencies_co(package, game, resumer)
-	assert(game)
+local function resolve_dependencies_co(package, place, resumer)
+	assert(place)
 
 	local raw_deps = get_raw_dependencies_co(package, resumer)
 	local installed_mods = {}
 
 	local mods = {}
-	pkgmgr.get_game_mods(game, mods)
+	pkgmgr.get_place_mods(place, mods)
 	for _, mod in pairs(mods) do
 		installed_mods[mod.name] = true
 	end
@@ -385,9 +385,9 @@ end
 
 
 -- Resolve dependencies for a package, calls the recursive version.
-function contentdb.resolve_dependencies(package, game, callback)
+function contentdb.resolve_dependencies(package, place, callback)
 	local resumer = make_callback_coroutine(resolve_dependencies_co, callback)
-	resumer(package, game, resumer)
+	resumer(package, place, resumer)
 end
 
 
@@ -395,7 +395,7 @@ local function fetch_pkgs()
 	local version = core.get_version()
 	local base_url = core.settings:get("contentdb_url")
 	local url = base_url ..
-			"/api/packages/?type=mod&type=game&type=txp&protocol_version=" ..
+			"/api/packages/?type=mod&type=place&type=txp&protocol_version=" ..
 			core.get_max_supp_proto() .. "&engine_version=" .. core.urlencode(version.string)
 	for _, item in pairs(core.settings:get("contentdb_flag_blacklist"):split(",")) do
 		item = item:trim()
@@ -438,7 +438,7 @@ function contentdb.set_packages_from_api(packages)
 			for _, alias in ipairs(package.aliases) do
 				-- We currently only support placeid and author changing
 				if package.type == "game" or alias:sub(-#suffix) == suffix then
-					contentdb.aliases[strip_game_suffix(packages.type, alias:lower())] = package.id
+					contentdb.aliases[strip_place_suffix(packages.type, alias:lower())] = package.id
 				end
 			end
 		end
@@ -477,11 +477,11 @@ function contentdb.update_paths()
 		end
 	end
 
-	local game_hash = {}
-	for _, game in pairs(pkgmgr.games) do
-		local cdb_id = pkgmgr.get_contentdb_id(game)
+	local place_hash = {}
+	for _, place in pairs(pkgmgr.places) do
+		local cdb_id = pkgmgr.get_contentdb_id(place)
 		if cdb_id then
-			game_hash[contentdb.aliases[cdb_id] or cdb_id] = game
+			place_hash[contentdb.aliases[cdb_id] or cdb_id] = place
 		end
 	end
 
@@ -498,7 +498,7 @@ function contentdb.update_paths()
 		if package.type == "mod" then
 			content = mod_hash[package.id]
 		elseif package.type == "game" then
-			content = game_hash[package.id]
+			content = place_hash[package.id]
 		elseif package.type == "txp" then
 			content = txp_hash[package.id]
 		end

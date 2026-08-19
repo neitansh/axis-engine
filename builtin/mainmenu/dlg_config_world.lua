@@ -36,7 +36,7 @@ local function init_data(data)
 end
 
 
--- Returns errors errors and a list of all enabled mods (inc. game and world mods)
+-- Returns errors errors and a list of all enabled mods (inc. place and world mods)
 --
 -- `with_errors` is a table from mod virtual path to `{ type = "error" | "warning" }`.
 -- `enabled_mods_by_name` is a table from mod virtual path to `true`.
@@ -110,7 +110,7 @@ local function get_formspec(data)
 			if mod.is_modpack then
 				info = fgettext("No modpack description provided.")
 			else
-				info = fgettext("No game description provided.")
+				info = fgettext("No place description provided.")
 			end
 		end
 		retval = retval ..

@@ -25,7 +25,7 @@ dofile(menupath .. DIR_DELIM .. "async_event.lua")
 dofile(menupath .. DIR_DELIM .. "common.lua")
 dofile(menupath .. DIR_DELIM .. "serverlistmgr.lua")
 dofile(menupath .. DIR_DELIM .. "matchmaking.lua")
-dofile(menupath .. DIR_DELIM .. "game_theme.lua")
+dofile(menupath .. DIR_DELIM .. "place_theme.lua")
 dofile(menupath .. DIR_DELIM .. "content" .. DIR_DELIM .. "init.lua")
 
 dofile(menupath .. DIR_DELIM .. "dlg_config_world.lua")
@@ -44,7 +44,7 @@ dofile(menupath .. DIR_DELIM .. "dlg_start.lua")
 local tabs = {
 	content = dofile(menupath .. DIR_DELIM .. "tab_content.lua"),
 	about = dofile(menupath .. DIR_DELIM .. "tab_about.lua"),
-	local_game = dofile(menupath .. DIR_DELIM .. "tab_local.lua"),
+	local_place = dofile(menupath .. DIR_DELIM .. "tab_local.lua"),
 	play_online = dofile(menupath .. DIR_DELIM .. "tab_online.lua"),
 }
 
@@ -88,8 +88,8 @@ local function init_globals()
 			if el_placeid == placeid then
 				return true
 			end
-			local game = pkgmgr.find_by_placeid(el_placeid)
-			if (not game or game.id ~= el_placeid) and pkgmgr.find_by_placeid(placeid).aliases[el_placeid] then
+			local place = pkgmgr.find_by_placeid(el_placeid)
+			if (not place or place.id ~= el_placeid) and pkgmgr.find_by_placeid(placeid).aliases[el_placeid] then
 				return true
 			end
 			return false
@@ -99,8 +99,8 @@ local function init_globals()
 	menudata.worldlist:add_sort_mechanism("alphabetic", sort_worlds_alphabetic)
 	menudata.worldlist:set_sortmode("alphabetic")
 
-	mm_game_theme.init()
-	mm_game_theme.set_engine() -- This is just a fallback.
+	mm_place_theme.init()
+	mm_place_theme.set_engine() -- This is just a fallback.
 
 	-- Create main tabview
 	local tv_main = tabview_create("maintab", { x = MAIN_TAB_W, y = MAIN_TAB_H }, { x = 0, y = 0 })
@@ -133,7 +133,7 @@ local function init_globals()
 	})
 
 	tv_main:set_autosave_tab(true)
-	tv_main:add(tabs.local_game)
+	tv_main:add(tabs.local_place)
 	tv_main:add(tabs.play_online)
 	tv_main:add(tabs.content)
 
@@ -285,10 +285,10 @@ end
 -- чистится, — поэтому старый выбрасывается здесь же. Иначе второй вход за
 -- запуск предъявлял бы погашенный билет и получал отказ, а выглядело бы это
 -- поломкой входа.
-local start_game = core.start
+local start_place = core.start
 function core.start()
 	if not gamedata then
-		return start_game()
+		return start_place()
 	end
 	gamedata.ticket = nil
 
@@ -299,7 +299,7 @@ function core.start()
 		-- сервер, который его спрашивает, откажет и скажет почему. Своя игра и
 		-- свой сервер при этом работают как работали.
 		gamedata.ticket = ""
-		return start_game()
+		return start_place()
 	end
 
 	if not gamedata.server_id or gamedata.server_id == "" then
@@ -341,7 +341,7 @@ function core.start()
 		end
 
 		gamedata.ticket = answer.ticket
-		start_game()
+		start_place()
 	end)
 end
 

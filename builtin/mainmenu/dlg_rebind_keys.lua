@@ -55,7 +55,7 @@ end
 
 local function eventhandler(event)
 	if event == "DialogShow" then
-		mm_game_theme.set_engine()
+		mm_place_theme.set_engine()
 		return true
 	elseif event == "MenuQuit" then
 		-- Don't allow closing the dialog with ESC, but still allow exiting

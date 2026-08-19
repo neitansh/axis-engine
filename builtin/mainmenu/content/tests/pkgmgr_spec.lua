@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
 local mods_dir = "/tmp/.minetest/mods"
-local games_dir = "/tmp/.minetest/games"
+local places_dir = "/tmp/.minetest/places"
 local txp_dir = "/tmp/.minetest/textures"
 
 local function reset()
@@ -40,7 +40,7 @@ local function reset()
 		return mods_dir
 	end
 	function core.get_placepath()
-		return games_dir
+		return places_dir
 	end
 	function env.fgettext_ne(fmt, ...)
 		return fmt
@@ -114,23 +114,23 @@ describe("install_dir", function()
 		})
 	end)
 
-	it("installs game", function()
+	it("installs place", function()
 		local env = reset()
 		env.pkgmgr.get_base_folder = function()
 			return { type = "game", path = "/tmp/123" }
 		end
 
-		local path, message = env.pkgmgr.install_dir("game", "/tmp/123", "mygame", nil)
-		assert.is.equal(games_dir .. "/mygame", path)
+		local path, message = env.pkgmgr.install_dir("game", "/tmp/123", "myplace", nil)
+		assert.is.equal(places_dir .. "/myplace", path)
 		assert.is._nil(message)
 		env.assert_calls({
-			{ "delete_dir", games_dir .. "/mygame" },
-			{ "copy_dir", "/tmp/123", games_dir .. "/mygame", false },
+			{ "delete_dir", places_dir .. "/myplace" },
+			{ "copy_dir", "/tmp/123", places_dir .. "/myplace", false },
 		})
 	end)
 
-	it("updates game (alias)", function()
-		local old_game_path = games_dir .. "/mygame"
+	it("updates place (alias)", function()
+		local old_place_path = places_dir .. "/myplace"
 		local env = reset()
 		-- Temporary download directory of the content
 		local DL_DIR = "/tmp/123"
@@ -138,13 +138,13 @@ describe("install_dir", function()
 			return { type = "game", path = DL_DIR }
 		end
 
-		local path, message = env.pkgmgr.install_dir("game", DL_DIR, "mynewgame", old_game_path)
-		assert.is.equal(games_dir .. "/mynewgame", path)
+		local path, message = env.pkgmgr.install_dir("game", DL_DIR, "mynewplace", old_place_path)
+		assert.is.equal(places_dir .. "/mynewplace", path)
 		assert.is._nil(message)
 		env.assert_calls({
-			{ "delete_dir", games_dir .. "/mygame" },
-			{ "delete_dir", games_dir .. "/mynewgame" },
-			{ "copy_dir", DL_DIR, games_dir .. "/mynewgame", false },
+			{ "delete_dir", places_dir .. "/myplace" },
+			{ "delete_dir", places_dir .. "/mynewplace" },
+			{ "copy_dir", DL_DIR, places_dir .. "/mynewplace", false },
 		})
 	end)
 
