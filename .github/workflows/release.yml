@@ -1,14 +1,12 @@
 name: Manual Release Build
 
-# Обе системы одной кнопкой: клиент под linux и под windows — это одна сборка
-# игры, и выкладывались они всегда парой. Двумя файлами их приходилось
-# запускать порознь и помнить об этом; забытая половина означала, что игроки
-# одной системы получили новую игру, а другой — нет.
+# Обе системы одной кнопкой: игру под linux и под windows выкладывают парой, а
+# двумя файлами половину легко забыть — и тогда одни игроки получают новую
+# игру, а другие нет.
 #
-# Шаги у систем свои: под linux зависимости ставит apt и проверяет bash, под
-# windows их приносит MSYS2, а пакет проверяет pwsh. Общего скрипта сборки,
-# каким живёт лаунчер, у движка нет — поэтому это две работы в одном файле, а
-# не одна матрица. Работы независимы: упавшая под windows не отменяет linux.
+# Две работы, а не матрица: общего скрипта сборки, каким живёт лаунчер, у
+# движка нет — под linux зависимости ставит apt и пакет проверяет bash, под
+# windows их приносит MSYS2, а проверяет pwsh.
 
 on:
   workflow_dispatch:
@@ -44,6 +42,7 @@ jobs:
 
       - name: Build Engine
         run: |
+          # shellcheck disable=SC2016  # $ORIGIN разворачивает загрузчик, не оболочка
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DENFORCE_BUILTIN_INTEGRITY=TRUE \
@@ -72,14 +71,9 @@ jobs:
           cp bin/axis axis_linux/bin/
           strip axis_linux/bin/axis
 
-          # ------------------------------------------------------------
-          # Collect shared libraries recursively into libs/, which the
-          # executable finds through its RPATH ($ORIGIN/../libs).
-          #
-          # Libraries that must come from the host are skipped: bundling
-          # the graphics, sound or session stack makes the package fail
-          # on machines whose drivers do not match the build machine.
-          # ------------------------------------------------------------
+          # Libraries that must come from the host are skipped: bundling the
+          # graphics, sound or session stack makes the package fail on machines
+          # whose drivers do not match the build machine.
 
           declare -A SEEN
 
@@ -151,7 +145,6 @@ jobs:
 
               cp "$lib" "axis_linux/libs/$name"
 
-              # Recursively process dependencies.
               copy_deps "$lib"
             done < <(
               ldd "$file" 2>/dev/null |
@@ -168,9 +161,6 @@ jobs:
 
           copy_deps bin/axis
 
-          # ------------------------------------------------------------
-          # Runtime data
-          # ------------------------------------------------------------
 
           cp -r builtin axis_linux/
           cp -r client axis_linux/
@@ -182,9 +172,8 @@ jobs:
           # this repository, so the package only provides the place for them.
           mkdir -p axis_linux/games axis_linux/mods
 
-          # Template of the configuration. The engine writes its own config/
-          # directory next to the executable on first run; this is the
-          # documented copy players can read and copy lines from.
+          # The engine writes its own config/ next to the executable on first
+          # run; this is the documented copy players read and copy lines from.
           cp -r config.example axis_linux/
 
           if [ -d locale ]; then
@@ -194,9 +183,6 @@ jobs:
             exit 1
           fi
 
-          # ------------------------------------------------------------
-          # Show bundled libraries
-          # ------------------------------------------------------------
 
           echo ""
           echo "Bundled libraries:"
@@ -218,8 +204,8 @@ jobs:
             exit 1
           fi
 
-          # The configuration template must survive packaging, otherwise a
-          # player has no documentation of the settings at hand.
+          # The template must survive packaging, or a player has no
+          # documentation of the settings at hand.
           for f in shared/engine.conf client/graphics.conf client/keybindings.conf \
                    server/server.conf server/worldgen.conf; do
             if [ ! -f "axis_linux/config.example/$f" ]; then
@@ -236,6 +222,7 @@ jobs:
           echo "RPATH:"
           readelf -d axis_linux/bin/axis | grep -E 'RPATH|RUNPATH'
 
+          # shellcheck disable=SC2016  # $ORIGIN разворачивает загрузчик, не оболочка
           if ! readelf -d axis_linux/bin/axis | grep -qE '\$ORIGIN/\.\./libs'; then
             echo "::error::The executable does not point at ../libs."
             exit 1
@@ -281,21 +268,19 @@ jobs:
           ./axis_linux/bin/axis --version
 
 
-      # Выкладка в раздачу. Игроки качают игру отсюда, а не с GitHub: релизы
-      # GitHub из России открываются через раз, а лаунчер должен работать
-      # всегда. Токен и адрес живут в настройках репозитория; нет их — сборка
-      # падает здесь же: деться собранному больше некуда, а тихо пропущенная
-      # выкладка выглядит как удачный выпуск, которого не было.
-      # Вид файла раздача больше не угадывает: без X-Axis-Kind она отвечает
-      # отказом, и это правильно — умолчание «архив» однажды превратило бы
-      # забытый заголовок в сборку, на которую обновятся все. Игра приезжает
-      # только архивом, другого вида у неё нет.
+      # Игроки качают игру из раздачи, а не с GitHub: релизы GitHub из России
+      # открываются через раз. Раздача не настроена — сборка падает здесь же:
+      # деться готовому больше некуда, а тихо пропущенная выкладка выглядит как
+      # удачный выпуск, которого не было.
+      #
+      # X-Axis-Kind обязателен: умолчание «архив» однажды превратило бы забытый
+      # заголовок в сборку, на которую обновятся все. Игра бывает только
+      # архивом, но сказать об этом раздача просит явно.
       - name: Upload to distribution
         env:
           AXIS_FILES_TOKEN: ${{ secrets.AXIS_FILES_TOKEN }}
-          # Адрес раздачи живёт в переменных репозитория (Variables), а не в
-          # секретах: он не тайна, и в логе его видно — когда что-то не
-          # сходится, это важнее скрытности.
+          # Адрес — в переменных репозитория, а не в секретах: он не тайна, и
+          # видеть его в логе важнее, чем прятать.
           AXIS_FILES_URL: ${{ vars.AXIS_FILES_URL }}
         run: |
           if [ -z "$AXIS_FILES_TOKEN" ] || [ -z "$AXIS_FILES_URL" ]; then
@@ -310,20 +295,14 @@ jobs:
           version="${{ github.event.inputs.tag_name }}"
           version="${version#v}"
 
-          # tar, сжатый brotli. Был zip; brotli жмёт заметно плотнее, а игру
-          # качает каждый игрок и каждый раз целиком — обновление приносит
-          # сборку, а не разницу. Tar вдобавок несёт права на файл, поэтому
-          # клиент приезжает исполняемым, и лаунчеру не приходится гадать,
-          # кому это право проставить.
-          #
-          # -q 11 — самое плотное, какое умеет brotli. Время сборки здесь
-          # ничего не стоит: пакуем раз, качают многие.
+          # Был zip; brotli жмёт заметно плотнее, а игру качает каждый игрок и
+          # каждый раз целиком — обновление приносит сборку, а не разницу. Tar
+          # вдобавок несёт права на файл, поэтому клиент приезжает исполняемым.
+          # -q 11 — самое плотное: пакуем раз, качают многие.
           ( cd axis_linux && tar -cf - . | brotli -q 11 > "../axis-$version-linux.tar.br" )
 
-          # Пустые каталоги должны пережить упаковку: игра приходит с
-          # сервера, и games/ с mods/ обязаны существовать, оставаясь пустыми.
-          # Своей записи в архиве у пустого каталога нет ничего, кроме него
-          # самого, — поэтому проверяем.
+          # games/ и mods/ приезжают пустыми, а держится пустой каталог в
+          # архиве одной своей записью — потерять её легко и незаметно.
           for d in games mods; do
             if ! tar -tf "axis-$version-linux.tar.br" --use-compress-program=brotli | grep -q "$d/"; then
               echo "::error::$d/ не пережил упаковку."
@@ -347,15 +326,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # ================================================================
-      # Checkout
-      # ================================================================
       - name: Checkout
         uses: actions/checkout@v7
 
-      # ================================================================
-      # MSYS2 CLANG64
-      # ================================================================
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -381,9 +354,6 @@ jobs:
             mingw-w64-clang-x86_64-luajit
             mingw-w64-clang-x86_64-SDL2
 
-      # ================================================================
-      # Build
-      # ================================================================
       - name: Configure Engine
         shell: msys2 {0}
         run: |
@@ -413,9 +383,6 @@ jobs:
         run: |
           cmake --build build --parallel
 
-      # ================================================================
-      # Prepare portable package
-      # ================================================================
       - name: Prepare Portable Package
         shell: msys2 {0}
         run: |
@@ -427,13 +394,11 @@ jobs:
 
           strip axis_windows/bin/axis.exe || llvm-strip axis_windows/bin/axis.exe || true
 
-          # Every DLL the executable needs, directly or transitively.
           echo "Bundling DLL dependencies into libs/..."
           bash util/bundle_dlls.sh \
             axis_windows/bin/axis.exe \
             axis_windows/libs
 
-          # Runtime data
           cp -r builtin axis_windows/
           cp -r client axis_windows/
           cp -r textures axis_windows/
@@ -444,9 +409,6 @@ jobs:
           # this repository, so the package only provides the place for them.
           mkdir -p axis_windows/games axis_windows/mods
 
-          # Template of the configuration. The engine writes its own
-          # config directory next to the executable on first run; this
-          # is the documented copy players can read and copy lines from.
           cp -r config.example axis_windows/
 
           if [ -d locale ]; then
@@ -467,9 +429,6 @@ jobs:
           echo "Bundled DLLs:"
           ls -1 axis_windows/libs
 
-      # ================================================================
-      # Final package validation
-      # ================================================================
       - name: Validate Portable Package
         shell: pwsh
         run: |
@@ -496,8 +455,6 @@ jobs:
             throw 'The package must ship no .cmd wrapper: the launcher starts the client.'
           }
 
-          # The configuration template must survive packaging, otherwise a
-          # player has no documentation of the settings at hand.
           $expected = @(
             'shared\engine.conf', 'client\graphics.conf', 'client\keybindings.conf',
             'server\server.conf', 'server\worldgen.conf'
@@ -539,18 +496,10 @@ jobs:
 
           Write-Host 'Portable package validation passed.'
 
-      # ================================================================
-      # Create the archive
-      # ================================================================
       - name: Create Portable Archive
         shell: msys2 {0}
         run: |
-          # tar, сжатый brotli — тот же формат, что и под linux. Был zip;
-          # brotli жмёт заметно плотнее, а игру качает каждый игрок и каждый
-          # раз целиком: обновление приносит сборку, а не разницу.
-          #
-          # -q 11 — самое плотное, какое умеет brotli. Время сборки здесь
-          # ничего не стоит: пакуем раз, качают многие.
+          # Тот же tar с brotli, что и под linux, и по тем же доводам.
           rm -f axis_client_windows.tar.br
 
           ( cd axis_windows && tar -cf - . | brotli -q 11 > ../axis_client_windows.tar.br )
@@ -561,8 +510,8 @@ jobs:
       - name: Verify Empty Content Directories
         shell: msys2 {0}
         run: |
-          # An empty directory carries no files to pull it into the archive,
-          # so its own entry is the only thing that recreates it on unpacking.
+          # The same check as under linux: an empty directory is held in the
+          # archive by its own entry alone.
           names="$(brotli -dc axis_client_windows.tar.br | tar -tf -)"
 
           for d in games mods; do
@@ -574,22 +523,11 @@ jobs:
 
           echo 'Empty content directories are present in the archive.'
 
-      # Выкладка в раздачу. Игроки качают игру отсюда, а не с GitHub: релизы
-      # GitHub из России открываются через раз, а лаунчер должен работать
-      # всегда. Токен и адрес живут в настройках репозитория; нет их — сборка
-      # падает здесь же: деться собранному больше некуда, а тихо пропущенная
-      # выкладка выглядит как удачный выпуск, которого не было.
-      # Вид файла раздача больше не угадывает: без X-Axis-Kind она отвечает
-      # отказом, и это правильно — умолчание «архив» однажды превратило бы
-      # забытый заголовок в сборку, на которую обновятся все. Игра приезжает
-      # только архивом, другого вида у неё нет.
+      # Та же выкладка, что и под linux, и те же доводы.
       - name: Upload to distribution
         shell: msys2 {0}
         env:
           AXIS_FILES_TOKEN: ${{ secrets.AXIS_FILES_TOKEN }}
-          # Адрес раздачи живёт в переменных репозитория (Variables), а не в
-          # секретах: он не тайна, и в логе его видно — когда что-то не
-          # сходится, это важнее скрытности.
           AXIS_FILES_URL: ${{ vars.AXIS_FILES_URL }}
         run: |
           if [ -z "$AXIS_FILES_TOKEN" ] || [ -z "$AXIS_FILES_URL" ]; then
@@ -600,7 +538,6 @@ jobs:
           fi
           echo "Раздача: $AXIS_FILES_URL"
 
-          # Версия без ведущей v: раздача ждёт 0.1.0, а тег обычно v0.1.0.
           version="${{ github.event.inputs.tag_name }}"
           version="${version#v}"
 
