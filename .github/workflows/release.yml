@@ -286,6 +286,10 @@ jobs:
       # всегда. Токен и адрес живут в настройках репозитория; нет их — сборка
       # падает здесь же: деться собранному больше некуда, а тихо пропущенная
       # выкладка выглядит как удачный выпуск, которого не было.
+      # Вид файла раздача больше не угадывает: без X-Axis-Kind она отвечает
+      # отказом, и это правильно — умолчание «архив» однажды превратило бы
+      # забытый заголовок в сборку, на которую обновятся все. Игра приезжает
+      # только архивом, другого вида у неё нет.
       - name: Upload to distribution
         env:
           AXIS_FILES_TOKEN: ${{ secrets.AXIS_FILES_TOKEN }}
@@ -330,6 +334,7 @@ jobs:
           curl -sSf --max-time 900 -X POST "$AXIS_FILES_URL/upload" \
             -H "Authorization: Bearer $AXIS_FILES_TOKEN" \
             -H "X-Axis-Product: game" \
+            -H "X-Axis-Kind: archive" \
             -H "X-Axis-Version: $version" \
             -H "X-Axis-Platform: linux" \
             --data-binary "@axis-$version-linux.tar.br"
@@ -574,6 +579,10 @@ jobs:
       # всегда. Токен и адрес живут в настройках репозитория; нет их — сборка
       # падает здесь же: деться собранному больше некуда, а тихо пропущенная
       # выкладка выглядит как удачный выпуск, которого не было.
+      # Вид файла раздача больше не угадывает: без X-Axis-Kind она отвечает
+      # отказом, и это правильно — умолчание «архив» однажды превратило бы
+      # забытый заголовок в сборку, на которую обновятся все. Игра приезжает
+      # только архивом, другого вида у неё нет.
       - name: Upload to distribution
         shell: msys2 {0}
         env:
@@ -598,6 +607,7 @@ jobs:
           curl -sSf --max-time 900 -X POST "$AXIS_FILES_URL/upload" \
             -H "Authorization: Bearer $AXIS_FILES_TOKEN" \
             -H "X-Axis-Product: game" \
+            -H "X-Axis-Kind: archive" \
             -H "X-Axis-Version: $version" \
             -H "X-Axis-Platform: windows" \
             --data-binary "@axis_client_windows.tar.br"
