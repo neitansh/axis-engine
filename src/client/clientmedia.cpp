@@ -16,6 +16,7 @@
 #include "util/hashing.h"
 #include "serialization.h"
 #include <set>
+#include <map>
 #include "exceptions.h"
 #include "util/string.h"
 #include "network/networkprotocol.h"
@@ -166,12 +167,18 @@ void ClientMediaDownloader::step(Client *client)
 			fetched_something = true;
 
 			// Что пришло: общий набор, хэш-набор (index.mth) или файл?
-			if (m_bundle_requests.erase(fetch_result.request_id) > 0)
+			if (m_bundle_requests.erase(fetch_result.request_id) > 0) {
 				bundleReceived(fetch_result, client);
-			else if (fetch_result.request_id < m_remotes.size())
-				remoteHashSetReceived(fetch_result);
-			else
-				remoteMediaReceived(fetch_result, client);
+			} else {
+				auto hashset = m_hashset_requests.find(fetch_result.request_id);
+				if (hashset != m_hashset_requests.end()) {
+					const u32 remote_id = hashset->second;
+					m_hashset_requests.erase(hashset);
+					remoteHashSetReceived(fetch_result, remote_id);
+				} else {
+					remoteMediaReceived(fetch_result, client);
+				}
+			}
 		}
 
 		if (fetched_something)
@@ -423,12 +430,13 @@ void ClientMediaDownloader::startHashSetFetches(Client *client)
 			fetch_request.url =
 				remote->baseurl + MTHASHSET_FILE_NAME;
 			fetch_request.caller = m_httpfetch_caller;
-			fetch_request.request_id = m_httpfetch_next_id; // == i
+			fetch_request.request_id = m_httpfetch_next_id;
 			fetch_request.extra_headers.emplace_back(
 				"Referer: " + makeReferer(client));
 
 			httpfetch_async(fetch_request);
 
+			m_hashset_requests.emplace(m_httpfetch_next_id, i);
 			m_httpfetch_active++;
 			m_httpfetch_next_id++;
 			m_outstanding_hash_sets++;
@@ -437,9 +445,8 @@ void ClientMediaDownloader::startHashSetFetches(Client *client)
 }
 
 void ClientMediaDownloader::remoteHashSetReceived(
-		const HTTPFetchResult &fetch_result)
+		const HTTPFetchResult &fetch_result, u32 remote_id)
 {
-	u32 remote_id = fetch_result.request_id;
 	assert(remote_id < m_remotes.size());
 	RemoteServerStatus *remote = m_remotes[remote_id];
 
@@ -484,7 +491,15 @@ void ClientMediaDownloader::remoteMediaReceived(
 	std::string name;
 	{
 		auto it = m_remote_file_transfers.find(fetch_result.request_id);
-		assert(it != m_remote_file_transfers.end());
+		if (it == m_remote_file_transfers.end()) {
+			// Ответ, которого мы не заказывали. В отладочной сборке здесь
+			// стояло падение, в обычной — чтение мимо таблицы: то есть ошибка
+			// в учёте запросов роняла игру у игрока. Пусть лучше ругается.
+			errorstream << "Client: got a media file we did not ask for"
+				<< " (request " << fetch_result.request_id << "), ignoring it"
+				<< std::endl;
+			return;
+		}
 		name = it->second;
 		m_remote_file_transfers.erase(it);
 	}

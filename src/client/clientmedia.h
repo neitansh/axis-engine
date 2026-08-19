@@ -137,7 +137,7 @@ private:
 	};
 
 	void initialStep(Client *client);
-	void remoteHashSetReceived(const HTTPFetchResult &fetch_result);
+	void remoteHashSetReceived(const HTTPFetchResult &fetch_result, u32 remote_id);
 	void remoteMediaReceived(const HTTPFetchResult &fetch_result,
 			Client *client);
 	s32 selectRemoteServer(FileStatus *filestatus);
@@ -178,9 +178,12 @@ private:
 	s32 m_httpfetch_active = 0;
 	s32 m_httpfetch_active_limit = 0;
 	s32 m_outstanding_hash_sets = 0;
-	// Запросы за общим набором: их ответы разбираются иначе, чем ответы за
-	// хэш-набором и за отдельным файлом.
+	// Кто есть кто среди запросов. Раньше ответ узнавали по одному лишь номеру
+	// («меньше числа раздач — значит хэш-набор»), но номера раздаёт общий
+	// счётчик, и стоило спросить что-то ещё — счёт съезжал, а ответ уходил не
+	// туда. Теперь каждый запрос записан явно.
 	std::set<u32> m_bundle_requests;
+	std::map<u32, u32> m_hashset_requests; // номер запроса → какая это раздача
 	std::unordered_map<u64, std::string> m_remote_file_transfers;
 
 	// All files up to this name have either been received from a
