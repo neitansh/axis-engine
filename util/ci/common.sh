@@ -17,8 +17,16 @@ install_linux_deps() {
 		libogg-dev libvorbis-dev libopenal-dev
 	)
 
-	sudo apt-get update
-	sudo apt-get install -y --no-install-recommends "${pkgs[@]}" "$@"
+	# Зеркало и терпение. На раннерах GitHub прописано azure.archive.ubuntu.com,
+	# и оно временами просто перестаёт отвечать: apt висит без ошибки, пока job
+	# не убьют по таймауту. Официальное зеркало отвечает, а таймаут с повторами
+	# превращает залипание в честную ошибку через минуту, а не через час.
+	sudo sed -i "s|http://azure.archive.ubuntu.com|http://archive.ubuntu.com|g" \
+		/etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
+	local apt_opts=(-o Acquire::Retries=3 -o Acquire::http::Timeout=20
+		-o Acquire::https::Timeout=20)
+	sudo apt-get "${apt_opts[@]}" update
+	sudo apt-get "${apt_opts[@]}" install -y --no-install-recommends "${pkgs[@]}" "$@"
 
 	# set up Postgres for unit tests
 	if [ -n "$MINETEST_POSTGRESQL_CONNECT_STRING" ]; then
