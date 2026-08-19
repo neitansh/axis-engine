@@ -183,7 +183,7 @@ void MediaHttpServer::setMedia(std::unordered_map<std::string, std::string> &&by
 	MutexAutoLock lock(m_media_mutex);
 	m_by_hash = std::move(by_hash);
 	m_index = buildIndex();
-	m_bundle.clear();
+	m_bundles.clear();
 	m_bundle_stale = true;
 }
 
@@ -204,35 +204,53 @@ std::string MediaHttpServer::buildIndex() const
 	return out;
 }
 
-// Один файл со всем медиа разом.
+// Набор медиа, нарезанный кусками.
 //
-// Ради него всё и затевалось: файлов у большого плейса тысячи, и каждый из них
+// Ради этого всё и затевалось: файлов у большого плейса тысячи, и каждый из них
 // по отдельности — это поездка туда-обратно. Сотня микросекунд на файл
 // превращается в десяток секунд ожидания, притом что сами байты приезжают за
-// пару. Здесь их забирают одним запросом.
+// пару.
 //
-// Складывается всё в свой простой вид (имя, длина, данные) и жмётся целиком:
-// общий словарь на тысячи мелких файлов выигрывает заметно больше, чем сжатие
-// каждого по отдельности.
-const std::string &MediaHttpServer::bundle()
+// Кусок сам себе архив: клиент распаковывает его сразу, как получил, и
+// раскладывает по местам. Поэтому оборванная закачка стоит одного куска, а не
+// всей работы, и полоса загрузки движется, а не стоит до самого конца.
+void MediaHttpServer::buildBundles()
 {
 	// Снимок набора берётся под замком, а читается с диска и жмётся уже без
-	// него: иначе одно соединение, попросившее файл, ждало бы, пока для
+	// него: иначе соединение, попросившее один файл, ждало бы, пока для
 	// другого соберут все семь тысяч.
 	std::unordered_map<std::string, std::string> snapshot;
 	{
 		MutexAutoLock lock(m_media_mutex);
 		if (!m_bundle_stale)
-			return m_bundle;
+			return;
 		snapshot = m_by_hash;
 	}
 
-	std::string raw;
-	raw.resize(10);
-	writeU32((u8 *)&raw[0], MEDIA_BUNDLE_SIGNATURE);
-	writeU16((u8 *)&raw[4], MEDIA_BUNDLE_VERSION);
+	std::vector<std::string> packed;
+	u32 total = 0;
 
+	std::string raw;
 	u32 count = 0;
+	auto begin_part = [&]() {
+		raw.clear();
+		raw.resize(10);
+		writeU32((u8 *)&raw[0], MEDIA_BUNDLE_SIGNATURE);
+		writeU16((u8 *)&raw[4], MEDIA_BUNDLE_VERSION);
+		count = 0;
+	};
+	auto finish_part = [&]() {
+		if (count == 0)
+			return;
+		writeU32((u8 *)&raw[6], count);
+		std::ostringstream oss(std::ios::binary);
+		compressZstd(raw, oss, 3);
+		packed.push_back(oss.str());
+		total += count;
+		begin_part();
+	};
+
+	begin_part();
 	for (const auto &it : snapshot) {
 		std::string data;
 		if (!fs::ReadFile(it.second, data, true))
@@ -246,20 +264,46 @@ const std::string &MediaHttpServer::bundle()
 		raw.append((const char *)len, 4);
 		raw.append(data);
 		count++;
-	}
-	writeU32((u8 *)&raw[6], count);
 
-	std::ostringstream oss(std::ios::binary);
-	compressZstd(raw, oss, 3);
+		if (raw.size() >= MEDIA_BUNDLE_PART_SIZE)
+			finish_part();
+	}
+	finish_part();
 
 	MutexAutoLock lock(m_media_mutex);
-	m_bundle = oss.str();
+	m_bundles = std::move(packed);
+	m_bundled_files = total;
 	m_bundle_stale = false;
 
-	infostream << "MediaHttpServer: bundle of " << count << " files, "
-		<< (raw.size() >> 10) << "KiB packed into " << (m_bundle.size() >> 10)
-		<< "KiB" << std::endl;
-	return m_bundle;
+	size_t bytes = 0;
+	for (const auto &part : m_bundles)
+		bytes += part.size();
+	infostream << "MediaHttpServer: " << total << " files in "
+		<< m_bundles.size() << " bundles, " << (bytes >> 10) << "KiB total"
+		<< std::endl;
+}
+
+// Опись: сколько кусков и сколько в них файлов.
+std::string MediaHttpServer::bundleIndex()
+{
+	buildBundles();
+
+	MutexAutoLock lock(m_media_mutex);
+	std::string out;
+	out.resize(14);
+	writeU32((u8 *)&out[0], MEDIA_BUNDLE_SIGNATURE);
+	writeU16((u8 *)&out[4], MEDIA_BUNDLE_VERSION);
+	writeU32((u8 *)&out[6], (u32)m_bundles.size());
+	writeU32((u8 *)&out[10], m_bundled_files);
+	return out;
+}
+
+std::string MediaHttpServer::bundlePart(size_t number)
+{
+	buildBundles();
+
+	MutexAutoLock lock(m_media_mutex);
+	return number < m_bundles.size() ? m_bundles[number] : std::string();
 }
 
 std::string MediaHttpServer::findPath(const std::string &sha1_hex) const
@@ -318,9 +362,22 @@ bool MediaHttpServer::serveOnce(int sock)
 	}
 
 	if (path == MEDIA_BUNDLE_FILE_NAME) {
-		// Копия под замком не берётся: пока файл собирают, отдавать нечего, а
-		// собирается он один раз на набор.
-		const std::string &packed = bundle();
+		return sendResponse(sock, "200 OK", bundleIndex(), "application/octet-stream");
+	}
+
+	// Кусок набора: bundle/<номер>.
+	const std::string part_prefix = std::string(MEDIA_BUNDLE_FILE_NAME) + "/";
+	if (path.compare(0, part_prefix.size(), part_prefix) == 0) {
+		const std::string tail = path.substr(part_prefix.size());
+		if (tail.empty() || tail.find_first_not_of("0123456789") != std::string::npos) {
+			sendResponse(sock, "404 Not Found", "", "text/plain");
+			return true;
+		}
+		const std::string packed = bundlePart((size_t)atoi(tail.c_str()));
+		if (packed.empty()) {
+			sendResponse(sock, "404 Not Found", "", "text/plain");
+			return true;
+		}
 		return sendResponse(sock, "200 OK", packed, "application/octet-stream");
 	}
 

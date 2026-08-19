@@ -168,7 +168,9 @@ void ClientMediaDownloader::step(Client *client)
 
 			// Что пришло: общий набор, хэш-набор (index.mth) или файл?
 			if (m_bundle_requests.erase(fetch_result.request_id) > 0) {
-				bundleReceived(fetch_result, client);
+				bundleIndexReceived(fetch_result, client);
+			} else if (m_bundle_part_requests.erase(fetch_result.request_id) > 0) {
+				bundlePartReceived(fetch_result, client);
 			} else {
 				auto hashset = m_hashset_requests.find(fetch_result.request_id);
 				if (hashset != m_hashset_requests.end()) {
@@ -322,9 +324,9 @@ void ClientMediaDownloader::initialStep(Client *client)
 	}
 }
 
-// Запросить весь набор одним файлом — у первой же раздачи.
+// Спросить опись набора — у первой же раздачи.
 //
-// Спрашиваем только одну: набор одинаков у всех, а качать его дважды значило бы
+// Спрашиваем одну: набор одинаков у всех, а качать его дважды значило бы
 // удвоить трафик ради ничего. Не ответила — обычный путь никуда не делся.
 void ClientMediaDownloader::startBundleFetch(Client *client)
 {
@@ -338,12 +340,6 @@ void ClientMediaDownloader::startBundleFetch(Client *client)
 	fetch_request.caller = m_httpfetch_caller;
 	fetch_request.request_id = m_httpfetch_next_id;
 	fetch_request.extra_headers.emplace_back("Referer: " + makeReferer(client));
-	// Набор большой, и едет он целиком: срок ему нужен свой, не тот, что у
-	// мелкого файла.
-	fetch_request.timeout = 120000;
-
-	actionstream << "Client: Asking \"" << m_remotes[0]->baseurl
-		<< "\" for the whole media bundle" << std::endl;
 
 	httpfetch_async(fetch_request);
 	m_bundle_requests.insert(m_httpfetch_next_id);
@@ -351,71 +347,150 @@ void ClientMediaDownloader::startBundleFetch(Client *client)
 	m_httpfetch_next_id++;
 }
 
-// Разобрать пришедший набор и разложить его по местам.
-//
-// Каждый файл проверяется тем же хэшем, что и при поштучной загрузке: набор —
-// это способ довезти, а не повод верить на слово. Чего в наборе не оказалось
-// или что не сошлось — доберётся обычным путём.
-void ClientMediaDownloader::bundleReceived(const HTTPFetchResult &fetch_result,
+// Опись пришла — заказываем сами куски.
+void ClientMediaDownloader::bundleIndexReceived(const HTTPFetchResult &fetch_result,
 		Client *client)
 {
-	u32 taken = 0;
-	if (fetch_result.succeeded) {
-		try {
-			std::istringstream iss(fetch_result.data, std::ios::binary);
-			std::ostringstream oss(std::ios::binary);
-			decompressZstd(iss, oss);
-			const std::string raw = oss.str();
-
-			if (raw.size() < 10)
-				throw SerializationError("media bundle is too short");
-			const u8 *at = (const u8 *)raw.data();
-			if (readU32(at) != MEDIA_BUNDLE_SIGNATURE)
-				throw SerializationError("media bundle has a foreign signature");
-			if (readU16(at + 4) != MEDIA_BUNDLE_VERSION)
-				throw SerializationError("media bundle is of another version");
-
-			// Имя файла в наборе — его хэш; по нему и ищем, кому он нужен.
-			std::unordered_map<std::string, std::string> by_hash;
-			for (const auto &it : m_files) {
-				if (!it.second->received)
-					by_hash.emplace(hex_encode(it.second->sha1), it.first);
-			}
-
-			size_t pos = 10;
-			while (pos + 44 <= raw.size()) {
-				const std::string sha1_hex = raw.substr(pos, 40);
-				const u32 size = readU32((const u8 *)raw.data() + pos + 40);
-				pos += 44;
-				if (pos + size > raw.size())
-					throw SerializationError("media bundle ends mid-file");
-
-				auto want = by_hash.find(sha1_hex);
-				if (want != by_hash.end()) {
-					const std::string &name = want->second;
-					FileStatus *filestatus = m_files[name];
-					if (checkAndLoad(name, filestatus->sha1,
-							raw.substr(pos, size), false, client)) {
-						filestatus->received = true;
-						m_uncached_received_count++;
-						m_received_file_size += size;
-						taken++;
-					}
-				}
-				pos += size;
-			}
-			checkTotalSize();
-		} catch (SerializationError &e) {
-			infostream << "Client: media bundle did not unpack: "
-				<< e.what() << std::endl;
-		}
+	u32 parts = 0;
+	if (fetch_result.succeeded && fetch_result.data.size() >= 14) {
+		const u8 *at = (const u8 *)fetch_result.data.data();
+		if (readU32(at) == MEDIA_BUNDLE_SIGNATURE &&
+				readU16(at + 4) == MEDIA_BUNDLE_VERSION)
+			parts = readU32(at + 6);
 	}
 
-	actionstream << "Client: took " << taken << " of " << m_uncached_count
-		<< " media files from the bundle" << std::endl;
+	if (parts == 0) {
+		// Раздача без набора — не беда: заберём поштучно, как раньше.
+		startHashSetFetches(client);
+		return;
+	}
 
-	// Остальное — как раньше: спросим, у кого что есть, и доберём поштучно.
+	actionstream << "Client: media bundle of " << parts << " parts at \""
+		<< m_remotes[0]->baseurl << "\"" << std::endl;
+
+	m_bundle_parts_left = parts;
+	m_bundle_next_part = 0;
+	requestMoreBundleParts(client);
+}
+
+// Держим в пути немного кусков разом.
+//
+// Не все сразу: канал, поделённый на десяток кусков по паре мегабайт, не
+// довезёт до срока ни одного, и медленное соединение осталось бы вовсе без
+// набора. Несколько потоков берут своё и на быстром канале, а на слабом каждый
+// кусок доезжает целиком и сразу идёт в дело.
+void ClientMediaDownloader::requestMoreBundleParts(Client *client)
+{
+	const s32 at_once = 3;
+	while (m_outstanding_bundles < at_once && m_bundle_next_part < m_bundle_parts_left) {
+		HTTPFetchRequest fetch_request;
+		fetch_request.url = m_remotes[0]->baseurl + MEDIA_BUNDLE_FILE_NAME
+				+ "/" + itos(m_bundle_next_part);
+		fetch_request.caller = m_httpfetch_caller;
+		fetch_request.request_id = m_httpfetch_next_id;
+		fetch_request.extra_headers.emplace_back("Referer: " + makeReferer(client));
+		// Кусок — это мегабайты, и на слабом канале он едет заметно дольше
+		// мелкого файла. Срок ему нужен свой, и с запасом: два мегабайта на
+		// узком канале, поделённом натрое, идут минуты. Не успел — не беда,
+		// эти файлы доберутся поштучно.
+		fetch_request.timeout = 300000;
+
+		httpfetch_async(fetch_request);
+		m_bundle_part_requests.insert(m_httpfetch_next_id);
+		m_httpfetch_active++;
+		m_httpfetch_next_id++;
+		m_outstanding_bundles++;
+		m_bundle_next_part++;
+	}
+}
+
+// Кусок пришёл — разложить и, когда придут все, добрать остальное поштучно.
+void ClientMediaDownloader::bundlePartReceived(const HTTPFetchResult &fetch_result,
+		Client *client)
+{
+	m_outstanding_bundles--;
+
+	u32 taken = 0;
+	if (fetch_result.succeeded)
+		taken = unpackBundle(fetch_result.data, client);
+	else
+		infostream << "Client: a media bundle part did not arrive" << std::endl;
+
+	if (taken > 0) {
+		verbosestream << "Client: took " << taken << " files from a bundle part"
+			<< std::endl;
+	}
+
+	// Место освободилось — заказываем следующий кусок.
+	requestMoreBundleParts(client);
+
+	// Куски ещё едут — подождём: иначе те же файлы поедут ещё и поштучно.
+	if (m_outstanding_bundles > 0)
+		return;
+
+	actionstream << "Client: bundles done, " << m_uncached_received_count
+		<< " of " << m_uncached_count << " media files in place" << std::endl;
+
 	startHashSetFetches(client);
+}
+
+// Разобрать кусок и разложить его по местам.
+//
+// Каждый файл проверяется тем же хэшем, что и при поштучной загрузке: набор —
+// это способ довезти, а не повод верить на слово. Что не сошлось или чего не
+// оказалось — доберётся обычным путём.
+u32 ClientMediaDownloader::unpackBundle(const std::string &packed, Client *client)
+{
+	u32 taken = 0;
+	try {
+		std::istringstream iss(packed, std::ios::binary);
+		std::ostringstream oss(std::ios::binary);
+		decompressZstd(iss, oss);
+		const std::string raw = oss.str();
+
+		if (raw.size() < 10)
+			throw SerializationError("media bundle is too short");
+		const u8 *at = (const u8 *)raw.data();
+		if (readU32(at) != MEDIA_BUNDLE_SIGNATURE)
+			throw SerializationError("media bundle has a foreign signature");
+		if (readU16(at + 4) != MEDIA_BUNDLE_VERSION)
+			throw SerializationError("media bundle is of another version");
+
+		// Имя файла в наборе — его хэш; по нему и ищем, кому он нужен.
+		std::unordered_map<std::string, std::string> by_hash;
+		for (const auto &it : m_files) {
+			if (!it.second->received)
+				by_hash.emplace(hex_encode(it.second->sha1), it.first);
+		}
+
+		size_t pos = 10;
+		while (pos + 44 <= raw.size()) {
+			const std::string sha1_hex = raw.substr(pos, 40);
+			const u32 size = readU32((const u8 *)raw.data() + pos + 40);
+			pos += 44;
+			if (pos + size > raw.size())
+				throw SerializationError("media bundle ends mid-file");
+
+			auto want = by_hash.find(sha1_hex);
+			if (want != by_hash.end()) {
+				const std::string &name = want->second;
+				FileStatus *filestatus = m_files[name];
+				if (checkAndLoad(name, filestatus->sha1,
+						raw.substr(pos, size), false, client)) {
+					filestatus->received = true;
+					m_uncached_received_count++;
+					m_received_file_size += size;
+					taken++;
+				}
+			}
+			pos += size;
+		}
+		checkTotalSize();
+	} catch (SerializationError &e) {
+		infostream << "Client: media bundle part did not unpack: "
+			<< e.what() << std::endl;
+	}
+	return taken;
 }
 
 void ClientMediaDownloader::startHashSetFetches(Client *client)

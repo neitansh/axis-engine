@@ -144,10 +144,14 @@ private:
 	void checkTotalSize();
 	void startRemoteMediaTransfers();
 	void startConventionalTransfers(Client *client);
-	// Весь набор одним файлом. Запрашивается первым: если он приедет, поштучно
-	// останется забрать только то, чего в нём не было.
+	// Набор кусками. Запрашивается первым: что приедет — раскладывается сразу,
+	// а поштучно останется забрать только недостающее.
 	void startBundleFetch(Client *client);
-	void bundleReceived(const HTTPFetchResult &fetch_result, Client *client);
+	void bundleIndexReceived(const HTTPFetchResult &fetch_result, Client *client);
+	void bundlePartReceived(const HTTPFetchResult &fetch_result, Client *client);
+	void requestMoreBundleParts(Client *client);
+	// Разложить один кусок; возвращает, сколько файлов из него пригодилось.
+	u32 unpackBundle(const std::string &packed, Client *client);
 	void startHashSetFetches(Client *client);
 
 	static void deSerializeHashSet(const std::string &data,
@@ -182,8 +186,16 @@ private:
 	// («меньше числа раздач — значит хэш-набор»), но номера раздаёт общий
 	// счётчик, и стоило спросить что-то ещё — счёт съезжал, а ответ уходил не
 	// туда. Теперь каждый запрос записан явно.
-	std::set<u32> m_bundle_requests;
+	std::set<u32> m_bundle_requests;      // опись кусков
+	std::set<u32> m_bundle_part_requests; // сами куски
 	std::map<u32, u32> m_hashset_requests; // номер запроса → какая это раздача
+	// Сколько кусков ещё в пути: пока их ждём, поштучную загрузку не начинаем,
+	// иначе один и тот же файл поехал бы дважды.
+	s32 m_outstanding_bundles = 0;
+	// Какие куски ещё не заказаны. Заказываем их понемногу: слабый канал,
+	// поделённый на десяток кусков сразу, не довезёт ни одного до срока.
+	u32 m_bundle_parts_left = 0;
+	u32 m_bundle_next_part = 0;
 	std::unordered_map<u64, std::string> m_remote_file_transfers;
 
 	// All files up to this name have either been received from a

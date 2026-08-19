@@ -9,6 +9,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <vector>
 
 #include "irrlichttypes.h"
 #include "threading/mutex_auto_lock.h"
@@ -48,10 +49,11 @@ private:
 	bool serveOnce(int sock);
 	std::string findPath(const std::string &sha1_hex) const;
 	std::string buildIndex() const;
-	// Весь набор одним куском. Собирается лениво: набор меняется редко, а
-	// собирать его на каждое обновление медиа — читать с диска мегабайты ради
-	// файла, за которым, может, никто и не придёт.
-	const std::string &bundle();
+	// Набор кусками. Собирается лениво: набор меняется редко, а перечитывать
+	// ради него мегабайты с диска на каждое обновление медиа незачем.
+	void buildBundles();
+	std::string bundleIndex();
+	std::string bundlePart(size_t number);
 
 	const u16 m_port;
 	std::atomic<bool> m_running{false};
@@ -63,6 +65,7 @@ private:
 	mutable std::mutex m_media_mutex;
 	std::unordered_map<std::string, std::string> m_by_hash;
 	std::string m_index;
-	std::string m_bundle;
+	std::vector<std::string> m_bundles;
+	u32 m_bundled_files = 0;
 	bool m_bundle_stale = true;
 };
