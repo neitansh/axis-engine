@@ -175,8 +175,15 @@ local function get_formspec(tabview, name, tabdata)
 	-- билетом — см. builtin/mainmenu/init.lua.
 	--
 	-- TRANSLATORS: Join a server
-	retval = retval .. menu_style.accent("btn_mp_login") ..
-			"button[3,5.05;2.5,0.75;btn_mp_login;" .. fgettext("Join") .. "]"
+	-- Пока билет в пути, кнопка говорит об этом сама: нажатие уже принято, и
+	-- второе ничего не ускорит (см. core.waiting_for_ticket).
+	if core.waiting_for_ticket() then
+		retval = retval ..
+				"button[3,5.05;2.5,0.75;btn_mp_waiting;" .. fgettext("Connecting…") .. "]"
+	else
+		retval = retval .. menu_style.accent("btn_mp_login") ..
+				"button[3,5.05;2.5,0.75;btn_mp_login;" .. fgettext("Join") .. "]"
+	end
 
 	local selected_server = find_selected_server()
 

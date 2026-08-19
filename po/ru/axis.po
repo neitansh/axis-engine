@@ -323,16 +323,16 @@ msgstr "cглаженный"
 #. TRANSLATORS: "automatic exposure" refers to light. This note
 #. will be displayed for the graphics setting 'enable_auto_exposure'
 #: builtin/common/settings/dlg_settings.lua
-msgid "(The game will need to enable automatic exposure as well)"
-msgstr "(В игре также необходимо будет включить автоматическую экспозицию)"
+msgid "(The place will need to enable automatic exposure as well)"
+msgstr "(В плейсе также потребуется включить автоматическую экспозицию)"
 
 #: builtin/common/settings/dlg_settings.lua
-msgid "(The game will need to enable bloom as well)"
-msgstr "(В игре также нужно будет включить функцию свечения)"
+msgid "(The place will need to enable bloom as well)"
+msgstr "(В плейсе также потребуется включить свечение)"
 
 #: builtin/common/settings/dlg_settings.lua
-msgid "(The game will need to enable volumetric lighting as well)"
-msgstr "(В игре также необходимо будет включить объемное освещение)"
+msgid "(The place will need to enable volumetric lighting as well)"
+msgstr "(В плейсе также потребуется включить объёмное освещение)"
 
 #: builtin/common/settings/dlg_settings.lua
 msgid "(Use system language)"
@@ -474,16 +474,16 @@ msgid "Client Mods"
 msgstr "Клиентские моды"
 
 #: builtin/common/settings/settingtypes.lua
-msgid "Content: Games"
-msgstr "Контент: Игры"
+msgid "Content: Places"
+msgstr "Содержимое: плейсы"
 
 #: builtin/common/settings/settingtypes.lua
 msgid "Content: Mods"
 msgstr "Контент: Моды"
 
 #: builtin/common/settings/shadows_component.lua
-msgid "(The game will need to enable shadows as well)"
-msgstr "(В игре также необходимо будет включить тени)"
+msgid "(The place will need to enable shadows as well)"
+msgstr "(В плейсе также потребуется включить тени)"
 
 #: builtin/common/settings/shadows_component.lua
 msgid "Custom"
@@ -612,8 +612,8 @@ msgid "Featured"
 msgstr "Рекомендуемое"
 
 #: builtin/mainmenu/content/dlg_contentdb.lua
-msgid "Games"
-msgstr "Игры"
+msgid "Places"
+msgstr "Плейсы"
 
 #: builtin/mainmenu/content/dlg_contentdb.lua
 #: builtin/mainmenu/content/dlg_install.lua
@@ -676,8 +676,8 @@ msgid "Already installed"
 msgstr "Уже установленно"
 
 #: builtin/mainmenu/content/dlg_install.lua
-msgid "Base Game:"
-msgstr "Основная игра:"
+msgid "Base Place:"
+msgstr "Основной плейс:"
 
 #. TRANSLATORS: About mod dependencies
 #: builtin/mainmenu/content/dlg_install.lua
@@ -707,12 +707,12 @@ msgid "Not found"
 msgstr "Не найдено"
 
 #: builtin/mainmenu/content/dlg_install.lua
-msgid "Please check that the base game is correct."
-msgstr "Убедитесь что основная игра корректна."
+msgid "Please check that the base place is correct."
+msgstr "Проверьте, верно ли выбран основной плейс."
 
 #: builtin/mainmenu/content/dlg_install.lua
-msgid "You need to install a game before you can install a mod"
-msgstr "Вам нужно установить игру, прежде чем вы сможете установить мод"
+msgid "You need to install a place before you can install a mod"
+msgstr "Прежде чем ставить мод, нужно установить плейс"
 
 #: builtin/mainmenu/content/dlg_overwrite.lua
 msgid "\"$1\" already exists. Would you like to overwrite it?"
@@ -814,8 +814,8 @@ msgid "Install: Unable to find suitable folder name for $1"
 msgstr "Установка: не удаётся найти подходящее имя папки для $1"
 
 #: builtin/mainmenu/content/pkgmgr.lua
-msgid "Unable to find a valid mod, modpack, or game"
-msgstr "Не удаётся найти допустимый мод, набор модов или игру"
+msgid "Unable to find a valid mod, modpack, or place"
+msgstr "Не удалось найти подходящий мод, набор модов или плейс"
 
 #: builtin/mainmenu/content/pkgmgr.lua
 msgid "Unable to install a $1 as a $2"
@@ -890,8 +890,8 @@ msgid "No (optional) dependencies"
 msgstr "Нет (необязательных) зависимостей"
 
 #: builtin/mainmenu/dlg_config_world.lua
-msgid "No game description provided."
-msgstr "Описание игры недоступно."
+msgid "No place description provided."
+msgstr "Описание плейса не указано."
 
 #. TRANSLATORS: About mod dependencies
 #: builtin/mainmenu/dlg_config_world.lua
@@ -1060,8 +1060,8 @@ msgid "Network of tunnels and caves"
 msgstr "Сеть туннелей и пещер"
 
 #: builtin/mainmenu/dlg_create_world.lua
-msgid "No game selected"
-msgstr "Игра не выбрана"
+msgid "No place selected"
+msgstr "Плейс не выбран"
 
 #: builtin/mainmenu/dlg_create_world.lua
 msgid "Reduces heat with altitude"
@@ -1261,8 +1261,8 @@ msgid "Group by prefix"
 msgstr "Сгруппировать по префиксу"
 
 #: builtin/mainmenu/dlg_server_list_mods.lua
-msgid "The $1 server uses a game called $2 and the following mods:"
-msgstr "На сервере $1 используется игра под названием $2 со следующими модами:"
+msgid "The $1 server uses a place called $2 and the following mods:"
+msgstr "На сервере $1 запущен плейс $2 и следующие моды:"
 
 #: builtin/mainmenu/dlg_server_list_mods.lua
 msgid "The $1 server uses the following mods:"
@@ -1423,16 +1423,16 @@ msgid "Enable Damage"
 msgstr "Включить урон"
 
 #: builtin/mainmenu/tab_local.lua
-msgid "Host Game"
-msgstr "Захостить игру"
+msgid "Host Place"
+msgstr "Запустить свой плейс"
 
 #: builtin/mainmenu/tab_local.lua
 msgid "Host Server"
 msgstr "Захостить сервер"
 
 #: builtin/mainmenu/tab_local.lua
-msgid "Install a game"
-msgstr "Установить игру"
+msgid "Install a place"
+msgstr "Установить плейс"
 
 #: builtin/mainmenu/tab_local.lua
 msgid "Install games from ContentDB"
@@ -1455,7 +1455,7 @@ msgid "New"
 msgstr "Новый"
 
 #: builtin/mainmenu/tab_local.lua
-msgid "Play Game"
+msgid "Play Place"
 msgstr "Играть"
 
 #. TRANSLATORS: Network port
@@ -1476,12 +1476,12 @@ msgid "Server Port"
 msgstr "Порт сервера"
 
 #: builtin/mainmenu/tab_local.lua
-msgid "Start Game"
-msgstr "Начать игру"
+msgid "Start Place"
+msgstr "Запустить плейс"
 
 #: builtin/mainmenu/tab_local.lua
-msgid "You need to install a game before you can create a world."
-msgstr "Вам требуется установить игру, прежде чем вы сможете создать мир."
+msgid "You need to install a place before you can create a world."
+msgstr "Прежде чем создавать мир, нужно установить плейс."
 
 #: builtin/mainmenu/tab_online.lua
 msgid "Add favorite"
@@ -1506,16 +1506,16 @@ msgid "Favorites"
 msgstr "Избранное"
 
 #: builtin/mainmenu/tab_online.lua
-msgid "Game: $1"
-msgstr "Игра: $1"
+msgid "Place: $1"
+msgstr "Плейс: $1"
 
 #: builtin/mainmenu/tab_online.lua
 msgid "Incompatible Servers"
 msgstr "Несовместимые сервера"
 
 #: builtin/mainmenu/tab_online.lua
-msgid "Join Game"
-msgstr "Подключиться к игре"
+msgid "Join Place"
+msgstr "Подключиться к плейсу"
 
 #. TRANSLATORS: Login to server
 #: builtin/mainmenu/tab_online.lua
@@ -8063,8 +8063,8 @@ msgstr "Подробнее"
 msgid "Developer"
 msgstr "Разработчику"
 
-msgid "Game and network"
-msgstr "Игра и сеть"
+msgid "Place and network"
+msgstr "Плейс и сеть"
 
 msgid "Hints"
 msgstr "Подсказки"
@@ -8126,8 +8126,8 @@ msgstr "У этого модпака задано имя в modpack.conf "
 msgid "Menu"
 msgstr "Меню"
 
-msgid "Game"
-msgstr "Игра"
+msgid "Place"
+msgstr "Плейс"
 
 msgid "Russia"
 msgstr "Россия"
@@ -10088,3 +10088,8 @@ msgstr "Выравнивать картинки по миру, а не по ка
 msgid "What time of day a new world begins at."
 msgstr "В какое время суток начинается новый мир."
 
+msgid "Join"
+msgstr "Подключиться"
+
+msgid "Connecting…"
+msgstr "Подключение…"

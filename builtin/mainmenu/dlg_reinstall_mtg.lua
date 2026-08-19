@@ -54,10 +54,10 @@ end
 
 local function get_formspec(dialogdata)
 	local markup = table.concat({
-		"<big>", hgettext("Minetest Place is no longer installed by default"), "</big>\n",
-		hgettext("For a long time, Luanti shipped with a default place called \"Minetest Place\". " ..
+		"<big>", hgettext("Minetest Game is no longer installed by default"), "</big>\n",
+		hgettext("For a long time, Luanti shipped with a default place called \"Minetest Game\". " ..
 				"Since version 5.8.0, Luanti ships without a default place."), "\n",
-		hgettext("If you want to continue playing in your Minetest Place worlds, you need to reinstall Minetest Place."),
+		hgettext("If you want to continue playing in your Minetest Game worlds, you need to reinstall Minetest Game."),
 	})
 
 	return table.concat({
@@ -68,7 +68,7 @@ local function get_formspec(dialogdata)
 		"style[dismiss;bgcolor=red]",
 		-- TRANSLATORS: Dismiss a dialog window/message
 		"button[0,0;4,0.8;dismiss;", fgettext("Dismiss"), "]",
-		"button[4.25,0;8,0.8;reinstall;", fgettext("Reinstall Minetest Place"), "]",
+		"button[4.25,0;8,0.8;reinstall;", fgettext("Reinstall Minetest Game"), "]",
 		"container_end[]",
 	})
 end
