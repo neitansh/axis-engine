@@ -13,7 +13,7 @@ public:
 	TestObjDef() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestObjDef"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testHandles();
 	void testAddGetSetClear();
@@ -22,7 +22,7 @@ public:
 
 static TestObjDef g_test_instance;
 
-void TestObjDef::runTests(IGameDef *gamedef)
+void TestObjDef::runTests(IPlaceDef *placedef)
 {
 	TEST(testHandles);
 	TEST(testAddGetSetClear);

@@ -27,7 +27,7 @@ local function get_formspec(data)
 		return get_loading_formspec()
 	end
 
-	local selected_game, selected_game_idx = pkgmgr.find_by_gameid(core.settings:get("menu_last_game"))
+	local selected_game, selected_game_idx = pkgmgr.find_by_placeid(core.settings:get("menu_last_game"))
 	if not selected_game_idx then
 		selected_game_idx = 1
 		selected_game = pkgmgr.games[1]
@@ -241,7 +241,7 @@ function install_or_update_package(parent, package)
 	if package.type == "mod" then
 		install_parent = core.get_modpath()
 	elseif package.type == "game" then
-		install_parent = core.get_gamepath()
+		install_parent = core.get_placepath()
 	elseif package.type == "txp" then
 		install_parent = core.get_texturepath()
 	else

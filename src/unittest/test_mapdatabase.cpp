@@ -65,7 +65,7 @@ public:
 	TestMapDatabase() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestMapDatabase"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 	void runTestsForCurrentDB();
 
 	void testSave();
@@ -82,7 +82,7 @@ private:
 
 static TestMapDatabase g_test_instance;
 
-void TestMapDatabase::runTests(IGameDef *gamedef)
+void TestMapDatabase::runTests(IPlaceDef *placedef)
 {
 	// fixed directory, for persistence
 	const std::string test_dir = getTestTempDirectory();

@@ -5,7 +5,7 @@
 
 #include "remoteplayer.h"
 #include <json/json.h>
-#include "gamedef.h"
+#include "placedef.h"
 #include "log.h"
 #include "settings.h"
 #include "server/player_sao.h"

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gamedef.h"
+#include "placedef.h"
 
 #include <string>
 #include <vector>
@@ -139,19 +139,19 @@ public:
 	virtual std::string getName() const=0;
 
 	// Checks whether the recipe is applicable
-	virtual bool check(const CraftInput &input, IGameDef *gamedef) const=0;
+	virtual bool check(const CraftInput &input, IPlaceDef *placedef) const=0;
 	RecipePriority getPriority() const
 	{
 		return priority;
 	}
 	// Returns the output structure, meaning depends on crafting method
 	// The implementation can assume that check(input) returns true
-	virtual CraftOutput getOutput(const CraftInput &input, IGameDef *gamedef) const=0;
+	virtual CraftOutput getOutput(const CraftInput &input, IPlaceDef *placedef) const=0;
 	// the inverse of the above
-	virtual CraftInput getInput(const CraftOutput &output, IGameDef *gamedef) const=0;
+	virtual CraftInput getInput(const CraftOutput &output, IPlaceDef *placedef) const=0;
 	// Decreases count of every input item
 	virtual void decrementInput(CraftInput &input,
-		std::vector<ItemStack> &output_replacements, IGameDef *gamedef) const=0;
+		std::vector<ItemStack> &output_replacements, IPlaceDef *placedef) const=0;
 
 	CraftHashType getHashType() const
 	{
@@ -160,7 +160,7 @@ public:
 	virtual u64 getHash(CraftHashType type) const = 0;
 
 	// to be called after all mods are loaded, so that we catch all aliases
-	virtual void initHash(IGameDef *gamedef) = 0;
+	virtual void initHash(IPlaceDef *placedef) = 0;
 
 	virtual std::string dump() const=0;
 
@@ -188,15 +188,15 @@ public:
 	virtual ~CraftDefinitionShaped() = default;
 
 	virtual std::string getName() const;
-	virtual bool check(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftOutput getOutput(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftInput getInput(const CraftOutput &output, IGameDef *gamedef) const;
+	virtual bool check(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftOutput getOutput(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftInput getInput(const CraftOutput &output, IPlaceDef *placedef) const;
 	virtual void decrementInput(CraftInput &input,
-		std::vector<ItemStack> &output_replacements, IGameDef *gamedef) const;
+		std::vector<ItemStack> &output_replacements, IPlaceDef *placedef) const;
 
 	virtual u64 getHash(CraftHashType type) const;
 
-	virtual void initHash(IGameDef *gamedef);
+	virtual void initHash(IPlaceDef *placedef);
 
 	virtual std::string dump() const;
 
@@ -232,15 +232,15 @@ public:
 	virtual ~CraftDefinitionShapeless() = default;
 
 	virtual std::string getName() const;
-	virtual bool check(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftOutput getOutput(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftInput getInput(const CraftOutput &output, IGameDef *gamedef) const;
+	virtual bool check(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftOutput getOutput(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftInput getInput(const CraftOutput &output, IPlaceDef *placedef) const;
 	virtual void decrementInput(CraftInput &input,
-		std::vector<ItemStack> &output_replacements, IGameDef *gamedef) const;
+		std::vector<ItemStack> &output_replacements, IPlaceDef *placedef) const;
 
 	virtual u64 getHash(CraftHashType type) const;
 
-	virtual void initHash(IGameDef *gamedef);
+	virtual void initHash(IPlaceDef *placedef);
 
 	virtual std::string dump() const;
 
@@ -272,15 +272,15 @@ public:
 	virtual ~CraftDefinitionToolRepair() = default;
 
 	virtual std::string getName() const;
-	virtual bool check(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftOutput getOutput(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftInput getInput(const CraftOutput &output, IGameDef *gamedef) const;
+	virtual bool check(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftOutput getOutput(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftInput getInput(const CraftOutput &output, IPlaceDef *placedef) const;
 	virtual void decrementInput(CraftInput &input,
-		std::vector<ItemStack> &output_replacements, IGameDef *gamedef) const;
+		std::vector<ItemStack> &output_replacements, IPlaceDef *placedef) const;
 
 	virtual u64 getHash(CraftHashType type) const { return 2; }
 
-	virtual void initHash(IGameDef *gamedef)
+	virtual void initHash(IPlaceDef *placedef)
 	{
 		hash_type = CRAFT_HASH_TYPE_COUNT;
 	}
@@ -313,15 +313,15 @@ public:
 	virtual ~CraftDefinitionCooking() = default;
 
 	virtual std::string getName() const;
-	virtual bool check(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftOutput getOutput(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftInput getInput(const CraftOutput &output, IGameDef *gamedef) const;
+	virtual bool check(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftOutput getOutput(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftInput getInput(const CraftOutput &output, IPlaceDef *placedef) const;
 	virtual void decrementInput(CraftInput &input,
-		std::vector<ItemStack> &output_replacements, IGameDef *gamedef) const;
+		std::vector<ItemStack> &output_replacements, IPlaceDef *placedef) const;
 
 	virtual u64 getHash(CraftHashType type) const;
 
-	virtual void initHash(IGameDef *gamedef);
+	virtual void initHash(IPlaceDef *placedef);
 
 	virtual std::string dump() const;
 
@@ -356,15 +356,15 @@ public:
 	virtual ~CraftDefinitionFuel() = default;
 
 	virtual std::string getName() const;
-	virtual bool check(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftOutput getOutput(const CraftInput &input, IGameDef *gamedef) const;
-	virtual CraftInput getInput(const CraftOutput &output, IGameDef *gamedef) const;
+	virtual bool check(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftOutput getOutput(const CraftInput &input, IPlaceDef *placedef) const;
+	virtual CraftInput getInput(const CraftOutput &output, IPlaceDef *placedef) const;
 	virtual void decrementInput(CraftInput &input,
-		std::vector<ItemStack> &output_replacements, IGameDef *gamedef) const;
+		std::vector<ItemStack> &output_replacements, IPlaceDef *placedef) const;
 
 	virtual u64 getHash(CraftHashType type) const;
 
-	virtual void initHash(IGameDef *gamedef);
+	virtual void initHash(IPlaceDef *placedef);
 
 	virtual std::string dump() const;
 
@@ -399,15 +399,15 @@ public:
 	 * placed if they cannot be placed in the input. Replacements can be placed
 	 * in the input if the stack of the replaced item has a count of 1.
 	 * @param decrementInput If true, consume or replace input items.
-	 * @param gamedef
+	 * @param placedef
 	 * @return true if a result was found, otherwise false.
 	 */
 	virtual bool getCraftResult(CraftInput &input, CraftOutput &output,
 			std::vector<ItemStack> &output_replacements,
-			bool decrementInput, IGameDef *gamedef) const=0;
+			bool decrementInput, IPlaceDef *placedef) const=0;
 
 	virtual std::vector<CraftDefinition*> getCraftRecipes(CraftOutput &output,
-			IGameDef *gamedef, unsigned limit=0) const=0;
+			IPlaceDef *placedef, unsigned limit=0) const=0;
 
 	// Print crafting recipes for debugging
 	virtual std::string dump() const=0;
@@ -422,25 +422,25 @@ public:
 	// The main crafting function
 	virtual bool getCraftResult(CraftInput &input, CraftOutput &output,
 			std::vector<ItemStack> &output_replacements,
-			bool decrementInput, IGameDef *gamedef) const=0;
+			bool decrementInput, IPlaceDef *placedef) const=0;
 	virtual std::vector<CraftDefinition*> getCraftRecipes(CraftOutput &output,
-			IGameDef *gamedef, unsigned limit=0) const=0;
+			IPlaceDef *placedef, unsigned limit=0) const=0;
 
-	virtual bool clearCraftsByOutput(const CraftOutput &output, IGameDef *gamedef) = 0;
-	virtual bool clearCraftsByInput(const CraftInput &input, IGameDef *gamedef) = 0;
+	virtual bool clearCraftsByOutput(const CraftOutput &output, IPlaceDef *placedef) = 0;
+	virtual bool clearCraftsByInput(const CraftInput &input, IPlaceDef *placedef) = 0;
 
 	// Print crafting recipes for debugging
 	virtual std::string dump() const=0;
 
 	// Add a crafting definition.
 	// After calling this, the pointer belongs to the manager.
-	virtual void registerCraft(CraftDefinition *def, IGameDef *gamedef) = 0;
+	virtual void registerCraft(CraftDefinition *def, IPlaceDef *placedef) = 0;
 
 	// Delete all crafting definitions
 	virtual void clear()=0;
 
 	// To be called after all mods are loaded, so that we catch all aliases
-	virtual void initHashes(IGameDef *gamedef) = 0;
+	virtual void initHashes(IPlaceDef *placedef) = 0;
 };
 
 IWritableCraftDefManager* createCraftDefManager();

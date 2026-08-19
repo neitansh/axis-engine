@@ -13,14 +13,14 @@ local COLORS = {
 function mm_game_theme.init()
 	mm_game_theme.texturepack = core.settings:get("texture_path")
 
-	mm_game_theme.gameid = nil
+	mm_game_theme.placeid = nil
 
 	mm_game_theme.music_handle = nil
 end
 
 --------------------------------------------------------------------------------
 function mm_game_theme.set_engine(hide_decorations)
-	mm_game_theme.gameid = nil
+	mm_game_theme.placeid = nil
 	mm_game_theme.stop_music()
 
 	core.set_topleft_text("")
@@ -58,10 +58,10 @@ end
 function mm_game_theme.set_game(gamedetails)
 	assert(gamedetails ~= nil)
 
-	if mm_game_theme.gameid == gamedetails.id then
+	if mm_game_theme.placeid == gamedetails.id then
 		return
 	end
-	mm_game_theme.gameid = gamedetails.id
+	mm_game_theme.placeid = gamedetails.id
 	mm_game_theme.set_music(gamedetails)
 
 	core.set_topleft_text(gamedetails.name)

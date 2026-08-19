@@ -223,7 +223,7 @@ void ScriptApiBase::checkSetByBuiltin()
 	CHECK(CUSTOM_RIDX_PUSH_VECTOR2, "push_vector2");
 
 	if (getType() == ScriptingType::Server ||
-			(getType() == ScriptingType::Async && m_gamedef) ||
+			(getType() == ScriptingType::Async && m_placedef) ||
 			getType() == ScriptingType::Emerge ||
 			getType() == ScriptingType::Client ||
 			getType() == ScriptingType::SSCSM) {
@@ -550,17 +550,17 @@ void ScriptApiBase::pushPlayerHPChangeReason(lua_State *L, const PlayerHPChangeR
 
 Server* ScriptApiBase::getServer()
 {
-	// Since the gamedef is the server it's still possible to retrieve it in
+	// Since the placedef is the server it's still possible to retrieve it in
 	// e.g. the async environment, but this isn't meant to happen.
 	// TODO: still needs work
 	//assert(getType() == ScriptingType::Server);
-	return dynamic_cast<Server *>(m_gamedef);
+	return dynamic_cast<Server *>(m_placedef);
 }
 
 #if CHECK_CLIENT_BUILD()
 Client *ScriptApiBase::getClient()
 {
-	return dynamic_cast<Client *>(m_gamedef);
+	return dynamic_cast<Client *>(m_placedef);
 }
 
 ModVFS *ScriptApiBase::getModVFS()

@@ -28,7 +28,7 @@ public:
 	TestScriptApi() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestScriptApi"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testVectorMetatable(MyScriptApi *script);
 	void testVectorRead(MyScriptApi *script);
@@ -61,7 +61,7 @@ void MyScriptApi::init()
 	checkSetByBuiltin();
 }
 
-void TestScriptApi::runTests(IGameDef *gamedef)
+void TestScriptApi::runTests(IPlaceDef *placedef)
 {
 	MyScriptApi script;
 	try {

@@ -1374,7 +1374,7 @@ void LocalPlayer::old_move(f32 dtime, Environment *env,
 float LocalPlayer::getSlipFactor(Environment *env, const v3f &speedH)
 {
 	// Slip on slippery nodes
-	const NodeDefManager *nodemgr = env->getGameDef()->ndef();
+	const NodeDefManager *nodemgr = env->getPlaceDef()->ndef();
 	Map *map = &env->getMap();
 	const ContentFeatures &f = nodemgr->get(map->getNode(getStandingNodePos()));
 	int slippery = 0;
@@ -1427,7 +1427,7 @@ void LocalPlayer::handleAutojump(f32 dtime, Environment *env,
 	headpos_min.Y = headpos_max.Y; // top face of collision box
 	v3s16 ceilpos_min = floatToInt(headpos_min, BS) + v3s16(0, 1, 0);
 	v3s16 ceilpos_max = floatToInt(headpos_max, BS) + v3s16(0, 1, 0);
-	const NodeDefManager *ndef = env->getGameDef()->ndef();
+	const NodeDefManager *ndef = env->getPlaceDef()->ndef();
 	bool is_position_valid;
 	for (s16 z = ceilpos_min.Z; z <= ceilpos_max.Z; ++z)
 	{

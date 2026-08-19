@@ -12,7 +12,7 @@
 class ServerActiveObject;
 struct ItemStack;
 class Inventory;
-class IGameDef;
+class IPlaceDef;
 
 struct InventoryLocation
 {
@@ -119,8 +119,8 @@ struct InventoryAction
 	virtual IAction getType() const = 0;
 	virtual void serialize(std::ostream &os) const = 0;
 	virtual void apply(InventoryManager *mgr, ServerActiveObject *player,
-			IGameDef *gamedef) = 0;
-	virtual void clientApply(InventoryManager *mgr, IGameDef *gamedef) = 0;
+			IPlaceDef *placedef) = 0;
+	virtual void clientApply(InventoryManager *mgr, IPlaceDef *placedef) = 0;
 	virtual ~InventoryAction() = default;;
 };
 
@@ -170,9 +170,9 @@ struct IMoveAction : public InventoryAction, public MoveAction
 			os << " " << to_i;
 	}
 
-	void apply(InventoryManager *mgr, ServerActiveObject *player, IGameDef *gamedef);
+	void apply(InventoryManager *mgr, ServerActiveObject *player, IPlaceDef *placedef);
 
-	void clientApply(InventoryManager *mgr, IGameDef *gamedef);
+	void clientApply(InventoryManager *mgr, IPlaceDef *placedef);
 
 	void swapDirections();
 
@@ -211,9 +211,9 @@ struct IDropAction : public InventoryAction, public MoveAction
 		os<<from_i;
 	}
 
-	void apply(InventoryManager *mgr, ServerActiveObject *player, IGameDef *gamedef);
+	void apply(InventoryManager *mgr, ServerActiveObject *player, IPlaceDef *placedef);
 
-	void clientApply(InventoryManager *mgr, IGameDef *gamedef);
+	void clientApply(InventoryManager *mgr, IPlaceDef *placedef);
 };
 
 struct ICraftAction : public InventoryAction
@@ -238,12 +238,12 @@ struct ICraftAction : public InventoryAction
 		os<<craft_inv.dump()<<" ";
 	}
 
-	void apply(InventoryManager *mgr, ServerActiveObject *player, IGameDef *gamedef);
+	void apply(InventoryManager *mgr, ServerActiveObject *player, IPlaceDef *placedef);
 
-	void clientApply(InventoryManager *mgr, IGameDef *gamedef);
+	void clientApply(InventoryManager *mgr, IPlaceDef *placedef);
 };
 
 // Crafting helper
 bool getCraftingResult(Inventory *inv, ItemStack &result,
 		std::vector<ItemStack> &output_replacements,
-		bool decrementInput, IGameDef *gamedef);
+		bool decrementInput, IPlaceDef *placedef);

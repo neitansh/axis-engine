@@ -229,7 +229,7 @@ int IMoveAction::allowMove(int try_take_count, ServerActiveObject *player) const
 	return src_can_take_count;
 }
 
-void IMoveAction::apply(InventoryManager *mgr, ServerActiveObject *player, IGameDef *gamedef)
+void IMoveAction::apply(InventoryManager *mgr, ServerActiveObject *player, IPlaceDef *placedef)
 {
 	/// Necessary for executing Lua callbacks which may manipulate the inventory,
 	/// hence invalidate pointers needed by IMoveAction::apply
@@ -292,7 +292,7 @@ void IMoveAction::apply(InventoryManager *mgr, ServerActiveObject *player, IGame
 			list_to.reset();
 
 			to_i = dest_i;
-			apply(mgr, player, gamedef);
+			apply(mgr, player, placedef);
 			assert(move_count <= count);
 			count -= move_count;
 
@@ -529,8 +529,8 @@ void IMoveAction::apply(InventoryManager *mgr, ServerActiveObject *player, IGame
 	/*
 		Record rollback information
 	*/
-	if (!ignore_rollback && gamedef->rollback()) {
-		IRollbackManager *rollback = gamedef->rollback();
+	if (!ignore_rollback && placedef->rollback()) {
+		IRollbackManager *rollback = placedef->rollback();
 
 		// If source is not infinite, record item take
 		if (src_can_take_count != -1) {
@@ -615,7 +615,7 @@ void IMoveAction::apply(InventoryManager *mgr, ServerActiveObject *player, IGame
 	}
 }
 
-void IMoveAction::clientApply(InventoryManager *mgr, IGameDef *gamedef)
+void IMoveAction::clientApply(InventoryManager *mgr, IPlaceDef *placedef)
 {
 	// Optional InventoryAction operation that is run on the client
 	// to make lag less apparent.
@@ -666,7 +666,7 @@ IDropAction::IDropAction(std::istream &is)
 	from_i = stoi(ts);
 }
 
-void IDropAction::apply(InventoryManager *mgr, ServerActiveObject *player, IGameDef *gamedef)
+void IDropAction::apply(InventoryManager *mgr, ServerActiveObject *player, IPlaceDef *placedef)
 {
 	Inventory *inv_from = mgr->getInventory(from_inv);
 
@@ -813,8 +813,8 @@ void IDropAction::apply(InventoryManager *mgr, ServerActiveObject *player, IGame
 	/*
 		Record rollback information
 	*/
-	if (!ignore_src_rollback && gamedef->rollback()) {
-		IRollbackManager *rollback = gamedef->rollback();
+	if (!ignore_src_rollback && placedef->rollback()) {
+		IRollbackManager *rollback = placedef->rollback();
 
 		// If source is not infinite, record item take
 		if (src_can_take_count != -1) {
@@ -832,7 +832,7 @@ void IDropAction::apply(InventoryManager *mgr, ServerActiveObject *player, IGame
 	}
 }
 
-void IDropAction::clientApply(InventoryManager *mgr, IGameDef *gamedef)
+void IDropAction::clientApply(InventoryManager *mgr, IPlaceDef *placedef)
 {
 	// Optional InventoryAction operation that is run on the client
 	// to make lag less apparent.
@@ -875,7 +875,7 @@ ICraftAction::ICraftAction(std::istream &is)
 }
 
 void ICraftAction::apply(InventoryManager *mgr,
-	ServerActiveObject *player, IGameDef *gamedef)
+	ServerActiveObject *player, IPlaceDef *placedef)
 {
 	Inventory *inv_craft = mgr->getInventory(craft_inv);
 
@@ -916,7 +916,7 @@ void ICraftAction::apply(InventoryManager *mgr,
 	ItemStack craftresultitem;
 	int count_remaining = count;
 	std::vector<ItemStack> output_replacements;
-	getCraftingResult(inv_craft, crafted, output_replacements, false, gamedef);
+	getCraftingResult(inv_craft, crafted, output_replacements, false, placedef);
 	PLAYER_TO_SA(player)->item_CraftPredict(crafted, player, list_craft, craft_inv);
 	bool found = !crafted.empty();
 
@@ -925,13 +925,13 @@ void ICraftAction::apply(InventoryManager *mgr,
 
 		std::vector<ItemStack> temp;
 		// Decrement input and add crafting output
-		getCraftingResult(inv_craft, crafted, temp, true, gamedef);
+		getCraftingResult(inv_craft, crafted, temp, true, placedef);
 		PLAYER_TO_SA(player)->item_OnCraft(crafted, player, &saved_craft_list, craft_inv);
 		list_craftresult->addItem(0, crafted);
 		mgr->setInventoryModified(craft_inv);
 
 		// Add the new replacements to the list
-		IItemDefManager *itemdef = gamedef->getItemDefManager();
+		IItemDefManager *itemdef = placedef->getItemDefManager();
 		for (auto &itemstack : temp) {
 			for (auto &output_replacement : output_replacements) {
 				if (itemstack.name == output_replacement.name) {
@@ -956,7 +956,7 @@ void ICraftAction::apply(InventoryManager *mgr,
 			count_remaining--;
 
 		// Get next crafting result
-		getCraftingResult(inv_craft, crafted, temp, false, gamedef);
+		getCraftingResult(inv_craft, crafted, temp, false, placedef);
 		PLAYER_TO_SA(player)->item_CraftPredict(crafted, player, list_craft, craft_inv);
 		found = !crafted.empty();
 	}
@@ -987,7 +987,7 @@ void ICraftAction::apply(InventoryManager *mgr,
 			<<std::endl;
 }
 
-void ICraftAction::clientApply(InventoryManager *mgr, IGameDef *gamedef)
+void ICraftAction::clientApply(InventoryManager *mgr, IPlaceDef *placedef)
 {
 	// Optional InventoryAction operation that is run on the client
 	// to make lag less apparent.
@@ -997,7 +997,7 @@ void ICraftAction::clientApply(InventoryManager *mgr, IGameDef *gamedef)
 // Crafting helper
 bool getCraftingResult(Inventory *inv, ItemStack &result,
 		std::vector<ItemStack> &output_replacements,
-		bool decrementInput, IGameDef *gamedef)
+		bool decrementInput, IPlaceDef *placedef)
 {
 	result.clear();
 
@@ -1015,10 +1015,10 @@ bool getCraftingResult(Inventory *inv, ItemStack &result,
 
 	// Find out what is crafted and add it to result item slot
 	CraftOutput co;
-	bool found = gamedef->getCraftDefManager()->getCraftResult(
-			ci, co, output_replacements, decrementInput, gamedef);
+	bool found = placedef->getCraftDefManager()->getCraftResult(
+			ci, co, output_replacements, decrementInput, placedef);
 	if (found)
-		result.deSerialize(co.item, gamedef->getItemDefManager());
+		result.deSerialize(co.item, placedef->getItemDefManager());
 
 	if (found && decrementInput) {
 		// CraftInput has been changed, apply changes in clist

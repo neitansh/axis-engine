@@ -44,14 +44,14 @@ public:
 	TestClientActiveObjectMgr() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestClientActiveObjectMgr"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testGetActiveSelectableObjects();
 };
 
 static TestClientActiveObjectMgr g_test_instance;
 
-void TestClientActiveObjectMgr::runTests(IGameDef *gamedef)
+void TestClientActiveObjectMgr::runTests(IPlaceDef *placedef)
 {
 	TEST(testGetActiveSelectableObjects)
 }

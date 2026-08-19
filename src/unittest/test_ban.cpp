@@ -12,7 +12,7 @@ public:
 	TestBan() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestBan"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 private:
 	void testCreate();
@@ -28,7 +28,7 @@ private:
 
 static TestBan g_test_instance;
 
-void TestBan::runTests(IGameDef *gamedef)
+void TestBan::runTests(IPlaceDef *placedef)
 {
 	reinitTestEnv();
 	TEST(testCreate);

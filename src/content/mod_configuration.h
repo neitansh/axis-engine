@@ -6,7 +6,7 @@
 
 #include "mods.h"
 
-struct SubgameSpec;
+struct PlaceSpec;
 
 /**
  * ModConfiguration is a subset of installed mods. This class
@@ -56,7 +56,7 @@ public:
 	/**
 	 * Adds game mods
 	 */
-	void addGameMods(const SubgameSpec &gamespec);
+	void addGameMods(const PlaceSpec &placespec);
 
 	/**
 	 * Adds mods specified by a world.mt config

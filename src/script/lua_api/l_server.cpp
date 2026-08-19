@@ -534,7 +534,7 @@ int ModApiServer::l_get_modpath(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
 	std::string modname = luaL_checkstring(L, 1);
-	const ModSpec *mod = getGameDef(L)->getModSpec(modname);
+	const ModSpec *mod = getPlaceDef(L)->getModSpec(modname);
 	if (!mod)
 		lua_pushnil(L);
 	else
@@ -551,7 +551,7 @@ int ModApiServer::l_get_modnames(lua_State *L)
 
 	// Get a list of mods
 	std::vector<std::string> modlist;
-	for (auto &it : getGameDef(L)->getMods())
+	for (auto &it : getPlaceDef(L)->getMods())
 		modlist.emplace_back(it.name);
 
 	if (!use_load_order) {
@@ -569,17 +569,17 @@ int ModApiServer::l_get_modnames(lua_State *L)
 	return 1;
 }
 
-// get_game_info()
-int ModApiServer::l_get_game_info(lua_State *L)
+// get_place_info()
+int ModApiServer::l_get_place_info(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
-	const SubgameSpec *game_spec = getGameDef(L)->getGameSpec();
-	assert(game_spec);
+	const PlaceSpec *place_spec = getPlaceDef(L)->getGameSpec();
+	assert(place_spec);
 	lua_newtable(L);
-	setstringfield(L, -1, "id", game_spec->id);
-	setstringfield(L, -1, "title", game_spec->title);
-	setstringfield(L, -1, "author", game_spec->author);
-	setstringfield(L, -1, "path", game_spec->path);
+	setstringfield(L, -1, "id", place_spec->id);
+	setstringfield(L, -1, "title", place_spec->title);
+	setstringfield(L, -1, "author", place_spec->author);
+	setstringfield(L, -1, "path", place_spec->path);
 	return 1;
 }
 
@@ -801,7 +801,7 @@ void ModApiServer::Initialize(lua_State *L, int top)
 	API_FCT(get_current_modname);
 	API_FCT(get_modpath);
 	API_FCT(get_modnames);
-	API_FCT(get_game_info);
+	API_FCT(get_place_info);
 
 	API_FCT(print);
 
@@ -842,5 +842,5 @@ void ModApiServer::InitializeAsync(lua_State *L, int top)
 	API_FCT(get_current_modname);
 	API_FCT(get_modpath);
 	API_FCT(get_modnames);
-	API_FCT(get_game_info);
+	API_FCT(get_place_info);
 }

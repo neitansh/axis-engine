@@ -8,7 +8,7 @@
 #include "util/string.h"
 #include "util/numeric.h"
 #include "map.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "itemdef.h"
 #include "nodedef.h"
 #include "nodemetadata.h"
@@ -20,9 +20,9 @@
 #include "mapblock.h"
 
 
-RollbackNode::RollbackNode(Map *map, v3s16 p, IGameDef *gamedef)
+RollbackNode::RollbackNode(Map *map, v3s16 p, IPlaceDef *placedef)
 {
-	const NodeDefManager *ndef = gamedef->ndef();
+	const NodeDefManager *ndef = placedef->ndef();
 	MapNode n = map->getNode(p);
 	name = ndef->get(n).name;
 	param1 = n.param1;
@@ -68,7 +68,7 @@ std::string RollbackAction::toString() const
 }
 
 
-bool RollbackAction::isImportant(IGameDef *gamedef) const
+bool RollbackAction::isImportant(IPlaceDef *placedef) const
 {
 	if (type != TYPE_SET_NODE)
 		return true;
@@ -78,7 +78,7 @@ bool RollbackAction::isImportant(IGameDef *gamedef) const
 	// If metadata differs, action is always important
 	if(n_old.meta != n_new.meta)
 		return true;
-	const NodeDefManager *ndef = gamedef->ndef();
+	const NodeDefManager *ndef = placedef->ndef();
 	// Both are of the same name, so a single definition is needed
 	const ContentFeatures &def = ndef->get(n_old.name);
 	// If the type is flowing liquid, action is not important
@@ -109,14 +109,14 @@ bool RollbackAction::getPosition(v3s16 *dst) const
 }
 
 
-bool RollbackAction::applyRevert(Map *map, InventoryManager *imgr, IGameDef *gamedef) const
+bool RollbackAction::applyRevert(Map *map, InventoryManager *imgr, IPlaceDef *placedef) const
 {
 	try {
 		switch (type) {
 		case TYPE_NOTHING:
 			return true;
 		case TYPE_SET_NODE: {
-			const NodeDefManager *ndef = gamedef->ndef();
+			const NodeDefManager *ndef = placedef->ndef();
 			// Make sure position is loaded from disk
 			map->emergeBlock(getContainerPos(p, MAP_BLOCKSIZE), false);
 			// Check current node
@@ -147,7 +147,7 @@ bool RollbackAction::applyRevert(Map *map, InventoryManager *imgr, IGameDef *gam
 				} else {
 					NodeMetadata *meta = map->getNodeMetadata(p);
 					if (!meta) {
-						meta = new NodeMetadata(gamedef->idef());
+						meta = new NodeMetadata(placedef->idef());
 						if (!map->setNodeMetadata(p, meta)) {
 							delete meta;
 							infostream << "RollbackAction::applyRevert(): "
@@ -201,7 +201,7 @@ bool RollbackAction::applyRevert(Map *map, InventoryManager *imgr, IGameDef *gam
 			if (inventory_add) {
 				// Silently ignore different current item
 				if (list->getItem(inventory_index).name !=
-						gamedef->idef()->getAlias(inventory_stack.name))
+						placedef->idef()->getAlias(inventory_stack.name))
 					return false;
 				list->takeItem(inventory_index, inventory_stack.count);
 			} else {

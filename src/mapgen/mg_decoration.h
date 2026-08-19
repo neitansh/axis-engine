@@ -111,7 +111,7 @@ public:
 
 class DecorationManager : public ObjDefManager {
 public:
-	DecorationManager(IGameDef *gamedef);
+	DecorationManager(IPlaceDef *placedef);
 	virtual ~DecorationManager() = default;
 
 	DecorationManager *clone() const;

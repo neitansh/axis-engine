@@ -1,10 +1,39 @@
 {
-  "version": 3,
+  "version": 4,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 12
+    "minor": 23
   },
   "configurePresets": [
+    {
+      "name": "axis-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "RUN_IN_PLACE": "TRUE",
+        "CMAKE_C_COMPILER_LAUNCHER": "sccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
+        "CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=mold",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fuse-ld=mold",
+        "CMAKE_JOB_POOLS": "compile=8;link=1",
+        "CMAKE_JOB_POOL_COMPILE": "compile",
+        "CMAKE_JOB_POOL_LINK": "link",
+        "ENABLE_LEVELDB": "FALSE",
+        "ENABLE_REDIS": "FALSE",
+        "ENABLE_POSTGRESQL": "FALSE",
+        "ENABLE_PROMETHEUS": "FALSE"
+      }
+    },
+    {
+      "name": "dev",
+      "displayName": "Dev",
+      "description": "Сборка для работы: ninja, кэш компилятора, mold, ограниченная память",
+      "inherits": "axis-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
     {
       "name": "Debug",
       "displayName": "Debug",
@@ -56,6 +85,12 @@
         "CMAKE_BUILD_TYPE": "MinSizeRel",
         "RUN_IN_PLACE": "TRUE"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev"
     }
   ]
 }

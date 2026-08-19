@@ -149,7 +149,7 @@ public:
 	TestModStorageDatabase() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestModStorageDatabase"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 	void runTestsForCurrentDB();
 
 	void testRecallFail();
@@ -166,7 +166,7 @@ private:
 
 static TestModStorageDatabase g_test_instance;
 
-void TestModStorageDatabase::runTests(IGameDef *gamedef)
+void TestModStorageDatabase::runTests(IPlaceDef *placedef)
 {
 	// fixed directory, for persistence
 	thread_local const std::string test_dir = getTestTempDirectory();

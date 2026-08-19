@@ -1183,7 +1183,7 @@ void GenericCAO::step(float dtime, ClientEnvironment *env)
 			CollisionMoveResult moveresult;
 			v3f p_pos = m_position;
 			v3f p_velocity = m_velocity;
-			moveresult = collisionMoveSimple(env,env->getGameDef(),
+			moveresult = collisionMoveSimple(env,env->getPlaceDef(),
 					box, m_prop.stepheight, dtime,
 					&p_pos, &p_velocity, m_acceleration,
 					this, m_prop.collideWithObjects, m_prop.step_up_mode);

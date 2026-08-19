@@ -5,15 +5,15 @@
 #include "objdef.h"
 #include "util/numeric.h"
 #include "log.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "porting.h" // strcasecmp
 
 #include <cassert>
 
-ObjDefManager::ObjDefManager(IGameDef *gamedef, ObjDefType type)
+ObjDefManager::ObjDefManager(IPlaceDef *placedef, ObjDefType type)
 {
 	m_objtype = type;
-	m_ndef = gamedef ? gamedef->getNodeDefManager() : NULL;
+	m_ndef = placedef ? placedef->getNodeDefManager() : NULL;
 }
 
 

@@ -16,7 +16,7 @@
 class ServerEnvironment;
 class ServerMap;
 class MapBlock;
-class IGameDef;
+class IPlaceDef;
 
 /*
 	ABMs
@@ -114,7 +114,7 @@ public:
 	typedef std::unordered_map<content_t, lbm_vector> lbm_map;
 
 	LBMContentMapping() = default;
-	void addLBM(LoadingBlockModifierDef *lbm_def, IGameDef *gamedef);
+	void addLBM(LoadingBlockModifierDef *lbm_def, IPlaceDef *placedef);
 	const lbm_map::mapped_type *lookup(content_t c) const;
 	const lbm_vector &getList() const { return lbm_list; }
 	bool empty() const { return lbm_list.empty(); }
@@ -140,7 +140,7 @@ public:
 
 	/// @param now current game time
 	void loadIntroductionTimes(const std::string &times,
-		IGameDef *gamedef, u32 now);
+		IPlaceDef *placedef, u32 now);
 
 	// Don't call this before loadIntroductionTimes() ran.
 	std::string createIntroductionTimesString();

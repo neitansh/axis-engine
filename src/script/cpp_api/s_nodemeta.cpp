@@ -6,7 +6,7 @@
 #include "common/c_converter.h"
 #include "cpp_api/s_internal.h"
 #include "environment.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "inventorymanager.h"
 #include "lua_api/l_item.h"
 #include "map.h"
@@ -22,7 +22,7 @@ int ScriptApiNodemeta::nodemeta_inventory_AllowMove(
 
 	int error_handler = PUSH_ERROR_HANDLER(L);
 
-	const NodeDefManager *ndef = getGameDef()->ndef();
+	const NodeDefManager *ndef = getPlaceDef()->ndef();
 
 	// If node doesn't exist, we don't know what callback to call
 	MapNode node = getEnv()->getMap().getNode(ma.to_inv.p);
@@ -60,7 +60,7 @@ int ScriptApiNodemeta::nodemeta_inventory_AllowPut(
 
 	int error_handler = PUSH_ERROR_HANDLER(L);
 
-	const NodeDefManager *ndef = getGameDef()->ndef();
+	const NodeDefManager *ndef = getPlaceDef()->ndef();
 
 	// If node doesn't exist, we don't know what callback to call
 	MapNode node = getEnv()->getMap().getNode(ma.to_inv.p);
@@ -96,7 +96,7 @@ int ScriptApiNodemeta::nodemeta_inventory_AllowTake(
 
 	int error_handler = PUSH_ERROR_HANDLER(L);
 
-	const NodeDefManager *ndef = getGameDef()->ndef();
+	const NodeDefManager *ndef = getPlaceDef()->ndef();
 
 	// If node doesn't exist, we don't know what callback to call
 	MapNode node = getEnv()->getMap().getNode(ma.from_inv.p);
@@ -132,7 +132,7 @@ void ScriptApiNodemeta::nodemeta_inventory_OnMove(
 
 	int error_handler = PUSH_ERROR_HANDLER(L);
 
-	const NodeDefManager *ndef = getGameDef()->ndef();
+	const NodeDefManager *ndef = getPlaceDef()->ndef();
 
 	// If node doesn't exist, we don't know what callback to call
 	MapNode node = getEnv()->getMap().getNode(ma.from_inv.p);
@@ -165,7 +165,7 @@ void ScriptApiNodemeta::nodemeta_inventory_OnPut(
 
 	int error_handler = PUSH_ERROR_HANDLER(L);
 
-	const NodeDefManager *ndef = getGameDef()->ndef();
+	const NodeDefManager *ndef = getPlaceDef()->ndef();
 
 	// If node doesn't exist, we don't know what callback to call
 	MapNode node = getEnv()->getMap().getNode(ma.to_inv.p);
@@ -196,7 +196,7 @@ void ScriptApiNodemeta::nodemeta_inventory_OnTake(
 
 	int error_handler = PUSH_ERROR_HANDLER(L);
 
-	const NodeDefManager *ndef = getGameDef()->ndef();
+	const NodeDefManager *ndef = getPlaceDef()->ndef();
 
 	// If node doesn't exist, we don't know what callback to call
 	MapNode node = getEnv()->getMap().getNode(ma.from_inv.p);

@@ -22,9 +22,9 @@ public:
 	/**
 	 * Creates a ServerModManager
 	 * @param worldpath path to world
-	 * @param gamespec game used by the world
+	 * @param placespec game used by the world
 	 */
-	ServerModManager(const std::string &worldpath, SubgameSpec gamespec);
+	ServerModManager(const std::string &worldpath, PlaceSpec placespec);
 
 	/**
 	 * Creates an empty ServerModManager. For testing purposes.

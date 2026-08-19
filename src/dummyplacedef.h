@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "gamedef.h"
+#include "placedef.h"
 #include "itemdef.h"
 #include <memory>
 #include "nodedef.h"
@@ -16,9 +16,9 @@
 #include "client/node_visuals.h"
 #endif
 
-class DummyGameDef : public IGameDef {
+class DummyPlaceDef : public IPlaceDef {
 public:
-	DummyGameDef():
+	DummyPlaceDef():
 		m_itemdef(createItemDefManager()),
 		m_nodedef(createNodeDefManager()),
 		m_craftdef(createCraftDefManager()),
@@ -26,7 +26,7 @@ public:
 	{
 	}
 
-	~DummyGameDef()
+	~DummyPlaceDef()
 	{
 		delete m_mod_storage_database;
 		delete m_craftdef;

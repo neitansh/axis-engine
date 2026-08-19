@@ -148,7 +148,7 @@ int ModApiCraft::l_register_craft(lua_State *L)
 
 		CraftDefinition *def = new CraftDefinitionShaped(
 				output, width, recipe, replacements);
-		craftdef->registerCraft(def, getGameDef(L));
+		craftdef->registerCraft(def, getPlaceDef(L));
 	}
 	/*
 		CraftDefinitionShapeless
@@ -180,7 +180,7 @@ int ModApiCraft::l_register_craft(lua_State *L)
 
 		CraftDefinition *def = new CraftDefinitionShapeless(
 				output, recipe, replacements);
-		craftdef->registerCraft(def, getGameDef(L));
+		craftdef->registerCraft(def, getPlaceDef(L));
 	}
 	/*
 		CraftDefinitionToolRepair
@@ -191,7 +191,7 @@ int ModApiCraft::l_register_craft(lua_State *L)
 
 		CraftDefinition *def = new CraftDefinitionToolRepair(
 				additional_wear);
-		craftdef->registerCraft(def, getGameDef(L));
+		craftdef->registerCraft(def, getPlaceDef(L));
 	}
 	/*
 		CraftDefinitionCooking
@@ -221,7 +221,7 @@ int ModApiCraft::l_register_craft(lua_State *L)
 
 		CraftDefinition *def = new CraftDefinitionCooking(
 				output, recipe, cooktime, replacements);
-		craftdef->registerCraft(def, getGameDef(L));
+		craftdef->registerCraft(def, getPlaceDef(L));
 	}
 	/*
 		CraftDefinitionFuel
@@ -245,7 +245,7 @@ int ModApiCraft::l_register_craft(lua_State *L)
 
 		CraftDefinition *def = new CraftDefinitionFuel(
 				recipe, burntime, replacements);
-		craftdef->registerCraft(def, getGameDef(L));
+		craftdef->registerCraft(def, getPlaceDef(L));
 	}
 	else
 	{
@@ -271,7 +271,7 @@ int ModApiCraft::l_clear_craft(lua_State *L)
 
 	if (!output.empty()) {
 		CraftOutput c_output(output, 0);
-		if (craftdef->clearCraftsByOutput(c_output, getGameDef(L))) {
+		if (craftdef->clearCraftsByOutput(c_output, getPlaceDef(L))) {
 			lua_pushboolean(L, true);
 			return 1;
 		}
@@ -317,11 +317,11 @@ int ModApiCraft::l_clear_craft(lua_State *L)
 	std::vector<ItemStack> items;
 	items.reserve(recipe.size());
 	for (const auto &item : recipe) {
-		items.emplace_back(item, 1, 0, getGameDef(L)->idef());
+		items.emplace_back(item, 1, 0, getPlaceDef(L)->idef());
 	}
 	CraftInput input(method, width, items);
 
-	if (!craftdef->clearCraftsByInput(input, getGameDef(L))) {
+	if (!craftdef->clearCraftsByInput(input, getPlaceDef(L))) {
 		warningstream << "No craft recipe matches input (type: " << type
 				<< ", items: [";
 		for (size_t i = 0; i < items.size(); ++i) {
@@ -340,7 +340,7 @@ int ModApiCraft::l_clear_craft(lua_State *L)
 
 /// Pushes to table @ Lua top: method, (type), width, items
 static void push_craft_result_input(lua_State *L,
-		IGameDef *gdef,
+		IPlaceDef *gdef,
 		const CraftInput &input,
 		bool push_itemstacks,
 		bool undocumented_0_4_14_compat)
@@ -379,7 +379,7 @@ static void push_craft_result_input(lua_State *L,
 
 /// Pushes to table @ Lua top: item
 static void push_craft_result_output(lua_State *L,
-		IGameDef *gdef,
+		IPlaceDef *gdef,
 		bool is_craft_valid,
 		const char *output_field,
 		const CraftOutput &output,
@@ -408,7 +408,7 @@ static void push_craft_result_output(lua_State *L,
 int ModApiCraft::l_get_craft_result(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
-	IGameDef *gdef = getGameDef(L);
+	IPlaceDef *gdef = getPlaceDef(L);
 
 	const int input_i = 1;
 	std::string method_s = getstringfield_default(L, input_i, "method", "normal");
@@ -451,7 +451,7 @@ int ModApiCraft::l_get_craft_result(lua_State *L)
 }
 
 
-static void push_craft_recipe(lua_State *L, IGameDef *gdef,
+static void push_craft_recipe(lua_State *L, IPlaceDef *gdef,
 		const CraftDefinition *recipe,
 		const CraftOutput &tmpout)
 {
@@ -481,7 +481,7 @@ int ModApiCraft::l_get_craft_recipe(lua_State *L)
 	NO_MAP_LOCK_REQUIRED;
 
 	std::string item = luaL_checkstring(L, 1);
-	IGameDef *gdef = getGameDef(L);
+	IPlaceDef *gdef = getPlaceDef(L);
 	CraftOutput output(item, 0);
 	auto recipes = gdef->cdef()->getCraftRecipes(output, gdef, 1);
 
@@ -503,7 +503,7 @@ int ModApiCraft::l_get_all_craft_recipes(lua_State *L)
 	NO_MAP_LOCK_REQUIRED;
 
 	std::string item = luaL_checkstring(L, 1);
-	IGameDef *gdef = getGameDef(L);
+	IPlaceDef *gdef = getPlaceDef(L);
 	CraftOutput output(item, 0);
 	auto recipes = gdef->cdef()->getCraftRecipes(output, gdef);
 

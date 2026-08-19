@@ -6,7 +6,7 @@
 
 #include <sstream>
 
-#include "gamedef.h"
+#include "placedef.h"
 #include "inventory.h"
 
 class TestInventory : public TestBase {
@@ -14,7 +14,7 @@ public:
 	TestInventory() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestInventory"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testSerializeDeserialize(IItemDefManager *idef);
 
@@ -25,9 +25,9 @@ public:
 
 static TestInventory g_test_instance;
 
-void TestInventory::runTests(IGameDef *gamedef)
+void TestInventory::runTests(IPlaceDef *placedef)
 {
-	TEST(testSerializeDeserialize, gamedef->getItemDefManager());
+	TEST(testSerializeDeserialize, placedef->getItemDefManager());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -114,7 +114,7 @@ void Particle::step(float dtime, ClientEnvironment *env)
 		aabb3f box(v3f(-m_p.size / 2.0f), v3f(m_p.size / 2.0f));
 		v3f p_pos = m_pos * BS;
 		v3f p_velocity = m_velocity * BS;
-		CollisionMoveResult r = collisionMoveSimple(env, env->getGameDef(),
+		CollisionMoveResult r = collisionMoveSimple(env, env->getPlaceDef(),
 			box, 0.0f, dtime, &p_pos, &p_velocity, m_acceleration * BS, nullptr,
 			m_p.object_collision, StepUpMode::LEGACY);
 
@@ -197,7 +197,7 @@ video::SColor Particle::updateLight(ClientEnvironment *env)
 	MapNode n = env->getClientMap().getNode(p, &pos_ok);
 	if (pos_ok)
 		light = n.getLightBlend(env->getDayNightRatio(),
-				env->getGameDef()->ndef()->getLightingFlags(n));
+				env->getPlaceDef()->ndef()->getLightingFlags(n));
 	else
 		light = blend_light(env->getDayNightRatio(), LIGHT_SUN, 0);
 
@@ -477,7 +477,7 @@ void ParticleSpawner::spawnParticle(ClientEnvironment *env, float radius,
 	video::SColor color(0xFFFFFFFF);
 
 	if (p.node.getContent() != CONTENT_IGNORE) {
-		if (!ParticleManager::getNodeParticleParams(env->getGameDef(), p.node,
+		if (!ParticleManager::getNodeParticleParams(env->getPlaceDef(), p.node,
 				pp, &texture.ref, texpos, texsize, &color, p.node_tile))
 			return;
 	} else {
@@ -580,8 +580,8 @@ void ParticleSpawner::step(float dtime, ClientEnvironment *env)
 
 ParticleBuffer::ParticleBuffer(ClientEnvironment *env, const video::SMaterial &material)
 	: scene::ISceneNode(
-			env->getGameDef()->getSceneManager()->getRootSceneNode(),
-			env->getGameDef()->getSceneManager()),
+			env->getPlaceDef()->getSceneManager()->getRootSceneNode(),
+			env->getPlaceDef()->getSceneManager()),
 	m_mesh_buffer(make_irr<scene::SMeshBuffer>())
 {
 	m_mesh_buffer->getMaterial() = material;
@@ -972,7 +972,7 @@ void ParticleManager::handleParticleEvent(ClientEvent *event, Client *client,
 			f32 oldsize = p.size;
 
 			if (p.node.getContent() != CONTENT_IGNORE) {
-				getNodeParticleParams(m_env->getGameDef(), p.node, p,
+				getNodeParticleParams(m_env->getPlaceDef(), p.node, p,
 						&texture.ref, texpos, texsize, &color, p.node_tile);
 			} else {
 				/* with no particlespawner to own the texture, we need
@@ -1062,7 +1062,7 @@ void ParticleManager::addNodeParticle(LocalPlayer *player, v3s16 pos, const MapN
 	v2f texpos, texsize;
 	video::SColor color;
 
-	if (!getNodeParticleParams(m_env->getGameDef(), n, p, &ref, texpos, texsize, &color))
+	if (!getNodeParticleParams(m_env->getPlaceDef(), n, p, &ref, texpos, texsize, &color))
 		return;
 
 	p.expirationtime = myrand_range(0, 100) / 100.0f;

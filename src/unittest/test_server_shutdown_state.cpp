@@ -15,7 +15,7 @@ public:
 	TestServerShutdownState() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestServerShutdownState"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testInit();
 	void testReset();
@@ -25,7 +25,7 @@ public:
 
 static TestServerShutdownState g_test_instance;
 
-void TestServerShutdownState::runTests(IGameDef *gamedef)
+void TestServerShutdownState::runTests(IPlaceDef *placedef)
 {
 	TEST(testInit);
 	TEST(testReset);

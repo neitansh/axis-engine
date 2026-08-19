@@ -13,7 +13,7 @@
 #include "util/string.h"
 #include "exceptions.h"
 #include "debug.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "mapnode.h"
 #include <algorithm>
 #include <cmath>

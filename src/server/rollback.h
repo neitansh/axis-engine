@@ -12,7 +12,7 @@
 #include <deque>
 #include "sqlite3.h"
 
-class IGameDef;
+class IPlaceDef;
 
 struct ActionRow;
 struct Entity;
@@ -20,7 +20,7 @@ struct Entity;
 class RollbackManager final : public IRollbackManager
 {
 public:
-	RollbackManager(const std::string & world_path, IGameDef * gamedef);
+	RollbackManager(const std::string & world_path, IPlaceDef * placedef);
 	~RollbackManager();
 
 	void reportAction(const RollbackAction & action_);
@@ -63,7 +63,7 @@ private:
 		time_t suspect_t, v3s16 action_p, time_t action_t);
 
 
-	IGameDef *gamedef = nullptr;
+	IPlaceDef *placedef = nullptr;
 
 	std::string current_actor;
 	bool current_actor_is_guess = false;

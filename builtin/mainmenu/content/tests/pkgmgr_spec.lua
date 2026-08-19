@@ -19,7 +19,7 @@ local function reset()
 	local core = env.core
 
 	local calls = {}
-	function core.get_games()
+	function core.get_places()
 		return {}
 	end
 	function core.delete_dir(...)
@@ -39,7 +39,7 @@ local function reset()
 	function core.get_modpath()
 		return mods_dir
 	end
-	function core.get_gamepath()
+	function core.get_placepath()
 		return games_dir
 	end
 	function env.fgettext_ne(fmt, ...)

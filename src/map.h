@@ -21,7 +21,7 @@
 class MapSector;
 class NodeMetadata;
 class NodeTimer;
-class IGameDef;
+class IPlaceDef;
 
 /*
 	MapEditEvent
@@ -104,7 +104,7 @@ class Map /*: public NodeContainer*/
 {
 public:
 
-	Map(IGameDef *gamedef);
+	Map(IPlaceDef *placedef);
 	virtual ~Map();
 	DISABLE_CLASS_COPY(Map);
 
@@ -278,7 +278,7 @@ public:
 	bool isBlockOccluded(v3s16 pos_relative, v3s16 cam_pos_nodes, bool dense = false);
 
 protected:
-	IGameDef *m_gamedef;
+	IPlaceDef *m_placedef;
 
 	std::set<MapEventReceiver*> m_event_receivers;
 

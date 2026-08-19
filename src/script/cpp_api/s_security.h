@@ -91,7 +91,7 @@ protected:
 		bool *write_allowed) = 0;
 
 	// Ready-made implementation of `checkPathInternal` suitable for server-related uses
-	static bool checkPathWithGamedef(lua_State *L, const std::string &abs_path,
+	static bool checkPathWithPlacedef(lua_State *L, const std::string &abs_path,
 		bool write_required, bool *write_allowed);
 
 private:

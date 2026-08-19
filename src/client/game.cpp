@@ -17,7 +17,7 @@
 #include "clientmedia.h" // For clientMediaUpdateCacheCopy
 #include "config.h"
 #include "content_cao.h"
-#include "content/subgames.h"
+#include "content/places.h"
 #include "client/event_manager.h"
 #include "fontengine.h"
 #include "itemdef.h"
@@ -740,7 +740,7 @@ bool Game::startup(volatile std::sig_atomic_t *kill,
 	g_client_translations->clear();
 
 	if (!init(start_data.world_spec.path, start_data.address,
-			  start_data.socket_port, start_data.game_spec))
+			  start_data.socket_port, start_data.place_spec))
 		return false;
 
 	if (!createClient(start_data))
@@ -991,7 +991,7 @@ bool Game::init(
 	const std::string &map_dir,
 	const std::string &address,
 	u16 port,
-	const SubgameSpec &gamespec)
+	const PlaceSpec &placespec)
 {
 	texture_src = createTextureSource();
 
@@ -1016,7 +1016,7 @@ bool Game::init(
 	// Create a server if not connecting to an existing one
 	if (address.empty())
 	{
-		if (!createServer(map_dir, gamespec, port))
+		if (!createServer(map_dir, placespec, port))
 			return false;
 	}
 
@@ -1053,7 +1053,7 @@ bool Game::initSound()
 }
 
 bool Game::createServer(const std::string &map_dir,
-						const SubgameSpec &gamespec, u16 port)
+						const PlaceSpec &placespec, u16 port)
 {
 	showOverlayMessage(N_("Creating server..."), 0, 5);
 
@@ -1090,7 +1090,7 @@ bool Game::createServer(const std::string &map_dir,
 		return false;
 	}
 
-	server = new Server(map_dir, gamespec, simple_singleplayer_mode, bind_addr,
+	server = new Server(map_dir, placespec, simple_singleplayer_mode, bind_addr,
 						false, nullptr, &(errordata->message));
 
 	auto start_thread = runInThread([=]

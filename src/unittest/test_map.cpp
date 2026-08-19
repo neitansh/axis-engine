@@ -29,22 +29,22 @@ public:
 	TestMap() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestMap"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testMaxMapgenLimit();
-	void testForEachNodeInArea(IGameDef *gamedef);
-	void testForEachNodeInAreaBlank(IGameDef *gamedef);
-	void testForEachNodeInAreaEmpty(IGameDef *gamedef);
+	void testForEachNodeInArea(IPlaceDef *placedef);
+	void testForEachNodeInAreaBlank(IPlaceDef *placedef);
+	void testForEachNodeInAreaEmpty(IPlaceDef *placedef);
 };
 
 static TestMap g_test_instance;
 
-void TestMap::runTests(IGameDef *gamedef)
+void TestMap::runTests(IPlaceDef *placedef)
 {
 	TEST(testMaxMapgenLimit);
-	TEST(testForEachNodeInArea, gamedef);
-	TEST(testForEachNodeInAreaBlank, gamedef);
-	TEST(testForEachNodeInAreaEmpty, gamedef);
+	TEST(testForEachNodeInArea, placedef);
+	TEST(testForEachNodeInAreaBlank, placedef);
+	TEST(testForEachNodeInAreaEmpty, placedef);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ void TestMap::testMaxMapgenLimit()
 	UASSERT(blockpos_over_max_limit(v3s16(-limit_block-1)) == true);
 }
 
-void TestMap::testForEachNodeInArea(IGameDef *gamedef)
+void TestMap::testForEachNodeInArea(IPlaceDef *placedef)
 {
 	v3s16 minp_visit(-10, -10, -10);
 	v3s16 maxp_visit(20, 20, 10);
@@ -84,7 +84,7 @@ void TestMap::testForEachNodeInArea(IGameDef *gamedef)
 
 	v3s16 minp = minp_visit - v3s16(1, 1, 1);
 	v3s16 maxp = maxp_visit + v3s16(1, 1, 1);
-	DummyMap map(gamedef, getNodeBlockPos(minp), getNodeBlockPos(maxp));
+	DummyMap map(placedef, getNodeBlockPos(minp), getNodeBlockPos(maxp));
 
 	v3s16 p1(0, 10, 5);
 	MapNode n1(t_CONTENT_STONE);
@@ -143,9 +143,9 @@ void TestMap::testForEachNodeInArea(IGameDef *gamedef)
 	UASSERTEQ(content_t, found[p4].getContent(), n4.getContent());
 }
 
-void TestMap::testForEachNodeInAreaBlank(IGameDef *gamedef)
+void TestMap::testForEachNodeInAreaBlank(IPlaceDef *placedef)
 {
-	DummyMap map(gamedef, v3s16(0, 0, 0), v3s16(-1, -1, -1));
+	DummyMap map(placedef, v3s16(0, 0, 0), v3s16(-1, -1, -1));
 
 	v3s16 invalid_p(0, 0, 0);
 	bool visited = false;
@@ -160,9 +160,9 @@ void TestMap::testForEachNodeInAreaBlank(IGameDef *gamedef)
 	UASSERT(visited);
 }
 
-void TestMap::testForEachNodeInAreaEmpty(IGameDef *gamedef)
+void TestMap::testForEachNodeInAreaEmpty(IPlaceDef *placedef)
 {
-	DummyMap map(gamedef, v3s16(), v3s16());
+	DummyMap map(placedef, v3s16(), v3s16());
 	map.forEachNodeInArea(v3s16(0, 0, 0), v3s16(-1, -1, -1), [&](v3s16 p, MapNode n) -> bool {
 		UASSERT(false); // Should be unreachable
 		return true;

@@ -18,7 +18,7 @@ local function delete_content_buttonhandler(this, fields)
 		if this.data.content.path ~= nil and
 				this.data.content.path ~= "" and
 				this.data.content.path ~= core.get_modpath() and
-				this.data.content.path ~= core.get_gamepath() and
+				this.data.content.path ~= core.get_placepath() and
 				this.data.content.path ~= core.get_texturepath() then
 			if not core.delete_dir(this.data.content.path) then
 				gamedata.errormessage = fgettext_ne("pkgmgr: failed to delete \"$1\"", this.data.content.path)

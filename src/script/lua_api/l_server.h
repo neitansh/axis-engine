@@ -40,8 +40,8 @@ private:
 	// the returned list is sorted alphabetically for you
 	static int l_get_modnames(lua_State *L);
 
-	// get_game_info()
-	static int l_get_game_info(lua_State *L);
+	// get_place_info()
+	static int l_get_place_info(lua_State *L);
 
 	// print(text)
 	static int l_print(lua_State *L);

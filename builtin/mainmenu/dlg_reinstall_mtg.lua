@@ -22,7 +22,7 @@ function check_reinstall_mtg(parent)
 		return parent
 	end
 
-	local games = core.get_games()
+	local games = core.get_places()
 	for _, game in ipairs(games) do
 		if game.id == "minetest" then
 			cache_settings:set_bool(SETTING_NAME, true)
@@ -33,7 +33,7 @@ function check_reinstall_mtg(parent)
 	local mtg_world_found = false
 	local worlds = core.get_worlds()
 	for _, world in ipairs(worlds) do
-		if world.gameid == "minetest" then
+		if world.placeid == "minetest" then
 			mtg_world_found = true
 			break
 		end

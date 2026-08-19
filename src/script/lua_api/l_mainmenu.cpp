@@ -15,7 +15,7 @@
 #include "porting.h"
 #include "filesys.h"
 #include "content/content.h"
-#include "content/subgames.h"
+#include "content/places.h"
 #include "mapgen/mapgen.h"
 #include "settings.h"
 #include "clientdynamicinfo.h"
@@ -311,8 +311,8 @@ int ModApiMainMenu::l_get_worlds(lua_State *L)
 		lua_pushstring(L, world.name.c_str());
 		lua_settable(L, top_lvl2);
 
-		lua_pushstring(L,"gameid");
-		lua_pushstring(L, world.gameid.c_str());
+		lua_pushstring(L,"placeid");
+		lua_pushstring(L, world.placeid.c_str());
 		lua_settable(L, top_lvl2);
 
 		lua_settable(L, top);
@@ -322,15 +322,15 @@ int ModApiMainMenu::l_get_worlds(lua_State *L)
 }
 
 /******************************************************************************/
-int ModApiMainMenu::l_get_games(lua_State *L)
+int ModApiMainMenu::l_get_places(lua_State *L)
 {
-	std::vector<SubgameSpec> games = getAvailableGames();
+	std::vector<PlaceSpec> games = getAvailablePlaces();
 
 	lua_newtable(L);
 	int top = lua_gettop(L);
 	unsigned int index = 1;
 
-	for (const SubgameSpec &game : games) {
+	for (const PlaceSpec &game : games) {
 		lua_pushnumber(L, index);
 		lua_newtable(L);
 		int top_lvl2 = lua_gettop(L);
@@ -347,8 +347,8 @@ int ModApiMainMenu::l_get_games(lua_State *L)
 		lua_pushstring(L,  "game");
 		lua_settable(L,    top_lvl2);
 
-		lua_pushstring(L,  "gamemods_path");
-		lua_pushstring(L,  game.gamemods_path.c_str());
+		lua_pushstring(L,  "placemods_path");
+		lua_pushstring(L,  game.placemods_path.c_str());
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "name");
@@ -515,8 +515,8 @@ int ModApiMainMenu::l_check_mod_configuration(lua_State *L)
 	ModConfiguration modmgr;
 
 	// Add all game mods
-	SubgameSpec gamespec = findWorldSubgame(worldpath);
-	modmgr.addGameMods(gamespec);
+	PlaceSpec placespec = findWorldPlace(worldpath);
+	modmgr.addGameMods(placespec);
 	modmgr.addModsInPath(worldpath + DIR_DELIM + "worldmods", "worldmods");
 
 	// Add user-configured mods
@@ -637,7 +637,7 @@ int ModApiMainMenu::l_show_touchscreen_layout(lua_State *L)
 int ModApiMainMenu::l_create_world(lua_State *L)
 {
 	const char *name   = luaL_checkstring(L, 1);
-	const char *gameid = luaL_checkstring(L, 2);
+	const char *placeid = luaL_checkstring(L, 2);
 
 	StringMap use_settings;
 	luaL_checktype(L, 3, LUA_TTABLE);
@@ -653,9 +653,9 @@ int ModApiMainMenu::l_create_world(lua_State *L)
 			"worlds" + DIR_DELIM
 			+ sanitizeDirName(name, "world_");
 
-	std::vector<SubgameSpec> games = getAvailableGames();
-	auto game_it = std::find_if(games.begin(), games.end(), [gameid] (const SubgameSpec &spec) {
-		return spec.id == gameid;
+	std::vector<PlaceSpec> games = getAvailablePlaces();
+	auto game_it = std::find_if(games.begin(), games.end(), [placeid] (const PlaceSpec &spec) {
+		return spec.id == placeid;
 	});
 	if (game_it == games.end()) {
 		lua_pushstring(L, "Game ID not found");
@@ -673,7 +673,7 @@ int ModApiMainMenu::l_create_world(lua_State *L)
 
 	// Create world if it doesn't exist
 	try {
-		loadGameConfAndInitWorld(path, name, *game_it, true);
+		loadPlaceConfAndInitWorld(path, name, *game_it, true);
 		lua_pushnil(L);
 	} catch (const BaseException &e) {
 		auto err = std::string("Failed to initialize world: ") + e.what();
@@ -789,10 +789,10 @@ int ModApiMainMenu::l_get_clientmodpath(lua_State *L)
 }
 
 /******************************************************************************/
-int ModApiMainMenu::l_get_gamepath(lua_State *L)
+int ModApiMainMenu::l_get_placepath(lua_State *L)
 {
 	std::string gamepath = fs::RemoveRelativePathComponents(
-		porting::path_user + DIR_DELIM + "games" + DIR_DELIM);
+		porting::path_user + DIR_DELIM + "places" + DIR_DELIM);
 	lua_pushstring(L, gamepath.c_str());
 	return 1;
 }
@@ -1157,7 +1157,7 @@ void ModApiMainMenu::Initialize(lua_State *L, int top)
 	API_FCT(get_textlist_index);
 	API_FCT(get_table_index);
 	API_FCT(get_worlds);
-	API_FCT(get_games);
+	API_FCT(get_places);
 	API_FCT(get_content_info);
 	API_FCT(get_mod_list);
 	API_FCT(check_mod_configuration);
@@ -1174,7 +1174,7 @@ void ModApiMainMenu::Initialize(lua_State *L, int top)
 	API_FCT(get_modpath);
 	API_FCT(get_modpaths);
 	API_FCT(get_clientmodpath);
-	API_FCT(get_gamepath);
+	API_FCT(get_placepath);
 	API_FCT(get_texturepath);
 	API_FCT(get_texturepath_share);
 	API_FCT(get_cache_path);
@@ -1458,13 +1458,13 @@ int ModApiMainMenu::l_probe_link(lua_State *L)
 void ModApiMainMenu::InitializeAsync(lua_State *L, int top)
 {
 	API_FCT(get_worlds);
-	API_FCT(get_games);
+	API_FCT(get_places);
 	API_FCT(get_mapgen_names);
 	API_FCT(get_user_path);
 	API_FCT(get_modpath);
 	API_FCT(get_modpaths);
 	API_FCT(get_clientmodpath);
-	API_FCT(get_gamepath);
+	API_FCT(get_placepath);
 	API_FCT(get_texturepath);
 	API_FCT(get_texturepath_share);
 	API_FCT(get_cache_path);

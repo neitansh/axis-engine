@@ -811,13 +811,13 @@ bool ScriptApiSecurity::checkPath(lua_State *L, const char *path,
 		return !write_required || real_write_allowed; \
 	} while (0)
 
-bool ScriptApiSecurity::checkPathWithGamedef(lua_State *L,
+bool ScriptApiSecurity::checkPathWithPlacedef(lua_State *L,
 	const std::string &abs_path, const bool write_required, bool *write_allowed)
 {
 	std::string str;  // Transient
 
-	auto *gamedef = ModApiBase::getGameDef(L);
-	if (!gamedef)
+	auto *placedef = ModApiBase::getPlaceDef(L);
+	if (!placedef)
 		return false;
 
 	assert(!abs_path.empty());
@@ -838,9 +838,9 @@ bool ScriptApiSecurity::checkPathWithGamedef(lua_State *L,
 
 	// Allow read-only access to game directory
 	if (!write_required) {
-		const SubgameSpec *game_spec = gamedef->getGameSpec();
-		if (game_spec && !game_spec->path.empty()) {
-			str = fs::AbsolutePath(game_spec->path);
+		const PlaceSpec *place_spec = placedef->getGameSpec();
+		if (place_spec && !place_spec->path.empty()) {
+			str = fs::AbsolutePath(place_spec->path);
 			if (!str.empty() && fs::PathStartsWith(abs_path, str))
 				return true;
 		}
@@ -848,7 +848,7 @@ bool ScriptApiSecurity::checkPathWithGamedef(lua_State *L,
 
 	// Allow read-only access to all mod directories
 	if (!write_required) {
-		const std::vector<ModSpec> &mods = gamedef->getMods();
+		const std::vector<ModSpec> &mods = placedef->getMods();
 		for (const ModSpec &mod : mods) {
 			str = fs::AbsolutePath(mod.path);
 			if (!str.empty() && fs::PathStartsWith(abs_path, str))
@@ -864,12 +864,12 @@ bool ScriptApiSecurity::checkPathWithGamedef(lua_State *L,
 		str_ends_with(abs_path, DIR_DELIM ".git");
 
 	// Allow read/write access to global mod data path
-	str = fs::AbsolutePath(gamedef->getModDataPath());
+	str = fs::AbsolutePath(placedef->getModDataPath());
 	if (!str.empty() && fs::PathStartsWith(abs_path, str)) {
 		RETURN_WRITE_ALLOWED(!is_git_path);
 	}
 
-	str = fs::AbsolutePath(gamedef->getWorldPath());
+	str = fs::AbsolutePath(placedef->getWorldPath());
 	if (!str.empty()) {
 		// Don't allow writing to world mods or the world-specific game.
 		// These have to be blocked so you can't override a trusted mod

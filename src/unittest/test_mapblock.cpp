@@ -4,7 +4,7 @@
 #include "test.h"
 
 #include <sstream>
-#include "gamedef.h"
+#include "placedef.h"
 #include "nodedef.h"
 #include "mapblock.h"
 #include "serialization.h"
@@ -19,45 +19,45 @@ public:
 	TestMapBlock() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestMapBlock"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
-	void testSaveLoad(IGameDef *gamedef, u8 ver);
-	inline void testSaveLoadLowest(IGameDef *gamedef) {
-		testSaveLoad(gamedef, SER_FMT_VER_LOWEST_WRITE);
+	void testSaveLoad(IPlaceDef *placedef, u8 ver);
+	inline void testSaveLoadLowest(IPlaceDef *placedef) {
+		testSaveLoad(placedef, SER_FMT_VER_LOWEST_WRITE);
 	}
 
-	void testSave29(IGameDef *gamedef);
+	void testSave29(IPlaceDef *placedef);
 
-	void testLoad29(IGameDef *gamedef);
+	void testLoad29(IPlaceDef *placedef);
 
 	// Tests loading a MapBlock from Minetest-c55 0.3
-	void testLoad20(IGameDef *gamedef);
+	void testLoad20(IPlaceDef *placedef);
 
 	// Tests loading a non-standard MapBlock
-	void testLoadNonStd(IGameDef *gamedef);
+	void testLoadNonStd(IPlaceDef *placedef);
 
 	// Tests blocks with a single recurring node
-	void testMonoblock(IGameDef *gamedef);
+	void testMonoblock(IPlaceDef *placedef);
 };
 
 static TestMapBlock g_test_instance;
 
-void TestMapBlock::runTests(IGameDef *gamedef)
+void TestMapBlock::runTests(IPlaceDef *placedef)
 {
-	TEST(testSaveLoad, gamedef, SER_FMT_VER_HIGHEST_WRITE);
-	TEST(testSaveLoadLowest, gamedef);
-	TEST(testSave29, gamedef);
-	TEST(testLoad29, gamedef);
-	TEST(testLoad20, gamedef);
-	TEST(testLoadNonStd, gamedef);
-	TEST(testMonoblock, gamedef);
+	TEST(testSaveLoad, placedef, SER_FMT_VER_HIGHEST_WRITE);
+	TEST(testSaveLoadLowest, placedef);
+	TEST(testSave29, placedef);
+	TEST(testLoad29, placedef);
+	TEST(testLoad20, placedef);
+	TEST(testLoadNonStd, placedef);
+	TEST(testMonoblock, placedef);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void TestMapBlock::testMonoblock(IGameDef *gamedef)
+void TestMapBlock::testMonoblock(IPlaceDef *placedef)
 {
-	MapBlock block({}, gamedef);
+	MapBlock block({}, placedef);
 	UASSERT(!block.m_is_mono_block);
 
 	// make the array is expanded
@@ -154,12 +154,12 @@ void TestMapBlock::testMonoblock(IGameDef *gamedef)
 	UASSERT(block.m_is_mono_block);
 }
 
-void TestMapBlock::testSaveLoad(IGameDef *gamedef, const u8 version)
+void TestMapBlock::testSaveLoad(IPlaceDef *placedef, const u8 version)
 {
 	// Use the bottom node ids for this test
 	content_t max = 0;
 	{
-		auto *ndef = gamedef->getNodeDefManager();
+		auto *ndef = placedef->getNodeDefManager();
 		const auto &unknown_name = ndef->get(CONTENT_UNKNOWN).name;
 		while (ndef->get(max).name != unknown_name)
 			max++;
@@ -170,7 +170,7 @@ void TestMapBlock::testSaveLoad(IGameDef *gamedef, const u8 version)
 	constexpr u64 seed = 0x207366616e3520ULL;
 	std::stringstream ss;
 	{
-		MapBlock block({}, gamedef);
+		MapBlock block({}, placedef);
 		// Fill with data
 		PcgRandom r(seed);
 		for (s16 z=0; z < MAP_BLOCKSIZE; z++)
@@ -186,7 +186,7 @@ void TestMapBlock::testSaveLoad(IGameDef *gamedef, const u8 version)
 	}
 
 	{
-		MapBlock block({}, gamedef);
+		MapBlock block({}, placedef);
 		// Deserialize
 		block.deSerialize(ss, version, true);
 
@@ -205,14 +205,14 @@ void TestMapBlock::testSaveLoad(IGameDef *gamedef, const u8 version)
 
 #define SS2_CHECK() UASSERT(!ss2.fail())
 
-void TestMapBlock::testSave29(IGameDef *gamedef)
+void TestMapBlock::testSave29(IPlaceDef *placedef)
 {
-	auto *ndef = gamedef->getNodeDefManager();
+	auto *ndef = placedef->getNodeDefManager();
 	std::stringstream ss;
 
 	{
 		// Prepare test block
-		MapBlock block({}, gamedef);
+		MapBlock block({}, placedef);
 		for (s16 z=0; z < MAP_BLOCKSIZE; z++)
 		for (s16 y=0; y < MAP_BLOCKSIZE; y++)
 		for (s16 x=0; x < MAP_BLOCKSIZE; x++) {
@@ -299,21 +299,21 @@ static const u8 coded_mapblock29[] = {
 	26,106
 };
 
-void TestMapBlock::testLoad29(IGameDef *gamedef)
+void TestMapBlock::testLoad29(IPlaceDef *placedef)
 {
 	UASSERT(MAP_BLOCKSIZE == 16);
 	const std::string_view buf(reinterpret_cast<const char*>(coded_mapblock29), sizeof(coded_mapblock29));
 
-	// this node is not part of the test gamedef, so we also test handling of
+	// this node is not part of the test placedef, so we also test handling of
 	// unknown nodes here.
-	auto *ndef = gamedef->getNodeDefManager();
+	auto *ndef = placedef->getNodeDefManager();
 	UASSERT(ndef->getId("default:chest") == CONTENT_IGNORE);
 
 	std::istringstream iss;
 	iss.str(std::string(buf));
 	u8 version = readU8(iss);
 	UASSERTEQ(int, version, 29);
-	MapBlock block({}, gamedef);
+	MapBlock block({}, placedef);
 	block.deSerialize(iss, version, true);
 
 	auto content_chest = ndef->getId("default:chest");
@@ -375,24 +375,24 @@ static const u8 coded_mapblock20[] = {
 	48,21,152,36,186,30,100,1,46,3,5,3,5,0,187,133,49,88,0,0,0,0,0,0,210,62,6
 };
 
-void TestMapBlock::testLoad20(IGameDef *gamedef)
+void TestMapBlock::testLoad20(IPlaceDef *placedef)
 {
 	UASSERT(MAP_BLOCKSIZE == 16);
 	const std::string_view buf(reinterpret_cast<const char*>(coded_mapblock20), sizeof(coded_mapblock20));
 
 	// Conversion of minerals does not work if these nodes are not already
 	// defined at load time. (Is this a bug? Does anyone even care?)
-	gamedef->allocateUnknownNodeId("default:stone_with_coal");
-	gamedef->allocateUnknownNodeId("default:stone_with_iron");
+	placedef->allocateUnknownNodeId("default:stone_with_coal");
+	placedef->allocateUnknownNodeId("default:stone_with_iron");
 
 	std::istringstream iss;
 	iss.str(std::string(buf));
 	u8 version = readU8(iss);
 	UASSERTEQ(int, version, 20);
-	MapBlock block({}, gamedef);
+	MapBlock block({}, placedef);
 	block.deSerialize(iss, version, true);
 
-	auto *ndef = gamedef->getNodeDefManager();
+	auto *ndef = placedef->getNodeDefManager();
 	auto get_node = [&] (s16 x, s16 y, s16 z) -> std::string_view {
 		MapNode n = block.getNodeNoEx({x, y, z});
 		return ndef->get(n).name;
@@ -433,7 +433,7 @@ static const u8 coded_mapblock_nonstd[] = {
 	101,115,116,58,116,119,111,10,0,0
 };
 
-void TestMapBlock::testLoadNonStd(IGameDef *gamedef)
+void TestMapBlock::testLoadNonStd(IPlaceDef *placedef)
 {
 	/*
 	 * Node IDs were originally 8-bit, then some special format that allowed exactly
@@ -456,10 +456,10 @@ void TestMapBlock::testLoadNonStd(IGameDef *gamedef)
 	iss.str(std::string(buf));
 	u8 version = readU8(iss);
 	UASSERT(version > 24);
-	MapBlock block({}, gamedef);
+	MapBlock block({}, placedef);
 	block.deSerialize(iss, version, true);
 
-	auto *ndef = gamedef->getNodeDefManager();
+	auto *ndef = placedef->getNodeDefManager();
 	UASSERTEQ(int, block.getNodeNoEx({0, 0, 0}).getContent(), ndef->getId("test:one"));
 	UASSERTEQ(int, block.getNodeNoEx({0, 1, 0}).getContent(), ndef->getId("test:two"));
 

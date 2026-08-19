@@ -5,7 +5,7 @@
 #pragma once
 
 #include "clientenvironment.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "gameparams.h" // ELoginRegister
 #include "inventorymanager.h"
 #include "irrlichttypes.h"
@@ -123,7 +123,7 @@ private:
 	std::map<u16, u32> m_packets;
 };
 
-class Client : public con::PeerHandler, public InventoryManager, public IGameDef
+class Client : public con::PeerHandler, public InventoryManager, public IPlaceDef
 {
 public:
 	/// One chat command this player may use, as the server described it
@@ -547,7 +547,7 @@ public:
 	Camera* getCamera () { return m_camera; }
 	scene::ISceneManager *getSceneManager();
 
-	// IGameDef interface
+	// IPlaceDef interface
 	bool isClient() override { return true; }
 	IItemDefManager* getItemDefManager() override;
 	const NodeDefManager* getNodeDefManager() override;

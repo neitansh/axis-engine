@@ -4,7 +4,7 @@
 
 #include "test.h"
 
-#include "gamedef.h"
+#include "placedef.h"
 #include "nodedef.h"
 #include "content_mapnode.h"
 
@@ -14,16 +14,16 @@ public:
 	TestMapNode() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestMapNode"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testNodeProperties(const NodeDefManager *nodedef);
 };
 
 static TestMapNode g_test_instance;
 
-void TestMapNode::runTests(IGameDef *gamedef)
+void TestMapNode::runTests(IPlaceDef *placedef)
 {
-	TEST(testNodeProperties, gamedef->getNodeDefManager());
+	TEST(testNodeProperties, placedef->getNodeDefManager());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

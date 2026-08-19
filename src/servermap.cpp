@@ -14,7 +14,7 @@
 #include "settings.h"
 #include "log.h"
 #include "profiler.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "util/directiontables.h"
 #include "util/serialize.h"
 #include "rollback_interface.h"
@@ -54,9 +54,9 @@ void MapDatabaseAccessor::loadBlock(v3s16 blockpos, std::string &ret)
 	ServerMap
 */
 
-ServerMap::ServerMap(const std::string &savedir, IGameDef *gamedef,
+ServerMap::ServerMap(const std::string &savedir, IPlaceDef *placedef,
 		EmergeManager *emerge, MetricsBackend *mb):
-	Map(gamedef),
+	Map(placedef),
 	settings_mgr(savedir + DIR_DELIM + "map_meta.txt"),
 	m_emerge(emerge)
 {
@@ -371,7 +371,7 @@ MapSector *ServerMap::createSector(v2s16 p2d)
 	/*
 		Generate blank sector
 	*/
-	sector = new MapSector(this, p2d, m_gamedef);
+	sector = new MapSector(this, p2d, m_placedef);
 
 	/*
 		Insert to container
@@ -1182,21 +1182,21 @@ void ServerMap::transformLiquidsLocal(std::map<v3s16, MapBlock*> &modified_block
 
 		// Find out whether there is a suspect for this action
 		std::string suspect;
-		if (m_gamedef->rollback())
-			suspect = m_gamedef->rollback()->getSuspect(p0, 83, 1);
+		if (m_placedef->rollback())
+			suspect = m_placedef->rollback()->getSuspect(p0, 83, 1);
 
-		if (m_gamedef->rollback() && !suspect.empty()) {
+		if (m_placedef->rollback() && !suspect.empty()) {
 			// Blame suspect
-			RollbackScopeActor rollback_scope(m_gamedef->rollback(), suspect, true);
+			RollbackScopeActor rollback_scope(m_placedef->rollback(), suspect, true);
 			// Get old node for rollback
-			RollbackNode rollback_oldnode(this, p0, m_gamedef);
+			RollbackNode rollback_oldnode(this, p0, m_placedef);
 			// Set node
 			setNode(p0, n0);
 			// Report
-			RollbackNode rollback_newnode(this, p0, m_gamedef);
+			RollbackNode rollback_newnode(this, p0, m_placedef);
 			RollbackAction action;
 			action.setSetNode(p0, rollback_oldnode, rollback_newnode);
-			m_gamedef->rollback()->reportAction(action);
+			m_placedef->rollback()->reportAction(action);
 		} else {
 			// Set node
 			setNode(p0, n0);

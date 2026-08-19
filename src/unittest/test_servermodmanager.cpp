@@ -5,7 +5,7 @@
 #include "test.h"
 #include <algorithm>
 #include <fstream>
-#include "content/subgames.h"
+#include "content/places.h"
 #include "filesys.h"
 #include "server/mods.h"
 #include "settings.h"
@@ -13,7 +13,7 @@
 // The game and the mods this module runs against are built in the temporary
 // directory, so the test states what it expects instead of depending on the
 // content of some game that happens to be installed.
-#define SUBGAME_ID "testgame"
+#define PLACE_ID "testgame"
 
 class TestServerModManager : public TestBase
 {
@@ -21,12 +21,12 @@ public:
 	TestServerModManager() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestServerModManager"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	std::string m_worlddir;
 
 	static ServerModManager makeManager(const std::string &worldpath) {
-		return ServerModManager(worldpath, findWorldSubgame(worldpath));
+		return ServerModManager(worldpath, findWorldPlace(worldpath));
 	}
 
 	void testCreation();
@@ -72,12 +72,12 @@ void TestServerModManager::makeMod(const std::string &path,
 	writeFile(path + DIR_DELIM "textures" DIR_DELIM "test.png", "");
 }
 
-void TestServerModManager::runTests(IGameDef *gamedef)
+void TestServerModManager::runTests(IPlaceDef *placedef)
 {
 	// A game of four mods: one forced first, one forced last, and a pair
 	// where the second overrides media of the first.
 	const auto games = getTestTempDirectory().append(DIR_DELIM "test_games");
-	const auto game = games + (DIR_DELIM SUBGAME_ID);
+	const auto game = games + (DIR_DELIM PLACE_ID);
 	const auto gamemods = game + (DIR_DELIM "mods" DIR_DELIM);
 
 	fs::CreateAllDirs(game);
@@ -91,7 +91,7 @@ void TestServerModManager::runTests(IGameDef *gamedef)
 	makeMod(gamemods + "dependent_mod", "dependent_mod", "base_mod");
 	makeMod(gamemods + "last_mod", "last_mod");
 
-	setenv("LUANTI_GAME_PATH", games.c_str(), 1);
+	setenv("AXIS_PLACE_PATH", games.c_str(), 1);
 
 	// A mod outside of the game, as a player would install it
 	const auto test_mods = getTestTempDirectory().append(DIR_DELIM "test_mods");
@@ -122,14 +122,14 @@ void TestServerModManager::runTests(IGameDef *gamedef)
 
 	g_settings->setBool("enable_all_mods", enable_all_mods);
 	unsetenv("LUANTI_MOD_PATH");
-	unsetenv("LUANTI_GAME_PATH");
+	unsetenv("AXIS_PLACE_PATH");
 }
 
 void TestServerModManager::testCreation()
 {
 	std::string path = m_worlddir + DIR_DELIM + "world.mt";
 	Settings world_config;
-	world_config.set("gameid", SUBGAME_ID);
+	world_config.set("placeid", PLACE_ID);
 	world_config.set("load_mod_test_mod", "true");
 	UASSERTEQ(bool, world_config.updateConfigFile(path.c_str()), true);
 
@@ -198,7 +198,7 @@ void TestServerModManager::testLoadsInstalledMods()
 
 	std::string path = m_worlddir + DIR_DELIM + "world.mt";
 	Settings world_config;
-	world_config.set("gameid", SUBGAME_ID);
+	world_config.set("placeid", PLACE_ID);
 	UASSERTEQ(bool, world_config.updateConfigFile(path.c_str()), true);
 
 	{

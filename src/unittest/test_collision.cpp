@@ -14,26 +14,26 @@ public:
 	TestCollision() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestCollision"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testAxisAlignedCollision();
-	void testCollisionMoveSimple(IGameDef *gamedef);
+	void testCollisionMoveSimple(IPlaceDef *placedef);
 };
 
 static TestCollision g_test_instance;
 
-void TestCollision::runTests(IGameDef *gamedef)
+void TestCollision::runTests(IPlaceDef *placedef)
 {
 	TEST(testAxisAlignedCollision);
-	TEST(testCollisionMoveSimple, gamedef);
+	TEST(testCollisionMoveSimple, placedef);
 }
 
 namespace {
 	class TestEnvironment : public Environment {
 		DummyMap map;
 	public:
-		TestEnvironment(IGameDef *gamedef)
-			: Environment(gamedef), map(gamedef, {-1, -1, -1}, {1, 1, 1})
+		TestEnvironment(IPlaceDef *placedef)
+			: Environment(placedef), map(placedef, {-1, -1, -1}, {1, 1, 1})
 		{
 			map.fill({-1, -1, -1}, {1, 1, 1}, MapNode(CONTENT_AIR));
 		}
@@ -204,9 +204,9 @@ void TestCollision::testAxisAlignedCollision()
 
 #define fpos(x,y,z) (BS * v3f(x, y, z))
 
-void TestCollision::testCollisionMoveSimple(IGameDef *gamedef)
+void TestCollision::testCollisionMoveSimple(IPlaceDef *placedef)
 {
-	auto env = std::make_unique<TestEnvironment>(gamedef);
+	auto env = std::make_unique<TestEnvironment>(placedef);
 	g_collision_problems_encountered = false;
 
 	for (s16 x = 0; x < MAP_BLOCKSIZE; x++)
@@ -218,7 +218,7 @@ void TestCollision::testCollisionMoveSimple(IGameDef *gamedef)
 	CollisionMoveResult res;
 
 	const auto collide = [&](f32 dtime) {
-			return collisionMoveSimple(env.get(), gamedef, box, 0.0f, dtime,
+			return collisionMoveSimple(env.get(), placedef, box, 0.0f, dtime,
 				&pos, &speed, accel, NULL, true, StepUpMode::LEGACY);
 	};
 

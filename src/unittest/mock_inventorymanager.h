@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "gamedef.h"
+#include "placedef.h"
 #include "inventory.h"
 #include "server/serverinventorymgr.h"
 
@@ -12,9 +12,9 @@
 class MockInventoryManager : public ServerInventoryManager
 {
 public:
-	MockInventoryManager(IGameDef *gamedef) :
-		p1(gamedef->getItemDefManager()),
-		p2(gamedef->getItemDefManager())
+	MockInventoryManager(IPlaceDef *placedef) :
+		p1(placedef->getItemDefManager()),
+		p2(placedef->getItemDefManager())
 	{};
 
 	Inventory *getInventory(const InventoryLocation &loc) override

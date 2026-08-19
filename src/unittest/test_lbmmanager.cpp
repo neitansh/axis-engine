@@ -14,20 +14,20 @@ public:
 	TestLBMManager() { TestManager::registerTestModule(this); }
 	const char *getName() {	return "TestLBMManager"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
-	void testNew(IGameDef *gamedef);
-	void testExisting(IGameDef *gamedef);
-	void testDiscard(IGameDef *gamedef);
+	void testNew(IPlaceDef *placedef);
+	void testExisting(IPlaceDef *placedef);
+	void testDiscard(IPlaceDef *placedef);
 };
 
 static TestLBMManager g_test_instance;
 
-void TestLBMManager::runTests(IGameDef *gamedef)
+void TestLBMManager::runTests(IPlaceDef *placedef)
 {
-	TEST(testNew, gamedef);
-	TEST(testExisting, gamedef);
-	TEST(testDiscard, gamedef);
+	TEST(testNew, placedef);
+	TEST(testExisting, placedef);
+	TEST(testDiscard, placedef);
 }
 
 namespace {
@@ -40,14 +40,14 @@ namespace {
 	};
 }
 
-void TestLBMManager::testNew(IGameDef *gamedef)
+void TestLBMManager::testNew(IPlaceDef *placedef)
 {
 	LBMManager mgr;
 
 	mgr.addLBMDef(new FakeLBM(":foo:bar", false));
 	mgr.addLBMDef(new FakeLBM("not:this", true));
 
-	mgr.loadIntroductionTimes("", gamedef, 1234);
+	mgr.loadIntroductionTimes("", placedef, 1234);
 
 	auto str = mgr.createIntroductionTimesString();
 	// name of first lbm should have been stripped
@@ -55,25 +55,25 @@ void TestLBMManager::testNew(IGameDef *gamedef)
 	UASSERTEQ(auto, str, "foo:bar~1234;");
 }
 
-void TestLBMManager::testExisting(IGameDef *gamedef)
+void TestLBMManager::testExisting(IPlaceDef *placedef)
 {
 	LBMManager mgr;
 
 	mgr.addLBMDef(new FakeLBM("foo:bar", false));
 
 	// colon should also be stripped when loading (due to old versions)
-	mgr.loadIntroductionTimes(":foo:bar~22;", gamedef, 1234);
+	mgr.loadIntroductionTimes(":foo:bar~22;", placedef, 1234);
 
 	auto str = mgr.createIntroductionTimesString();
 	UASSERTEQ(auto, str, "foo:bar~22;");
 }
 
-void TestLBMManager::testDiscard(IGameDef *gamedef)
+void TestLBMManager::testDiscard(IPlaceDef *placedef)
 {
 	LBMManager mgr;
 
 	// LBMs that no longer exist are dropped
-	mgr.loadIntroductionTimes("some:thing~2;", gamedef, 10);
+	mgr.loadIntroductionTimes("some:thing~2;", placedef, 10);
 
 	auto str = mgr.createIntroductionTimesString();
 	UASSERTEQ(auto, str, "");

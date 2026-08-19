@@ -18,7 +18,7 @@ public:
 	TestFileSys() {	TestManager::registerTestModule(this); }
 	const char *getName() {	return "TestFileSys"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testIsDirDelimiter();
 	void testPathStartsWith();
@@ -36,7 +36,7 @@ public:
 
 static TestFileSys g_test_instance;
 
-void TestFileSys::runTests(IGameDef *gamedef)
+void TestFileSys::runTests(IPlaceDef *placedef)
 {
 	TEST(testIsDirDelimiter);
 	TEST(testPathStartsWith);

@@ -17,7 +17,7 @@ public:
 	TestUtilities() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestUtilities"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testAngleWrapAround();
 	void testWrapDegrees_0_360_v3f();
@@ -55,7 +55,7 @@ public:
 
 static TestUtilities g_test_instance;
 
-void TestUtilities::runTests(IGameDef *gamedef)
+void TestUtilities::runTests(IPlaceDef *placedef)
 {
 	TEST(testAngleWrapAround);
 	TEST(testWrapDegrees_0_360_v3f);

@@ -11,7 +11,7 @@
 #include <vector>
 
 
-struct SubgameSpec
+struct PlaceSpec
 {
 	std::string id;
 	std::string title;
@@ -20,7 +20,7 @@ struct SubgameSpec
 	std::string first_mod; // "" <=> no mod
 	std::string last_mod; // "" <=> no mod
 	std::string path;
-	std::string gamemods_path;
+	std::string placemods_path;
 
 	/**
 	 * Map from virtual path to mods path
@@ -28,18 +28,18 @@ struct SubgameSpec
 	std::unordered_map<std::string, std::string> addon_mods_paths;
 
 	/**
-	 * All worlds are marked with a specific gameid. To allow inheriting worlds
-	 * by a game with different gameid after deprecation or renaming, this set
-	 * contains the gameid values that used to refer to the game and may be used
-	 * to automatically find the best matching gameid.
+	 * All worlds are marked with a specific placeid. To allow inheriting worlds
+	 * by a game with different placeid after deprecation or renaming, this set
+	 * contains the placeid values that used to refer to the game and may be used
+	 * to automatically find the best matching placeid.
 	 */
 	std::unordered_set<std::string> aliases;
 
 	// For logging purposes
 	std::vector<const char *> deprecation_msgs;
 
-	SubgameSpec(const std::string &id = "", const std::string &path = "",
-			const std::string &gamemods_path = "",
+	PlaceSpec(const std::string &id = "", const std::string &path = "",
+			const std::string &placemods_path = "",
 			const std::unordered_map<std::string, std::string> &addon_mods_paths = {},
 			const std::string &title = "",
 			const std::string &author = "", int release = 0,
@@ -51,7 +51,7 @@ struct SubgameSpec
 			first_mod(first_mod),
 			last_mod(last_mod),
 			path(path),
-			gamemods_path(gamemods_path),
+			placemods_path(placemods_path),
 			addon_mods_paths(addon_mods_paths),
 			aliases(aliases)
 	{
@@ -61,41 +61,41 @@ struct SubgameSpec
 	void checkAndLog() const;
 };
 
-SubgameSpec findSubgame(const std::string &id);
-SubgameSpec findWorldSubgame(const std::string &world_path);
+PlaceSpec findPlace(const std::string &id);
+PlaceSpec findWorldPlace(const std::string &world_path);
 
-std::set<std::string> getAvailableGameIds();
-std::vector<SubgameSpec> getAvailableGames();
+std::set<std::string> getAvailablePlaceIds();
+std::vector<PlaceSpec> getAvailablePlaces();
 // Get the list of paths to mods in the environment variable LUANTI_MOD_PATH
 std::vector<std::string> getEnvModPaths();
 
 bool getWorldExists(const std::string &world_path);
 //! Try to get the displayed name of a world
 std::string getWorldName(const std::string &world_path, const std::string &default_name);
-std::string getWorldGameId(const std::string &world_path, bool can_be_legacy = false);
+std::string getWorldPlaceId(const std::string &world_path, bool can_be_legacy = false);
 
 struct WorldSpec
 {
 	std::string path;
 	std::string name;
-	std::string gameid;
+	std::string placeid;
 
 	WorldSpec(const std::string &path = "", const std::string &name = "",
-			const std::string &gameid = "") :
+			const std::string &placeid = "") :
 			path(path),
-			name(name), gameid(gameid)
+			name(name), placeid(placeid)
 	{
 	}
 
 	bool isValid() const
 	{
-		return (!name.empty() && !path.empty() && !gameid.empty());
+		return (!name.empty() && !path.empty() && !placeid.empty());
 	}
 };
 
 std::vector<WorldSpec> getAvailableWorlds();
 
-// loads the subgame's config and creates world directory
+// loads the place's config and creates world directory
 // and world.mt if they don't exist
-void loadGameConfAndInitWorld(const std::string &path, const std::string &name,
-		const SubgameSpec &gamespec, bool create_world);
+void loadPlaceConfAndInitWorld(const std::string &path, const std::string &name,
+		const PlaceSpec &placespec, bool create_world);

@@ -255,7 +255,7 @@ MapSector * ClientMap::emergeSector(v2s16 p2d)
 
 	// Create it if it does not exist yet
 	if (!sector) {
-		sector = new MapSector(this, p2d, m_gamedef);
+		sector = new MapSector(this, p2d, m_placedef);
 		m_sectors[p2d] = sector;
 	}
 

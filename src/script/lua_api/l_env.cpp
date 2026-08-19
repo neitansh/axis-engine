@@ -307,7 +307,7 @@ int ModApiEnv::l_get_node_light(lua_State *L)
 	bool is_position_ok;
 	MapNode n = env->getMap().getNode(pos, &is_position_ok);
 	if (is_position_ok) {
-		const NodeDefManager *ndef = env->getGameDef()->ndef();
+		const NodeDefManager *ndef = env->getPlaceDef()->ndef();
 		lua_pushinteger(L, n.getLightBlend(dnr, ndef->getLightingFlags(n)));
 	} else {
 		lua_pushnil(L);
@@ -357,9 +357,9 @@ int ModApiEnv::l_place_node(lua_State *L)
 	GET_ENV_PTR;
 
 	ScriptApiItem *scriptIfaceItem = getScriptApi<ScriptApiItem>(L);
-	IGameDef *gamedef = getGameDef(L);
-	const NodeDefManager *ndef = gamedef->ndef();
-	IItemDefManager *idef = gamedef->idef();
+	IPlaceDef *placedef = getPlaceDef(L);
+	const NodeDefManager *ndef = placedef->ndef();
+	IItemDefManager *idef = placedef->idef();
 
 	v3s16 pos = read_v3s16(L, 1);
 	MapNode n = readnode(L, 2);
@@ -460,7 +460,7 @@ int ModApiEnv::l_get_node_max_level(lua_State *L)
 
 	v3s16 pos = read_v3s16(L, 1);
 	MapNode n = env->getMap().getNode(pos);
-	lua_pushnumber(L, n.getMaxLevel(env->getGameDef()->ndef()));
+	lua_pushnumber(L, n.getMaxLevel(env->getPlaceDef()->ndef()));
 	return 1;
 }
 
@@ -470,7 +470,7 @@ int ModApiEnv::l_get_node_level(lua_State *L)
 
 	v3s16 pos = read_v3s16(L, 1);
 	MapNode n = env->getMap().getNode(pos);
-	lua_pushnumber(L, n.getLevel(env->getGameDef()->ndef()));
+	lua_pushnumber(L, n.getLevel(env->getPlaceDef()->ndef()));
 	return 1;
 }
 
@@ -483,7 +483,7 @@ int ModApiEnv::l_set_node_level(lua_State *L)
 	if(lua_isnumber(L, 2))
 		level = lua_tonumber(L, 2);
 	MapNode n = env->getMap().getNode(pos);
-	lua_pushnumber(L, n.setLevel(env->getGameDef()->ndef(), level));
+	lua_pushnumber(L, n.setLevel(env->getPlaceDef()->ndef(), level));
 	env->swapNode(pos, n);
 	return 1;
 }
@@ -497,7 +497,7 @@ int ModApiEnv::l_add_node_level(lua_State *L)
 	if(lua_isnumber(L, 2))
 		level = lua_tonumber(L, 2);
 	MapNode n = env->getMap().getNode(pos);
-	lua_pushnumber(L, n.addLevel(env->getGameDef()->ndef(), level));
+	lua_pushnumber(L, n.addLevel(env->getPlaceDef()->ndef(), level));
 	env->swapNode(pos, n);
 	return 1;
 }
@@ -515,7 +515,7 @@ int ModApiEnv::l_get_node_boxes(lua_State *L)
 		n = env->getMap().getNode(pos);
 
 	u8 neighbors = n.getNeighbors(pos, &env->getMap());
-	const NodeDefManager *ndef = env->getGameDef()->ndef();
+	const NodeDefManager *ndef = env->getPlaceDef()->ndef();
 
 	std::vector<aabb3f> boxes;
 	if (box_type == "node_box")
@@ -598,8 +598,8 @@ int ModApiEnv::l_add_item(lua_State *L)
 	// pos
 	//v3f pos = checkFloatPos(L, 1);
 	// item
-	ItemStack item = read_item(L, 2, getGameDef(L)->idef());
-	if(item.empty() || !item.isKnown(getGameDef(L)->idef()))
+	ItemStack item = read_item(L, 2, getPlaceDef(L)->idef());
+	if(item.empty() || !item.isKnown(getPlaceDef(L)->idef()))
 		return 0;
 
 	int error_handler = PUSH_ERROR_HANDLER(L);
@@ -781,7 +781,7 @@ int ModApiEnv::l_find_node_near(lua_State *L)
 {
 	GET_PLAIN_ENV_PTR;
 
-	const NodeDefManager *ndef = env->getGameDef()->ndef();
+	const NodeDefManager *ndef = env->getPlaceDef()->ndef();
 	Map &map = env->getMap();
 
 	v3s16 pos = read_v3s16(L, 1);
@@ -898,7 +898,7 @@ int ModApiEnv::l_find_nodes_in_area(lua_State *L)
 	v3s16 maxp = read_v3s16(L, 2);
 	sortBoxVerticies(minp, maxp);
 
-	const NodeDefManager *ndef = env->getGameDef()->ndef();
+	const NodeDefManager *ndef = env->getPlaceDef()->ndef();
 	Map &map = env->getMap();
 
 #if CHECK_CLIENT_BUILD()
@@ -958,7 +958,7 @@ int ModApiEnv::l_find_nodes_in_area_under_air(lua_State *L)
 	v3s16 maxp = read_v3s16(L, 2);
 	sortBoxVerticies(minp, maxp);
 
-	const NodeDefManager *ndef = env->getGameDef()->ndef();
+	const NodeDefManager *ndef = env->getPlaceDef()->ndef();
 	Map &map = env->getMap();
 
 #if CHECK_CLIENT_BUILD()
@@ -1207,7 +1207,7 @@ int ModApiEnv::l_find_path(lua_State *L)
 			algo = PA_DIJKSTRA;
 	}
 
-	std::vector<v3s16> path = get_path(&env->getServerMap(), env->getGameDef()->ndef(), pos1, pos2,
+	std::vector<v3s16> path = get_path(&env->getServerMap(), env->getPlaceDef()->ndef(), pos1, pos2,
 		searchdistance, max_jump, max_drop, algo);
 
 	if (!path.empty()) {
@@ -1233,7 +1233,7 @@ int ModApiEnv::l_spawn_tree(lua_State *L)
 	v3s16 p0 = read_v3s16(L, 1);
 
 	treegen::TreeDef tree_def;
-	const NodeDefManager *ndef = env->getGameDef()->ndef();
+	const NodeDefManager *ndef = env->getPlaceDef()->ndef();
 
 	if (!read_tree_def(L, 2, ndef, tree_def))
 		return 0;
@@ -1453,7 +1453,7 @@ int ModApiEnvVM::l_get_node_max_level(lua_State *L)
 
 	v3s16 pos = read_v3s16(L, 1);
 	MapNode n = vm->getNodeNoExNoEmerge(pos);
-	lua_pushnumber(L, n.getMaxLevel(getGameDef(L)->ndef()));
+	lua_pushnumber(L, n.getMaxLevel(getPlaceDef(L)->ndef()));
 	return 1;
 }
 
@@ -1463,7 +1463,7 @@ int ModApiEnvVM::l_get_node_level(lua_State *L)
 
 	v3s16 pos = read_v3s16(L, 1);
 	MapNode n = vm->getNodeNoExNoEmerge(pos);
-	lua_pushnumber(L, n.getLevel(getGameDef(L)->ndef()));
+	lua_pushnumber(L, n.getLevel(getPlaceDef(L)->ndef()));
 	return 1;
 }
 
@@ -1476,7 +1476,7 @@ int ModApiEnvVM::l_set_node_level(lua_State *L)
 	if (lua_isnumber(L, 2))
 		level = lua_tonumber(L, 2);
 	MapNode n = vm->getNodeNoExNoEmerge(pos);
-	lua_pushnumber(L, n.setLevel(getGameDef(L)->ndef(), level));
+	lua_pushnumber(L, n.setLevel(getPlaceDef(L)->ndef(), level));
 	vm->setNodeNoEmerge(pos, n);
 	return 1;
 }
@@ -1490,7 +1490,7 @@ int ModApiEnvVM::l_add_node_level(lua_State *L)
 	if (lua_isnumber(L, 2))
 		level = lua_tonumber(L, 2);
 	MapNode n = vm->getNodeNoExNoEmerge(pos);
-	lua_pushnumber(L, n.addLevel(getGameDef(L)->ndef(), level));
+	lua_pushnumber(L, n.addLevel(getPlaceDef(L)->ndef(), level));
 	vm->setNodeNoEmerge(pos, n);
 	return 1;
 }
@@ -1499,7 +1499,7 @@ int ModApiEnvVM::l_find_node_near(lua_State *L)
 {
 	GET_VM_PTR;
 
-	const NodeDefManager *ndef = getGameDef(L)->ndef();
+	const NodeDefManager *ndef = getPlaceDef(L)->ndef();
 
 	v3s16 pos = read_v3s16(L, 1);
 	int radius = luaL_checkinteger(L, 2);
@@ -1517,7 +1517,7 @@ int ModApiEnvVM::l_find_nodes_in_area(lua_State *L)
 {
 	GET_VM_PTR;
 
-	const NodeDefManager *ndef = getGameDef(L)->ndef();
+	const NodeDefManager *ndef = getPlaceDef(L)->ndef();
 
 	v3s16 minp = read_v3s16(L, 1);
 	v3s16 maxp = read_v3s16(L, 2);
@@ -1556,7 +1556,7 @@ int ModApiEnvVM::l_find_nodes_in_area_under_air(lua_State *L)
 {
 	GET_VM_PTR;
 
-	const NodeDefManager *ndef = getGameDef(L)->ndef();
+	const NodeDefManager *ndef = getPlaceDef(L)->ndef();
 
 	v3s16 minp = read_v3s16(L, 1);
 	v3s16 maxp = read_v3s16(L, 2);
@@ -1576,7 +1576,7 @@ int ModApiEnvVM::l_spawn_tree(lua_State *L)
 {
 	GET_VM_PTR;
 
-	const NodeDefManager *ndef = getGameDef(L)->ndef();
+	const NodeDefManager *ndef = getPlaceDef(L)->ndef();
 
 	v3s16 p0 = read_v3s16(L, 1);
 

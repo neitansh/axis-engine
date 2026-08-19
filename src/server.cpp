@@ -306,14 +306,14 @@ static void enrich_exception(BaseException &e, const NetworkPacket &pkt, bool in
 
 Server::Server(
 	const std::string &path_world,
-	const SubgameSpec &gamespec,
+	const PlaceSpec &placespec,
 	bool simple_singleplayer_mode,
 	Address bind_addr,
 	bool dedicated,
 	ChatInterface *iface,
 	std::string *shutdown_errmsg) : m_bind_addr(bind_addr),
 									m_path_world(path_world),
-									m_gamespec(gamespec),
+									m_gamespec(placespec),
 									m_simple_singleplayer_mode(simple_singleplayer_mode),
 									m_dedicated(dedicated),
 									m_con(con::createMTP(CONNECTION_TIMEOUT, m_bind_addr.isIPv6(), this)),
@@ -329,8 +329,8 @@ Server::Server(
 	if (m_path_world.empty())
 		throw ServerError("Supplied empty world path");
 
-	if (!gamespec.isValid())
-		throw ServerError("Supplied invalid gamespec");
+	if (!placespec.isValid())
+		throw ServerError("Supplied invalid placespec");
 
 #if USE_PROMETHEUS
 	if (!simple_singleplayer_mode)
@@ -516,7 +516,7 @@ void Server::init()
 	// Create world if it doesn't exist
 	try
 	{
-		loadGameConfAndInitWorld(m_path_world,
+		loadPlaceConfAndInitWorld(m_path_world,
 								 fs::GetFilenameFromPath(m_path_world.c_str()),
 								 m_gamespec, false);
 	}
@@ -4427,7 +4427,7 @@ bool Server::rollbackRevertActions(const std::list<RollbackAction> &actions,
 	return num_failed <= num_tried / 2;
 }
 
-// IGameDef interface
+// IPlaceDef interface
 // Under envlock
 IItemDefManager *Server::getItemDefManager()
 {

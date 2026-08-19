@@ -11,7 +11,7 @@ public:
 	TestLogging() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestLogging"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testNullChecks();
 	void testBitCheck();
@@ -19,7 +19,7 @@ public:
 
 static TestLogging g_test_instance;
 
-void TestLogging::runTests(IGameDef *gamedef)
+void TestLogging::runTests(IPlaceDef *placedef)
 {
 	TEST(testNullChecks);
 	TEST(testBitCheck);

@@ -48,10 +48,10 @@ local function get_formspec(dialogdata)
 	cells = table.concat(cells, ",")
 
 	local heading
-	if server.gameid then
+	if server.placeid then
 		heading = fgettext("The $1 server uses a game called $2 and the following mods:",
 			"<b>" .. core.hypertext_escape(server.name) .. "</b>",
-			"<style font=mono>" .. core.hypertext_escape(server.gameid) .. "</style>")
+			"<style font=mono>" .. core.hypertext_escape(server.placeid) .. "</style>")
 	else
 		heading = fgettext("The $1 server uses the following mods:",
 				"<b>" .. core.hypertext_escape(server.name) .. "</b>")

@@ -45,7 +45,7 @@ public:
 	/*
 		savedir: directory to which map data should be saved
 	*/
-	ServerMap(const std::string &savedir, IGameDef *gamedef, EmergeManager *emerge, MetricsBackend *mb);
+	ServerMap(const std::string &savedir, IPlaceDef *placedef, EmergeManager *emerge, MetricsBackend *mb);
 	~ServerMap();
 
 	/*

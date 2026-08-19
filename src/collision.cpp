@@ -8,7 +8,7 @@
 #include "mapblock.h"
 #include "map.h"
 #include "nodedef.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "util/numeric.h"
 #if CHECK_CLIENT_BUILD()
 #include "client/clientenvironment.h"
@@ -217,10 +217,10 @@ bool wouldCollideWithCeiling(
 	return false;
 }
 
-static bool add_area_node_boxes(const v3s16 min, const v3s16 max, IGameDef *gamedef,
+static bool add_area_node_boxes(const v3s16 min, const v3s16 max, IPlaceDef *placedef,
 		Environment *env, std::vector<NearbyCollisionInfo> &cinfo)
 {
-	const auto *nodedef = gamedef->getNodeDefManager();
+	const auto *nodedef = placedef->getNodeDefManager();
 	bool any_position_valid = false;
 
 	thread_local std::vector<aabb3f> nodeboxes;
@@ -396,7 +396,7 @@ inline void collide_with(const aabb3f &box_mov, const aabb3f &box_stat,
 
 #define PROFILER_NAME(text) (dynamic_cast<ServerEnvironment*>(env) ? ("Server: " text) : ("Client: " text))
 
-CollisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
+CollisionMoveResult collisionMoveSimple(Environment *env, IPlaceDef *placedef,
 		const aabb3f &box_0,
 		f32 stepheight, f32 dtime,
 		v3f *pos_f, v3f *speed_f,
@@ -455,7 +455,7 @@ CollisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
 		v3s16 min = floatToInt(minpos_f + box_0.MinEdge, BS) - v3s16(1, 1, 1);
 		v3s16 max = floatToInt(maxpos_f + box_0.MaxEdge, BS) + v3s16(1, 1, 1);
 
-		bool any_position_valid = add_area_node_boxes(min, max, gamedef, env, cinfo);
+		bool any_position_valid = add_area_node_boxes(min, max, placedef, env, cinfo);
 
 		// Do not move if world has not loaded yet, since custom node boxes
 		// are not available for collision detection.
@@ -644,7 +644,7 @@ CollisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
 	return result;
 }
 
-bool collision_check_intersection(Environment *env, IGameDef *gamedef,
+bool collision_check_intersection(Environment *env, IPlaceDef *placedef,
 		const aabb3f &box_0, const v3f &pos_f, ActiveObject *self,
 		bool collide_with_objects)
 {
@@ -655,7 +655,7 @@ bool collision_check_intersection(Environment *env, IGameDef *gamedef,
 		v3s16 min = floatToInt(pos_f + box_0.MinEdge, BS) - v3s16(1, 1, 1);
 		v3s16 max = floatToInt(pos_f + box_0.MaxEdge, BS) + v3s16(1, 1, 1);
 
-		bool any_position_valid = add_area_node_boxes(min, max, gamedef, env, cinfo);
+		bool any_position_valid = add_area_node_boxes(min, max, placedef, env, cinfo);
 
 		if (!any_position_valid) {
 			return true;

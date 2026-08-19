@@ -126,10 +126,10 @@ protected:
 
 	// Basic initialisation
 	bool init(const std::string &map_dir, const std::string &address,
-			u16 port, const SubgameSpec &gamespec);
+			u16 port, const PlaceSpec &placespec);
 	bool initSound();
 	bool createServer(const std::string &map_dir,
-			const SubgameSpec &gamespec, u16 port);
+			const PlaceSpec &placespec, u16 port);
 	void copyServerClientCache();
 
 	// Client creation

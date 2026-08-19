@@ -90,7 +90,7 @@ public:
 	TestAuthDatabase() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestAuthDatabase"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 	void runTestsForCurrentDB();
 
 	void testRecallFail();
@@ -109,7 +109,7 @@ private:
 
 static TestAuthDatabase g_test_instance;
 
-void TestAuthDatabase::runTests(IGameDef *gamedef)
+void TestAuthDatabase::runTests(IPlaceDef *placedef)
 {
 	// fixed directory, for persistence
 	const std::string test_dir = getTestTempDirectory();

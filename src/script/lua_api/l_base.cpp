@@ -42,9 +42,9 @@ Client *ModApiBase::getClient(lua_State *L)
 }
 #endif
 
-IGameDef *ModApiBase::getGameDef(lua_State *L)
+IPlaceDef *ModApiBase::getPlaceDef(lua_State *L)
 {
-	return getScriptApiBase(L)->getGameDef();
+	return getScriptApiBase(L)->getPlaceDef();
 }
 
 Environment *ModApiBase::getEnv(lua_State *L)
@@ -75,7 +75,7 @@ std::string ModApiBase::getCurrentModPath(lua_State *L)
 	if (current_mod_name.empty())
 		return ".";
 
-	const ModSpec *mod = getGameDef(L)->getModSpec(current_mod_name);
+	const ModSpec *mod = getPlaceDef(L)->getModSpec(current_mod_name);
 	if (!mod)
 		return ".";
 

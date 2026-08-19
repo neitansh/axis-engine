@@ -161,7 +161,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 		// Get nose/mouth position, approximate with eye position
 		v3s16 p = floatToInt(getEyePosition(), BS);
 		MapNode n = m_env->getMap().getNode(p);
-		const ContentFeatures &c = m_env->getGameDef()->ndef()->get(n);
+		const ContentFeatures &c = m_env->getPlaceDef()->ndef()->get(n);
 		// If node generates drown
 		if (c.drowning > 0 && m_hp > 0) {
 			if (m_breath > 0)
@@ -181,7 +181,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 		// Get nose/mouth position, approximate with eye position
 		v3s16 p = floatToInt(getEyePosition(), BS);
 		MapNode n = m_env->getMap().getNode(p);
-		const ContentFeatures &c = m_env->getGameDef()->ndef()->get(n);
+		const ContentFeatures &c = m_env->getPlaceDef()->ndef()->get(n);
 		// If player is alive & not drowning & not in ignore & not immortal, breathe
 		if (m_breath < m_prop.breath_max && c.drowning == 0 &&
 				n.getContent() != CONTENT_IGNORE && m_hp > 0)
@@ -202,7 +202,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 			v3s16 p = floatToInt(getBasePosition() +
 				v3f(0.0f, dam_height * BS, 0.0f), BS);
 			MapNode n = m_env->getMap().getNode(p);
-			const ContentFeatures &c = m_env->getGameDef()->ndef()->get(n);
+			const ContentFeatures &c = m_env->getPlaceDef()->ndef()->get(n);
 			if (c.damage_per_second > damage_per_second) {
 				damage_per_second = c.damage_per_second;
 				nodename = c.name;
@@ -214,7 +214,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 		v3s16 ptop = floatToInt(getBasePosition() +
 			v3f(0.0f, dam_top * BS, 0.0f), BS);
 		MapNode ntop = m_env->getMap().getNode(ptop);
-		const ContentFeatures &c = m_env->getGameDef()->ndef()->get(ntop);
+		const ContentFeatures &c = m_env->getPlaceDef()->ndef()->get(ntop);
 		if (c.damage_per_second > damage_per_second) {
 			damage_per_second = c.damage_per_second;
 			nodename = c.name;

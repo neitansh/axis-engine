@@ -15,13 +15,13 @@ local current_port = core.settings:get("port")
 
 -- Currently chosen game in gamebar for theming and filtering
 function current_game()
-	local gameid = core.settings:get("menu_last_game")
-	local game = gameid and pkgmgr.find_by_gameid(gameid)
+	local placeid = core.settings:get("menu_last_game")
+	local game = placeid and pkgmgr.find_by_placeid(placeid)
 	-- Fall back to first game installed if one exists.
 	if not game and #pkgmgr.games > 0 then
 		game = pkgmgr.games[1]
-		gameid = game.id
-		core.settings:set("menu_last_game", gameid)
+		placeid = game.id
+		core.settings:set("menu_last_game", placeid)
 	end
 
 	return game
@@ -102,7 +102,7 @@ local function get_formspec(tabview, name, tabdata)
 	local game
 
 	if world then
-		game = pkgmgr.find_by_gameid(world.gameid)
+		game = pkgmgr.find_by_placeid(world.placeid)
 	else
 		game = current_game()
 	end
@@ -289,7 +289,7 @@ local function main_button_handler(this, fields, name, tabdata)
 		local world = menudata.worldlist:get_raw_element(gamedata.selected_world)
 		local game_obj
 		if world then
-			game_obj = pkgmgr.find_by_gameid(world.gameid)
+			game_obj = pkgmgr.find_by_placeid(world.placeid)
 			core.settings:set("menu_last_game", game_obj.id)
 		end
 

@@ -13,7 +13,7 @@ public:
 	TestSerialization() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestSerialization"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 	void buildTestStrings();
 
 	void testSerializeString();
@@ -34,7 +34,7 @@ public:
 
 static TestSerialization g_test_instance;
 
-void TestSerialization::runTests(IGameDef *gamedef)
+void TestSerialization::runTests(IPlaceDef *placedef)
 {
 	buildTestStrings();
 

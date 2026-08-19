@@ -28,8 +28,8 @@ const FlagDesc flagdesc_deco[] = {
 ///////////////////////////////////////////////////////////////////////////////
 
 
-DecorationManager::DecorationManager(IGameDef *gamedef) :
-	ObjDefManager(gamedef, OBJDEF_DECORATION)
+DecorationManager::DecorationManager(IPlaceDef *placedef) :
+	ObjDefManager(placedef, OBJDEF_DECORATION)
 {
 }
 

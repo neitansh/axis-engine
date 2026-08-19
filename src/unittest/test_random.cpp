@@ -14,7 +14,7 @@ public:
 	TestRandom() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestRandom"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testPseudoRandom();
 	void testPseudoRandomRange();
@@ -31,7 +31,7 @@ public:
 
 static TestRandom g_test_instance;
 
-void TestRandom::runTests(IGameDef *gamedef)
+void TestRandom::runTests(IPlaceDef *placedef)
 {
 	TEST(testPseudoRandom);
 	TEST(testPseudoRandomRange);

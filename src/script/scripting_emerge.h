@@ -20,7 +20,7 @@ public:
 protected:
 	bool checkPathInternal(const std::string &abs_path, bool write_required,
 		bool *write_allowed) override {
-		return ScriptApiSecurity::checkPathWithGamedef(getStack(),
+		return ScriptApiSecurity::checkPathWithPlacedef(getStack(),
 			abs_path, write_required, write_allowed);
 	};
 

@@ -4,7 +4,7 @@
 
 #include "test.h"
 
-#include "gamedef.h"
+#include "placedef.h"
 #include "voxelalgorithms.h"
 #include "util/numeric.h"
 #include "dummymap.h"
@@ -15,18 +15,18 @@ public:
 	TestVoxelAlgorithms() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestVoxelAlgorithms"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testVoxelLineIterator();
-	void testLighting(IGameDef *gamedef);
+	void testLighting(IPlaceDef *placedef);
 };
 
 static TestVoxelAlgorithms g_test_instance;
 
-void TestVoxelAlgorithms::runTests(IGameDef *gamedef)
+void TestVoxelAlgorithms::runTests(IPlaceDef *placedef)
 {
 	TEST(testVoxelLineIterator);
-	TEST(testLighting, gamedef);
+	TEST(testLighting, placedef);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -86,12 +86,12 @@ void TestVoxelAlgorithms::testVoxelLineIterator()
 	}
 }
 
-void TestVoxelAlgorithms::testLighting(IGameDef *gamedef)
+void TestVoxelAlgorithms::testLighting(IPlaceDef *placedef)
 {
 	v3s16 pmin(-32, -32, -32);
 	v3s16 pmax(31, 31, 31);
 	v3s16 bpmin = getNodeBlockPos(pmin), bpmax = getNodeBlockPos(pmax);
-	DummyMap map(gamedef, bpmin, bpmax);
+	DummyMap map(placedef, bpmin, bpmax);
 
 	// Make a 21x21x21 hollow box centered at the origin.
 	{
@@ -121,7 +121,7 @@ void TestVoxelAlgorithms::testLighting(IGameDef *gamedef)
 		map.addNodeAndUpdate(v3s16(-10, 1, 0), MapNode(t_CONTENT_STONE, 153), modified_blocks);
 	}
 
-	const NodeDefManager *ndef = gamedef->ndef();
+	const NodeDefManager *ndef = placedef->ndef();
 	{
 		MapNode n = map.getNode(v3s16(9, 9, -9));
 		UASSERTEQ(int, n.getLight(LIGHTBANK_NIGHT, ndef->getLightingFlags(n)), 0);

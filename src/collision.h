@@ -8,7 +8,7 @@
 #include <vector>
 #include "object_properties.h"
 
-class IGameDef;
+class IPlaceDef;
 class Environment;
 class ActiveObject;
 
@@ -54,7 +54,7 @@ struct CollisionMoveResult
 extern bool g_collision_problems_encountered;
 
 /// @param self (optional) ActiveObject to ignore in the collision detection.
-CollisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
+CollisionMoveResult collisionMoveSimple(Environment *env, IPlaceDef *placedef,
 		const aabb3f &box_0,
 		f32 stepheight, f32 dtime,
 		v3f *pos_f, v3f *speed_f,
@@ -67,7 +67,7 @@ CollisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
 /// @param self (optional) ActiveObject to ignore in the collision detection.
 /// @returns `true` when `box_0` truly intersects with a node or object.
 ///          Touching faces are not counted as intersection.
-bool collision_check_intersection(Environment *env, IGameDef *gamedef,
+bool collision_check_intersection(Environment *env, IPlaceDef *placedef,
 		const aabb3f &box_0, const v3f &pos_f, ActiveObject *self = nullptr,
 		bool collide_with_objects = true);
 

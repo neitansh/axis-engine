@@ -339,7 +339,7 @@ bool AsyncWorkerThread::checkPathInternal(const std::string &abs_path,
 	auto *L = getStack();
 	// dispatch to the right implementation. this should be refactored some day...
 	if (jobDispatcher->server) {
-		return ScriptApiSecurity::checkPathWithGamedef(L, abs_path, write_required, write_allowed);
+		return ScriptApiSecurity::checkPathWithPlacedef(L, abs_path, write_required, write_allowed);
 	} else {
 #if CHECK_CLIENT_BUILD()
 		return MainMenuScripting::checkPathAccess(abs_path, write_required, write_allowed);

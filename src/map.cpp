@@ -12,7 +12,7 @@
 #include "log.h"
 #include "profiler.h"
 #include "nodedef.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "rollback_interface.h"
 #include "environment.h"
 #include <queue>
@@ -21,9 +21,9 @@
 	Map
 */
 
-Map::Map(IGameDef *gamedef):
-	m_gamedef(gamedef),
-	m_nodedef(gamedef->ndef())
+Map::Map(IPlaceDef *placedef):
+	m_placedef(placedef),
+	m_nodedef(placedef->ndef())
 {
 }
 
@@ -156,7 +156,7 @@ void Map::setNode(v3s16 p, MapNode n)
 	v3s16 blockpos = getNodeBlockPos(p);
 	MapBlock *block = getBlockNoCreate(blockpos);
 	v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
-	set_node_in_block(m_gamedef->ndef(), block, relpos, n);
+	set_node_in_block(m_placedef->ndef(), block, relpos, n);
 }
 
 void Map::addNodeAndUpdate(v3s16 p, MapNode n,
@@ -164,7 +164,7 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 		bool remove_metadata)
 {
 	// Collect old node for rollback
-	RollbackNode rollback_oldnode(this, p, m_gamedef);
+	RollbackNode rollback_oldnode(this, p, m_placedef);
 
 	v3s16 blockpos = getNodeBlockPos(p);
 	MapBlock *block = getBlockNoCreate(blockpos);
@@ -185,14 +185,14 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 		// No light update needed, just copy over the old light.
 		n.setLight(LIGHTBANK_DAY, oldnode.getLightRaw(LIGHTBANK_DAY, oldf), f);
 		n.setLight(LIGHTBANK_NIGHT, oldnode.getLightRaw(LIGHTBANK_NIGHT, oldf), f);
-		set_node_in_block(m_gamedef->ndef(), block, relpos, n);
+		set_node_in_block(m_placedef->ndef(), block, relpos, n);
 
 		modified_blocks[blockpos] = block;
 	} else {
 		// Ignore light (because calling voxalgo::update_lighting_nodes)
 		n.setLight(LIGHTBANK_DAY, 0, f);
 		n.setLight(LIGHTBANK_NIGHT, 0, f);
-		set_node_in_block(m_gamedef->ndef(), block, relpos, n);
+		set_node_in_block(m_placedef->ndef(), block, relpos, n);
 
 		// Update lighting
 		std::vector<std::pair<v3s16, MapNode> > oldnodes;
@@ -205,12 +205,12 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 		block->expireIsAirCache();
 
 	// Report for rollback
-	if(m_gamedef->rollback())
+	if(m_placedef->rollback())
 	{
-		RollbackNode rollback_newnode(this, p, m_gamedef);
+		RollbackNode rollback_newnode(this, p, m_placedef);
 		RollbackAction action;
 		action.setSetNode(p, rollback_oldnode, rollback_newnode);
-		m_gamedef->rollback()->reportAction(action);
+		m_placedef->rollback()->reportAction(action);
 	}
 }
 

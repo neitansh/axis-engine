@@ -95,7 +95,7 @@ static void print_worldspecs(const std::vector<WorldSpec> &worldspecs,
 	std::ostream &os, bool print_name = true, bool print_path = true);
 static void print_modified_quicktune_values();
 
-static void list_game_ids();
+static void list_place_ids();
 static void list_worlds(bool print_name, bool print_path);
 static bool setup_log_params(const Settings &cmd_args);
 static bool create_userdata_path();
@@ -116,9 +116,9 @@ static bool get_world_from_config(GameParams *game_params, const Settings &cmd_a
 static bool auto_select_world(GameParams *game_params);
 static std::string get_clean_world_path(const std::string &path);
 
-static bool game_configure_subgame(GameParams *game_params, const Settings &cmd_args);
+static bool configure_place(GameParams *game_params, const Settings &cmd_args);
 static bool get_game_from_cmdline(GameParams *game_params, const Settings &cmd_args);
-static bool determine_subgame(GameParams *game_params);
+static bool determine_place(GameParams *game_params);
 
 static bool run_dedicated_server(const GameParams &game_params, const Settings &cmd_args);
 static bool migrate_map_database(const GameParams &game_params, const Settings &cmd_args);
@@ -218,8 +218,8 @@ int main(int argc, char *argv[])
 	}
 
 	// List gameids if requested
-	if (cmd_args.exists("gameid") && cmd_args.get("gameid") == "list") {
-		list_game_ids();
+	if (cmd_args.exists("placeid") && cmd_args.get("placeid") == "list") {
+		list_place_ids();
 		return 0;
 	}
 
@@ -431,8 +431,8 @@ static void set_allowed_options(OptionList *allowed_options)
 			_("Try to automatically attach a debugger before starting (convenience option)"))));
 	allowed_options->insert(std::make_pair("logfile", ValueSpec(VALUETYPE_STRING,
 			_("Set log file path ('' = no logging)"))));
-	allowed_options->insert(std::make_pair("gameid", ValueSpec(VALUETYPE_STRING,
-			_("Set gameid (\"--gameid list\" prints available ones)"))));
+	allowed_options->insert(std::make_pair("placeid", ValueSpec(VALUETYPE_STRING,
+			_("Set placeid (\"--placeid list\" prints available ones)"))));
 	allowed_options->insert(std::make_pair("migrate", ValueSpec(VALUETYPE_STRING,
 			_("Migrate from current map backend to another" SERVER_ONLY))));
 	allowed_options->insert(std::make_pair("migrate-players", ValueSpec(VALUETYPE_STRING,
@@ -537,11 +537,11 @@ static void print_version(std::ostream &os)
 	os << g_build_info << std::endl;
 }
 
-static void list_game_ids()
+static void list_place_ids()
 {
-	std::set<std::string> gameids = getAvailableGameIds();
-	for (const std::string &gameid : gameids)
-		rawstream << gameid <<std::endl;
+	std::set<std::string> gameids = getAvailablePlaceIds();
+	for (const std::string &placeid : gameids)
+		rawstream << placeid <<std::endl;
 }
 
 static void list_worlds(bool print_name, bool print_path)
@@ -945,7 +945,7 @@ static bool game_configure(GameParams *game_params, const Settings &cmd_args)
 		return false;
 	}
 
-	return game_configure_subgame(game_params, cmd_args);
+	return configure_place(game_params, cmd_args);
 }
 
 static void game_configure_port(GameParams *game_params, const Settings &cmd_args)
@@ -1094,91 +1094,91 @@ static std::string get_clean_world_path(const std::string &path)
 }
 
 
-static bool game_configure_subgame(GameParams *game_params, const Settings &cmd_args)
+static bool configure_place(GameParams *game_params, const Settings &cmd_args)
 {
 	bool success;
 
 	success = get_game_from_cmdline(game_params, cmd_args);
 	if (!success)
-		success = determine_subgame(game_params);
+		success = determine_place(game_params);
 
 	return success;
 }
 
 static bool get_game_from_cmdline(GameParams *game_params, const Settings &cmd_args)
 {
-	SubgameSpec commanded_gamespec;
+	PlaceSpec commanded_gamespec;
 
-	if (cmd_args.exists("gameid")) {
-		std::string gameid = cmd_args.get("gameid");
-		commanded_gamespec = findSubgame(gameid);
+	if (cmd_args.exists("placeid")) {
+		std::string placeid = cmd_args.get("placeid");
+		commanded_gamespec = findPlace(placeid);
 		if (!commanded_gamespec.isValid()) {
-			errorstream << "Game \"" << gameid << "\" not found" << std::endl;
+			errorstream << "Game \"" << placeid << "\" not found" << std::endl;
 			return false;
 		}
-		infostream << "Using commanded gameid [" << commanded_gamespec.id << "]" << std::endl;
-		game_params->game_spec = commanded_gamespec;
+		infostream << "Using commanded placeid [" << commanded_gamespec.id << "]" << std::endl;
+		game_params->place_spec = commanded_gamespec;
 		return true;
 	}
 
 	return false;
 }
 
-static bool determine_subgame(GameParams *game_params)
+static bool determine_place(GameParams *game_params)
 {
 	if (!game_params->is_dedicated_server) {
 		// ClientLauncher has its own logic to choose a game
 		return true;
 	}
 
-	SubgameSpec gamespec;
+	PlaceSpec placespec;
 	assert(!game_params->world_path.empty());	// Pre-condition
 
 	if (!getWorldExists(game_params->world_path)) {
-		// Try to take gamespec from command line
-		if (game_params->game_spec.isValid()) {
-			gamespec = game_params->game_spec;
+		// Try to take placespec from command line
+		if (game_params->place_spec.isValid()) {
+			placespec = game_params->place_spec;
 		} else {
-			auto games = getAvailableGameIds();
+			auto games = getAvailablePlaceIds();
 			// If there's exactly one obvious choice then do the right thing
 			if (games.size() == 1) {
-				gamespec = findSubgame(*games.begin());
-				infostream << "Automatically selecting gameid [" << gamespec.id << "]" << std::endl;
+				placespec = findPlace(*games.begin());
+				infostream << "Automatically selecting placeid [" << placespec.id << "]" << std::endl;
 			} else {
 				// Else, force the user to choose
 				auto &url = g_settings->get("contentdb_url");
 
-				errorstream << "To run a " PROJECT_NAME_C " server, you need to select a game using the '--gameid' argument." << std::endl;
+				errorstream << "To run a " PROJECT_NAME_C " server, you need to select a game using the '--placeid' argument." << std::endl;
 				if (games.empty())
 					errorstream << "Check out " << url << " for a selection of games to pick from and download." << std::endl;
 				else
-					errorstream << "Use '--gameid list' to print a list of all installed games." << std::endl;
+					errorstream << "Use '--placeid list' to print a list of all installed games." << std::endl;
 				return false;
 			}
 		}
 	} else { // World exists
-		std::string world_gameid = getWorldGameId(game_params->world_path, false);
-		// If commanded to use a gameid, do so
-		if (game_params->game_spec.isValid()) {
-			gamespec = game_params->game_spec;
-			if (game_params->game_spec.id != world_gameid) {
-				warningstream << "Using commanded gameid ["
-				            << gamespec.id << "]" << " instead of world gameid ["
+		std::string world_gameid = getWorldPlaceId(game_params->world_path, false);
+		// If commanded to use a placeid, do so
+		if (game_params->place_spec.isValid()) {
+			placespec = game_params->place_spec;
+			if (game_params->place_spec.id != world_gameid) {
+				warningstream << "Using commanded placeid ["
+				            << placespec.id << "]" << " instead of world placeid ["
 				            << world_gameid << "]" << std::endl;
 			}
 		} else {
-			gamespec = findWorldSubgame(game_params->world_path);
-			infostream << "Using world gameid [" << gamespec.id << "]" << std::endl;
+			placespec = findWorldPlace(game_params->world_path);
+			infostream << "Using world placeid [" << placespec.id << "]" << std::endl;
 		}
 	}
 
-	if (!gamespec.isValid()) {
-		errorstream << "Game [" << gamespec.id << "] could not be found."
+	if (!placespec.isValid()) {
+		errorstream << "Game [" << placespec.id << "] could not be found."
 		            << std::endl;
 		return false;
 	}
 
-	game_params->game_spec = gamespec;
+	game_params->place_spec = placespec;
 	return true;
 }
 
@@ -1190,8 +1190,8 @@ static bool run_dedicated_server(const GameParams &game_params, const Settings &
 {
 	verbosestream << _("Using world path") << " ["
 	              << game_params.world_path << "]" << std::endl;
-	verbosestream << _("Using gameid") << " ["
-	              << game_params.game_spec.id << "]" << std::endl;
+	verbosestream << _("Using placeid") << " ["
+	              << game_params.place_spec.id << "]" << std::endl;
 
 	// Database migration/compression
 	if (cmd_args.exists("migrate"))
@@ -1254,7 +1254,7 @@ static bool run_dedicated_server(const GameParams &game_params, const Settings &
 
 		try {
 			// Create server
-			Server server(game_params.world_path, game_params.game_spec,
+			Server server(game_params.world_path, game_params.place_spec,
 					false, bind_addr, true, &iface);
 
 			g_term_console.setup(&iface, &kill, admin_nick);
@@ -1288,7 +1288,7 @@ static bool run_dedicated_server(const GameParams &game_params, const Settings &
 #endif
 		try {
 			// Create server
-			Server server(game_params.world_path, game_params.game_spec, false,
+			Server server(game_params.world_path, game_params.place_spec, false,
 				bind_addr, true);
 			server.start();
 
@@ -1387,7 +1387,7 @@ static bool recompress_map_database(const GameParams &game_params, const Setting
 		return false;
 	}
 	const std::string &backend = world_mt.get("backend");
-	Server server(game_params.world_path, game_params.game_spec, false, Address(), false);
+	Server server(game_params.world_path, game_params.place_spec, false, Address(), false);
 	MapDatabase *db = ServerMap::createDatabase(backend, game_params.world_path, world_mt);
 
 	u32 count = 0;

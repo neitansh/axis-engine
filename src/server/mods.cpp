@@ -6,7 +6,7 @@
 #include "filesys.h"
 #include "log.h"
 #include "scripting_server.h"
-#include "content/subgames.h"
+#include "content/places.h"
 #include "porting.h"
 
 /**
@@ -15,15 +15,15 @@
  * All new calls to this class must be tested in test_servermodmanager.cpp
  */
 
-ServerModManager::ServerModManager(const std::string &worldpath, SubgameSpec gamespec)
+ServerModManager::ServerModManager(const std::string &worldpath, PlaceSpec placespec)
 {
 	// Add all game mods and all world mods
-	configuration.addGameMods(gamespec);
+	configuration.addGameMods(placespec);
 	configuration.addModsInPath(worldpath + DIR_DELIM + "worldmods", "worldmods");
 
 	// Load normal mods
 	std::string worldmt = worldpath + DIR_DELIM + "world.mt";
-	configuration.addModsFromConfig(worldmt, gamespec.addon_mods_paths);
+	configuration.addModsFromConfig(worldmt, placespec.addon_mods_paths);
 	configuration.checkConflictsAndDeps();
 }
 

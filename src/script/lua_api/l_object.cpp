@@ -374,7 +374,7 @@ int ObjectRef::l_set_wielded_item(lua_State *L)
 	if (sao == nullptr)
 		return 0;
 
-	ItemStack item = read_item(L, 2, getGameDef(L)->idef());
+	ItemStack item = read_item(L, 2, getPlaceDef(L)->idef());
 	bool success = sao->setWieldedItem(item);
 
 	if (success && sao->getType() == ACTIVEOBJECT_TYPE_PLAYER)
@@ -1077,7 +1077,7 @@ int ObjectRef::l_set_properties(lua_State *L)
 		return 0;
 
 	const auto old = *prop;
-	read_object_properties(L, 2, sao, prop, getGameDef(L)->idef());
+	read_object_properties(L, 2, sao, prop, getPlaceDef(L)->idef());
 	if (*prop != old)
 	{
 		prop->validate();

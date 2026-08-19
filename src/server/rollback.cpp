@@ -6,7 +6,7 @@
 #include "exceptions.h"
 #include <list>
 #include "log.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "nodedef.h"
 #include "util/string.h"
 #include "util/numeric.h"
@@ -72,8 +72,8 @@ struct Entity {
 
 
 RollbackManager::RollbackManager(const std::string & world_path,
-		IGameDef * gamedef_) :
-	gamedef(gamedef_)
+		IPlaceDef * placedef_) :
+	placedef(placedef_)
 {
 	verbosestream << "RollbackManager::RollbackManager(" << world_path
 		<< ")" << std::endl;
@@ -670,7 +670,7 @@ float RollbackManager::getSuspectNearness(bool is_guess, v3s16 suspect_p,
 void RollbackManager::reportAction(const RollbackAction &action_)
 {
 	// Ignore if not important
-	if (!action_.isImportant(gamedef)) {
+	if (!action_.isImportant(placedef)) {
 		return;
 	}
 

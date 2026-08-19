@@ -493,7 +493,7 @@ function pkgmgr.get_worldconfig(worldpath)
 	worldconfig.game_mods = {}
 
 	for key,value in pairs(worldfile:to_table()) do
-		if key == "gameid" then
+		if key == "placeid" then
 			worldconfig.id = value
 		elseif key:sub(0, 9) == "load_mod_" then
 			-- Compatibility: Check against "nil" which was erroneously used
@@ -506,7 +506,7 @@ function pkgmgr.get_worldconfig(worldpath)
 	end
 
 	--read gamemods
-	local gamespec = pkgmgr.find_by_gameid(worldconfig.id)
+	local gamespec = pkgmgr.find_by_placeid(worldconfig.id)
 	pkgmgr.get_game_mods(gamespec, worldconfig.game_mods)
 
 	return worldconfig
@@ -523,11 +523,11 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 	local delete_old_dir
 	if expected_type == "game" and targetpath then
 		-- Extract top folder name from path
-		local name = pkgmgr.normalize_game_id(targetpath:match("[^/\\]+[/\\]?$"))
+		local name = pkgmgr.normalize_place_id(targetpath:match("[^/\\]+[/\\]?$"))
 		-- Relevant when updating: prepare to remove the old directory if the names differ
-		if name ~= pkgmgr.normalize_game_id(basename) then
+		if name ~= pkgmgr.normalize_place_id(basename) then
 			delete_old_dir = targetpath
-			targetpath = core.get_gamepath() .. DIR_DELIM .. basename
+			targetpath = core.get_placepath() .. DIR_DELIM .. basename
 		end
 	end
 	local basefolder = pkgmgr.get_base_folder(path)
@@ -570,7 +570,7 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 			end
 			content_path = core.get_modpath()
 		elseif basefolder.type == "game" then
-			content_path = core.get_gamepath()
+			content_path = core.get_placepath()
 		else
 			error("Unknown content type")
 		end
@@ -616,7 +616,7 @@ function pkgmgr.preparemodlist(data)
 
 	-- read game mods
 	local game_mods = {}
-	local gamespec = pkgmgr.find_by_gameid(data.gameid)
+	local gamespec = pkgmgr.find_by_placeid(data.placeid)
 	pkgmgr.get_game_mods(gamespec, game_mods)
 
 	if #game_mods > 0 then
@@ -747,22 +747,22 @@ end
 
 --------------------------------------------------------------------------------
 -- Keep in sync with the filter function of menudata.worldlist (in init_globals())
-function pkgmgr.find_by_gameid(gameid)
-	if not gameid then
+function pkgmgr.find_by_placeid(placeid)
+	if not placeid then
 		return nil, nil
 	end
-	gameid = pkgmgr.normalize_game_id(gameid)
+	placeid = pkgmgr.normalize_place_id(placeid)
 	for i, game in ipairs(pkgmgr.games) do
-		if game.id == gameid then
+		if game.id == placeid then
 			return game, i
 		end
 	end
 	local ret, val
 	for i, game in ipairs(pkgmgr.games) do
-		if game.aliases[gameid] then
+		if game.aliases[placeid] then
 			if ret then
 				core.log("warning",
-					"Found two games using alias " .. gameid .. ": " ..
+					"Found two games using alias " .. placeid .. ": " ..
 					game.id .. " and " .. ret.id
 				)
 			end
@@ -775,15 +775,15 @@ end
 --------------------------------------------------------------------------------
 function pkgmgr.get_game_mods(gamespec, retval)
 	if gamespec ~= nil and
-		gamespec.gamemods_path ~= nil and
-		gamespec.gamemods_path ~= "" then
-		pkgmgr.get_mods(gamespec.gamemods_path, ("games/%s/mods"):format(gamespec.id), retval)
+		gamespec.placemods_path ~= nil and
+		gamespec.placemods_path ~= "" then
+		pkgmgr.get_mods(gamespec.placemods_path, ("games/%s/mods"):format(gamespec.id), retval)
 	end
 end
 
 --------------------------------------------------------------------------------
 function pkgmgr.reload_games()
-	pkgmgr.games = core.get_games()
+	pkgmgr.games = core.get_places()
 	table.sort(pkgmgr.games, function(a, b)
 		return a.title:lower() < b.title:lower()
 	end)
@@ -841,7 +841,7 @@ end
 --------------------------------------------------------------------------------
 -- Returns the ContentDB ID for an installed piece of content.
 function pkgmgr.get_contentdb_id(content)
-	-- core.get_games() will return "" instead of nil if there is no "author" field.
+	-- core.get_places() will return "" instead of nil if there is no "author" field.
 	if content.author and content.author ~= "" and content.release > 0 then
 		if content.type == "game" then
 			return content.author:lower() .. "/" .. content.id
@@ -864,7 +864,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Normalizes ID of a game. Keep in sync with subgames.cpp, `normalizeGameId`.
-function pkgmgr.normalize_game_id(name)
+function pkgmgr.normalize_place_id(name)
 	return name:match("(.*)_game$") or name
 end
 

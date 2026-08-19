@@ -10,7 +10,7 @@
 #include "guiFormSpecMenu.h"
 #include "EGUIElementTypes.h"
 #include "itemdef.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "client/keycode.h"
 #include "gui/guiTable.h"
 #include <IGUIButton.h>

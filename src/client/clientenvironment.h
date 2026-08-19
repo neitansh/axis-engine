@@ -59,7 +59,7 @@ public:
 	Map & getMap();
 	ClientMap & getClientMap();
 
-	Client *getGameDef() { return m_client; }
+	Client *getPlaceDef() { return m_client; }
 	void setScript(ClientScripting *script) { m_script = script; }
 
 	void step(f32 dtime);

@@ -13,7 +13,7 @@ public:
 	TestKeycode() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestKeycode"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	/* TODO: Re-introduce unittests after fully switching to SDL.
 	void testCreateFromString();
@@ -24,7 +24,7 @@ public:
 
 static TestKeycode g_test_instance;
 
-void TestKeycode::runTests(IGameDef *gamedef)
+void TestKeycode::runTests(IPlaceDef *placedef)
 {
 	/*
 	TEST(testCreateFromString);

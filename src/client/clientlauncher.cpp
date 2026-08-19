@@ -49,8 +49,8 @@ static void dump_start_data(const GameStartData &data)
 		"\ndedicated   " << (int)data.is_dedicated_server <<
 		"\nport        " << data.socket_port <<
 		"\nworld_path  " << data.world_spec.path <<
-		"\nworld game  " << data.world_spec.gameid <<
-		"\ngame path   " << data.game_spec.path <<
+		"\nworld game  " << data.world_spec.placeid <<
+		"\ngame path   " << data.place_spec.path <<
 		"\nplayer name " << data.name <<
 		"\naddress     " << data.address << std::endl;
 }
@@ -321,7 +321,7 @@ void ClientLauncher::init_args(GameStartData &start_data, const Settings &cmd_ar
 		auto &spec = start_data.world_spec;
 
 		spec.path = start_data.world_path;
-		spec.gameid = getWorldGameId(spec.path, true);
+		spec.placeid = getWorldPlaceId(spec.path, true);
 		spec.name = _("[--world parameter]");
 	}
 
@@ -553,21 +553,21 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 				   << " [" << worldspec.path << "]" << std::endl;
 
 		// Figure out which game we'll be using
-		// Note that start_data.game_spec contains the gameid from the command line
+		// Note that start_data.place_spec contains the placeid from the command line
 		bool world_exists = getWorldExists(worldspec.path);
 		if (world_exists)
 		{
-			auto world_game = findWorldSubgame(worldspec.path);
+			auto world_game = findWorldPlace(worldspec.path);
 			if (world_game.isValid())
-				start_data.game_spec = world_game;
+				start_data.place_spec = world_game;
 		}
 
-		if (!start_data.game_spec.isValid())
+		if (!start_data.place_spec.isValid())
 		{
 			std::string msg;
 			if (world_exists)
 			{
-				msg = gettext("Could not find or load game: ") + worldspec.gameid;
+				msg = gettext("Could not find or load game: ") + worldspec.placeid;
 			}
 			else
 			{

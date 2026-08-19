@@ -22,8 +22,8 @@ const FlagDesc flagdesc_ore[] = {
 ///////////////////////////////////////////////////////////////////////////////
 
 
-OreManager::OreManager(IGameDef *gamedef) :
-	ObjDefManager(gamedef, OBJDEF_ORE)
+OreManager::OreManager(IPlaceDef *placedef) :
+	ObjDefManager(placedef, OBJDEF_ORE)
 {
 }
 

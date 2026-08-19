@@ -4,7 +4,7 @@
 
 #include "test.h"
 
-#include "gamedef.h"
+#include "placedef.h"
 #include "modchannels.h"
 
 class TestModChannels : public TestBase
@@ -13,49 +13,49 @@ public:
 	TestModChannels() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestModChannels"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
-	void testJoinChannel(IGameDef *gamedef);
-	void testLeaveChannel(IGameDef *gamedef);
-	void testSendMessageToChannel(IGameDef *gamedef);
+	void testJoinChannel(IPlaceDef *placedef);
+	void testLeaveChannel(IPlaceDef *placedef);
+	void testSendMessageToChannel(IPlaceDef *placedef);
 };
 
 static TestModChannels g_test_instance;
 
-void TestModChannels::runTests(IGameDef *gamedef)
+void TestModChannels::runTests(IPlaceDef *placedef)
 {
-	TEST(testJoinChannel, gamedef);
-	TEST(testLeaveChannel, gamedef);
-	TEST(testSendMessageToChannel, gamedef);
+	TEST(testJoinChannel, placedef);
+	TEST(testLeaveChannel, placedef);
+	TEST(testSendMessageToChannel, placedef);
 }
 
-void TestModChannels::testJoinChannel(IGameDef *gamedef)
+void TestModChannels::testJoinChannel(IPlaceDef *placedef)
 {
 	// Test join
-	UASSERT(gamedef->joinModChannel("test_join_channel"));
+	UASSERT(placedef->joinModChannel("test_join_channel"));
 	// Test join (fail, already join)
-	UASSERT(!gamedef->joinModChannel("test_join_channel"));
+	UASSERT(!placedef->joinModChannel("test_join_channel"));
 }
 
-void TestModChannels::testLeaveChannel(IGameDef *gamedef)
+void TestModChannels::testLeaveChannel(IPlaceDef *placedef)
 {
 	// Test leave (not joined)
-	UASSERT(!gamedef->leaveModChannel("test_leave_channel"));
+	UASSERT(!placedef->leaveModChannel("test_leave_channel"));
 
-	UASSERT(gamedef->joinModChannel("test_leave_channel"));
+	UASSERT(placedef->joinModChannel("test_leave_channel"));
 
 	// Test leave (joined)
-	UASSERT(gamedef->leaveModChannel("test_leave_channel"));
+	UASSERT(placedef->leaveModChannel("test_leave_channel"));
 }
 
-void TestModChannels::testSendMessageToChannel(IGameDef *gamedef)
+void TestModChannels::testSendMessageToChannel(IPlaceDef *placedef)
 {
 	// Test sendmsg (not joined)
-	UASSERT(!gamedef->sendModChannelMessage(
+	UASSERT(!placedef->sendModChannelMessage(
 			"test_sendmsg_channel", "testmsgchannel"));
 
-	UASSERT(gamedef->joinModChannel("test_sendmsg_channel"));
+	UASSERT(placedef->joinModChannel("test_sendmsg_channel"));
 
 	// Test sendmsg (joined)
-	UASSERT(gamedef->sendModChannelMessage("test_sendmsg_channel", "testmsgchannel"));
+	UASSERT(placedef->sendModChannelMessage("test_sendmsg_channel", "testmsgchannel"));
 }

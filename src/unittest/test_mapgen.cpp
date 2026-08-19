@@ -16,9 +16,9 @@ public:
 	TestMapgen() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestMapgen"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
-	void testBiomeGen(IGameDef *gamedef);
+	void testBiomeGen(IPlaceDef *placedef);
 	void testMapgenEdges();
 };
 
@@ -36,17 +36,17 @@ namespace {
 	};
 }
 
-void TestMapgen::runTests(IGameDef *gamedef)
+void TestMapgen::runTests(IPlaceDef *placedef)
 {
-	TEST(testBiomeGen, gamedef);
+	TEST(testBiomeGen, placedef);
 	TEST(testMapgenEdges);
 }
 
-void TestMapgen::testBiomeGen(IGameDef *gamedef)
+void TestMapgen::testBiomeGen(IPlaceDef *placedef)
 {
 	MockServer server(getTestTempDirectory());
 	MockBiomeManager bmgr(&server);
-	bmgr.setNodeDefManager(gamedef->getNodeDefManager());
+	bmgr.setNodeDefManager(placedef->getNodeDefManager());
 
 	{
 		// Add some biomes (equivalent to l_register_biome)

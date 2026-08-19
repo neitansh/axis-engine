@@ -7,7 +7,7 @@
 #include "catch.h"
 #include "nodedef.h"
 #include "itemdef.h"
-#include "dummygamedef.h"
+#include "dummyplacedef.h"
 #include "log_internal.h"
 #include "modchannels.h"
 #include "util/numeric.h"
@@ -29,7 +29,7 @@ content_t t_CONTENT_BRICK;
 //// TestGameDef
 ////
 
-class TestGameDef : public DummyGameDef {
+class TestGameDef : public DummyPlaceDef {
 public:
 	TestGameDef();
 	~TestGameDef() = default;
@@ -50,7 +50,7 @@ private:
 
 
 TestGameDef::TestGameDef() :
-	DummyGameDef(),
+	DummyPlaceDef(),
 	m_modchannel_mgr(new ModChannelMgr())
 {
 	defineSomeNodes();
@@ -207,14 +207,14 @@ bool TestGameDef::sendModChannelMessage(const std::string &channel,
 bool run_tests()
 {
 	u64 t1 = porting::getTimeMs();
-	TestGameDef gamedef;
+	TestGameDef placedef;
 
 	u32 num_modules_failed     = 0;
 	u32 num_total_tests_failed = 0;
 	u32 num_total_tests_run    = 0;
 	std::vector<TestBase *> &testmods = TestManager::getTestModules();
 	for (auto *testmod: testmods) {
-		if (!testmod->testModule(&gamedef))
+		if (!testmod->testModule(&placedef))
 			num_modules_failed++;
 
 		num_total_tests_failed += testmod->num_tests_failed;
@@ -265,7 +265,7 @@ static TestBase *findTestModule(const std::string &module_name) {
 
 bool run_tests(const std::string &module_name)
 {
-	TestGameDef gamedef;
+	TestGameDef placedef;
 
 	auto testmod = findTestModule(module_name);
 	if (!testmod) {
@@ -278,7 +278,7 @@ bool run_tests(const std::string &module_name)
 
 	u64 t1 = porting::getTimeMs();
 
-	bool ok = testmod->testModule(&gamedef);
+	bool ok = testmod->testModule(&placedef);
 
 	u64 tdiff = porting::getTimeMs() - t1;
 
@@ -301,13 +301,13 @@ bool run_tests(const std::string &module_name)
 //// TestBase
 ////
 
-bool TestBase::testModule(IGameDef *gamedef)
+bool TestBase::testModule(IPlaceDef *placedef)
 {
 	rawstream << "======== Testing module " << getName() << std::endl;
 	u64 t1 = porting::getTimeMs();
 
 
-	runTests(gamedef);
+	runTests(placedef);
 
 	u64 tdiff = porting::getTimeMs() - t1;
 	rawstream << "======== Module " << getName() << " "

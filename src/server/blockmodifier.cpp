@@ -8,7 +8,7 @@
 #include "servermap.h"
 #include "mapblock.h"
 #include "nodedef.h"
-#include "gamedef.h"
+#include "placedef.h"
 
 /*
 	ABMs
@@ -43,7 +43,7 @@ ABMHandler::ABMHandler(std::vector<ABMWithState> &abms,
 {
 	if (dtime_s < 0.001f)
 		return;
-	const NodeDefManager *ndef = env->getGameDef()->ndef();
+	const NodeDefManager *ndef = env->getPlaceDef()->ndef();
 	for (ABMWithState &abmws : abms) {
 		ActiveBlockModifier *abm = abmws.abm;
 		float trigger_interval = abm->getTriggerInterval();
@@ -271,11 +271,11 @@ LBMContentMapping::~LBMContentMapping()
 		delete it;
 }
 
-void LBMContentMapping::addLBM(LoadingBlockModifierDef *lbm_def, IGameDef *gamedef)
+void LBMContentMapping::addLBM(LoadingBlockModifierDef *lbm_def, IPlaceDef *placedef)
 {
 	// Add the lbm_def to the LBMContentMapping.
 	// Unknown names get added to the global NameIdMapping.
-	const NodeDefManager *nodedef = gamedef->ndef();
+	const NodeDefManager *nodedef = placedef->ndef();
 
 	FATAL_ERROR_IF(CONTAINS(lbm_list, lbm_def), "Same LBM registered twice");
 	lbm_list.push_back(lbm_def);
@@ -285,7 +285,7 @@ void LBMContentMapping::addLBM(LoadingBlockModifierDef *lbm_def, IGameDef *gamed
 	for (const auto &node : lbm_def->trigger_contents) {
 		bool found = nodedef->getIds(node, c_ids);
 		if (!found) {
-			content_t c_id = gamedef->allocateUnknownNodeId(node);
+			content_t c_id = placedef->allocateUnknownNodeId(node);
 			if (c_id == CONTENT_IGNORE) {
 				// Seems it can't be allocated.
 				warningstream << "Could not internalize node name \"" << node
@@ -339,7 +339,7 @@ void LBMManager::addLBMDef(LoadingBlockModifierDef *lbm_def)
 }
 
 void LBMManager::loadIntroductionTimes(const std::string &times,
-	IGameDef *gamedef, u32 now)
+	IPlaceDef *placedef, u32 now)
 {
 	m_query_mode = true;
 
@@ -364,7 +364,7 @@ void LBMManager::loadIntroductionTimes(const std::string &times,
 			continue;
 		}
 
-		m_lbm_lookup[time].addLBM(lbm_def, gamedef);
+		m_lbm_lookup[time].addLBM(lbm_def, placedef);
 
 		// Erase the entry so that we know later
 		// which elements didn't get put into m_lbm_lookup
@@ -380,9 +380,9 @@ void LBMManager::loadIntroductionTimes(const std::string &times,
 	auto &lbms_running_always = m_lbm_lookup[U32_MAX];
 	for (auto &it : m_lbm_defs) {
 		if (it.second->run_at_every_load)
-			lbms_running_always.addLBM(it.second, gamedef);
+			lbms_running_always.addLBM(it.second, placedef);
 		else
-			lbms_we_introduce_now.addLBM(it.second, gamedef);
+			lbms_we_introduce_now.addLBM(it.second, placedef);
 	}
 
 	// All pointer ownership now moved to LBMContentMapping
@@ -512,7 +512,7 @@ void LBMManager::applyLBMs(ServerEnvironment *env, MapBlock *block,
 	for (auto &[c, batch] : to_run) {
 		if (tracestream) {
 			tracestream << "Running " << batch.l.size() << " LBMs for node "
-				<< env->getGameDef()->ndef()->get(c).name << " ("
+				<< env->getPlaceDef()->ndef()->get(c).name << " ("
 				<< batch.p.size() << "x) in block " << block->getPos() << std::endl;
 		}
 		for (auto &lbm_def : batch.l) {

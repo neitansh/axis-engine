@@ -22,7 +22,7 @@ IMetadata* NodeMetaRef::getmeta(bool auto_create)
 
 	NodeMetadata *meta = m_env->getMap().getNodeMetadata(m_p);
 	if (meta == NULL && auto_create) {
-		meta = new NodeMetadata(m_env->getGameDef()->idef());
+		meta = new NodeMetadata(m_env->getPlaceDef()->idef());
 		if (!m_env->getMap().setNodeMetadata(m_p, meta)) {
 			delete meta;
 			return NULL;
@@ -131,13 +131,13 @@ bool NodeMetaRef::handleFromTable(lua_State *L, int table, IMetadata *_meta)
 	Inventory *inv = meta->getInventory();
 	lua_getfield(L, table, "inventory");
 	if (lua_istable(L, -1)) {
-		auto *gamedef = getGameDef(L);
+		auto *placedef = getPlaceDef(L);
 		int inventorytable = lua_gettop(L);
 		lua_pushnil(L);
 		while (lua_next(L, inventorytable) != 0) {
 			// key at index -2 and value at index -1
 			const char *name = luaL_checkstring(L, -2);
-			read_inventory_list(L, -1, inv, name, gamedef);
+			read_inventory_list(L, -1, inv, name, placedef);
 			lua_pop(L, 1); // Remove value, keep key for next iteration
 		}
 		lua_pop(L, 1);

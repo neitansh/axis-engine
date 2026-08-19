@@ -21,7 +21,7 @@ void sendAnnounce(AnnounceAction action,
 		const double uptime,
 		const u32 game_time,
 		const float lag,
-		const std::string &gameid,
+		const std::string &placeid,
 		const std::string &mg_name,
 		const std::vector<ModSpec> &mods,
 		bool dedicated)
@@ -53,8 +53,8 @@ void sendAnnounce(AnnounceAction action,
 			for (const std::string &clients_name : clients_names)
 				server["clients_list"].append(clients_name);
 		}
-		if (!gameid.empty())
-			server["gameid"] = gameid;
+		if (!placeid.empty())
+			server["placeid"] = placeid;
 	}
 
 	if (action == AA_START) {

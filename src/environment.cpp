@@ -10,10 +10,10 @@
 #include "emerge.h"
 
 
-Environment::Environment(IGameDef *gamedef):
+Environment::Environment(IPlaceDef *placedef):
 	m_time_of_day_speed(0.0f),
 	m_day_count(0),
-	m_gamedef(gamedef)
+	m_placedef(placedef)
 {
 	m_time_of_day = g_settings->getU32("world_start_time");
 	m_time_of_day_f = (float)m_time_of_day / 24000.0f;

@@ -21,7 +21,7 @@ public:
 
 	const char *getName() { return "TestSocket"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testIPv4Socket();
 	void testIPv6Socket();
@@ -31,7 +31,7 @@ public:
 
 static TestSocket g_test_instance;
 
-void TestSocket::runTests(IGameDef *gamedef)
+void TestSocket::runTests(IPlaceDef *placedef)
 {
 	TEST(testIPv4Socket);
 

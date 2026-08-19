@@ -9,7 +9,7 @@
 #include "map.h"
 #include "nodedef.h"
 #include "nodemetadata.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "log.h"
 #include "content_mapnode.h"  // For legacy name-id mapping
 #include "content_nodemeta.h" // For legacy deserialization
@@ -98,10 +98,10 @@ static const char *modified_reason_strings[] = {
 	MapBlock
 */
 
-MapBlock::MapBlock(v3s16 pos, IGameDef *gamedef):
+MapBlock::MapBlock(v3s16 pos, IPlaceDef *placedef):
 		m_pos(pos),
 		m_pos_relative(pos * MAP_BLOCKSIZE),
-		m_gamedef(gamedef),
+		m_placedef(placedef),
 		m_is_mono_block(false)
 {
 	// We start with nodecount nodes, because in the vast
@@ -253,7 +253,7 @@ void MapBlock::reallocate(u32 count, MapNode n)
 	assert(count == 1 || count == nodecount);
 	// For now monoblocks are disabled on the client.
 	// The client has known data races on the block's data (FIXME).
-	assert(!m_gamedef->isClient() || count == nodecount);
+	assert(!m_placedef->isClient() || count == nodecount);
 
 	delete[] data;
 	if (data && !m_is_mono_block && count == 1)
@@ -269,7 +269,7 @@ void MapBlock::tryShrinkNodes()
 {
 	// For now monoblocks are disabled on the client.
 	// The client has known data races on the block's data (FIXME).
-	if (m_gamedef->isClient())
+	if (m_placedef->isClient())
 		return;
 
 	if (m_is_mono_block)
@@ -364,9 +364,9 @@ void MapBlock::getBlockNodeIdMapping(NameIdMapping *nimap, MapNode *nodes,
 // Unknown ones are added to nodedef.
 // Will not update itself to match id-name pairs in nodedef.
 void MapBlock::correctBlockNodeIds(const NameIdMapping *nimap, MapNode *nodes,
-		IGameDef *gamedef)
+		IPlaceDef *placedef)
 {
-	const NodeDefManager *nodedef = gamedef->ndef();
+	const NodeDefManager *nodedef = placedef->ndef();
 
 	// Used to cache local to global id lookup.
 	IdIdMapping &mapping_cache = IdIdMapping::giveClearedThreadLocalInstance();
@@ -387,7 +387,7 @@ void MapBlock::correctBlockNodeIds(const NameIdMapping *nimap, MapNode *nodes,
 
 		content_t global_id;
 		if (!nodedef->getId(name, global_id)) {
-			global_id = gamedef->allocateUnknownNodeId(name);
+			global_id = placedef->allocateUnknownNodeId(name);
 			if (global_id == CONTENT_IGNORE) {
 				throw SerializationError("MapBlock::correctBlockNodeIds(): "
 					"Could not allocate global id for node name \"" + name + "\"");
@@ -438,7 +438,7 @@ void MapBlock::serialize(std::ostream &os_compressed, u8 version, bool disk, int
 		const size_t size = m_is_mono_block ? 1 : nodecount;
 		std::unique_ptr<MapNode[]> tmp_nodes(new MapNode[size]);
 		std::copy_n(data, size, tmp_nodes.get());
-		getBlockNodeIdMapping(&nimap, tmp_nodes.get(), size, m_gamedef->ndef());
+		getBlockNodeIdMapping(&nimap, tmp_nodes.get(), size, m_placedef->ndef());
 
 		buf = MapNode::serializeBulk(version, tmp_nodes.get(), nodecount,
 				content_width, params_width, m_is_mono_block);
@@ -589,7 +589,7 @@ void MapBlock::deSerialize(std::istream &in_compressed, u8 version, bool disk)
 	TRACESTREAM(<<"MapBlock::deSerialize "<<getPos()
 			<<": Node metadata"<<std::endl);
 	if (version >= 29) {
-		m_node_metadata.deSerialize(is, m_gamedef->idef());
+		m_node_metadata.deSerialize(is, m_placedef->idef());
 	} else {
 		try {
 			// reuse in_raw
@@ -597,11 +597,11 @@ void MapBlock::deSerialize(std::istream &in_compressed, u8 version, bool disk)
 			in_raw.clear();
 			decompress(is, in_raw, version);
 			if (version >= 23)
-				m_node_metadata.deSerialize(in_raw, m_gamedef->idef());
+				m_node_metadata.deSerialize(in_raw, m_placedef->idef());
 			else
 				content_nodemeta_deserialize_legacy(in_raw,
 					&m_node_metadata, &m_node_timers,
-					m_gamedef->idef());
+					m_placedef->idef());
 		} catch(SerializationError &e) {
 			warningstream<<"MapBlock::deSerialize(): Ignoring an error"
 					<<" while deserializing node metadata at ("
@@ -643,7 +643,7 @@ void MapBlock::deSerialize(std::istream &in_compressed, u8 version, bool disk)
 		}
 
 		// Dynamically re-set ids based on node names
-		correctBlockNodeIds(&nimap, data, m_gamedef);
+		correctBlockNodeIds(&nimap, data, m_placedef);
 
 		if(version >= 25){
 			TRACESTREAM(<<"MapBlock::deSerialize "<<getPos()
@@ -796,7 +796,7 @@ void MapBlock::deSerialize_pre22(std::istream &is, u8 version, bool disk)
 					std::istringstream iss(data, std::ios_base::binary);
 					content_nodemeta_deserialize_legacy(iss,
 						&m_node_metadata, &m_node_timers,
-						m_gamedef->idef());
+						m_placedef->idef());
 				} else {
 					//std::string data = deSerializeString32(is);
 					std::ostringstream oss(std::ios_base::binary);
@@ -804,7 +804,7 @@ void MapBlock::deSerialize_pre22(std::istream &is, u8 version, bool disk)
 					std::istringstream iss(oss.str(), std::ios_base::binary);
 					content_nodemeta_deserialize_legacy(iss,
 						&m_node_metadata, &m_node_timers,
-						m_gamedef->idef());
+						m_placedef->idef());
 				}
 			} catch(SerializationError &e) {
 				warningstream<<"MapBlock::deSerialize(): Ignoring an error"
@@ -859,12 +859,12 @@ void MapBlock::deSerialize_pre22(std::istream &is, u8 version, bool disk)
 			m_is_air = false;
 			m_is_air_expired = true;
 		}
-		correctBlockNodeIds(&nimap, data, m_gamedef);
+		correctBlockNodeIds(&nimap, data, m_placedef);
 	}
 
 	// Legacy data changes
 	// This code has to convert from pre-22 to post-22 format.
-	const NodeDefManager *nodedef = m_gamedef->ndef();
+	const NodeDefManager *nodedef = m_placedef->ndef();
 	for (u32 i = 0; i < nodecount; i++) {
 		const ContentFeatures &f = nodedef->get(data[i].getContent());
 		// Mineral

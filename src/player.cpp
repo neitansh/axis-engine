@@ -7,7 +7,7 @@
 #include <cmath>
 #include "hud_element.h"
 #include "constants.h"
-#include "gamedef.h"
+#include "placedef.h"
 #include "client/inputhandler.h"
 #include <tuple>
 

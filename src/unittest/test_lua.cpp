@@ -31,7 +31,7 @@ public:
 	TestLua() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestLua"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testLuaDestructors();
 	void testCxxExceptions();
@@ -39,7 +39,7 @@ public:
 
 static TestLua g_test_instance;
 
-void TestLua::runTests(IGameDef *gamedef)
+void TestLua::runTests(IPlaceDef *placedef)
 {
 	TEST(testLuaDestructors);
 	TEST(testCxxExceptions);

@@ -6,10 +6,10 @@
 #include "exceptions.h"
 #include "mapblock.h"
 
-MapSector::MapSector(Map *parent, v2s16 pos, IGameDef *gamedef):
+MapSector::MapSector(Map *parent, v2s16 pos, IPlaceDef *placedef):
 		m_parent(parent),
 		m_pos(pos),
-		m_gamedef(gamedef)
+		m_placedef(placedef)
 {
 }
 
@@ -66,7 +66,7 @@ std::unique_ptr<MapBlock> MapSector::createBlankBlockNoInsert(s16 y)
 
 	v3s16 blockpos_map(m_pos.X, y, m_pos.Y);
 
-	return std::make_unique<MapBlock>(blockpos_map, m_gamedef);
+	return std::make_unique<MapBlock>(blockpos_map, m_placedef);
 }
 
 MapBlock *MapSector::createBlankBlock(s16 y)

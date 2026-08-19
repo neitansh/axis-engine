@@ -55,7 +55,7 @@ class Server;
 class Client;
 #endif
 class EmergeThread;
-class IGameDef;
+class IPlaceDef;
 class Environment;
 class GUIEngine;
 class SSCSMEnvironment;
@@ -91,7 +91,7 @@ public:
 
 	ScriptingType getType() { return m_type; }
 
-	IGameDef *getGameDef() { return m_gamedef; }
+	IPlaceDef *getPlaceDef() { return m_placedef; }
 	Server *getServer();
 #if CHECK_CLIENT_BUILD()
 	Client *getClient();
@@ -153,7 +153,7 @@ protected:
 	// Dumps stack contents for debugging
 	void stackDump(std::ostream &o);
 
-	void setGameDef(IGameDef* gamedef) { m_gamedef = gamedef; }
+	void setGameDef(IPlaceDef* placedef) { m_placedef = placedef; }
 
 	Environment* getEnv() { return m_environment; }
 	void setEnv(Environment* env) { m_environment = env; }
@@ -186,7 +186,7 @@ private:
 
 	lua_State        *m_luastack = nullptr;
 
-	IGameDef         *m_gamedef = nullptr;
+	IPlaceDef         *m_placedef = nullptr;
 	Environment      *m_environment = nullptr;
 #if CHECK_CLIENT_BUILD()
 	GUIEngine        *m_guiengine = nullptr;

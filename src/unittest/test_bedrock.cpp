@@ -237,7 +237,7 @@ public:
 	TestBedrock() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestBedrock"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testEngineConventions();
 	void testRestPose();
@@ -252,7 +252,7 @@ public:
 
 static TestBedrock g_test_instance;
 
-void TestBedrock::runTests(IGameDef *gamedef)
+void TestBedrock::runTests(IPlaceDef *placedef)
 {
 	TEST(testEngineConventions);
 	TEST(testRestPose);

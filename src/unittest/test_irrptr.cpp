@@ -14,7 +14,7 @@ public:
 	TestIrrPtr() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestIrrPtr"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
 	void testRefCounting();
 	void testSelfAssignment();
@@ -23,7 +23,7 @@ public:
 
 static TestIrrPtr g_test_instance;
 
-void TestIrrPtr::runTests(IGameDef *gamedef)
+void TestIrrPtr::runTests(IPlaceDef *placedef)
 {
 	TEST(testRefCounting);
 	TEST(testSelfAssignment);

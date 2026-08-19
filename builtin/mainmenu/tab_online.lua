@@ -201,8 +201,8 @@ local function get_formspec(tabview, name, tabdata)
 		local mods = selected_server.mods
 		if mods and #mods > 0 then
 			local tooltip = ""
-			if selected_server.gameid then
-				tooltip = fgettext("Game: $1", selected_server.gameid) .. "\n"
+			if selected_server.placeid then
+				tooltip = fgettext("Game: $1", selected_server.placeid) .. "\n"
 			end
 			tooltip = tooltip .. fgettext("Number of mods: $1", #mods)
 
@@ -378,7 +378,7 @@ local function uncapitalize_server(server)
 	return {
 		name = (server.name or ""):lower(),
 		description = (server.description or ""):lower(),
-		gameid = (server.gameid or ""):lower(),
+		placeid = (server.placeid or ""):lower(),
 		mods = table_lower(server.mods),
 		clients_list = table_lower(server.clients_list),
 	}
@@ -405,7 +405,7 @@ local function matches_query(server, query)
 	end
 
 	-- Check if game matches
-	if query.game and query.game ~= server.gameid then
+	if query.game and query.game ~= server.placeid then
 		return false
 	end
 

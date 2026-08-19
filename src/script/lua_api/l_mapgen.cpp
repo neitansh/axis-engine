@@ -1134,7 +1134,7 @@ int ModApiMapgen::l_register_biome(lua_State *L)
 	int index = 1;
 	luaL_checktype(L, index, LUA_TTABLE);
 
-	const NodeDefManager *ndef = getGameDef(L)->getNodeDefManager();
+	const NodeDefManager *ndef = getPlaceDef(L)->getNodeDefManager();
 	BiomeManager *bmgr = getServer(L)->getEmergeManager()->getWritableBiomeManager();
 
 	Biome *biome = read_biome_def(L, index, ndef);
@@ -1160,7 +1160,7 @@ int ModApiMapgen::l_register_decoration(lua_State *L)
 	int index = 1;
 	luaL_checktype(L, index, LUA_TTABLE);
 
-	const NodeDefManager *ndef      = getGameDef(L)->getNodeDefManager();
+	const NodeDefManager *ndef      = getPlaceDef(L)->getNodeDefManager();
 	EmergeManager *emerge = getServer(L)->getEmergeManager();
 	DecorationManager *decomgr = emerge->getWritableDecorationManager();
 	BiomeManager *biomemgr     = emerge->getWritableBiomeManager();
@@ -1335,7 +1335,7 @@ int ModApiMapgen::l_register_ore(lua_State *L)
 	int index = 1;
 	luaL_checktype(L, index, LUA_TTABLE);
 
-	const NodeDefManager *ndef = getGameDef(L)->getNodeDefManager();
+	const NodeDefManager *ndef = getPlaceDef(L)->getNodeDefManager();
 	EmergeManager *emerge = getServer(L)->getEmergeManager();
 	BiomeManager *bmgr    = emerge->getWritableBiomeManager();
 	OreManager *oremgr    = emerge->getWritableOreManager();
@@ -1673,7 +1673,7 @@ int ModApiMapgen::l_create_schematic(lua_State *L)
 {
 	GET_ENV_PTR;
 
-	const NodeDefManager *ndef = getGameDef(L)->getNodeDefManager();
+	const NodeDefManager *ndef = getPlaceDef(L)->getNodeDefManager();
 
 	const char *filename = luaL_checkstring(L, 4);
 	CHECK_SECURE_PATH(L, filename, true);
@@ -1832,7 +1832,7 @@ int ModApiMapgen::l_spawn_tree_on_vmanip(lua_State *L)
 	MMVManip *vm = checkObject<LuaVoxelManip>(L, 1)->vm;
 	v3s16 p0 = read_v3s16(L, 2);
 	treegen::TreeDef tree_def;
-	const NodeDefManager *ndef = getGameDef(L)->ndef();
+	const NodeDefManager *ndef = getPlaceDef(L)->ndef();
 	if (!read_tree_def(L, 3, ndef, tree_def))
 		return 0;
 
@@ -1902,7 +1902,7 @@ int ModApiMapgen::l_read_schematic(lua_State *L)
 	NO_MAP_LOCK_REQUIRED;
 
 	const SchematicManager *schemmgr = getEmergeManager(L)->getSchematicManager();
-	const NodeDefManager *ndef = getGameDef(L)->ndef();
+	const NodeDefManager *ndef = getPlaceDef(L)->ndef();
 
 	//// Read options
 	std::string write_yslice = getstringfield_default(L, 2, "write_yslice_prob", "all");
@@ -1988,7 +1988,7 @@ int ModApiMapgen::update_liquids(lua_State *L, MMVManip *vm)
 	}
 	assert(trans_liquid);
 
-	const NodeDefManager *ndef = getGameDef(L)->ndef();
+	const NodeDefManager *ndef = getPlaceDef(L)->ndef();
 
 	Mapgen mg;
 	mg.vm   = vm;
@@ -2001,7 +2001,7 @@ int ModApiMapgen::update_liquids(lua_State *L, MMVManip *vm)
 int ModApiMapgen::calc_lighting(lua_State *L, MMVManip *vm,
 		v3s16 pmin, v3s16 pmax, bool propagate_shadow)
 {
-	const NodeDefManager *ndef = getGameDef(L)->ndef();
+	const NodeDefManager *ndef = getPlaceDef(L)->ndef();
 	auto emerge = getEmergeManager(L);
 
 	assert(vm->m_area.contains(VoxelArea(pmin, pmax)));

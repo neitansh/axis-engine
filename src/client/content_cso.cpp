@@ -22,7 +22,7 @@ public:
 		infostream<<"SmokePuffCSO: constructing"<<std::endl;
 		m_spritenode = smgr->addBillboardSceneNode(
 				NULL, v2f(1,1), pos, -1);
-		video::ITexture *tex = env->getGameDef()->tsrc()->getTextureForMesh("smoke_puff.png");
+		video::ITexture *tex = env->getPlaceDef()->tsrc()->getTextureForMesh("smoke_puff.png");
 		m_spritenode->forEachMaterial([tex] (auto &mat) {
 			mat.TextureLayers[0].Texture = tex;
 			mat.TextureLayers[0].MinFilter = video::ETMINF_NEAREST_MIPMAP_NEAREST;
@@ -38,7 +38,7 @@ public:
 		bool pos_ok;
 		MapNode n = env->getMap().getNode(floatToInt(pos, BS), &pos_ok);
 		light = pos_ok ? decode_light(n.getLightBlend(env->getDayNightRatio(),
-							env->getGameDef()->ndef()->getLightingFlags(n)))
+							env->getPlaceDef()->ndef()->getLightingFlags(n)))
 						: 64;
 		video::SColor color(255,light,light,light);
 		m_spritenode->setColor(color);

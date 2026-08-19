@@ -14,7 +14,7 @@ class ICraftDefManager;
 class IRollbackManager;
 class ModChannel;
 class ModStorageDatabase;
-struct SubgameSpec;
+struct PlaceSpec;
 struct ModSpec;
 struct ModIPCStore;
 
@@ -22,7 +22,7 @@ struct ModIPCStore;
 	An interface for fetching game-global definitions like tool and
 	mapnode properties
 */
-class IGameDef
+class IPlaceDef
 {
 public:
 	// These are thread-safe IF they are not edited while running threads.
@@ -42,7 +42,7 @@ public:
 	virtual ModIPCStore *getModIPCStore() { return nullptr; }
 
 	// Shorthands
-	// TODO: these should be made const-safe so that a const IGameDef* is
+	// TODO: these should be made const-safe so that a const IPlaceDef* is
 	//       actually usable
 	IItemDefManager  *idef()     { return getItemDefManager(); }
 	const NodeDefManager  *ndef() { return getNodeDefManager(); }
@@ -51,7 +51,7 @@ public:
 
 	virtual const std::vector<ModSpec> &getMods() const = 0;
 	virtual const ModSpec* getModSpec(const std::string &modname) const = 0;
-	virtual const SubgameSpec* getGameSpec() const { return nullptr; }
+	virtual const PlaceSpec* getGameSpec() const { return nullptr; }
 	virtual std::string getWorldPath() const { return ""; }
 	virtual std::string getModDataPath() const { return ""; }
 	virtual ModStorageDatabase *getModStorageDatabase() = 0;

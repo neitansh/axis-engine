@@ -82,14 +82,14 @@ local function init_globals()
 			return element.name == uid
 		end,
 		-- Filter function
-		function(element, gameid)
-			-- Keep in sync with the logic in pkgmgr.find_by_gameid
-			local el_gameid = pkgmgr.normalize_game_id(element.gameid)
-			if el_gameid == gameid then
+		function(element, placeid)
+			-- Keep in sync with the logic in pkgmgr.find_by_placeid
+			local el_placeid = pkgmgr.normalize_place_id(element.placeid)
+			if el_placeid == placeid then
 				return true
 			end
-			local game = pkgmgr.find_by_gameid(el_gameid)
-			if (not game or game.id ~= el_gameid) and pkgmgr.find_by_gameid(gameid).aliases[el_gameid] then
+			local game = pkgmgr.find_by_placeid(el_placeid)
+			if (not game or game.id ~= el_placeid) and pkgmgr.find_by_placeid(placeid).aliases[el_placeid] then
 				return true
 			end
 			return false

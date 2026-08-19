@@ -54,7 +54,7 @@ private:
 
 	//packages
 
-	static int l_get_games(lua_State *L);
+	static int l_get_places(lua_State *L);
 
 	static int l_get_content_info(lua_State *L);
 
@@ -106,7 +106,7 @@ private:
 
 	static int l_get_clientmodpath(lua_State *L);
 
-	static int l_get_gamepath(lua_State *L);
+	static int l_get_placepath(lua_State *L);
 
 	static int l_get_texturepath(lua_State *L);
 

@@ -19,7 +19,7 @@
 class IItemDefManager;
 class ITextureSource;
 class IShaderSource;
-class IGameDef;
+class IPlaceDef;
 class NodeResolver;
 #if BUILD_UNITTESTS
 class TestSchematic;

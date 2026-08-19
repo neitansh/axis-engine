@@ -16,18 +16,18 @@ public:
 	TestMoveAction() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestMoveAction"; }
 
-	void runTests(IGameDef *gamedef);
+	void runTests(IPlaceDef *placedef);
 
-	void testMove(ServerActiveObject *obj, IGameDef *gamedef);
-	void testMoveFillStack(ServerActiveObject *obj, IGameDef *gamedef);
-	void testMoveSomewhere(ServerActiveObject *obj, IGameDef *gamedef);
-	void testMoveSomewherePartial(ServerActiveObject *obj, IGameDef *gamedef);
-	void testMoveUnallowed(ServerActiveObject *obj, IGameDef *gamedef);
-	void testMovePartial(ServerActiveObject *obj, IGameDef *gamedef);
+	void testMove(ServerActiveObject *obj, IPlaceDef *placedef);
+	void testMoveFillStack(ServerActiveObject *obj, IPlaceDef *placedef);
+	void testMoveSomewhere(ServerActiveObject *obj, IPlaceDef *placedef);
+	void testMoveSomewherePartial(ServerActiveObject *obj, IPlaceDef *placedef);
+	void testMoveUnallowed(ServerActiveObject *obj, IPlaceDef *placedef);
+	void testMovePartial(ServerActiveObject *obj, IPlaceDef *placedef);
 
-	void testSwap(ServerActiveObject *obj, IGameDef *gamedef);
-	void testSwapFromUnallowed(ServerActiveObject *obj, IGameDef *gamedef);
-	void testSwapToUnallowed(ServerActiveObject *obj, IGameDef *gamedef);
+	void testSwap(ServerActiveObject *obj, IPlaceDef *placedef);
+	void testSwapFromUnallowed(ServerActiveObject *obj, IPlaceDef *placedef);
+	void testSwapToUnallowed(ServerActiveObject *obj, IPlaceDef *placedef);
 
 	void testCallbacks(ServerActiveObject *obj, Server *server);
 	void testCallbacksSwap(ServerActiveObject *obj, Server *server);
@@ -39,7 +39,7 @@ public:
 
 static TestMoveAction g_test_instance;
 
-void TestMoveAction::runTests(IGameDef *gamedef)
+void TestMoveAction::runTests(IPlaceDef *placedef)
 {
 	MockServer server(getTestTempDirectory());
 
@@ -62,16 +62,16 @@ void TestMoveAction::runTests(IGameDef *gamedef)
 	obj.setId(1);
 	server.getScriptIface()->addObjectReference(&obj);
 
-	TEST(testMove, &obj, gamedef);
-	TEST(testMoveFillStack, &obj, gamedef);
-	TEST(testMoveSomewhere, &obj, gamedef);
-	TEST(testMoveSomewherePartial, &obj, gamedef);
-	TEST(testMoveUnallowed, &obj, gamedef);
-	TEST(testMovePartial, &obj, gamedef);
+	TEST(testMove, &obj, placedef);
+	TEST(testMoveFillStack, &obj, placedef);
+	TEST(testMoveSomewhere, &obj, placedef);
+	TEST(testMoveSomewherePartial, &obj, placedef);
+	TEST(testMoveUnallowed, &obj, placedef);
+	TEST(testMovePartial, &obj, placedef);
 
-	TEST(testSwap, &obj, gamedef);
-	TEST(testSwapFromUnallowed, &obj, gamedef);
-	TEST(testSwapToUnallowed, &obj, gamedef);
+	TEST(testSwap, &obj, placedef);
+	TEST(testSwapFromUnallowed, &obj, placedef);
+	TEST(testSwapToUnallowed, &obj, placedef);
 
 	TEST(testCallbacks, &obj, &server);
 	TEST(testCallbacksSwap, &obj, &server);
@@ -90,57 +90,57 @@ static ItemStack parse_itemstack(const char *s)
 	return item;
 }
 
-static void apply_action(const char *s, InventoryManager *inv, ServerActiveObject *obj, IGameDef *gamedef)
+static void apply_action(const char *s, InventoryManager *inv, ServerActiveObject *obj, IPlaceDef *placedef)
 {
 	std::istringstream str(s);
 	InventoryAction *action = InventoryAction::deSerialize(str);
-	action->apply(inv, obj, gamedef);
+	action->apply(inv, obj, placedef);
 	delete action;
 }
 
-void TestMoveAction::testMove(ServerActiveObject *obj, IGameDef *gamedef)
+void TestMoveAction::testMove(ServerActiveObject *obj, IPlaceDef *placedef)
 {
-	MockInventoryManager inv(gamedef);
+	MockInventoryManager inv(placedef);
 
 	inv.p1.addList("main", 10)->addItem(0, parse_itemstack("default:stone 50"));
 	inv.p2.addList("main", 10);
 
-	apply_action("Move 20 player:p1 main 0 player:p2 main 0", &inv, obj, gamedef);
+	apply_action("Move 20 player:p1 main 0 player:p2 main 0", &inv, obj, placedef);
 
 	UASSERT(inv.p1.getList("main")->getItem(0).getItemString() == "default:stone 30");
 	UASSERT(inv.p2.getList("main")->getItem(0).getItemString() == "default:stone 20");
 }
 
-void TestMoveAction::testMoveFillStack(ServerActiveObject *obj, IGameDef *gamedef)
+void TestMoveAction::testMoveFillStack(ServerActiveObject *obj, IPlaceDef *placedef)
 {
-	MockInventoryManager inv(gamedef);
+	MockInventoryManager inv(placedef);
 
 	auto list = inv.p1.addList("main", 10);
 	list->changeItem(0, parse_itemstack("default:stone 209"));
 	list->changeItem(1, parse_itemstack("default:stone 90")); // 9 free slots
 
-	apply_action("Move 209 player:p1 main 0 player:p1 main 1", &inv, obj, gamedef);
+	apply_action("Move 209 player:p1 main 0 player:p1 main 1", &inv, obj, placedef);
 
 	UASSERT(list->getItem(0).getItemString() == "default:stone 200");
 	UASSERT(list->getItem(1).getItemString() == "default:stone 99");
 
 	// Trigger stack swap
-	apply_action("Move 200 player:p1 main 0 player:p1 main 1", &inv, obj, gamedef);
+	apply_action("Move 200 player:p1 main 0 player:p1 main 1", &inv, obj, placedef);
 
 	UASSERT(list->getItem(0).getItemString() == "default:stone 99");
 	UASSERT(list->getItem(1).getItemString() == "default:stone 200");
 }
 
-void TestMoveAction::testMoveSomewhere(ServerActiveObject *obj, IGameDef *gamedef)
+void TestMoveAction::testMoveSomewhere(ServerActiveObject *obj, IPlaceDef *placedef)
 {
-	MockInventoryManager inv(gamedef);
+	MockInventoryManager inv(placedef);
 
 	inv.p1.addList("main", 10)->addItem(0, parse_itemstack("default:stone 50"));
 	InventoryList *list = inv.p2.addList("main", 10);
 	list->addItem(0, parse_itemstack("default:brick 10"));
 	list->addItem(2, parse_itemstack("default:stone 85"));
 
-	apply_action("MoveSomewhere 50 player:p1 main 0 player:p2 main", &inv, obj, gamedef);
+	apply_action("MoveSomewhere 50 player:p1 main 0 player:p2 main", &inv, obj, placedef);
 
 	UASSERT(inv.p2.getList("main")->getItem(0).getItemString() == "default:brick 10");
 	UASSERT(inv.p2.getList("main")->getItem(1).getItemString() == "default:stone 36");
@@ -148,10 +148,10 @@ void TestMoveAction::testMoveSomewhere(ServerActiveObject *obj, IGameDef *gamede
 	UASSERT(inv.p2.getList("main")->getItem(2).getItemString() == "default:stone 99");
 }
 
-void TestMoveAction::testMoveSomewherePartial(ServerActiveObject *obj, IGameDef *gamedef)
+void TestMoveAction::testMoveSomewherePartial(ServerActiveObject *obj, IPlaceDef *placedef)
 {
 	// "Fail" because the destination list is full.
-	MockInventoryManager inv(gamedef);
+	MockInventoryManager inv(placedef);
 
 	InventoryList *src = inv.p1.addList("main", 3);
 	src->addItem(0, parse_itemstack("default:brick 10"));
@@ -161,75 +161,75 @@ void TestMoveAction::testMoveSomewherePartial(ServerActiveObject *obj, IGameDef 
 	dst->addItem(0, parse_itemstack("default:stone 98"));
 
 	// No free slots to fit
-	apply_action("MoveSomewhere 10 player:p1 main 0 player:p2 main", &inv, obj, gamedef);
+	apply_action("MoveSomewhere 10 player:p1 main 0 player:p2 main", &inv, obj, placedef);
 	UASSERT(inv.p1.getList("main")->getItem(0).getItemString() == "default:brick 10");
 
 	// Only 1 item fits
-	apply_action("MoveSomewhere 111 player:p1 main 1 player:p2 main", &inv, obj, gamedef);
+	apply_action("MoveSomewhere 111 player:p1 main 1 player:p2 main", &inv, obj, placedef);
 	UASSERT(inv.p1.getList("main")->getItem(1).getItemString() == "default:stone 110");
 }
 
-void TestMoveAction::testMoveUnallowed(ServerActiveObject *obj, IGameDef *gamedef)
+void TestMoveAction::testMoveUnallowed(ServerActiveObject *obj, IPlaceDef *placedef)
 {
-	MockInventoryManager inv(gamedef);
+	MockInventoryManager inv(placedef);
 
 	inv.p1.addList("main", 10)->addItem(0, parse_itemstack("default:takeput_deny 50"));
 	inv.p2.addList("main", 10);
 
-	apply_action("Move 20 player:p1 main 0 player:p2 main 0", &inv, obj, gamedef);
+	apply_action("Move 20 player:p1 main 0 player:p2 main 0", &inv, obj, placedef);
 
 	UASSERT(inv.p1.getList("main")->getItem(0).getItemString() == "default:takeput_deny 50");
 	UASSERT(inv.p2.getList("main")->getItem(0).empty())
 }
 
-void TestMoveAction::testMovePartial(ServerActiveObject *obj, IGameDef *gamedef)
+void TestMoveAction::testMovePartial(ServerActiveObject *obj, IPlaceDef *placedef)
 {
-	MockInventoryManager inv(gamedef);
+	MockInventoryManager inv(placedef);
 
 	inv.p1.addList("main", 10)->addItem(0, parse_itemstack("default:takeput_max_5 50"));
 	inv.p2.addList("main", 10);
 
 	// Lua: limited to 5 per transaction
-	apply_action("Move 20 player:p1 main 0 player:p2 main 0", &inv, obj, gamedef);
+	apply_action("Move 20 player:p1 main 0 player:p2 main 0", &inv, obj, placedef);
 
 	UASSERT(inv.p1.getList("main")->getItem(0).getItemString() == "default:takeput_max_5 45");
 	UASSERT(inv.p2.getList("main")->getItem(0).getItemString() == "default:takeput_max_5 5");
 }
 
-void TestMoveAction::testSwap(ServerActiveObject *obj, IGameDef *gamedef)
+void TestMoveAction::testSwap(ServerActiveObject *obj, IPlaceDef *placedef)
 {
-	MockInventoryManager inv(gamedef);
+	MockInventoryManager inv(placedef);
 
 	inv.p1.addList("main", 10)->addItem(0, parse_itemstack("default:stone 50"));
 	inv.p2.addList("main", 10)->addItem(0, parse_itemstack("default:brick 60"));
 
-	apply_action("Move 50 player:p1 main 0 player:p2 main 0", &inv, obj, gamedef);
+	apply_action("Move 50 player:p1 main 0 player:p2 main 0", &inv, obj, placedef);
 
 	UASSERT(inv.p1.getList("main")->getItem(0).getItemString() == "default:brick 60");
 	UASSERT(inv.p2.getList("main")->getItem(0).getItemString() == "default:stone 50");
 }
 
-void TestMoveAction::testSwapFromUnallowed(ServerActiveObject *obj, IGameDef *gamedef)
+void TestMoveAction::testSwapFromUnallowed(ServerActiveObject *obj, IPlaceDef *placedef)
 {
-	MockInventoryManager inv(gamedef);
+	MockInventoryManager inv(placedef);
 
 	inv.p1.addList("main", 10)->addItem(0, parse_itemstack("default:takeput_deny 50"));
 	inv.p2.addList("main", 10)->addItem(0, parse_itemstack("default:brick 60"));
 
-	apply_action("Move 50 player:p1 main 0 player:p2 main 0", &inv, obj, gamedef);
+	apply_action("Move 50 player:p1 main 0 player:p2 main 0", &inv, obj, placedef);
 
 	UASSERT(inv.p1.getList("main")->getItem(0).getItemString() == "default:takeput_deny 50");
 	UASSERT(inv.p2.getList("main")->getItem(0).getItemString() == "default:brick 60");
 }
 
-void TestMoveAction::testSwapToUnallowed(ServerActiveObject *obj, IGameDef *gamedef)
+void TestMoveAction::testSwapToUnallowed(ServerActiveObject *obj, IPlaceDef *placedef)
 {
-	MockInventoryManager inv(gamedef);
+	MockInventoryManager inv(placedef);
 
 	inv.p1.addList("main", 10)->addItem(0, parse_itemstack("default:stone 50"));
 	inv.p2.addList("main", 10)->addItem(0, parse_itemstack("default:takeput_deny 60"));
 
-	apply_action("Move 50 player:p1 main 0 player:p2 main 0", &inv, obj, gamedef);
+	apply_action("Move 50 player:p1 main 0 player:p2 main 0", &inv, obj, placedef);
 
 	UASSERT(inv.p1.getList("main")->getItem(0).getItemString() == "default:stone 50");
 	UASSERT(inv.p2.getList("main")->getItem(0).getItemString() == "default:takeput_deny 60");
