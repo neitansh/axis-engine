@@ -241,8 +241,15 @@ HTTPFetchOngoing::HTTPFetchOngoing(const HTTPFetchRequest &request_,
 	curl_easy_setopt(curl, CURLOPT_INTERFACE,
 		bind_address.empty() ? nullptr : bind_address.c_str());
 
+	// Пустая строка — это «никакого прокси», в том числе того, что libcurl
+	// сам бы взял из окружения; nullptr так не умеет.
 	std::string proxy = g_settings->get("secure.curl_proxy");
-	curl_easy_setopt(curl, CURLOPT_PROXY, proxy.empty() ? nullptr : proxy.c_str());
+	if (!proxy.empty())
+		curl_easy_setopt(curl, CURLOPT_PROXY, proxy.c_str());
+	else if (request.bypass_proxy)
+		curl_easy_setopt(curl, CURLOPT_PROXY, "");
+	else
+		curl_easy_setopt(curl, CURLOPT_PROXY, nullptr);
 
 	bool enable_ipv6 = g_settings->getBool("enable_ipv6");
 	curl_easy_setopt(curl, CURLOPT_IPRESOLVE,

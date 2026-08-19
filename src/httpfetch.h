@@ -55,6 +55,15 @@ struct HTTPFetchRequest
 	// Timeout for the connection phase, in milliseconds
 	long connect_timeout;
 
+	// Идти мимо системного прокси.
+	//
+	// Ставится для того, что берётся у сервера, к которому мы и так подключены
+	// напрямую, — например, для медиа. Обходной прокси в этой дороге лишний:
+	// он уводит запрос через свою страну и обратно, и рукопожатие стоит в разы
+	// дороже самого файла. Прокси, заданный настройкой руками, уважается всё
+	// равно: это осознанный выбор того, кто её выставил.
+	bool bypass_proxy = false;
+
 	// Indicates if this is multipart/form-data or
 	// application/x-www-form-urlencoded. Not allowed for GET.
 	bool multipart = false;

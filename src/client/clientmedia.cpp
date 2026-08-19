@@ -338,6 +338,7 @@ void ClientMediaDownloader::startBundleFetch(Client *client)
 	HTTPFetchRequest fetch_request;
 	fetch_request.url = m_remotes[0]->baseurl + MEDIA_BUNDLE_FILE_NAME;
 	fetch_request.caller = m_httpfetch_caller;
+	fetch_request.bypass_proxy = true;
 	fetch_request.request_id = m_httpfetch_next_id;
 	fetch_request.extra_headers.emplace_back("Referer: " + makeReferer(client));
 
@@ -387,6 +388,7 @@ void ClientMediaDownloader::requestMoreBundleParts(Client *client)
 		fetch_request.url = m_remotes[0]->baseurl + MEDIA_BUNDLE_FILE_NAME
 				+ "/" + itos(m_bundle_next_part);
 		fetch_request.caller = m_httpfetch_caller;
+		fetch_request.bypass_proxy = true;
 		fetch_request.request_id = m_httpfetch_next_id;
 		fetch_request.extra_headers.emplace_back("Referer: " + makeReferer(client));
 		// Кусок — это мегабайты, и на слабом канале он едет заметно дольше
@@ -505,6 +507,7 @@ void ClientMediaDownloader::startHashSetFetches(Client *client)
 			fetch_request.url =
 				remote->baseurl + MTHASHSET_FILE_NAME;
 			fetch_request.caller = m_httpfetch_caller;
+			fetch_request.bypass_proxy = true;
 			fetch_request.request_id = m_httpfetch_next_id;
 			fetch_request.extra_headers.emplace_back(
 				"Referer: " + makeReferer(client));
@@ -684,6 +687,7 @@ void ClientMediaDownloader::startRemoteMediaTransfers()
 				HTTPFetchRequest fetch_request;
 				fetch_request.url = url;
 				fetch_request.caller = m_httpfetch_caller;
+				fetch_request.bypass_proxy = true;
 				fetch_request.request_id = m_httpfetch_next_id;
 				fetch_request.timeout = std::max(MIN_HTTPFETCH_TIMEOUT,
 					(long)g_settings->getS32("curl_file_download_timeout"));
@@ -1017,6 +1021,7 @@ void SingleMediaDownloader::startRemoteMediaTransfer()
 	HTTPFetchRequest fetch_request;
 	fetch_request.url = url;
 	fetch_request.caller = m_httpfetch_caller;
+	fetch_request.bypass_proxy = true;
 	fetch_request.request_id = m_httpfetch_next_id;
 	fetch_request.timeout = g_settings->getS32("curl_file_download_timeout");
 	httpfetch_async(fetch_request);
