@@ -97,5 +97,5 @@
 
     <!-- Домен перевода остался от upstream: файлы в po/ и locale/ приходят
          оттуда и зовутся так же. -->
-    <translation type="gettext">luanti</translation>
+    <translation type="gettext">axis</translation>
 </component>
