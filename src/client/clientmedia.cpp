@@ -14,6 +14,8 @@
 #include "util/hex.h"
 #include "util/serialize.h"
 #include "util/hashing.h"
+#include "serialization.h"
+#include <set>
 #include "exceptions.h"
 #include "util/string.h"
 #include "network/networkprotocol.h"
@@ -163,8 +165,10 @@ void ClientMediaDownloader::step(Client *client)
 			m_httpfetch_active--;
 			fetched_something = true;
 
-			// Is this a hashset (index.mth) or a media file?
-			if (fetch_result.request_id < m_remotes.size())
+			// Что пришло: общий набор, хэш-набор (index.mth) или файл?
+			if (m_bundle_requests.erase(fetch_result.request_id) > 0)
+				bundleReceived(fetch_result, client);
+			else if (fetch_result.request_id < m_remotes.size())
 				remoteHashSetReceived(fetch_result);
 			else
 				remoteMediaReceived(fetch_result, client);
@@ -285,6 +289,11 @@ void ClientMediaDownloader::initialStep(Client *client)
 		m_httpfetch_active_limit = g_settings->getS32("curl_parallel_limit");
 		m_httpfetch_active_limit = MYMAX(m_httpfetch_active_limit, 84);
 
+		// Сперва пробуем забрать всё одним файлом. Раздача, которая его не
+		// отдаёт, ответит отказом — тогда пойдём как ходили, по одному.
+		startBundleFetch(client);
+		return;
+
 		// Note: we used to use a POST request that contained the set of
 		// hashes we needed here, but this use was discontinued in 5.12.0 as
 		// it's not CDN/static hosting-friendly.
@@ -302,9 +311,110 @@ void ClientMediaDownloader::initialStep(Client *client)
 		// requests, so if there are lots of remote servers that are
 		// not responding, those will stall new media file transfers.
 
-		for (u32 i = 0; i < m_remotes.size(); ++i) {
-			assert(m_httpfetch_next_id == i);
+		startHashSetFetches(client);
+	}
+}
 
+// Запросить весь набор одним файлом — у первой же раздачи.
+//
+// Спрашиваем только одну: набор одинаков у всех, а качать его дважды значило бы
+// удвоить трафик ради ничего. Не ответила — обычный путь никуда не делся.
+void ClientMediaDownloader::startBundleFetch(Client *client)
+{
+	if (m_remotes.empty()) {
+		startHashSetFetches(client);
+		return;
+	}
+
+	HTTPFetchRequest fetch_request;
+	fetch_request.url = m_remotes[0]->baseurl + MEDIA_BUNDLE_FILE_NAME;
+	fetch_request.caller = m_httpfetch_caller;
+	fetch_request.request_id = m_httpfetch_next_id;
+	fetch_request.extra_headers.emplace_back("Referer: " + makeReferer(client));
+	// Набор большой, и едет он целиком: срок ему нужен свой, не тот, что у
+	// мелкого файла.
+	fetch_request.timeout = 120000;
+
+	actionstream << "Client: Asking \"" << m_remotes[0]->baseurl
+		<< "\" for the whole media bundle" << std::endl;
+
+	httpfetch_async(fetch_request);
+	m_bundle_requests.insert(m_httpfetch_next_id);
+	m_httpfetch_active++;
+	m_httpfetch_next_id++;
+}
+
+// Разобрать пришедший набор и разложить его по местам.
+//
+// Каждый файл проверяется тем же хэшем, что и при поштучной загрузке: набор —
+// это способ довезти, а не повод верить на слово. Чего в наборе не оказалось
+// или что не сошлось — доберётся обычным путём.
+void ClientMediaDownloader::bundleReceived(const HTTPFetchResult &fetch_result,
+		Client *client)
+{
+	u32 taken = 0;
+	if (fetch_result.succeeded) {
+		try {
+			std::istringstream iss(fetch_result.data, std::ios::binary);
+			std::ostringstream oss(std::ios::binary);
+			decompressZstd(iss, oss);
+			const std::string raw = oss.str();
+
+			if (raw.size() < 10)
+				throw SerializationError("media bundle is too short");
+			const u8 *at = (const u8 *)raw.data();
+			if (readU32(at) != MEDIA_BUNDLE_SIGNATURE)
+				throw SerializationError("media bundle has a foreign signature");
+			if (readU16(at + 4) != MEDIA_BUNDLE_VERSION)
+				throw SerializationError("media bundle is of another version");
+
+			// Имя файла в наборе — его хэш; по нему и ищем, кому он нужен.
+			std::unordered_map<std::string, std::string> by_hash;
+			for (const auto &it : m_files) {
+				if (!it.second->received)
+					by_hash.emplace(hex_encode(it.second->sha1), it.first);
+			}
+
+			size_t pos = 10;
+			while (pos + 44 <= raw.size()) {
+				const std::string sha1_hex = raw.substr(pos, 40);
+				const u32 size = readU32((const u8 *)raw.data() + pos + 40);
+				pos += 44;
+				if (pos + size > raw.size())
+					throw SerializationError("media bundle ends mid-file");
+
+				auto want = by_hash.find(sha1_hex);
+				if (want != by_hash.end()) {
+					const std::string &name = want->second;
+					FileStatus *filestatus = m_files[name];
+					if (checkAndLoad(name, filestatus->sha1,
+							raw.substr(pos, size), false, client)) {
+						filestatus->received = true;
+						m_uncached_received_count++;
+						m_received_file_size += size;
+						taken++;
+					}
+				}
+				pos += size;
+			}
+			checkTotalSize();
+		} catch (SerializationError &e) {
+			infostream << "Client: media bundle did not unpack: "
+				<< e.what() << std::endl;
+		}
+	}
+
+	actionstream << "Client: took " << taken << " of " << m_uncached_count
+		<< " media files from the bundle" << std::endl;
+
+	// Остальное — как раньше: спросим, у кого что есть, и доберём поштучно.
+	startHashSetFetches(client);
+}
+
+void ClientMediaDownloader::startHashSetFetches(Client *client)
+{
+	{
+		for (u32 i = 0; i < m_remotes.size(); ++i) {
 			RemoteServerStatus *remote = m_remotes[i];
 			actionstream << "Client: Contacting remote server \""
 				<< remote->baseurl << "\"" << std::endl;

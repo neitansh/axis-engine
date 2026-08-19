@@ -31,6 +31,13 @@ extern const u16 FORMSPEC_API_VERSION;
 #define MEDIA_MAX_FILES (32768U)
 #define MEDIA_MAX_TOTAL_SIZE (512U * 1024U * 1024U)
 
+// Весь набор медиа одним файлом: тысяча поездок за мелкими файлами дороже
+// самих файлов (см. src/server/mediahttp.cpp). Внутри — записи вида
+// «хэш (40 символов), длина (u32), данные», и всё это сжато zstd.
+#define MEDIA_BUNDLE_SIGNATURE 0x41584d42 // 'AXMB'
+#define MEDIA_BUNDLE_VERSION 1
+#define MEDIA_BUNDLE_FILE_NAME "bundle"
+
 // Что вообще бывает медиа. Список один на сервер и клиент нарочно: сервер
 // отбирает по нему файлы плейса, клиент — то, что ему объявили. Разойдись они,
 // и клиент брал бы то, чего никто не собирался отдавать.

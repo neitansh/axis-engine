@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "client/clientmedia.h" // MTHASHSET_FILE_SIGNATURE
+#include "network/networkprotocol.h" // MEDIA_BUNDLE_*
+#include "serialization.h"
 #include "filesys.h"
 #include "log.h"
 #include "util/serialize.h"
@@ -181,6 +183,8 @@ void MediaHttpServer::setMedia(std::unordered_map<std::string, std::string> &&by
 	MutexAutoLock lock(m_media_mutex);
 	m_by_hash = std::move(by_hash);
 	m_index = buildIndex();
+	m_bundle.clear();
+	m_bundle_stale = true;
 }
 
 std::string MediaHttpServer::buildIndex() const
@@ -198,6 +202,64 @@ std::string MediaHttpServer::buildIndex() const
 			out.append(raw);
 	}
 	return out;
+}
+
+// Один файл со всем медиа разом.
+//
+// Ради него всё и затевалось: файлов у большого плейса тысячи, и каждый из них
+// по отдельности — это поездка туда-обратно. Сотня микросекунд на файл
+// превращается в десяток секунд ожидания, притом что сами байты приезжают за
+// пару. Здесь их забирают одним запросом.
+//
+// Складывается всё в свой простой вид (имя, длина, данные) и жмётся целиком:
+// общий словарь на тысячи мелких файлов выигрывает заметно больше, чем сжатие
+// каждого по отдельности.
+const std::string &MediaHttpServer::bundle()
+{
+	// Снимок набора берётся под замком, а читается с диска и жмётся уже без
+	// него: иначе одно соединение, попросившее файл, ждало бы, пока для
+	// другого соберут все семь тысяч.
+	std::unordered_map<std::string, std::string> snapshot;
+	{
+		MutexAutoLock lock(m_media_mutex);
+		if (!m_bundle_stale)
+			return m_bundle;
+		snapshot = m_by_hash;
+	}
+
+	std::string raw;
+	raw.resize(10);
+	writeU32((u8 *)&raw[0], MEDIA_BUNDLE_SIGNATURE);
+	writeU16((u8 *)&raw[4], MEDIA_BUNDLE_VERSION);
+
+	u32 count = 0;
+	for (const auto &it : snapshot) {
+		std::string data;
+		if (!fs::ReadFile(it.second, data, true))
+			continue;
+
+		// Имя записи — тот же хэш, по которому файл спрашивают поштучно:
+		// клиент сверяет содержимое с обещанным, и подложить чужое нельзя.
+		u8 len[4];
+		writeU32(len, (u32)data.size());
+		raw.append(it.first);
+		raw.append((const char *)len, 4);
+		raw.append(data);
+		count++;
+	}
+	writeU32((u8 *)&raw[6], count);
+
+	std::ostringstream oss(std::ios::binary);
+	compressZstd(raw, oss, 3);
+
+	MutexAutoLock lock(m_media_mutex);
+	m_bundle = oss.str();
+	m_bundle_stale = false;
+
+	infostream << "MediaHttpServer: bundle of " << count << " files, "
+		<< (raw.size() >> 10) << "KiB packed into " << (m_bundle.size() >> 10)
+		<< "KiB" << std::endl;
+	return m_bundle;
 }
 
 std::string MediaHttpServer::findPath(const std::string &sha1_hex) const
@@ -253,6 +315,13 @@ bool MediaHttpServer::serveOnce(int sock)
 			index = m_index;
 		}
 		return sendResponse(sock, "200 OK", index, "application/octet-stream");
+	}
+
+	if (path == MEDIA_BUNDLE_FILE_NAME) {
+		// Копия под замком не берётся: пока файл собирают, отдавать нечего, а
+		// собирается он один раз на набор.
+		const std::string &packed = bundle();
+		return sendResponse(sock, "200 OK", packed, "application/octet-stream");
 	}
 
 	if (!isSha1Hex(path)) {

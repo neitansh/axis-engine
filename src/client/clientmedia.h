@@ -144,6 +144,11 @@ private:
 	void checkTotalSize();
 	void startRemoteMediaTransfers();
 	void startConventionalTransfers(Client *client);
+	// Весь набор одним файлом. Запрашивается первым: если он приедет, поштучно
+	// останется забрать только то, чего в нём не было.
+	void startBundleFetch(Client *client);
+	void bundleReceived(const HTTPFetchResult &fetch_result, Client *client);
+	void startHashSetFetches(Client *client);
 
 	static void deSerializeHashSet(const std::string &data,
 			std::set<std::string> &result);
@@ -173,6 +178,9 @@ private:
 	s32 m_httpfetch_active = 0;
 	s32 m_httpfetch_active_limit = 0;
 	s32 m_outstanding_hash_sets = 0;
+	// Запросы за общим набором: их ответы разбираются иначе, чем ответы за
+	// хэш-набором и за отдельным файлом.
+	std::set<u32> m_bundle_requests;
 	std::unordered_map<u64, std::string> m_remote_file_transfers;
 
 	// All files up to this name have either been received from a

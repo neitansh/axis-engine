@@ -48,6 +48,10 @@ private:
 	bool serveOnce(int sock);
 	std::string findPath(const std::string &sha1_hex) const;
 	std::string buildIndex() const;
+	// Весь набор одним куском. Собирается лениво: набор меняется редко, а
+	// собирать его на каждое обновление медиа — читать с диска мегабайты ради
+	// файла, за которым, может, никто и не придёт.
+	const std::string &bundle();
 
 	const u16 m_port;
 	std::atomic<bool> m_running{false};
@@ -59,4 +63,6 @@ private:
 	mutable std::mutex m_media_mutex;
 	std::unordered_map<std::string, std::string> m_by_hash;
 	std::string m_index;
+	std::string m_bundle;
+	bool m_bundle_stale = true;
 };
