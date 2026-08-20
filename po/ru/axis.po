@@ -1485,7 +1485,7 @@ msgstr "Прежде чем создавать мир, нужно установ
 
 #: builtin/mainmenu/tab_online.lua
 msgid "Add favorite"
-msgstr "Добавить избранное"
+msgstr "Добавить в избранное"
 
 #. TRANSLATORS: Network address
 #: builtin/mainmenu/tab_online.lua
@@ -1559,7 +1559,7 @@ msgstr "Обновить"
 
 #: builtin/mainmenu/tab_online.lua
 msgid "Remove favorite"
-msgstr "Удалить избранное"
+msgstr "Убрать из избранного"
 
 #: builtin/mainmenu/tab_online.lua
 msgid "Server Description"
@@ -8137,6 +8137,9 @@ msgstr "Европа"
 
 msgid "Official Servers"
 msgstr "Официальные серверы"
+
+msgid "Community Servers"
+msgstr "Серверы сообщества"
 
 msgid "Official server of Axis, Russia"
 msgstr "Официальный сервер Axis, Россия"

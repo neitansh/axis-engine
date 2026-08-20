@@ -121,6 +121,14 @@ local function unfold(servers)
 						-- наличию Диспетчера больше не нужно — раньше из-за
 						-- такого гадания обычный сервер попадал в матчи.
 						role = server.role or "server",
+						-- Наш ли это сервер. Реестр говорит об этом прямо
+						-- (см. registry/store.go), и гадать не по чему:
+						-- официальные стоят отдельным разделом наверху и в
+						-- избранное не берутся, чужие — ниже и берутся.
+						--
+						-- Умолчание — «чужой»: забытое поле не выдаёт чужой
+						-- сервер за наш. Ошибиться в сторону чужого лучше.
+						official = server.official == true,
 					}
 				end
 			end
@@ -238,9 +246,98 @@ function serverlistmgr.sync()
 	end)
 end
 
--- Избранного здесь нет. Список приходит из реестра, и все серверы в нём наши;
--- отмечать среди своих же серверов любимые незачем, а хранить их отдельным
--- файлом — тем более. Вместе с избранным ушёл и разбор старого списка Luanti.
+--------------------------------------------------------------------------------
+-- Избранное: сервера, которые игрок отметил сам.
+--
+-- Отмечается **сервер**, а не дорога к нему: входов у сервера бывает
+-- несколько, и «любимая Европа при нелюбимой России» — не то, что человек имел
+-- в виду. Поэтому в отметке лежит идентификатор реестра, а имя и адрес каждый
+-- раз берутся из списка: сервер может переехать и переименоваться, а отметка
+-- при этом не должна превращаться в строку, ведущую в никуда.
+--
+-- Отмечает и снимает отметку только человек. Прежнее «куда зашёл, то и
+-- добавилось» тихо набивало список случайными адресами, и любимое в нём
+-- терялось ровно так же, как без него.
+--
+-- Официальные сервера не отмечаются вовсе — они и так наверху списка, отдельным
+-- разделом. Это правило живёт во вкладке (см. tab_online.lua): здесь хранилище,
+-- и оно про имена, а не про то, кому их дают.
+local FAVORITES_FILE = "favorites.json"
+
+local function favorites_dir()
+	return core.get_user_path() .. DIR_DELIM .. "client" .. DIR_DELIM ..
+		"serverlist" .. DIR_DELIM
+end
+
+local function read_favorites()
+	local file = io.open(favorites_dir() .. FAVORITES_FILE, "r")
+	if not file then
+		return {}
+	end
+	local body = file:read("*all")
+	file:close()
+
+	-- Файл правит кто угодно, поэтому из него берётся только то, что имеет
+	-- смысл: строки. Всё остальное молча пропускается — падать в меню из-за
+	-- испорченного списка любимых серверов не за что.
+	local ids = {}
+	local list = core.parse_json(body)
+	if type(list) == "table" then
+		for _, id in ipairs(list) do
+			if type(id) == "string" and id ~= "" then
+				ids[id] = true
+			end
+		end
+	end
+	return ids
+end
+
+local favorites = nil
+
+local function favorites_now()
+	if not favorites then
+		favorites = read_favorites()
+	end
+	return favorites
+end
+
+local function save_favorites()
+	local list = {}
+	for id in pairs(favorites_now()) do
+		list[#list + 1] = id
+	end
+	-- По алфавиту, а не в порядке отметок: так файл не переписывается целиком
+	-- от каждой мелочи и его изменения видно глазом.
+	table.sort(list)
+	assert(core.create_dir(favorites_dir()))
+	-- Пустой список пишется списком, а не «ничем»: core.write_json от пустой
+	-- таблицы возвращает null, и файл после снятия последней отметки переставал
+	-- быть тем, чем был.
+	core.safe_file_write(favorites_dir() .. FAVORITES_FILE,
+		#list > 0 and core.write_json(list) or "[]")
+end
+
+--- Отмечен ли этот сервер любимым.
+function serverlistmgr.is_favorite(id)
+	return id ~= nil and favorites_now()[id] == true
+end
+
+function serverlistmgr.add_favorite(id)
+	if type(id) ~= "string" or id == "" or favorites_now()[id] then
+		return
+	end
+	favorites_now()[id] = true
+	save_favorites()
+end
+
+function serverlistmgr.delete_favorite(id)
+	if type(id) ~= "string" or not favorites_now()[id] then
+		return
+	end
+	favorites_now()[id] = nil
+	save_favorites()
+end
+
 --------------------------------------------------------------------------------
 --- На какой сервер реестра ведёт этот адрес.
 ---

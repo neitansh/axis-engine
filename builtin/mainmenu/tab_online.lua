@@ -2,22 +2,46 @@
 -- Copyright (C) 2014 sapier
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
--- Избранного здесь нет намеренно. Список приходит из реестра, и все места в
--- нём наши: отмечать среди своих же серверов любимые незачем — это осталось от
--- Luanti, где список публичный и в нём тысячи чужих записей.
+-- Кого вообще можно отметить любимым: чужой сервер — да, наш — нет.
+--
+-- Правило записано здесь одно на всех: по нему и рисуется звёздочка, и
+-- раскладывается список. Разъедься они — игрок увидел бы кнопку, которая
+-- ничего не меняет.
+local function can_be_favorite(server)
+	return server ~= nil and not server.official
+end
+
+-- Список делится на три части, и деление это не косметика.
+--
+-- Официальные — наши: их поднимает Axis, в них играют в то, что мы делаем.
+-- Они всегда наверху, и отмечать их любимыми нечего — искать их не по чему.
+--
+-- Сообщество — чужие: их поднимают сами игроки и вписывают в реестр. Их будет
+-- много, и вот среди них любимое теряется — потому звёздочка есть только тут.
+--
+-- Избранное — то, что игрок отметил сам, и оно выше всего остального.
 local function get_sorted_servers()
 	local servers = {
-		public = {},
+		fav = {},
+		official = {},
+		community = {},
 		incompatible = {}
 	}
 
 	local result = menudata.search_result or serverlistmgr.shown
 	for _, server in ipairs(result) do
 		server.is_compatible = is_server_protocol_compat(server.proto_min, server.proto_max)
-		if server.is_compatible then
-			table.insert(servers.public, server)
-		else
+		server.is_favorite = can_be_favorite(server) and
+			serverlistmgr.is_favorite(server.id)
+
+		if not server.is_compatible then
 			table.insert(servers.incompatible, server)
+		elseif server.is_favorite then
+			table.insert(servers.fav, server)
+		elseif server.official then
+			table.insert(servers.official, server)
+		else
+			table.insert(servers.community, server)
 		end
 	end
 
@@ -216,6 +240,22 @@ local function get_formspec(tabview, name, tabdata)
 				"server_view_clients_unavailable.png") .. "]"
 		end
 
+		-- Отметить любимым. У наших серверов кнопки нет вовсе: они и так
+		-- наверху отдельным разделом, и отмечать среди них нечего.
+		if can_be_favorite(selected_server) then
+			if serverlistmgr.is_favorite(selected_server.id) then
+				retval = retval .. "tooltip[btn_delete_favorite;" .. fgettext("Remove favorite") .. "]"
+				retval = retval .. "style[btn_delete_favorite;padding=6]"
+				retval = retval .. "image_button[5,1.3;0.5,0.5;" ..
+					core.formspec_escape(defaulttexturedir .. "server_favorite_delete.png") .. ";btn_delete_favorite;]"
+			else
+				retval = retval .. "tooltip[btn_add_favorite;" .. fgettext("Add favorite") .. "]"
+				retval = retval .. "style[btn_add_favorite;padding=6]"
+				retval = retval .. "image_button[5,1.3;0.5,0.5;" ..
+					core.formspec_escape(defaulttexturedir .. "server_favorite.png") .. ";btn_add_favorite;]"
+			end
+		end
+
 	end
 
 	retval = retval .. "container_end[]"
@@ -229,8 +269,10 @@ local function get_formspec(tabview, name, tabdata)
 		"2=" .. core.formspec_escape(defaulttexturedir .. "server_ping_3.png") .. "," ..
 		"3=" .. core.formspec_escape(defaulttexturedir .. "server_ping_2.png") .. "," ..
 		"4=" .. core.formspec_escape(defaulttexturedir .. "server_ping_1.png") .. "," ..
-		"6=" .. core.formspec_escape(defaulttexturedir .. "server_public.png") .. "," ..
-		"7=" .. core.formspec_escape(defaulttexturedir .. "server_incompatible.png") .. ";" ..
+		"5=" .. core.formspec_escape(defaulttexturedir .. "server_favorite.png") .. "," ..
+		"6=" .. core.formspec_escape(defaulttexturedir .. "server_official.png") .. "," ..
+		"7=" .. core.formspec_escape(defaulttexturedir .. "server_incompatible.png") .. "," ..
+		"8=" .. core.formspec_escape(defaulttexturedir .. "server_public.png") .. ";" ..
 		"color,span=1;" ..
 		"text,align=inline;"..
 		"color,span=1;" ..
@@ -251,11 +293,15 @@ local function get_formspec(tabview, name, tabdata)
 
 	local servers = get_sorted_servers()
 
+	-- Заголовки разделов. Цвет разделяет их с одного взгляда: любимое —
+	-- тёплым, наше — цветом игры, чужое и несовместимое — приглушённым.
 	local dividers = {
-		public = "6," .. menu_style.ACCENT .. "," .. fgettext("Official Servers") .. ",,,0,0,,",
+		fav = "5,#F2C14E," .. fgettext("Favorites") .. ",,,0,0,,",
+		official = "6," .. menu_style.ACCENT .. "," .. fgettext("Official Servers") .. ",,,0,0,,",
+		community = "8,#8E8899," .. fgettext("Community Servers") .. ",,,0,0,,",
 		incompatible = "7,"..mt_color_grey.."," .. fgettext("Incompatible Servers") .. ",,,0,0,,"
 	}
-	local order = {"public", "incompatible"}
+	local order = {"fav", "official", "community", "incompatible"}
 
 	tabdata.lookup = {} -- maps row number to server
 	local rows = {}
@@ -535,6 +581,16 @@ local function main_button_handler(tabview, fields, name, tabdata)
 		end
 	end
 
+
+	if fields.btn_add_favorite or fields.btn_delete_favorite then
+		local server = find_selected_server()
+		if fields.btn_add_favorite and can_be_favorite(server) then
+			serverlistmgr.add_favorite(server.id)
+		elseif fields.btn_delete_favorite and server then
+			serverlistmgr.delete_favorite(server.id)
+		end
+		return true
+	end
 
 	if fields.btn_server_url then
 		core.open_url_dialog(find_selected_server().url)

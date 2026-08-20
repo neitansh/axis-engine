@@ -265,6 +265,30 @@ function make.heading(text, info_text)
 end
 
 
+-- Подобрать шрифт кнопке привязки, чтобы имя клавиши влезло целиком.
+--
+-- Кнопка текст не ужимает, а режет: «L-Stick Right» в отведённую ей ширину не
+-- входит, и от него оставалось «Stick Rig». Имена клавиш нарочно короткие
+-- (см. src/client/keycode.cpp), но перевод короче не станет, а место у кнопки
+-- одно и то же, поэтому мельчим шрифт ровно настолько, насколько нужно, — и
+-- не мельче предела, за которым уже не прочесть.
+local KEY_FONT_FLOOR = 0.65
+
+local function key_style(name, keycode, width)
+	if not keycode then
+		return ""
+	end
+	local shown = core.get_key_description(keycode) or ""
+	local fits = math.floor(width * CHARS_PER_UNIT)
+	local length = utf8_len(shown)
+	if length <= fits or length == 0 then
+		return ""
+	end
+	return ("style[%s;font_size=*%.2f]"):format(
+		name, math.max(KEY_FONT_FLOOR, fits / length))
+end
+
+
 -- Reveals the settings a page keeps out of the way by default.
 function make.expander(expanded)
 	return {
@@ -901,9 +925,11 @@ function make.key(setting)
 				if not has_value then
 					btn_bind_width = idx == 1 and value_width or (value_width - 0.8)
 				end
-				table.insert(fs, ("button_key[%f,%f;%f,0.8;%s_%d;%s]"):format(
+				local name = ("%s_%d"):format(btn_bind, idx)
+				table.insert(fs, key_style(name, value[idx], btn_bind_width))
+				table.insert(fs, ("button_key[%f,%f;%f,0.8;%s;%s]"):format(
 						value_width, y, btn_bind_width,
-						btn_bind, idx, core.formspec_escape(value[idx] or "")))
+						name, core.formspec_escape(value[idx] or "")))
 				if has_value then
 					table.insert(fs, ("image_button[%f,%f;0.8,0.8;%s;%s_%d;]"):format(
 							avail_w - 1.6, y,
