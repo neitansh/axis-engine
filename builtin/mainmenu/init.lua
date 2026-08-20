@@ -170,6 +170,28 @@ local function init_globals()
 		parent = start_page
 	end
 
+	-- Позвали из Discord — открываемся сразу на матчах.
+	--
+	-- Спрашивается здесь, а не на самом экране матчей: лаунчер поднимает игру
+	-- по приглашению, и человек видит стартовую страницу, ничего не понимая.
+	-- Ответ приходит асинхронно, поэтому экран меняется уже после того, как
+	-- стартовая показалась, — зато меняется сам.
+	presence.invited(function(room)
+		if not room or not tv_main:set_tab("online") then
+			return
+		end
+		matchmaking.invited(room)
+		-- Стартовую прячем сами: показанная поверх, она остаётся висеть, и
+		-- экраны рисуются один на другом. Так же уходит с неё и обычное
+		-- нажатие (см. dlg_start).
+		if start_page then
+			start_page:hide()
+		end
+		ui.set_default("maintab")
+		tv_main:show()
+		ui.update()
+	end)
+
 	-- synchronous, chain parents to only show one at a time
 	parent = migrate_keybindings(parent)
 	check_reinstall_mtg(parent)

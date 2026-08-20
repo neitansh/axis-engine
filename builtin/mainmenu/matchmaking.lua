@@ -679,6 +679,15 @@ local function arenas_card(x, y, w, h)
 	return table.concat(fs)
 end
 
+---Приглашение, забранное до того, как открыли этот экран.
+---
+---Спрашивает его меню при запуске: лаунчер отдаёт приглашение один раз, и если
+---бы мы ждали, пока игрок сам дойдёт до матчей, оно бы просто лежало. Здесь оно
+---кладётся туда же, откуда его возьмёт follow_invite.
+function matchmaking.invited(room)
+	state.invite = room
+end
+
 ---Уйти с экрана: снять себя с очереди и забыть ответы, которые ещё в пути.
 function matchmaking.stop()
 	state.epoch = state.epoch + 1
