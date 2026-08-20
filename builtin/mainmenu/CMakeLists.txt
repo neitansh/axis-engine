@@ -23,5 +23,6 @@ set(BUILTIN_MAINMENU_SRCS
 	mainmenu/tab_local.lua
 	mainmenu/tab_online.lua
 	mainmenu/matchmaking.lua
+	mainmenu/presence.lua
 	${BUILTIN_MAINMENU_CONTENT_SRCS}
 	PARENT_SCOPE)

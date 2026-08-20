@@ -24,6 +24,7 @@ dofile(basepath .. "fstk" .. DIR_DELIM .. "ui.lua")
 dofile(menupath .. DIR_DELIM .. "async_event.lua")
 dofile(menupath .. DIR_DELIM .. "common.lua")
 dofile(menupath .. DIR_DELIM .. "serverlistmgr.lua")
+dofile(menupath .. DIR_DELIM .. "presence.lua")
 dofile(menupath .. DIR_DELIM .. "matchmaking.lua")
 dofile(menupath .. DIR_DELIM .. "place_theme.lua")
 dofile(menupath .. DIR_DELIM .. "content" .. DIR_DELIM .. "init.lua")
@@ -268,6 +269,43 @@ local function ask_for_ticket(url, key, server_id, done)
 	}, done)
 end
 
+-- Имя места из списка. Не нашлось — пусто: лучше общее «на сервере», чем адрес
+-- в чужом профиле.
+local function place_name()
+	for _, server in ipairs(serverlistmgr.servers or {}) do
+		local same = gamedata.server_id and gamedata.server_id ~= "" and
+			server.id == gamedata.server_id
+		if same or (server.address == gamedata.address and server.port == gamedata.port) then
+			return server.place or ""
+		end
+	end
+	return ""
+end
+
+-- Куда игрок пошёл — лаунчеру, чтобы он показал это в профиле.
+--
+-- Здесь, а не в каждой вкладке: дорог в игру три, и рассказывать о себе они
+-- должны одинаково. Отсюда же видно, чем они отличаются, — по адресу матч от
+-- обычного места не отличишь, он один и тот же.
+--
+-- Адрес наружу не уходит никогда: место называется своим именем из реестра, а
+-- не найденное там — просто «на сервере». Введённый руками адрес чужого
+-- сервера — не то, что стоит показывать всем друзьям игрока.
+local function tell_where_we_are_going()
+	local match = gamedata.match
+	-- Таблица между заходами не чистится, и пометка прошлого матча иначе
+	-- сделала бы матчем следующее обычное место.
+	gamedata.match = nil
+
+	if match then
+		presence.playing({ where = "match", mode = match })
+	elseif gamedata.mode == "join" then
+		presence.playing({ where = "place", name = place_name() })
+	else
+		presence.playing({ where = "solo" })
+	end
+end
+
 -- Билет к запуску игры.
 --
 -- Билет — короткая подписанная строка, которой игрок доказывает серверу, что он
@@ -297,6 +335,7 @@ function core.start()
 		return start_place()
 	end
 	gamedata.ticket = nil
+	tell_where_we_are_going()
 
 	local url = core.settings:get("axis_ticket_url") or ""
 	local key = core.settings:get("axis_ticket_key") or ""
@@ -362,3 +401,7 @@ init_globals()
 -- Имя спрашивается один раз за запуск и после того, как меню построено: ответ
 -- приходит асинхронно и только записывает настройку, так что ждать его некому.
 ask_for_login()
+
+-- Меню открыто — значит игра запущена, а игрок ещё никуда не пошёл. Сюда же
+-- возвращаются из игры: меню строится заново каждый раз.
+presence.in_menu()

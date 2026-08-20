@@ -97,6 +97,11 @@ local function unfold(servers)
 					rows[#rows + 1] = {
 						id = server.id,
 						name = ("%s · %s"):format(server.name or "", entrance.name or ""),
+						-- Имя самого места, без входа: в списке нужна строка
+						-- целиком, а тем, кто показывает место наружу, — только
+						-- оно. Склеенное обратно не разберёшь: точка с
+						-- пробелами бывает и в самом имени.
+						place = server.name or "",
 						address = entrance.address,
 						port = tonumber(entrance.port),
 						-- Куда вкладка «Играть» ходит за очередями и адресами

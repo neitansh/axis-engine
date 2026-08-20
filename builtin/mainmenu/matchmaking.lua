@@ -284,6 +284,9 @@ local function enter(body)
 		return true
 	end
 	gamedata.mode = "join"
+	-- Чем это кончилось, покажет лаунчер: матч и обычное место выглядят в
+	-- профиле по-разному, а отличить их по адресу нельзя — он один и тот же.
+	gamedata.match = body.title or body.mode or ""
 	-- На какой сервер идём. Адрес у матча свой и живёт полчаса, а билет
 	-- выписывается на сервер целиком — на лобби и на все его матчи.
 	gamedata.server_id = server_id()
@@ -322,6 +325,7 @@ local function poll()
 
 		if not body then
 			state.queue = nil
+			presence.in_menu()
 			-- Пропавшая очередь — не беда: за ней никто уже не стоит.
 			-- А вот молчащий Диспетчер — повод сказать об этом.
 			state.status = why ~= "gone" and fgettext("Matchmaking is unavailable") or nil
@@ -330,6 +334,8 @@ local function poll()
 		end
 
 		state.queue = body
+		-- Сколько нас ждёт — видно в профиле у каждого ждущего.
+		presence.in_queue(body.title or body.mode, body.room, body.waiting, body.needed)
 		if enter(body) then
 			return
 		end
@@ -590,6 +596,7 @@ function matchmaking.stop()
 	state.epoch = state.epoch + 1
 	if state.queue then
 		state.queue = nil
+		presence.in_menu()
 		-- Снимает с очереди пропуск, а не имя: иначе уйти можно было бы за
 		-- любого, назвав его ник.
 		request("/v1/leave", core.write_json({ pass = state.pass }), function() end)
