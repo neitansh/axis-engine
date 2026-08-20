@@ -93,3 +93,35 @@ end
 function presence.playing(what)
 	send(what)
 end
+
+--- Приглашение из Discord: куда позвал друг.
+---
+--- Спрашивается у лаунчера и отдаётся один раз: он сам следит, чтобы одно и
+--- то же приглашение не пришло дважды. Пусто — никто не звал, это обычное
+--- дело и не беда.
+function presence.invited(done)
+	local url, key = door()
+	if not url then
+		done(nil)
+		return
+	end
+	core.handle_async(function(p)
+		local http = core.get_http_api()
+		if not http then
+			return nil
+		end
+		local res = http.fetch_sync({
+			url = p.url .. "/invite",
+			method = "GET",
+			timeout = 5,
+			extra_headers = { "Authorization: Bearer " .. p.key },
+		})
+		if not res.succeeded or res.code ~= 200 then
+			return nil
+		end
+		local body = core.parse_json(res.data or "")
+		return type(body) == "table" and body.room or nil
+	end, { url = url, key = key }, function(room)
+		done(room ~= "" and room or nil)
+	end)
+end

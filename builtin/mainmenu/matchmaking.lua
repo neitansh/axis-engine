@@ -427,6 +427,92 @@ local function do_join(mode, cred)
 	end)
 end
 
+-- Позвали из Discord: входим в ту самую комнату, а не просто на её режим.
+--
+-- Дорога та же, что и у обычного входа: билет доказывает, кто мы, Диспетчер
+-- решает, пускать ли. Разница в одном слове запроса — вместо режима комната.
+local function join_room(room, cred)
+	request("/v1/join", core.write_json({
+		room = room,
+		region = player_region(),
+		pass = cred.pass,
+		ticket = cred.ticket,
+	}), function(res)
+		local body, why = decode(res)
+		if not body then
+			-- Комната уехала, набралась или её нет. Это обычное дело: пока шли,
+			-- матч мог начаться. Молчим и оставляем игрока на экране арен — он
+			-- встанет в очередь сам.
+			state.status = why == "gone" and fgettext("The match you were invited to has already started")
+				or fgettext("Matchmaking is unavailable")
+			core.event_handler("Refresh")
+			return
+		end
+		state.pass = body.pass or state.pass
+		state.queue = body
+		state.status = nil
+		if enter(body) then
+			return
+		end
+		core.event_handler("Refresh")
+		poll()
+	end)
+end
+
+-- Спросить лаунчер, не звали ли нас, и если звали — пойти.
+--
+-- Спрашивается при рисовании экрана: приглашение приходит в лаунчер, а не в
+-- клиент, и другого случая узнать о нём у клиента нет.
+--
+-- Лаунчер отдаёт приглашение **один раз** — поэтому спрашиваем, только когда
+-- есть чем воспользоваться: пока не приехал список серверов, идти всё равно
+-- некуда, а спрошенное приглашение пропало бы впустую. По той же причине
+-- не сумевшее сработать помним у себя и пробуем снова.
+local function follow_invite()
+	if state.asking_invite or state.entering or not server_id() then
+		return
+	end
+
+	-- Пока попытка в пути, второй не заводим: экран перерисовывается часто, а
+	-- билет идёт до лаунчера и обратно — успевало уйти два входа подряд.
+	local function go(room)
+		state.invite = room
+		state.entering = true
+		if state.pass then
+			state.invite = nil
+			state.entering = false
+			join_room(room, { pass = state.pass })
+			return
+		end
+		ticket_for_join(server_id(), function(ticket, trouble)
+			state.entering = false
+			if not ticket then
+				state.status = trouble == "no_launcher"
+						and fgettext("Start the place through the launcher to play online")
+					or fgettext("Matchmaking is unavailable")
+				core.event_handler("Refresh")
+				return
+			end
+			state.invite = nil
+			join_room(room, { ticket = ticket })
+		end)
+	end
+
+	-- Не сработавшее в прошлый раз ждёт здесь и идёт первым.
+	if state.invite then
+		go(state.invite)
+		return
+	end
+
+	state.asking_invite = true
+	presence.invited(function(room)
+		state.asking_invite = false
+		if room then
+			go(room)
+		end
+	end)
+end
+
 local function join(mode)
 	-- Пропуск уже есть — личность несёт он: смена режима не выписывает второй
 	-- пропуск и не требует нового билета.
@@ -610,6 +696,11 @@ end
 ---Нарисовать подбор матча в прямоугольнике (x, y, w, h).
 function matchmaking.get_formspec(x, y, w, h)
 	state.drawn = os.time()
+	-- Не звали ли нас из Discord. Спрашивается только пока мы никуда не идём:
+	-- бросать в чужую комнату того, кто уже стоит в своей очереди, незачем.
+	if not state.queue then
+		follow_invite()
+	end
 	-- Список приходит от лаунчера позже, чем открывается экран, поэтому замер
 	-- заводится и отсюда: на входе в экран мерить было нечего. Сам он дешёвый —
 	-- пока замер свеж или идёт, вызов ничего не делает.
