@@ -5,9 +5,10 @@
 --------------------------------------------------------------------------------
 -- Shared visual language for every menu.
 --
--- Three surface levels (panel < surface < inset) carry the depth, one warm
+-- Three surface levels (panel < surface < inset) carry the depth, one violet
 -- accent marks the single most important action on a screen, and everything
--- else is neutral. Sizes come from the scales below rather than from numbers
+-- else is neutral. The accent is the game's colour: the same #8b5cf6 lives in
+-- the launcher (ui/theme.slint) and on the site. Sizes come from the scales below rather than from numbers
 -- typed at the call site, so screens keep their proportions when the GUI is
 -- scaled.
 --------------------------------------------------------------------------------
@@ -15,14 +16,14 @@
 menu_style = {}
 
 -- Text
-menu_style.TEXT = "#E8EAED"
-menu_style.TEXT_MUTED = "#8C949E"
-menu_style.TEXT_DIM = "#6E757E"
-menu_style.TEXT_ON_ACCENT = "#F2FFFB"
+menu_style.TEXT = "#E8E6ED"
+menu_style.TEXT_MUTED = "#948C9E"
+menu_style.TEXT_DIM = "#726E7E"
+menu_style.TEXT_ON_ACCENT = "#FFFFFF"
 
 -- Accents
-menu_style.ACCENT = "#7FD6C0"
-menu_style.HEADING = "#7FD6C0"
+menu_style.ACCENT = "#A78BFA"
+menu_style.HEADING = "#A78BFA"
 menu_style.DANGER = "#C05B4D"
 
 -- Hairlines drawn with box[]
