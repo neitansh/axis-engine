@@ -335,7 +335,9 @@ local function poll()
 
 		state.queue = body
 		-- Сколько нас ждёт — видно в профиле у каждого ждущего.
-		presence.in_queue(body.title or body.mode, body.room, body.waiting, body.needed)
+		local server = entry()
+		presence.in_queue(server and server.place or "", body.title or body.mode,
+			body.room, body.waiting, body.needed)
 		if enter(body) then
 			return
 		end

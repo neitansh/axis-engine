@@ -73,10 +73,14 @@ function presence.in_menu()
 	send({ where = "menu" })
 end
 
---- Очередь: сколько ждёт и сколько нужно.
-function presence.in_queue(mode, room, waiting, needed)
+--- Очередь: где, во что, сколько ждёт и сколько нужно.
+---
+--- Место называется вместе с ареной: матчи бывают не только в «Залпе», и по
+--- одному названию арены со стороны не понять, во что игрок играет.
+function presence.in_queue(place, mode, room, waiting, needed)
 	send({
 		where = "queue",
+		place = place or "",
 		mode = mode or "",
 		room = room or "",
 		waiting = waiting or 0,

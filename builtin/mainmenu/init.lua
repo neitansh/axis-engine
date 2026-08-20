@@ -298,7 +298,7 @@ local function tell_where_we_are_going()
 	gamedata.match = nil
 
 	if match then
-		presence.playing({ where = "match", mode = match })
+		presence.playing({ where = "match", place = place_name(), mode = match })
 	elseif gamedata.mode == "join" then
 		presence.playing({ where = "place", name = place_name() })
 	else
