@@ -130,7 +130,7 @@ BY_NAME = {
     # Свой Диспетчер вместо того, что пришёл со списком серверов: тем же
     # порядком потерялся при регенерации.
     "matchmaking_url": "ClientNetwork",
-    "menu_last_game": "ClientSession",
+    "menu_last_place": "ClientSession",
     "world_config_selected_mod": "ClientSession",
     "enable_server": "ClientSession",
     # Not listed in settingtypes.txt at all.
