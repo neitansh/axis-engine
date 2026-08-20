@@ -31,6 +31,56 @@ local make = {}
 --     * Return true if the event was handled, to prevent future components receiving it.
 
 
+-- Разбить строку на строки нужной ширины.
+--
+-- Мерить надпись из Lua нечем, а область-надпись, если текст в неё не влез,
+-- молча его обрезает — так и пропадала половина примечаний. Поэтому переносы
+-- расставляются заранее, по счёту знаков: шрифт в меню один и моноширинный,
+-- так что это деление, а не догадка — на единицу ширины входит около четырёх
+-- с половиной знаков, а примечанием (оно на десятую мельче) — около пяти.
+--
+-- Считаем в меньшую сторону: лишний перенос строку не портит, обрезанная
+-- буква портит.
+local CHARS_PER_UNIT = 4.5
+local NOTE_CHARS_PER_UNIT = 5.0
+local NOTE_LINE_H = 0.4
+local LABEL_LINE_H = 0.42
+
+-- LuaJIT не знает utf8, поэтому длину считаем по ведущим байтам.
+local function utf8_len(text)
+	local n = 0
+	for i = 1, #text do
+		local byte = text:byte(i)
+		if byte < 0x80 or byte >= 0xC0 then
+			n = n + 1
+		end
+	end
+	return n
+end
+
+local function wrap_text(text, width, per_unit)
+	local per_line = math.max(8, math.floor(width * (per_unit or CHARS_PER_UNIT)))
+	local lines, line, line_len = {}, nil, 0
+	for word in text:gmatch("%S+") do
+		local len = utf8_len(word)
+		if not line then
+			line, line_len = word, len
+		elseif line_len + 1 + len <= per_line then
+			line = line .. " " .. word
+			line_len = line_len + 1 + len
+		else
+			lines[#lines + 1] = line
+			line, line_len = word, len
+		end
+	end
+	if line then
+		lines[#lines + 1] = line
+	end
+	return lines
+end
+
+
+
 -- Every ordinary setting is drawn as one row: name (and a short explanation)
 -- on the left, the control that changes it on the right.
 local ROW_H = 0.8
@@ -43,11 +93,14 @@ local RESET_ROOM = 0.65
 -- Разделитель под строкой лежит чуть ниже её самой.
 local DIVIDER_GAP = 0.05
 
-local COLOR_DESC = "#9aa0a6"
+-- Цвета здесь того же холодно-фиолетового ряда, что и всё остальное меню
+-- (см. defaultsettings.cpp): прежние были из синевато-зелёного, и пояснение
+-- выделялось из окна чужим оттенком.
+local COLOR_DESC = "#8E8899"
 -- Пояснение ложится поверх соседних строк, поэтому фон у него глухой:
 -- просвечивающий текст поверх текста не прочесть.
-local COLOR_TIP_BG = "#242B34F5"
-local COLOR_TIP_TEXT = "#E8EAED"
+local COLOR_TIP_BG = "#100D16F5"
+local COLOR_TIP_TEXT = "#E8E6ED"
 local COLOR_HEADING = menu_style.HEADING
 
 
@@ -148,23 +201,29 @@ local function is_valid_number(value)
 end
 
 
--- Geometry of a single row for the given width.
-local function layout(avail_w)
+-- Раскладка одной строки. Высота считается по названию: длинное переносится
+-- на вторую строку, а то и на третью, и в высоту обычной строки оно не
+-- влезает — нижние буквы срезало. Строка растёт под название, разделитель
+-- уезжает вместе с ней, а управление остаётся посередине.
+local function layout(avail_w, label)
 	local control_x = avail_w - CONTROL_W
+	local label_w = math.max(1, control_x - GAP)
+	local lines = label and #wrap_text(label, label_w) or 1
+	local height = math.max(ROW_H, lines * LABEL_LINE_H + 0.2)
 	return {
-		height = ROW_H,
-		label_w = math.max(1, control_x - GAP),
+		height = height,
+		label_w = label_w,
 		control_x = control_x,
 		-- Vertical centre of the control column
-		control_y = ROW_H / 2,
+		control_y = height / 2,
 	}
 end
 
 
 -- Rows report where their control sits so the reset button can line up with it
 -- instead of floating in the middle of a two-line row.
-local function mark_control_line(comp)
-	comp.control_y = ROW_H / 2
+local function mark_control_line(comp, l)
+	comp.control_y = l.control_y
 end
 
 
@@ -174,7 +233,7 @@ end
 local function render_label(l, label, desc, avail_w)
 	local fs = {
 		"style_type[label;valign=center]",
-		("label[0,0;%f,%f;%s]"):format(l.label_w, ROW_H, label),
+		("label[0,0;%f,%f;%s]"):format(l.label_w, l.height, label),
 		"style_type[label;valign=top]",
 	}
 
@@ -182,7 +241,7 @@ local function render_label(l, label, desc, avail_w)
 		-- Область наведения кончается ровно на разделителе, поэтому пояснение
 		-- ложится верхушкой на него и по ширине совпадает с ним же.
 		fs[#fs + 1] = ("tooltip_panel[0,0;%f,%f;%s;%s;%s]"):format(
-			(avail_w or l.label_w) + RESET_ROOM, ROW_H + DIVIDER_GAP,
+			(avail_w or l.label_w) + RESET_ROOM, l.height + DIVIDER_GAP,
 			desc, COLOR_TIP_BG, COLOR_TIP_TEXT)
 	end
 
@@ -238,55 +297,11 @@ function make.unavail_list(settings)
 	}
 end
 
--- Разбить строку на строки нужной ширины.
---
--- Мерить надпись из Lua нечем, а область-надпись, если текст в неё не влез,
--- молча его обрезает — так и пропадала половина примечаний. Поэтому переносы
--- расставляются заранее, по счёту знаков: на единицу ширины уменьшенным
--- шрифтом помещается около пяти с половиной. Берём чуть меньше — лишний
--- перенос ничего не портит, обрезанная строка портит всё.
-local CHARS_PER_UNIT = 7.0
-local NOTE_LINE_H = 0.4
-
--- LuaJIT не знает utf8, поэтому длину считаем по ведущим байтам.
-local function utf8_len(text)
-	local n = 0
-	for i = 1, #text do
-		local byte = text:byte(i)
-		if byte < 0x80 or byte >= 0xC0 then
-			n = n + 1
-		end
-	end
-	return n
-end
-
-local function wrap_text(text, width)
-	local per_line = math.max(8, math.floor(width * CHARS_PER_UNIT))
-	local lines, line, line_len = {}, nil, 0
-	for word in text:gmatch("%S+") do
-		local len = utf8_len(word)
-		if not line then
-			line, line_len = word, len
-		elseif line_len + 1 + len <= per_line then
-			line = line .. " " .. word
-			line_len = line_len + 1 + len
-		else
-			lines[#lines + 1] = line
-			line, line_len = word, len
-		end
-	end
-	if line then
-		lines[#lines + 1] = line
-	end
-	return lines
-end
-
-
 function make.note(text)
 	return {
 		full_width = true,
 		get_formspec = function(self, avail_w)
-			local lines = wrap_text(text, avail_w)
+			local lines = wrap_text(text, avail_w, NOTE_CHARS_PER_UNIT)
 			local h = #lines * NOTE_LINE_H
 			return ("style_type[label;textcolor=%s;font_size=*0.9]" ..
 				"label[0,0;%f,%f;%s]" ..
@@ -313,8 +328,8 @@ local function make_text_entry(converter, validator, stringifier)
 				self.resettable = differs_from_default(setting)
 
 				local desc = get_description(setting)
-				local l = layout(avail_w)
-				mark_control_line(self)
+				local l = layout(avail_w, get_label(setting))
+				mark_control_line(self, l)
 				-- Кнопке нужно место под своё слово: «Set» коротко только
 				-- по-английски, а по-русски это «Назначить», и в прежние
 				-- 0.7 от него влезала половина.
@@ -431,8 +446,8 @@ local function make_slider(is_int)
 				self.resettable = differs_from_default(setting)
 
 				local desc = get_description(setting)
-				local l = layout(avail_w)
-				mark_control_line(self)
+				local l = layout(avail_w, get_label(setting))
+				mark_control_line(self, l)
 				local value_w = 1.25
 				local slider_w = CONTROL_W - value_w - 0.15
 
@@ -506,8 +521,8 @@ function make.bool(setting)
 			self.resettable = differs_from_default(setting)
 
 			local desc = get_description(setting)
-			local l = layout(avail_w)
-			mark_control_line(self)
+			local l = layout(avail_w, get_label(setting))
+			mark_control_line(self, l)
 			local button = "toggle_" .. setting.name
 
 			local fs = {
@@ -550,8 +565,8 @@ function make.enum(setting)
 			end
 
 			local desc = get_description(setting)
-			local l = layout(avail_w)
-			mark_control_line(self)
+			local l = layout(avail_w, get_label(setting))
+			mark_control_line(self, l)
 
 			local fs = {
 				render_label(l, get_label(setting), desc, avail_w),

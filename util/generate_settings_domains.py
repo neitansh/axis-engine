@@ -101,7 +101,6 @@ BY_NAME = {
     "display_density_factor": "ClientGraphics",
     "enable_console": "SharedEngine",
     "enable_remote_media_server": "ClientNetwork",
-    "serverlist_file": "ClientNetwork",
     "ignore_world_load_errors": "ServerServer",
     "map-dir": "ServerServer",
     "max_clearobjects_extra_loaded_blocks": "ServerPerformance",
@@ -134,7 +133,6 @@ BY_NAME = {
     "menu_last_game": "ClientSession",
     "world_config_selected_mod": "ClientSession",
     "enable_server": "ClientSession",
-    "selected_serverlist_file": "ClientSession",
     # Not listed in settingtypes.txt at all.
     "curl_verify_cert": "SharedEngine",
     "debug_platform_ride": "SharedLogging",

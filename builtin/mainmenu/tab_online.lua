@@ -2,56 +2,26 @@
 -- Copyright (C) 2014 sapier
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
+-- Избранного здесь нет намеренно. Список приходит из реестра, и все места в
+-- нём наши: отмечать среди своих же серверов любимые незачем — это осталось от
+-- Luanti, где список публичный и в нём тысячи чужих записей.
 local function get_sorted_servers()
 	local servers = {
-		fav = {},
 		public = {},
 		incompatible = {}
 	}
 
-	local favs = serverlistmgr.get_favorites()
-	local taken_favs = {}
 	local result = menudata.search_result or serverlistmgr.shown
 	for _, server in ipairs(result) do
-		server.is_favorite = false
-		for index, fav in ipairs(favs) do
-			if server.address == fav.address and server.port == fav.port then
-				taken_favs[index] = true
-				server.is_favorite = true
-				break
-			end
-		end
 		server.is_compatible = is_server_protocol_compat(server.proto_min, server.proto_max)
-		if server.is_favorite then
-			table.insert(servers.fav, server)
-		elseif server.is_compatible then
+		if server.is_compatible then
 			table.insert(servers.public, server)
 		else
 			table.insert(servers.incompatible, server)
 		end
 	end
 
-	if not menudata.search_result then
-		for index, fav in ipairs(favs) do
-			if not taken_favs[index] then
-				table.insert(servers.fav, fav)
-			end
-		end
-	end
-
 	return servers
-end
-
-local function is_selected_fav(server)
-	local address = core.settings:get("address")
-	local port = tonumber(core.settings:get("remote_port"))
-
-	for _, fav in ipairs(serverlistmgr.get_favorites()) do
-		if address == fav.address and port == fav.port then
-			return true
-		end
-	end
-	return false
 end
 
 -- Persists the selected server in the "address" and "remote_port" settings
@@ -75,11 +45,6 @@ local function find_selected_server()
 	local address = core.settings:get("address")
 	local port = tonumber(core.settings:get("remote_port"))
 	for _, server in ipairs(serverlistmgr.shown) do
-		if server.address == address and server.port == port then
-			return server
-		end
-	end
-	for _, server in ipairs(serverlistmgr.get_favorites()) do
 		if server.address == address and server.port == port then
 			return server
 		end
@@ -155,15 +120,19 @@ local function get_formspec(tabview, name, tabdata)
 		"container[9.75,0]" ..
 		menu_style.surface(0, 0, 5.75, 6.15) ..
 
+		-- Порту нужно место на все пять цифр и поля по краям: в узкой
+		-- клетке «30000» упиралось в обе стенки и читалось как обрезанное.
+		-- Отобрано у адреса — там запас был.
+		--
 		-- TRANSLATORS: Network address
 		"label[0.25,0.35;" .. fgettext("Address") .. "]" ..
 		-- TRANSLATORS: Network port
-		"label[4.25,0.35;" .. fgettext("Port") .. "]" ..
-		menu_style.inset(0.25, 0.5, 4, 0.75) ..
-		"field[0.35,0.5;3.8,0.75;te_address;;" ..
+		"label[3.95,0.35;" .. fgettext("Port") .. "]" ..
+		menu_style.inset(0.25, 0.5, 3.6, 0.75) ..
+		"field[0.35,0.5;3.4,0.75;te_address;;" ..
 			core.formspec_escape(core.settings:get("address")) .. "]" ..
-		menu_style.inset(4.25, 0.5, 1.25, 0.75) ..
-		"field[4.35,0.5;1.05,0.75;te_port;;" ..
+		menu_style.inset(3.95, 0.5, 1.55, 0.75) ..
+		"field[4.10,0.5;1.25,0.75;te_port;;" ..
 			core.formspec_escape(core.settings:get("remote_port")) .. "]" ..
 
 		-- Description Background
@@ -247,18 +216,6 @@ local function get_formspec(tabview, name, tabdata)
 				"server_view_clients_unavailable.png") .. "]"
 		end
 
-		-- Favorites toggle button
-		if is_selected_fav() then
-			retval = retval .. "tooltip[btn_delete_favorite;" .. fgettext("Remove favorite") .. "]"
-			retval = retval .. "style[btn_delete_favorite;padding=6]"
-			retval = retval .. "image_button[5,1.3;0.5,0.5;" ..
-				core.formspec_escape(defaulttexturedir .. "server_favorite_delete.png") .. ";btn_delete_favorite;]"
-		else
-			retval = retval .. "tooltip[btn_add_favorite;" .. fgettext("Add favorite") .. "]"
-			retval = retval .. "style[btn_add_favorite;padding=6]"
-			retval = retval .. "image_button[5,1.3;0.5,0.5;" ..
-				core.formspec_escape(defaulttexturedir .. "server_favorite.png") .. ";btn_add_favorite;]"
-		end
 	end
 
 	retval = retval .. "container_end[]"
@@ -272,7 +229,6 @@ local function get_formspec(tabview, name, tabdata)
 		"2=" .. core.formspec_escape(defaulttexturedir .. "server_ping_3.png") .. "," ..
 		"3=" .. core.formspec_escape(defaulttexturedir .. "server_ping_2.png") .. "," ..
 		"4=" .. core.formspec_escape(defaulttexturedir .. "server_ping_1.png") .. "," ..
-		"5=" .. core.formspec_escape(defaulttexturedir .. "server_favorite.png") .. "," ..
 		"6=" .. core.formspec_escape(defaulttexturedir .. "server_public.png") .. "," ..
 		"7=" .. core.formspec_escape(defaulttexturedir .. "server_incompatible.png") .. ";" ..
 		"color,span=1;" ..
@@ -296,11 +252,10 @@ local function get_formspec(tabview, name, tabdata)
 	local servers = get_sorted_servers()
 
 	local dividers = {
-		fav = "5,#ffff00," .. fgettext("Favorites") .. ",,,0,0,,",
-		public = "6,#7FD6C0," .. fgettext("Official Servers") .. ",,,0,0,,",
+		public = "6," .. menu_style.ACCENT .. "," .. fgettext("Official Servers") .. ",,,0,0,,",
 		incompatible = "7,"..mt_color_grey.."," .. fgettext("Incompatible Servers") .. ",,,0,0,,"
 	}
-	local order = {"fav", "public", "incompatible"}
+	local order = {"public", "incompatible"}
 
 	tabdata.lookup = {} -- maps row number to server
 	local rows = {}
@@ -521,7 +476,7 @@ local function search_server_list(input, tabdata)
 		end
 	end
 
-	-- Find first compatible server (favorite or public)
+	-- Find first compatible server
 	for _, server in ipairs(search_result) do
 		if is_server_protocol_compat(server.proto_min, server.proto_max) then
 			set_selected_server(server)
@@ -580,19 +535,6 @@ local function main_button_handler(tabview, fields, name, tabdata)
 		end
 	end
 
-	if fields.btn_add_favorite then
-		serverlistmgr.add_favorite(find_selected_server())
-		return true
-	end
-
-	if fields.btn_delete_favorite then
-		local idx = core.get_table_index("servers")
-		if not idx then return end
-
-		serverlistmgr.delete_favorite(tabdata.lookup[idx])
-		set_selected_server(tabdata.lookup[idx+1])
-		return true
-	end
 
 	if fields.btn_server_url then
 		core.open_url_dialog(find_selected_server().url)
@@ -655,18 +597,10 @@ local function main_button_handler(tabview, fields, name, tabdata)
 
 		if server and server.address == gamedata.address and
 				server.port == gamedata.port then
-
-			serverlistmgr.add_favorite(server)
-
 			if not is_server_protocol_compat_or_error(
 						server.proto_min, server.proto_max) then
 				return true
 			end
-		else
-			serverlistmgr.add_favorite({
-				address = gamedata.address,
-				port = gamedata.port,
-			})
 		end
 
 		core.settings:set("address",     gamedata.address)

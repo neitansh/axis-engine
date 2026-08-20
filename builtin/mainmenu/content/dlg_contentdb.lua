@@ -299,7 +299,7 @@ local function get_formspec(dlgdata)
 	end
 
 	-- download/queued tooltips always have the same message
-	local tooltip_colors = ";#dff6f5;#302c2e]"
+	local tooltip_colors = ";#100D16;#E8E6ED]"
 	formspec[#formspec + 1] = "tooltip[downloading;" .. fgettext("Downloading...") .. tooltip_colors
 	-- TRANSLATORS: A download is queued
 	formspec[#formspec + 1] = "tooltip[queued;" .. fgettext("Queued") .. tooltip_colors

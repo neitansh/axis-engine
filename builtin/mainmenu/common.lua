@@ -114,7 +114,7 @@ function render_serverlist_row(spec)
 
 	table.insert(details, ",")
 
-	local color = (grey_out and "#aaaaaa") or ((spec.is_favorite and "#ddddaa") or "#ffffff")
+	local color = grey_out and "#aaaaaa" or "#ffffff"
 	if spec.clients and (spec.clients_max or 0) > 0 then
 		local clients_percent = 100 * spec.clients / spec.clients_max
 

@@ -526,7 +526,6 @@ return {
 	["server_side_occlusion_culling"] = { text = S("Let the server skip sending pieces of the world hidden behind others. Saves traffic."), load = "low" },
 	["server_unload_unused_data_timeout"] = { text = S("How long the server keeps a piece of the world nobody is near.") },
 	["server_url"] = { text = S("A website of your server, if there is one.") },
-	["serverlist_file"] = { text = S("The file your favourite servers are stored in.") },
 	["serverlist_url"] = { text = S("Where the list of public servers comes from.") },
 	["shader_path"] = { text = S("Folder the drawing programs are loaded from. Leave empty unless you are writing your own.") },
 	["shadow_filters"] = { text = S("How soft the shadow edges are. Softer edges look nicer and cost frames."), load = "medium" },

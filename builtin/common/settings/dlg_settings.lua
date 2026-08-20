@@ -670,6 +670,31 @@ end
 local formspec_show_hack = false
 
 
+-- Ужать экран под окно, если окно меньше.
+--
+-- В главном меню формспек не подгоняется под окно: размер там закреплён
+-- (GUIEngine зовёт lockSize), чтобы меню не прыгало при каждом растягивании.
+-- Расплата — окно меньше экрана настроек срезает лишнее краем: заголовок
+-- уезжает вверх, кнопка «Назад» вниз, и часть строк не видно вовсе.
+--
+-- Поэтому меряем окно сами и ужимаем экран до него. Списки внутри уже со
+-- своими полосами прокрутки, так что теснота им не страшна: строк видно
+-- меньше, но видно их целиком. Ниже пола не опускаемся — там уже не экран,
+-- а щель, и подгонять под неё нечего.
+local FLOOR_W, FLOOR_H = 10, 6
+
+local function fit_to_window(tabsize, extra_h)
+	-- Окно меряется только в главном меню: в паузе формспек подгоняется
+	-- движком сам, и мерить нечем — get_window_info там нет.
+	if INIT ~= "mainmenu" then
+		return
+	end
+	local room = core.get_window_info().max_formspec_size
+	tabsize.width = math.min(tabsize.width, math.max(room.x, FLOOR_W))
+	tabsize.height = math.min(tabsize.height, math.max(room.y - extra_h, FLOOR_H))
+end
+
+
 local function get_formspec(dialogdata)
 	local page_id = dialogdata.page_id or "graphics"
 	local page = filtered_page_by_id[page_id]
@@ -679,6 +704,8 @@ local function get_formspec(dialogdata)
 		width = core.settings:get_bool("touch_gui") and 16.5 or 15.5,
 		height = core.settings:get_bool("touch_gui") and (10 - extra_h) or 12,
 	}
+
+	fit_to_window(tabsize, extra_h)
 
 	local scrollbar_w = core.settings:get_bool("touch_gui") and 0.6 or 0.4
 

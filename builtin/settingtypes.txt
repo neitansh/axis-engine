@@ -2615,10 +2615,6 @@ map_compression_level_disk (Map Compression Level for Disk Storage) [server] int
 #    when connecting to the server.
 enable_remote_media_server (Connect to external media server) [client] bool true
 
-#    File in client/serverlist/ that contains your favorite servers displayed in the
-#    Multiplayer Tab.
-serverlist_file (Serverlist file) [client] string favoriteservers.json
-
 
 [*Hide: Temporary Settings] [common]
 

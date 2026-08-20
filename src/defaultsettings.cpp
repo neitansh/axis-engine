@@ -329,25 +329,29 @@ void set_default_settings()
 	settings->setDefault("hud_scaling", "1.0");
 	settings->setDefault("gui_scaling", "1.0");
 
-	// Menu palette, see ClientLauncher::config_guienv
+	// Menu palette, see ClientLauncher::config_guienv.
+	//
+	// Цвет игры — фиолетовый (#8b5cf6): тот же в лаунчере (ui/theme.slint), на
+	// сайте и в плитках меню. Здесь он живёт приглушённым: выделение строки и
+	// фокус поля не должны спорить с кнопкой, у которой цвет полный.
 	settings->setDefault("gui_color_symbol", "#FFFFFF");
-	settings->setDefault("gui_color_button_text", "#E8EAED");
-	settings->setDefault("gui_color_face", "#171A1F");
+	settings->setDefault("gui_color_button_text", "#E8E6ED");
+	settings->setDefault("gui_color_face", "#1B1823");
 	settings->setDefault("gui_color_light", "#00000000");
 	// Фон списков и таблиц. Полупрозрачным он быть не может: раскрытый список
 	// выбора ложится поверх строк, и сквозь него читалось то, что под ним.
-	settings->setDefault("gui_color_high_light", "#1E242C");
+	settings->setDefault("gui_color_high_light", "#241F30");
 	settings->setDefault("gui_color_shadow", "#00000099");
 	settings->setDefault("gui_color_dark_shadow", "#000000CC");
-	settings->setDefault("gui_color_scrollbar", "#5A6068");
-	settings->setDefault("gui_color_selection", "#2C6255");
-	settings->setDefault("gui_color_selection_text", "#E8EAED");
-	settings->setDefault("gui_color_editable", "#0C0E11");
-	settings->setDefault("gui_color_editable_focused", "#14312B");
-	settings->setDefault("gui_color_editable_disabled", "#1A1D21");
-	settings->setDefault("gui_color_text_disabled", "#6E757E");
-	settings->setDefault("gui_color_tooltip_text", "#E8EAED");
-	settings->setDefault("gui_color_tooltip", "#0C0E11F2");
+	settings->setDefault("gui_color_scrollbar", "#5D5668");
+	settings->setDefault("gui_color_selection", "#4A3A8C");
+	settings->setDefault("gui_color_selection_text", "#E8E6ED");
+	settings->setDefault("gui_color_editable", "#100D16");
+	settings->setDefault("gui_color_editable_focused", "#2A2145");
+	settings->setDefault("gui_color_editable_disabled", "#1D1A24");
+	settings->setDefault("gui_color_text_disabled", "#726E7E");
+	settings->setDefault("gui_color_tooltip_text", "#E8E6ED");
+	settings->setDefault("gui_color_tooltip", "#100D16F2");
 	settings->setDefault("gui_scaling_filter", "false");
 	settings->setDefault("smooth_scrolling", "true");
 	settings->setDefault("hud_hotbar_max_width", "1.0");
@@ -475,7 +479,6 @@ void set_default_settings()
 
 	// Main menu
 	settings->setDefault("main_menu_path", "");
-	settings->setDefault("serverlist_file", "favoriteservers.json");
 
 	// General font settings
 	settings->setDefault("font_path", porting::getDataPath("fonts" DIR_DELIM "DepartureMono-Regular.otf"));
