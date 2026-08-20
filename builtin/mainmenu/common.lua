@@ -82,6 +82,13 @@ function estimate_continent_latency(own, spec)
 	return latency_matrix[there][own] or latency_matrix[own][there]
 end
 
+-- Одна строка списка серверов.
+--
+-- Строка говорит четыре вещи, и все четыре — про то, идти туда или нет: как
+-- отвечает (полоски и число), как зовётся и сколько там народу. Флажков
+-- «творческий режим» и «урон» здесь нет: их сообщал публичный список Luanti,
+-- которого у нас нет, а два пустых столбца в полторы клетки каждый разгоняли
+-- имя сервера на середину строки.
 function render_serverlist_row(spec)
 	local text = ""
 	if spec.name then
@@ -94,67 +101,61 @@ function render_serverlist_row(spec)
 	end
 
 	local grey_out = not spec.is_compatible
+	local color = grey_out and "#aaaaaa" or "#ffffff"
 
 	local details = {}
 
+	-- Полоски отклика. Ноль — «не мерили или не ответил», и это пустые серые
+	-- полоски, а не пустое место: по ним видно, что отклик здесь вообще
+	-- показывают, просто этого пока не знают.
+	local bars = "0"
 	if spec.lag or spec.ping then
 		local lag = (spec.lag or 0) * 1000 + (spec.ping or 0) * 250
 		if lag <= 125 then
-			table.insert(details, "1")
+			bars = "1"
 		elseif lag <= 175 then
-			table.insert(details, "2")
+			bars = "2"
 		elseif lag <= 250 then
-			table.insert(details, "3")
+			bars = "3"
 		else
-			table.insert(details, "4")
+			bars = "4"
 		end
-	else
-		table.insert(details, "0")
 	end
+	table.insert(details, bars)
 
-	table.insert(details, ",")
+	-- Имя сервера вместе со входом: «Mineclonia · Россия».
+	table.insert(details, color)
+	table.insert(details, text)
 
-	local color = grey_out and "#aaaaaa" or "#ffffff"
+	-- Сколько народу. Известно это от того же замера, что и отклик, — молчание
+	-- сервера оставляет клетку пустой, и это честнее прочерка.
 	if spec.clients and (spec.clients_max or 0) > 0 then
 		local clients_percent = 100 * spec.clients / spec.clients_max
 
-		-- Choose a color depending on how many clients are connected
-		-- (relatively to clients_max)
+		-- Цвет по заполненности: пустой сервер зовёт не так, как забитый.
 		local clients_color
-		if     grey_out		      then clients_color = '#aaaaaa'
-		elseif spec.clients == 0      then clients_color = ''        -- 0 players: default/white
-		elseif clients_percent <= 60  then clients_color = '#a1e587' -- 0-60%: green
-		elseif clients_percent <= 90  then clients_color = '#ffdc97' -- 60-90%: yellow
-		elseif clients_percent == 100 then clients_color = '#dd5b5b' -- full server: red (darker)
-		else                               clients_color = '#ffba97' -- 90-100%: orange
+		if     grey_out               then clients_color = "#aaaaaa"
+		elseif spec.clients == 0      then clients_color = ""
+		elseif clients_percent <= 60  then clients_color = "#a1e587"
+		elseif clients_percent <= 90  then clients_color = "#ffdc97"
+		elseif clients_percent == 100 then clients_color = "#dd5b5b"
+		else                               clients_color = "#ffba97"
 		end
 
 		table.insert(details, clients_color)
 		table.insert(details, render_client_count(spec.clients) .. " / " ..
 			render_client_count(spec.clients_max))
 	else
-		-- Player counts come from a public server list, which Axis does not
-		-- use. An empty cell is honest; a question mark just looks broken.
 		table.insert(details, color)
 		table.insert(details, "")
 	end
 
-	if spec.creative then
-		table.insert(details, "1") -- creative icon
-	else
-		table.insert(details, "0")
-	end
-
-	if spec.pvp then
-		table.insert(details, "2") -- pvp icon
-	elseif spec.damage then
-		table.insert(details, "1") -- heart icon
-	else
-		table.insert(details, "0")
-	end
-
-	table.insert(details, color)
-	table.insert(details, text)
+	-- Отклик числом. Полоски говорят «хорошо или плохо», число — насколько:
+	-- между сорока и ста двадцатью миллисекундами полоска одна и та же, а
+	-- играется по-разному.
+	table.insert(details, grey_out and "#aaaaaa" or "#948C9E")
+	table.insert(details, spec.ping and
+		fgettext("$1 ms", tostring(math.floor(spec.ping * 1000 + 0.5))) or "")
 
 	return table.concat(details, ",")
 end

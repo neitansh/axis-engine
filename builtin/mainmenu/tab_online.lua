@@ -283,10 +283,14 @@ local function get_formspec(tabview, name, tabdata)
 	retval = retval .. "container_end[]"
 
 	-- Table
+	-- Столбцы под то, что у нас есть на самом деле: отклик, имя, народ, число
+	-- миллисекунд. Флажки творческого режима и урона отсюда ушли — их сообщал
+	-- публичный список Luanti, и без него они были двумя пустыми столбцами,
+	-- разгонявшими имя сервера на середину строки.
 	retval = retval .. "tablecolumns[" ..
 		-- TRANSLATORS: Also known as "latency"
 		"image,tooltip=" .. fgettext("Ping") .. "," ..
-		"0=" .. core.formspec_escape(defaulttexturedir .. "blank.png") .. "," ..
+		"0=" .. core.formspec_escape(defaulttexturedir .. "server_ping_0.png") .. "," ..
 		"1=" .. core.formspec_escape(defaulttexturedir .. "server_ping_4.png") .. "," ..
 		"2=" .. core.formspec_escape(defaulttexturedir .. "server_ping_3.png") .. "," ..
 		"3=" .. core.formspec_escape(defaulttexturedir .. "server_ping_2.png") .. "," ..
@@ -295,22 +299,21 @@ local function get_formspec(tabview, name, tabdata)
 		"6=" .. core.formspec_escape(defaulttexturedir .. "server_official.png") .. "," ..
 		"7=" .. core.formspec_escape(defaulttexturedir .. "server_incompatible.png") .. "," ..
 		"8=" .. core.formspec_escape(defaulttexturedir .. "server_public.png") .. ";" ..
+		-- Столбцы не «inline»: у inline правый край у каждой строки свой, и
+		-- числа стояли лесенкой сразу за именем, кто где. Обычный столбец
+		-- ровняется по самому широкому в нём, поэтому и народ, и отклик
+		-- выстраиваются в колонку, а числа в них — по правому краю.
 		"color,span=1;" ..
-		"text,align=inline;"..
+		-- Ширина здесь в «em» — в ширине буквы M, а не в клетках формспека.
+		-- Имени её отмерено с запасом: столбец шире самого длинного имени,
+		-- поэтому народ и отклик стоят у правого края списка, а не жмутся к
+		-- имени, оставляя полсписка пустым.
+		"text,width=28,padding=0.5;" ..
 		"color,span=1;" ..
-		"text,align=inline,width=4.25;" ..
-		"image,tooltip=" .. fgettext("Creative mode") .. "," ..
-		"0=" .. core.formspec_escape(defaulttexturedir .. "blank.png") .. "," ..
-		"1=" .. core.formspec_escape(defaulttexturedir .. "server_flags_creative.png") .. "," ..
-		"align=inline,padding=0.25,width=1.5;" ..
-		-- TRANSLATORS: PvP = Player versus Player
-		"image,tooltip=" .. fgettext("Damage / PvP") .. "," ..
-		"0=" .. core.formspec_escape(defaulttexturedir .. "blank.png") .. "," ..
-		"1=" .. core.formspec_escape(defaulttexturedir .. "server_flags_damage.png") .. "," ..
-		"2=" .. core.formspec_escape(defaulttexturedir .. "server_flags_pvp.png") .. "," ..
-		"align=inline,padding=0.25,width=1.5;" ..
-		"color,align=inline,span=1;" ..
-		"text,align=inline,padding=1]" ..
+		-- TRANSLATORS: Number of players on a server
+		"text,tooltip=" .. fgettext("Players") .. ",align=right,width=7,padding=1;" ..
+		"color,span=1;" ..
+		"text,align=right,width=7,padding=1]" ..
 		"table[0.25,1;9.25,5.45;servers;"
 
 	local servers = get_sorted_servers()
@@ -318,10 +321,10 @@ local function get_formspec(tabview, name, tabdata)
 	-- Заголовки разделов. Цвет разделяет их с одного взгляда: любимое —
 	-- тёплым, наше — цветом игры, чужое и несовместимое — приглушённым.
 	local dividers = {
-		fav = "5,#F2C14E," .. fgettext("Favorites") .. ",,,0,0,,",
-		official = "6," .. menu_style.ACCENT .. "," .. fgettext("Official Servers") .. ",,,0,0,,",
-		community = "8,#8E8899," .. fgettext("Community Servers") .. ",,,0,0,,",
-		incompatible = "7,"..mt_color_grey.."," .. fgettext("Incompatible Servers") .. ",,,0,0,,"
+		fav = "5,#F2C14E," .. fgettext("Favorites") .. ",,,,",
+		official = "6," .. menu_style.ACCENT .. "," .. fgettext("Official Servers") .. ",,,,",
+		community = "8,#8E8899," .. fgettext("Community Servers") .. ",,,,",
+		incompatible = "7,"..mt_color_grey.."," .. fgettext("Incompatible Servers") .. ",,,,"
 	}
 	local order = {"fav", "official", "community", "incompatible"}
 
