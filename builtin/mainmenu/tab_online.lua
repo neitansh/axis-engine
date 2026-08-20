@@ -76,26 +76,47 @@ local function find_selected_server()
 end
 
 -- Экран ведёт в игру двумя дорогами: подбором матча и списком серверов.
--- Полоска сверху переключает их, всё остальное живёт под ней.
-local STRIP_H = 0.75
-local STRIP_GAP = 0.2
+-- Переключают их закладки над карточкой — те самые, что торчат из книги.
+-- Рисуются они в отрицательных координатах, то есть выше верхнего края
+-- карточки: место над ней занимает заголовок меню, и закладке там просторно.
+-- Внутри карточки их не рисуют намеренно — полоска кнопок съедала строку
+-- списка и читалась как часть содержимого, а не как переключатель страниц.
+local TAB_W = 2.8
+local TAB_GAP = 0.2
+local TAB_X = 0.25
+-- Насколько закладка торчит над карточкой. Открытая выше закрытых — этим она
+-- и видна, не считая цвета.
+local TAB_UP = 0.7
+local TAB_UP_IDLE = 0.55
+-- Первое, что видно на открытой закладке, — полоска цветом игры по верхнему
+-- краю. «Вы здесь» так понятно, не читая.
+local TAB_EDGE = 0.06
+-- Насколько закладка заходит под карточку. Кнопка рисует подложку чуть уже
+-- своего места, и между закладкой и карточкой оставалась щель — сквозь неё
+-- виден мир, и книга разваливалась на две части.
+local TAB_INTO = 0.04
+
+-- Содержимое начинается сразу под верхним краем карточки: закладки места
+-- внутри неё больше не занимают.
+local CONTENT_TOP = 0.35
 
 local function mode_strip(tabdata)
-	local w = 2.6
 	local fs = {}
 	local modes = {
 		{ id = "matches", label = fgettext("Matches") },
 		{ id = "servers", label = fgettext("Server List") },
 	}
 	for i, mode in ipairs(modes) do
-		local x = 0.25 + (i - 1) * (w + 0.15)
-		if tabdata.mode == mode.id then
-			fs[#fs + 1] = menu_style.selected("mode_" .. mode.id)
-		else
-			fs[#fs + 1] = menu_style.ghost("mode_" .. mode.id)
+		local x = TAB_X + (i - 1) * (TAB_W + TAB_GAP)
+		local open = tabdata.mode == mode.id
+		local up = open and TAB_UP or TAB_UP_IDLE
+		fs[#fs + 1] = menu_style.tab("mode_" .. mode.id, open)
+		fs[#fs + 1] = ("button[%f,%f;%f,%f;mode_%s;%s]")
+			:format(x, -up, TAB_W, up + TAB_INTO, mode.id, mode.label)
+		if open then
+			fs[#fs + 1] = ("box[%f,%f;%f,%f;%s]")
+				:format(x, -up, TAB_W, TAB_EDGE, menu_style.ACCENT)
 		end
-		fs[#fs + 1] = ("button[%f,0.25;%f,%f;mode_%s;%s]")
-			:format(x, w, STRIP_H, mode.id, mode.label)
 	end
 	return table.concat(fs)
 end
@@ -109,10 +130,9 @@ local function get_formspec(tabview, name, tabdata)
 		tabdata.mode = "matches"
 	end
 
-	local shift = 0.25 + STRIP_H + STRIP_GAP
 	if tabdata.mode == "matches" then
 		return mode_strip(tabdata) ..
-			matchmaking.get_formspec(0.25, shift, 15, 7.1 - shift - 0.25)
+			matchmaking.get_formspec(0.25, CONTENT_TOP, 15, 7.1 - CONTENT_TOP - 0.25)
 	end
 
 	if not tabdata.search_for then
@@ -120,9 +140,11 @@ local function get_formspec(tabview, name, tabdata)
 	end
 
 	local retval = mode_strip(tabdata) ..
-		("container[0,%f]"):format(STRIP_H + STRIP_GAP) ..
-		-- Search
-		"field[0.25,0.25;7,0.75;te_search;;" .. core.formspec_escape(tabdata.search_for) .. "]" ..
+		("container[0,%f]"):format(CONTENT_TOP) ..
+		-- Поиск. Врезка под ним не украшение: без неё поле было прозрачным и
+		-- невидимым до первого щелчка — не понять, что туда вообще пишут.
+		menu_style.inset(0.25, 0.25, 7, 0.75) ..
+		"field[0.35,0.25;6.8,0.75;te_search;;" .. core.formspec_escape(tabdata.search_for) .. "]" ..
 		"tooltip[te_search;" .. core.formspec_escape(table.concat({
 				fgettext("Possible filters"),
 				"place:<name>",
@@ -142,7 +164,7 @@ local function get_formspec(tabview, name, tabdata)
 		"container_end[]" ..
 
 		"container[9.75,0]" ..
-		menu_style.surface(0, 0, 5.75, 6.15) ..
+		menu_style.surface(0, 0, 5.75, 6.75) ..
 
 		-- Порту нужно место на все пять цифр и поля по краям: в узкой
 		-- клетке «30000» упиралось в обе стенки и читалось как обрезанное.
@@ -161,7 +183,7 @@ local function get_formspec(tabview, name, tabdata)
 
 		-- Description Background
 		"label[0.25,1.6;" .. fgettext("Server Description") .. "]" ..
-		menu_style.inset(0.25, 1.85, 5.25, 2.7)
+		menu_style.inset(0.25, 1.85, 5.25, 3.3)
 
 	-- Ни имени, ни пароля здесь больше нет: игрок доказывает, кто он, билетом,
 	-- а билет выписывает axis-auth по сессии лаунчера. Имя приходит вместе с
@@ -172,17 +194,17 @@ local function get_formspec(tabview, name, tabdata)
 	-- второе ничего не ускорит (см. core.waiting_for_ticket).
 	if core.waiting_for_ticket() then
 		retval = retval ..
-				"button[3,5.05;2.5,0.75;btn_mp_waiting;" .. fgettext("Connecting…") .. "]"
+				"button[3,5.65;2.5,0.75;btn_mp_waiting;" .. fgettext("Connecting…") .. "]"
 	else
 		retval = retval .. menu_style.accent("btn_mp_login") ..
-				"button[3,5.05;2.5,0.75;btn_mp_login;" .. fgettext("Join") .. "]"
+				"button[3,5.65;2.5,0.75;btn_mp_login;" .. fgettext("Join") .. "]"
 	end
 
 	local selected_server = find_selected_server()
 
 	if selected_server then
 		if selected_server.description then
-			retval = retval .. "textarea[0.25,1.85;5.25,2.7;;;" ..
+			retval = retval .. "textarea[0.25,1.85;5.25,3.3;;;" ..
 				core.formspec_escape(selected_server.description) .. "]"
 		end
 
@@ -289,7 +311,7 @@ local function get_formspec(tabview, name, tabdata)
 		"align=inline,padding=0.25,width=1.5;" ..
 		"color,align=inline,span=1;" ..
 		"text,align=inline,padding=1]" ..
-		"table[0.25,1;9.25,4.85;servers;"
+		"table[0.25,1;9.25,5.45;servers;"
 
 	local servers = get_sorted_servers()
 

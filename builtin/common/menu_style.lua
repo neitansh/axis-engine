@@ -126,6 +126,24 @@ function menu_style.selected_mark(x, y, w, h)
 end
 
 
+--- Закладка над карточкой — как в книге, а не полоска кнопок внутри неё.
+---
+--- Открытая одного цвета с карточкой под ней и торчит выше остальных: это её
+--- страница и есть, только загнутый край. Закрытые утоплены и приглушены —
+--- по одному их виду понятно, что там сейчас не смотрят.
+function menu_style.tab(names, open)
+	if open then
+		return ("style[%s;bgimg=%s;bgimg_hovered=%s;bgimg_pressed=%s;bgimg_middle=%d;" ..
+				"border=false;textcolor=%s]"):format(
+			names, tex("axis_panel.png"), tex("axis_panel.png"),
+			tex("axis_panel.png"), PANEL_MIDDLE, menu_style.TEXT)
+	end
+	return ("style[%s;bgimg=%s;bgimg_hovered=%s;bgimg_pressed=%s;bgimg_middle=%d;" ..
+			"border=false;textcolor=%s]"):format(
+		names, tex("axis_surface.png"), tex("axis_button_hover.png"),
+		tex("axis_button_pressed.png"), SURFACE_MIDDLE, menu_style.TEXT_MUTED)
+end
+
 --- Icon-only buttons: no 9-slice, which would eat the room the icon needs.
 function menu_style.icon(names)
 	return ("style[%s;bgimg=;bgimg_hovered=;bgimg_pressed=;border=false;" ..
