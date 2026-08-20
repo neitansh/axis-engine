@@ -16,12 +16,19 @@
 ## What is Axis?
 
 Axis is a voxel game engine. It builds as `axis` (client) and `axisserver`
-(dedicated server), exposes its Lua API under the `axis` namespace, and is
-developed as a single engine plus the games built on top of it — rather than as
-a general-purpose platform for arbitrary third-party content.
-
-The engine is written in C++ with a Lua modding API, and runs on GNU/Linux,
+(dedicated server), and exposes its Lua API under the `axis` namespace. The
+engine is written in C++ with a Lua modding API, and runs on GNU/Linux,
 Windows, macOS and Android.
+
+This repository is the engine. Around it there is a platform of the same name —
+accounts, matchmaking, a launcher and the places people play in — and that part
+is a separate, closed service; only the engine is open. The first place on it is
+Salvo, a tactical shooter played in matches.
+
+Third-party places are the goal, not the current state: today the places are
+ours, and the engine is developed together with them rather than as a
+general-purpose host for arbitrary content. What changes when that opens up is
+who writes a place, not how the engine is built.
 
 ## Relationship with Luanti
 
