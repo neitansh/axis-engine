@@ -9,6 +9,7 @@
 #include "irr_v2d.h"
 #include "util/base64.h"
 #include "client/camera.h"
+#include "camera_impulse.h"
 #include "client/mesh_generator_thread.h"
 #include "chatmessage.h"
 #include "client/clientmedia.h"
@@ -2018,26 +2019,26 @@ void Client::handleCommand_CameraImpulse(NetworkPacket *pkt)
 	*pkt >> kind;
 
 	switch (kind) {
-	case 0: { // отдача
+	case CameraImpulse::ROTATE: {
 		f32 pitch, yaw, roll, stiffness, damping;
 		*pkt >> pitch >> yaw >> roll >> stiffness >> damping;
-		player->camera_fx.addRecoil(v3f(pitch, yaw, roll), stiffness, damping);
+		player->camera_fx.addRotation(v3f(pitch, yaw, roll), stiffness, damping);
 		break;
 	}
-	case 1: { // удар взрывной волны
+	case CameraImpulse::PUSH: {
 		f32 pitch, yaw, roll, x, y, z, stiffness, damping;
 		*pkt >> pitch >> yaw >> roll >> x >> y >> z >> stiffness >> damping;
-		player->camera_fx.addBlast(v3f(pitch, yaw, roll), v3f(x, y, z),
+		player->camera_fx.addPush(v3f(pitch, yaw, roll), v3f(x, y, z),
 				stiffness, damping);
 		break;
 	}
-	case 2: { // дрожь
+	case CameraImpulse::OSCILLATE: {
 		f32 amplitude, frequency, decay, duration;
 		*pkt >> amplitude >> frequency >> decay >> duration;
-		player->camera_fx.addShake(amplitude, frequency, decay, duration);
+		player->camera_fx.addOscillation(amplitude, frequency, decay, duration);
 		break;
 	}
-	case 3: // сброс
+	case CameraImpulse::CLEAR:
 		player->camera_fx.reset();
 		break;
 	default:

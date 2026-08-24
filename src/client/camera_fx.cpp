@@ -26,12 +26,12 @@ constexpr f32 FX_MAX_CATCHUP = 0.25f;
 constexpr f32 FX_REST_VALUE = 1.0e-5f;
 constexpr f32 FX_REST_VELOCITY = 1.0e-4f;
 
-// Оси дрожи разведены по частоте и фазе. Одинаковые числа дали бы движение по
-// одной прямой — то есть покачивание, а не тряску.
-constexpr f32 SHAKE_FREQ[3] = { 1.0f, 0.83f, 1.31f };
-constexpr f32 SHAKE_PHASE[3] = { 0.0f, 1.7f, 3.9f };
+// Оси колебаний разведены по частоте и фазе. Одинаковые числа дали бы движение
+// по одной прямой — то есть покачивание, а не тряску.
+constexpr f32 OSC_FREQ[3] = { 1.0f, 0.83f, 1.31f };
+constexpr f32 OSC_PHASE[3] = { 0.0f, 1.7f, 3.9f };
 // Крен виден сильнее прочего, поэтому его берём вполовину.
-constexpr f32 SHAKE_AXIS[3] = { 1.0f, 0.8f, 0.5f };
+constexpr f32 OSC_AXIS[3] = { 1.0f, 0.8f, 0.5f };
 
 } // namespace
 
@@ -60,42 +60,42 @@ bool CameraFx::Spring::isResting() const
 			velocity.getLengthSQ() < FX_REST_VELOCITY * FX_REST_VELOCITY;
 }
 
-void CameraFx::addRecoil(v3f impulse, f32 stiffness, f32 damping)
+void CameraFx::addRotation(v3f impulse, f32 stiffness, f32 damping)
 {
-	m_recoil.kick(impulse, stiffness, damping);
+	m_rotation.kick(impulse, stiffness, damping);
 }
 
-void CameraFx::addBlast(v3f rot_impulse, v3f pos_impulse, f32 stiffness, f32 damping)
+void CameraFx::addPush(v3f rot_impulse, v3f pos_impulse, f32 stiffness, f32 damping)
 {
-	m_blast_rot.kick(rot_impulse, stiffness, damping);
-	m_blast_pos.kick(pos_impulse, stiffness, damping);
+	m_push_rot.kick(rot_impulse, stiffness, damping);
+	m_push_pos.kick(pos_impulse, stiffness, damping);
 }
 
-void CameraFx::addShake(f32 amplitude, f32 frequency, f32 decay, f32 duration)
+void CameraFx::addOscillation(f32 amplitude, f32 frequency, f32 decay, f32 duration)
 {
 	if (amplitude <= 0.0f || duration <= 0.0f)
 		return;
-	// Их может накопиться сколько угодно — очередь взрывов складывается сама,
-	// — но держать бесконечный список незачем: самые слабые уже не видны.
-	if (m_shakes.size() >= 16)
-		m_shakes.erase(m_shakes.begin());
-	m_shakes.push_back(Shake{ amplitude, frequency, decay, duration, 0.0f });
+	// Их может накопиться сколько угодно — толчки складываются сами, — но
+	// держать бесконечный список незачем: самые слабые уже не видны.
+	if (m_oscillations.size() >= 16)
+		m_oscillations.erase(m_oscillations.begin());
+	m_oscillations.push_back(Oscillation{ amplitude, frequency, decay, duration, 0.0f });
 }
 
 void CameraFx::reset()
 {
-	m_recoil.reset();
-	m_blast_rot.reset();
-	m_blast_pos.reset();
-	m_shakes.clear();
+	m_rotation.reset();
+	m_push_rot.reset();
+	m_push_pos.reset();
+	m_oscillations.clear();
 	m_leftover = 0.0f;
 }
 
-f32 CameraFx::getShakeAmplitude() const
+f32 CameraFx::getOscillationAmplitude() const
 {
 	f32 total = 0.0f;
-	for (const Shake &shake : m_shakes)
-		total += shake.amplitude * std::exp(-shake.decay * shake.time);
+	for (const Oscillation &osc : m_oscillations)
+		total += osc.amplitude * std::exp(-osc.decay * osc.time);
 	return total;
 }
 
@@ -108,49 +108,49 @@ CameraFx::Result CameraFx::step(f32 dtime)
 		const int steps = (int)(m_leftover / FX_STEP);
 		m_leftover -= steps * FX_STEP;
 
-		const bool recoil_active = !m_recoil.isResting();
-		const bool blast_active = !m_blast_rot.isResting() || !m_blast_pos.isResting();
+		const bool rotation_active = !m_rotation.isResting();
+		const bool push_active = !m_push_rot.isResting() || !m_push_pos.isResting();
 		for (int i = 0; i < steps; i++) {
-			if (recoil_active)
-				m_recoil.step(FX_STEP);
-			if (blast_active) {
-				m_blast_rot.step(FX_STEP);
-				m_blast_pos.step(FX_STEP);
+			if (rotation_active)
+				m_rotation.step(FX_STEP);
+			if (push_active) {
+				m_push_rot.step(FX_STEP);
+				m_push_pos.step(FX_STEP);
 			}
 		}
-		if (!recoil_active)
-			m_recoil.reset();
-		if (!blast_active) {
-			m_blast_rot.reset();
-			m_blast_pos.reset();
+		if (!rotation_active)
+			m_rotation.reset();
+		if (!push_active) {
+			m_push_rot.reset();
+			m_push_pos.reset();
 		}
 	}
 
 	// Пружины считаются в радианах, камера ждёт градусы.
-	result.rotation = (m_recoil.value + m_blast_rot.value) * core::RADTODEG;
-	result.offset = m_blast_pos.value;
+	result.rotation = (m_rotation.value + m_push_rot.value) * core::RADTODEG;
+	result.offset = m_push_pos.value;
 
-	// Дрожь — замкнутая формула от собственного времени события, а не шаг
-	// интегрирования: время кадра на неё не влияет вовсе.
-	for (size_t i = 0; i < m_shakes.size();) {
-		Shake &shake = m_shakes[i];
-		shake.time += dtime;
-		if (shake.time >= shake.duration) {
-			m_shakes.erase(m_shakes.begin() + i);
+	// Колебания — замкнутая формула от собственного времени события, а не шаг
+	// интегрирования: время кадра на них не влияет вовсе.
+	for (size_t i = 0; i < m_oscillations.size();) {
+		Oscillation &osc = m_oscillations[i];
+		osc.time += dtime;
+		if (osc.time >= osc.duration) {
+			m_oscillations.erase(m_oscillations.begin() + i);
 			continue;
 		}
 
-		const f32 envelope = shake.amplitude * std::exp(-shake.decay * shake.time);
+		const f32 envelope = osc.amplitude * std::exp(-osc.decay * osc.time);
 		// Хвост события гасим ещё и линейно, иначе на последнем кадре
 		// колебание обрывается посередине и это читается как щелчок.
-		const f32 tail = 1.0f - shake.time / shake.duration;
+		const f32 tail = 1.0f - osc.time / osc.duration;
 		const f32 gain = envelope * tail * tail;
-		const f32 phase = 2.0f * (f32)M_PI * shake.frequency * shake.time;
+		const f32 phase = 2.0f * (f32)M_PI * osc.frequency * osc.time;
 
 		f32 wave[3];
 		for (int axis = 0; axis < 3; axis++)
-			wave[axis] = SHAKE_AXIS[axis] * gain *
-					std::sin(phase * SHAKE_FREQ[axis] + SHAKE_PHASE[axis]);
+			wave[axis] = OSC_AXIS[axis] * gain *
+					std::sin(phase * OSC_FREQ[axis] + OSC_PHASE[axis]);
 
 		result.rotation += v3f(wave[0], wave[1], wave[2]) * core::RADTODEG;
 		i++;

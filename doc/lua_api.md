@@ -9341,19 +9341,23 @@ You **must not** mix names and track numbers to refer to the same animation.
       snaps the player's position back.
     * Because the client owns the decay, one message per event is enough; do not
       send a stream of them to animate the motion yourself.
-    * The camera sums three independent layers, so a shot during an explosion
-      produces both effects rather than one replacing the other.
+    * The camera sums three independent layers, so two impulses arriving together
+      produce both motions rather than one replacing the other.
     * Nothing here is random per frame: springs use a fixed integration step and
-      shake is a closed-form damped oscillation, so the same impulse always
+      the oscillation is a closed-form damped sine, so the same impulse always
       produces the same motion at any framerate.
     * Returns `true` if the impulse was sent, `false` if the client is older
       than protocol version 54 and cannot show it.
+    * Kinds are named after what they do to the camera, not after the event that
+      caused them: the engine has no idea whether a shot was fired, a charge went
+      off or the ground shook. Name the event in your game, on top of these.
     * `definition` is a table:
-      * `kind = "recoil"`: rotational spring, meant for weapon recoil.
-      * `kind = "blast"`: rotational **and** positional spring, meant for the
-        shockwave of an explosion.
-      * `kind = "shake"`: damped oscillation, meant for tremor.
-      * `kind = "reset"`: drops every layer instantly. Only sensible where
+      * `kind = "rotate"`: rotational spring — swings the look angle and brings
+        it back.
+      * `kind = "push"`: rotational **and** positional spring — swings the angle
+        and displaces the eyes.
+      * `kind = "oscillate"`: damped oscillation.
+      * `kind = "clear"`: drops every layer instantly. Only sensible where
         continuity does not matter, such as respawning.
       * `rotation`: vector of angular impulses in **radians per second**, in the
         same axes as the player's look: `x` is pitch (positive is downwards),
@@ -9362,18 +9366,19 @@ You **must not** mix names and track numbers to refer to the same animation.
         decided by the spring.
       * `position`: vector of linear impulse in **nodes per second**, in the
         player's horizontal frame: `x` right, `y` up, `z` forward.
-        `blast` only.
+        `push` only.
       * `stiffness = 90`, `damping = 19`: how the spring returns. Sent with each
-        impulse so different weapons can feel different. `damping` at
+        impulse so different sources can feel different. `damping` at
         `2 * sqrt(stiffness)` is critical damping: a fast rise and a clean
         return with no overshoot.
-      * `amplitude`: peak swing in radians. `shake` only.
-      * `frequency`: oscillations per second. `shake` only.
-      * `decay`: e-foldings per second of the envelope. `shake` only.
-      * `duration`: seconds after which the shake is dropped. `shake` only.
+      * `amplitude`: peak swing in radians. `oscillate` only.
+      * `frequency`: oscillations per second. `oscillate` only.
+      * `decay`: e-foldings per second of the envelope. `oscillate` only.
+      * `duration`: seconds after which the oscillation is dropped.
+        `oscillate` only.
     * Note that this affects what the player *sees*, not where the server thinks
-      they are aiming. A game that wants recoil to move the aim as well has to
-      mirror the same spring server-side and offset the shot direction itself.
+      they are aiming. A game that wants the aim to move as well has to mirror
+      the same spring server-side and offset the shot direction itself.
 * `set_attribute(attribute, value)`:  DEPRECATED, use get_meta() instead
     * Sets an extra attribute with value on player.
     * `value` must be a string, or a number which will be converted to a

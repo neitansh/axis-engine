@@ -11,7 +11,7 @@
 #include <vector>
 
 /*
- * Толчки камеры: отдача, удар взрывной волны, дрожь.
+ * Толчки камеры: поворот, толчок со смещением, затухающие колебания.
  *
  * Проверяется здесь ровно то, ради чего этот слой и заведён, — три обещания,
  * которые на глаз не проверить никак:
@@ -99,11 +99,11 @@ public:
 
 	void testFramerateIndependence();
 	void testJitteryFrames();
-	void testRecoilRecovers();
-	void testRecoilAccumulates();
+	void testRotationRecovers();
+	void testRotationAccumulates();
 	void testLayersAdd();
-	void testShakeIsDeterministic();
-	void testShakeEnds();
+	void testOscillationIsDeterministic();
+	void testOscillationEnds();
 	void testReset();
 };
 
@@ -113,11 +113,11 @@ void TestCameraFx::runTests(IPlaceDef *placedef)
 {
 	TEST(testFramerateIndependence);
 	TEST(testJitteryFrames);
-	TEST(testRecoilRecovers);
-	TEST(testRecoilAccumulates);
+	TEST(testRotationRecovers);
+	TEST(testRotationAccumulates);
 	TEST(testLayersAdd);
-	TEST(testShakeIsDeterministic);
-	TEST(testShakeEnds);
+	TEST(testOscillationIsDeterministic);
+	TEST(testOscillationEnds);
 	TEST(testReset);
 }
 
@@ -133,7 +133,7 @@ void TestCameraFx::testFramerateIndependence()
 
 	for (int frame : frames) {
 		CameraFx fx;
-		fx.addRecoil(v3f(-0.45f, 0.12f, 0.0f), 95.0f, 20.0f);
+		fx.addRotation(v3f(-0.45f, 0.12f, 0.0f), 95.0f, 20.0f);
 		runs.push_back(run(fx, frame, 240));
 	}
 
@@ -164,8 +164,8 @@ void TestCameraFx::testJitteryFrames()
 	// следующий, поэтому к любому общему моменту оба прогона успевают сделать
 	// одинаковое число шагов — расходиться им попросту негде.
 	CameraFx steady, jittery;
-	steady.addRecoil(v3f(-0.45f, 0.12f, 0.0f), 95.0f, 20.0f);
-	jittery.addRecoil(v3f(-0.45f, 0.12f, 0.0f), 95.0f, 20.0f);
+	steady.addRotation(v3f(-0.45f, 0.12f, 0.0f), 95.0f, 20.0f);
+	jittery.addRotation(v3f(-0.45f, 0.12f, 0.0f), 95.0f, 20.0f);
 
 	// Рваная последовательность подобрана так, чтобы её период складывался в
 	// те же 8 шагов: иначе сравнивать было бы нечего.
@@ -179,10 +179,10 @@ void TestCameraFx::testJitteryFrames()
 	}
 }
 
-void TestCameraFx::testRecoilRecovers()
+void TestCameraFx::testRotationRecovers()
 {
 	CameraFx fx;
-	fx.addRecoil(v3f(-0.45f, 0.12f, 0.05f), 95.0f, 20.0f);
+	fx.addRotation(v3f(-0.45f, 0.12f, 0.05f), 95.0f, 20.0f);
 	const auto samples = run(fx, 4, 288);
 
 	// Подъём быстрый: вершина проходится в первые полсекунды.
@@ -207,13 +207,13 @@ void TestCameraFx::testRecoilRecovers()
 	UTEST(overshoot < 0.02f, "отдача перелетела ноль на %f°", (double)overshoot);
 }
 
-void TestCameraFx::testRecoilAccumulates()
+void TestCameraFx::testRotationAccumulates()
 {
 	// Очередь: десять выстрелов в секунду, как у винтовки на 600 в минуту.
 	CameraFx fx;
 	f32 highest = 0.0f;
 	for (int shot = 0; shot < 10; shot++) {
-		fx.addRecoil(v3f(-0.45f, 0.0f, 0.0f), 95.0f, 20.0f);
+		fx.addRotation(v3f(-0.45f, 0.0f, 0.0f), 95.0f, 20.0f);
 		const auto samples = run(fx, 4, 24);
 		highest = std::min(highest, peakPitch(samples));
 	}
@@ -221,7 +221,7 @@ void TestCameraFx::testRecoilAccumulates()
 	// Один выстрел уводит примерно на градус; очередь обязана увести заметно
 	// дальше — иначе сдерживать её незачем.
 	CameraFx single;
-	single.addRecoil(v3f(-0.45f, 0.0f, 0.0f), 95.0f, 20.0f);
+	single.addRotation(v3f(-0.45f, 0.0f, 0.0f), 95.0f, 20.0f);
 	const f32 one = peakPitch(run(single, 4, 120));
 
 	UTEST(highest < one * 2.5f,
@@ -237,17 +237,17 @@ void TestCameraFx::testLayersAdd()
 {
 	// Выстрел и взрыв в один момент. Каждый слой считается своей пружиной,
 	// поэтому итог обязан быть суммой, а не последним из двух.
-	CameraFx recoil_only;
-	recoil_only.addRecoil(v3f(-0.45f, 0.0f, 0.0f), 95.0f, 20.0f);
-	const v3f a = at(run(recoil_only, 4, 120), 24);
+	CameraFx rotation_only;
+	rotation_only.addRotation(v3f(-0.45f, 0.0f, 0.0f), 95.0f, 20.0f);
+	const v3f a = at(run(rotation_only, 4, 120), 24);
 
-	CameraFx blast_only;
-	blast_only.addBlast(v3f(-0.3f, 0.8f, 0.4f), v3f(0.2f, 0.1f, 0.0f), 55.0f, 12.0f);
-	const v3f b = at(run(blast_only, 4, 120), 24);
+	CameraFx push_only;
+	push_only.addPush(v3f(-0.3f, 0.8f, 0.4f), v3f(0.2f, 0.1f, 0.0f), 55.0f, 12.0f);
+	const v3f b = at(run(push_only, 4, 120), 24);
 
 	CameraFx both;
-	both.addRecoil(v3f(-0.45f, 0.0f, 0.0f), 95.0f, 20.0f);
-	both.addBlast(v3f(-0.3f, 0.8f, 0.4f), v3f(0.2f, 0.1f, 0.0f), 55.0f, 12.0f);
+	both.addRotation(v3f(-0.45f, 0.0f, 0.0f), 95.0f, 20.0f);
+	both.addPush(v3f(-0.3f, 0.8f, 0.4f), v3f(0.2f, 0.1f, 0.0f), 55.0f, 12.0f);
 	const v3f sum = at(run(both, 4, 120), 24);
 
 	const f32 diff = (sum - (a + b)).getLength();
@@ -255,7 +255,7 @@ void TestCameraFx::testLayersAdd()
 
 	// Линейный толчок при этом остался только у взрыва: отдача его не трогает.
 	CameraFx push;
-	push.addBlast(v3f(), v3f(0.5f, 0.0f, 0.0f), 55.0f, 12.0f);
+	push.addPush(v3f(), v3f(0.5f, 0.0f, 0.0f), 55.0f, 12.0f);
 	const auto samples = run(push, 4, 240);
 	f32 peak = 0.0f;
 	for (const Sample &s : samples)
@@ -266,13 +266,13 @@ void TestCameraFx::testLayersAdd()
 			(double)samples.back().offset.getLength());
 }
 
-void TestCameraFx::testShakeIsDeterministic()
+void TestCameraFx::testOscillationIsDeterministic()
 {
 	// Дважды одна и та же дрожь — дважды один и тот же след. Случайное число
 	// за кадр сделало бы это невозможным, и в этом вся разница.
 	CameraFx first, second;
-	first.addShake(0.05f, 12.0f, 7.0f, 0.75f);
-	second.addShake(0.05f, 12.0f, 7.0f, 0.75f);
+	first.addOscillation(0.05f, 12.0f, 7.0f, 0.75f);
+	second.addOscillation(0.05f, 12.0f, 7.0f, 0.75f);
 
 	const auto a = run(first, 4, 192);
 	const auto b = run(second, 4, 192);
@@ -291,10 +291,10 @@ void TestCameraFx::testShakeIsDeterministic()
 	UTEST(sign_changes >= 8, "дрожь не колеблется: смен знака %d", sign_changes);
 }
 
-void TestCameraFx::testShakeEnds()
+void TestCameraFx::testOscillationEnds()
 {
 	CameraFx fx;
-	fx.addShake(0.05f, 12.0f, 7.0f, 0.5f);
+	fx.addOscillation(0.05f, 12.0f, 7.0f, 0.5f);
 	const auto samples = run(fx, 4, 240);
 
 	// Затухает: вторая половина заметно тише первой.
@@ -318,9 +318,9 @@ void TestCameraFx::testShakeEnds()
 void TestCameraFx::testReset()
 {
 	CameraFx fx;
-	fx.addRecoil(v3f(-0.45f, 0.1f, 0.0f), 95.0f, 20.0f);
-	fx.addBlast(v3f(-0.3f, 0.8f, 0.4f), v3f(0.2f, 0.1f, 0.0f), 55.0f, 12.0f);
-	fx.addShake(0.05f, 12.0f, 7.0f, 0.75f);
+	fx.addRotation(v3f(-0.45f, 0.1f, 0.0f), 95.0f, 20.0f);
+	fx.addPush(v3f(-0.3f, 0.8f, 0.4f), v3f(0.2f, 0.1f, 0.0f), 55.0f, 12.0f);
+	fx.addOscillation(0.05f, 12.0f, 7.0f, 0.75f);
 	run(fx, 4, 24);
 
 	fx.reset();

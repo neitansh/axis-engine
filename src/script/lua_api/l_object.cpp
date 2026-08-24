@@ -1713,15 +1713,15 @@ int ObjectRef::l_add_camera_impulse(lua_State *L)
 	luaL_checktype(L, 2, LUA_TTABLE);
 
 	CameraImpulse impulse;
-	std::string kind = getstringfield_default(L, 2, "kind", "recoil");
-	if (kind == "recoil") {
-		impulse.kind = CameraImpulse::RECOIL;
-	} else if (kind == "blast") {
-		impulse.kind = CameraImpulse::BLAST;
-	} else if (kind == "shake") {
-		impulse.kind = CameraImpulse::SHAKE;
-	} else if (kind == "reset") {
-		impulse.kind = CameraImpulse::RESET;
+	std::string kind = getstringfield_default(L, 2, "kind", "rotate");
+	if (kind == "rotate") {
+		impulse.kind = CameraImpulse::ROTATE;
+	} else if (kind == "push") {
+		impulse.kind = CameraImpulse::PUSH;
+	} else if (kind == "oscillate") {
+		impulse.kind = CameraImpulse::OSCILLATE;
+	} else if (kind == "clear") {
+		impulse.kind = CameraImpulse::CLEAR;
 	} else {
 		throw LuaError("add_camera_impulse: unknown kind \"" + kind + "\"");
 	}

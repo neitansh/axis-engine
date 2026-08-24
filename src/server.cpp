@@ -1694,20 +1694,20 @@ bool Server::SendCameraImpulse(session_t peer_id, const CameraImpulse &impulse)
 	pkt << (u8)impulse.kind;
 
 	switch (impulse.kind) {
-	case CameraImpulse::RECOIL:
+	case CameraImpulse::ROTATE:
 		pkt << impulse.rotation.X << impulse.rotation.Y << impulse.rotation.Z
 			<< impulse.stiffness << impulse.damping;
 		break;
-	case CameraImpulse::BLAST:
+	case CameraImpulse::PUSH:
 		pkt << impulse.rotation.X << impulse.rotation.Y << impulse.rotation.Z
 			<< impulse.position.X << impulse.position.Y << impulse.position.Z
 			<< impulse.stiffness << impulse.damping;
 		break;
-	case CameraImpulse::SHAKE:
+	case CameraImpulse::OSCILLATE:
 		pkt << impulse.amplitude << impulse.frequency
 			<< impulse.decay << impulse.duration;
 		break;
-	case CameraImpulse::RESET:
+	case CameraImpulse::CLEAR:
 		break;
 	}
 

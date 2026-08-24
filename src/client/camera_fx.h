@@ -18,17 +18,20 @@
 	пакетами, пропадало, а игрока подёргивало назад. Это и была «тряска при
 	стрельбе».
 
-	Здесь отдача живёт иначе: она не поворот игрока, а СМЕЩЕНИЕ поверх него.
+	Здесь толчок живёт иначе: он не поворот игрока, а СМЕЩЕНИЕ поверх него.
 	Обзор остаётся целиком за мышью, а камере отдельно добавляется угол,
 	который сам приходит в ноль. Складывать смещения можно сколько угодно —
 	выстрел, взрыв и удар не спорят за одну переменную, а суммируются.
 
-	Три независимых слоя:
+	Три независимых слоя, названные по тому, что они делают с камерой:
 
-	  отдача   вращательная пружина, которую качает оружие;
-	  удар     вращательная и линейная пружины взрывной волны;
-	  дрожь    затухающие колебания — то, что раньше делали случайным числом
-	           каждый кадр.
+	  поворот    вращательная пружина;
+	  толчок     вращательная и линейная пружины разом;
+	  колебания  затухающая синусоида — то, что раньше делали случайным числом
+	             каждый кадр.
+
+	Что именно случилось в игре — выстрел, взрыв, землетрясение, — движок не
+	знает и знать не должен: событие называет игра поверх этих слоёв.
 
 	Ничего случайного за кадр здесь нет. Пружина интегрируется постоянным
 	шагом, дрожь считается замкнутой формулой от времени — при 30 и при 240
@@ -57,8 +60,9 @@ public:
 	{
 		v3f value;
 		v3f velocity;
-		// Жёсткость и вязкость приходят вместе с импульсом: у каждого оружия
-		// свой характер отдачи, и держать его константой движка нельзя.
+		// Жёсткость и вязкость приходят вместе с импульсом: у каждого
+		// источника толчка свой характер возврата, и держать его константой
+		// движка нельзя.
 		f32 stiffness = 90.0f;
 		f32 damping = 19.0f;
 
@@ -70,7 +74,7 @@ public:
 
 	// Затухающее колебание. Ни шума за кадр, ни таймера обратного отсчёта —
 	// одна формула от времени, поэтому кадры её не портят.
-	struct Shake
+	struct Oscillation
 	{
 		f32 amplitude;	// рад, начальный размах
 		f32 frequency;	// Гц
@@ -79,9 +83,9 @@ public:
 		f32 time = 0.0f;
 	};
 
-	void addRecoil(v3f impulse, f32 stiffness, f32 damping);
-	void addBlast(v3f rot_impulse, v3f pos_impulse, f32 stiffness, f32 damping);
-	void addShake(f32 amplitude, f32 frequency, f32 decay, f32 duration);
+	void addRotation(v3f impulse, f32 stiffness, f32 damping);
+	void addPush(v3f rot_impulse, v3f pos_impulse, f32 stiffness, f32 damping);
+	void addOscillation(f32 amplitude, f32 frequency, f32 decay, f32 duration);
 	// Снять всё разом. Нужно там, где непрерывность и не нужна: смерть,
 	// возрождение, вход в мир.
 	void reset();
@@ -90,16 +94,16 @@ public:
 	Result step(f32 dtime);
 
 	// Для отладочного экрана.
-	const Spring &getRecoil() const { return m_recoil; }
-	const Spring &getBlastRotation() const { return m_blast_rot; }
-	const Spring &getBlastPosition() const { return m_blast_pos; }
-	f32 getShakeAmplitude() const;
+	const Spring &getRotation() const { return m_rotation; }
+	const Spring &getPushRotation() const { return m_push_rot; }
+	const Spring &getPushOffset() const { return m_push_pos; }
+	f32 getOscillationAmplitude() const;
 
 private:
-	Spring m_recoil;
-	Spring m_blast_rot;
-	Spring m_blast_pos;
-	std::vector<Shake> m_shakes;
+	Spring m_rotation;
+	Spring m_push_rot;
+	Spring m_push_pos;
+	std::vector<Oscillation> m_oscillations;
 
 	// Остаток кадра, не уложившийся в целое число шагов интегрирования.
 	f32 m_leftover = 0.0f;
