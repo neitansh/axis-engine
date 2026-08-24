@@ -7,11 +7,24 @@ local current_place
 local valid_disabled_settings = {
 	["enable_damage"]=true,
 	["creative_mode"]=true,
-	["enable_server"]=true,
 }
 
--- Name and port stored to persist when updating the formspec
-local current_port = core.settings:get("port")
+-- Своего сервера здесь нет, и это не упущение.
+--
+-- Сервер, поднятый из меню, открывает порт наружу, а значит обязан знать, кто
+-- к нему стучится. Знает это тот, кто записан в реестре: билет выписывается на
+-- конкретный сервер и на другом не работает. Записи у сервера из меню нет и
+-- взяться ей неоткуда, поэтому он не пустил бы никого — включая хозяина.
+--
+-- Пускать без билета движок не умеет намеренно: это ровно та дыра, ради
+-- которой вся проверка и заведена. Поэтому галка «Разместить сервер» убрана
+-- целиком, а не оставлена нажимаемой: кнопка, которая не может сработать,
+-- хуже её отсутствия.
+--
+-- Здесь остаётся своя игра — там сервер живёт внутри клиента и второго игрока
+-- туда не пускает сам движок, проверять некого. Сервер для друзей поднимается
+-- отдельно и заводится в реестре; когда это смогут делать игроки, вкладка
+-- вернётся вместе с записью.
 
 -- Currently chosen place in placebar for theming and filtering
 function current_place()
@@ -108,7 +121,7 @@ local function get_formspec(tabview, name, tabdata)
 	end
 	local disabled_settings = get_disabled_settings(place)
 
-	local creative, damage, host = "", "", ""
+	local creative, damage = "", ""
 
 	-- Y offsets for place settings checkboxes
 	local y = 0.2
@@ -123,11 +136,6 @@ local function get_formspec(tabview, name, tabdata)
 		if disabled_settings["enable_damage"] == nil then
 			damage = "checkbox[0,"..y..";cb_enable_damage;".. fgettext("Enable Damage") .. ";" ..
 				dump(core.settings:get_bool("enable_damage")) .. "]"
-			y = y + yo
-		end
-		if disabled_settings["enable_server"] == nil then
-			host = "checkbox[0,"..y..";cb_server;".. fgettext("Host Server") ..";" ..
-				dump(core.settings:get_bool("enable_server")) .. "]"
 			y = y + yo
 		end
 	end
@@ -149,7 +157,6 @@ local function get_formspec(tabview, name, tabdata)
 			"container[0.75,1.15]" ..
 			creative ..
 			damage ..
-			host ..
 			"container_end[]" ..
 			"container[5.625,0.375]" ..
 			menu_style.heading(0, 0.15, 6, 0.6, fgettext("Select World:")) ..
@@ -158,37 +165,7 @@ local function get_formspec(tabview, name, tabdata)
 			";" .. index .. "]" ..
 			"container_end[]"
 
-	if core.settings:get_bool("enable_server") and disabled_settings["enable_server"] == nil then
-		retval = retval ..
-				menu_style.accent("play") ..
-				"button[10.1875,5.925;4.9375,0.8;play;".. fgettext("Host Place") .. "]" ..
-				"container[0.375,0.375]" ..
-				"checkbox[0,"..y..";cb_server_announce;" .. fgettext("Announce Server") .. ";" ..
-				dump(core.settings:get_bool("server_announce")) .. "]"
-
-		-- Reset y so that the text fields always start at the same position,
-		-- regardless of whether some of the checkboxes are hidden.
-		y = 0.2 + 4 * yo + 0.35
-
-		-- Имени и пароля здесь нет: имя игрока приходит из его аккаунта, а
-		-- паролей у Axis не бывает вовсе — кто вошёл, доказывает билет.
-
-		local bind_addr = core.settings:get("bind_address")
-		if bind_addr ~= nil and bind_addr ~= "" then
-			retval = retval ..
-				"field[0," .. y .. ";3,0.75;te_serveraddr;" .. fgettext("Bind Address") .. ";" ..
-				core.formspec_escape(core.settings:get("bind_address")) .. "]" ..
-				-- TRANSLATORS: Network port
-				"field[3.25," .. y .. ";1.25,0.75;te_serverport;" .. fgettext("Port") .. ";" ..
-				core.formspec_escape(current_port) .. "]"
-		else
-			retval = retval ..
-				"field[0," .. y .. ";4.5,0.75;te_serverport;" .. fgettext("Server Port") .. ";" ..
-				core.formspec_escape(current_port) .. "]"
-		end
-
-		retval = retval .. "container_end[]"
-	elseif world then
+	if world then
 		retval = retval ..
 				menu_style.accent("play") ..
 				"button[10.1875,5.925;4.9375,0.8;play;" .. fgettext("Play Place") .. "]"
@@ -215,10 +192,6 @@ local function main_button_handler(this, fields, name, tabdata)
 	end
 
 	local world_doubleclick = false
-
-	if fields["te_serverport"] then
-		current_port = fields["te_serverport"]
-	end
 
 	if fields["sp_worlds"] ~= nil then
 		local event = core.explode_textlist_event(fields["sp_worlds"])
@@ -257,20 +230,6 @@ local function main_button_handler(this, fields, name, tabdata)
 		return true
 	end
 
-	if fields["cb_server"] then
-		core.settings:set("enable_server", fields["cb_server"])
-
-		return true
-	end
-
-	if fields["cb_server_announce"] then
-		core.settings:set("server_announce", fields["cb_server_announce"])
-		local selected = core.get_textlist_index("srv_worlds")
-		menu_worldmt(selected, "server_announce", fields["cb_server_announce"])
-
-		return true
-	end
-
 	if fields["play"] ~= nil or world_doubleclick or fields["key_enter"] then
 		local enter_key_duration = core.get_us_time() - this.dlg_create_world_closed_at
 		if world_doubleclick and enter_key_duration <= 200000 then -- 200 ms
@@ -297,25 +256,11 @@ local function main_button_handler(this, fields, name, tabdata)
 		for k, _ in pairs(valid_disabled_settings) do
 			local v = disabled_settings[k]
 			if v ~= nil then
-				if k == "enable_server" and v == true then
-					error("Setting 'enable_server' cannot be force-enabled! The place.conf needs to be fixed.")
-				end
 				core.settings:set_bool(k, disabled_settings[k])
 			end
 		end
 
-		if core.settings:get_bool("enable_server") then
-			gamedata.mode       = "host"
-			gamedata.port       = fields["te_serverport"]
-			gamedata.address    = ""
-
-			core.settings:set("port",gamedata.port)
-			if fields["te_serveraddr"] ~= nil then
-				core.settings:set("bind_address",fields["te_serveraddr"])
-			end
-		else
-			gamedata.mode = "singleplayer"
-		end
+		gamedata.mode = "singleplayer"
 
 		core.start()
 		return true

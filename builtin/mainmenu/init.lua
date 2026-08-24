@@ -359,6 +359,21 @@ function core.start()
 	gamedata.ticket = nil
 	tell_where_we_are_going()
 
+	-- Билет спрашивают у того, кто идёт на чужой сервер. Своя игра — то самое
+	-- место, где проверять некого: сервер живёт внутри клиента, и второго
+	-- игрока туда не пускает сам движок. Это не поблажка проверке, а её
+	-- отсутствие за отсутствием сети.
+	--
+	-- Адрес прошлого захода стирается здесь же: таблица gamedata между
+	-- входами не чистится, и оставшийся в ней адрес увёл бы свою игру в сеть,
+	-- на сервер, где игрок был до этого.
+	if gamedata.mode == "singleplayer" then
+		gamedata.ticket = ""
+		gamedata.address = ""
+		gamedata.server_id = nil
+		return start_place()
+	end
+
 	local url = core.settings:get("axis_ticket_url") or ""
 	local key = core.settings:get("axis_ticket_key") or ""
 	if url == "" or key == "" then
