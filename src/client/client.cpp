@@ -19,7 +19,9 @@
 #include "client/texturepaths.h"
 #include "client/texturesource.h"
 #include "camera.h"
+#include "convert_json.h"
 #include "filesys.h"
+#include "httpfetch.h"
 #include "game.h"
 #include "gettext.h"
 #include "gettime.h"
@@ -133,6 +135,7 @@ Client::Client(
 	const char *playername,
 	const std::string &password,
 	const std::string &ticket,
+	const std::string &server_id,
 	MapDrawControl &control,
 	IWritableTextureSource *tsrc,
 	IWritableShaderSource *shsrc,
@@ -160,6 +163,7 @@ Client::Client(
 											  m_last_chat_message_sent(time(NULL)),
 											  m_password(password),
 											  m_ticket(ticket),
+											  m_server_id(server_id),
 											  m_chosen_auth_mech(AUTH_MECHANISM_NONE),
 											  m_media_downloader(std::make_unique<ClientMediaDownloader>()),
 											  m_state(LC_Created),
@@ -422,6 +426,11 @@ Client::~Client()
 	if (m_con)
 		m_con->Disconnect();
 
+	// A ticket may still be on its way from the launcher; nobody is going to
+	// read the answer now.
+	if (m_ticket_caller != 0)
+		httpfetch_caller_free(m_ticket_caller);
+
 	deleteAuthData();
 
 	m_mesh_update_manager->stop();
@@ -595,7 +604,9 @@ void Client::step(float dtime)
 	{
 		float &counter = m_connection_reinit_timer;
 		counter -= dtime;
-		if (counter <= 0)
+		// A ticket on its way is worth waiting for: the one we hold has been
+		// spent, and knocking with it earns a refusal instead of a login.
+		if (counter <= 0 && !awaitingTicket())
 		{
 			counter = 1.5f;
 
@@ -1232,6 +1243,10 @@ void Client::beginRejoin()
 		m_con->Disconnect();
 
 	m_link_state = LinkState::Rejoining;
+	// The ticket we came in with is gone: the server spent it the moment it
+	// let us in, and that is exactly what makes a leaked one worthless. Every
+	// login after the first needs its own, so we ask for one before knocking.
+	requestFreshTicket();
 	m_map_survived_session = false;
 	m_pending_nodedef.clear();
 
@@ -1681,6 +1696,79 @@ AuthMechanism Client::choseAuthMech(const u32 mechs)
 		return AUTH_MECHANISM_LEGACY_PASSWORD;
 
 	return AUTH_MECHANISM_NONE;
+}
+
+void Client::requestFreshTicket()
+{
+	if (m_ticket_pending)
+		return;
+
+	const std::string url = g_settings->get("axis_ticket_url");
+	const std::string key = g_settings->get("axis_ticket_key");
+	// Without a launcher there is nothing to ask, and without a server name
+	// there is nothing to ask for. Both are normal: a client started by hand
+	// has neither.
+	if (url.empty() || key.empty() || m_server_id.empty())
+		return;
+
+	if (m_ticket_caller == 0)
+		m_ticket_caller = httpfetch_caller_alloc();
+
+	Json::Value body;
+	body["server"] = m_server_id;
+
+	HTTPFetchRequest req;
+	req.caller = m_ticket_caller;
+	req.url = url + "/ticket";
+	req.method = HTTP_POST;
+	req.raw_data = fastWriteJson(body);
+	req.extra_headers.emplace_back("Content-Type: application/json");
+	req.extra_headers.emplace_back("Authorization: Bearer " + key);
+	// The launcher is on this very machine and answers in milliseconds; the
+	// service behind it may take a moment longer. Waiting is not free — the
+	// player is staring at a world that stopped — so the timeout is short.
+	req.connect_timeout = 2000;
+	req.timeout = 5000;
+
+	httpfetch_async(req);
+	m_ticket_pending = true;
+	infostream << "Client: asking the launcher for a ticket to \""
+			   << m_server_id << "\"" << std::endl;
+}
+
+bool Client::awaitingTicket()
+{
+	if (!m_ticket_pending)
+		return false;
+
+	HTTPFetchResult res;
+	if (!httpfetch_async_get(m_ticket_caller, res))
+		return true;
+
+	m_ticket_pending = false;
+
+	if (res.succeeded && res.response_code == 200) {
+		Json::Value answer;
+		Json::CharReaderBuilder builder;
+		std::string errors;
+		const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+		if (reader->parse(res.data.data(), res.data.data() + res.data.size(),
+				&answer, &errors) && answer.isObject()) {
+			const std::string ticket = answer.get("ticket", "").asString();
+			if (!ticket.empty()) {
+				m_ticket = ticket;
+				return false;
+			}
+		}
+	}
+
+	// No ticket. We knock with what we have and let the server decide: it
+	// knows why it refuses, and it can say so in words the player sees. Making
+	// up a reason here would only add a second story to the same event.
+	warningstream << "Client: the launcher gave no ticket (code "
+				  << res.response_code << "), logging in with the old one"
+				  << std::endl;
+	return false;
 }
 
 void Client::sendInit(const std::string &playerName)

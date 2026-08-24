@@ -47,6 +47,16 @@ struct GameClientData
 	// to tell who is connecting without being trusted with any secret of ours.
 	std::string ticket;
 
+	// Which server the ticket was issued for, by its name in the registry.
+	//
+	// The client keeps it because a ticket is spent on arrival: reconnecting
+	// after a dropped link, or moving to a match on the same server, needs a
+	// fresh one, and asking for it means naming the server. The name comes
+	// from the menu, which looked it up in the registry — never from the
+	// server itself, or a stranger's server could ask us to fetch it a ticket
+	// for somebody else's.
+	std::string server_id;
+
 	enum Mode {
 		GM_SINGLEPLAYER,
 		GM_HOST_AND_JOIN,

@@ -142,6 +142,7 @@ public:
 			const char *playername,
 			const std::string &password,
 			const std::string &ticket,
+			const std::string &server_id,
 			MapDrawControl &control,
 			IWritableTextureSource *tsrc,
 			IWritableShaderSource *shsrc,
@@ -669,6 +670,25 @@ private:
 	static AuthMechanism choseAuthMech(const u32 mechs);
 
 	void sendInit(const std::string &playerName);
+	/**
+	 * Ask the launcher for a ticket to log in with again.
+	 *
+	 * A ticket is spent when a server admits its holder — that is the point of
+	 * it: one that leaks is worth a single login and no more. So every login
+	 * after the first needs a fresh one, and the only place that hands them out
+	 * is the launcher's door, whose address and key arrive on the command line.
+	 *
+	 * The request goes out and this returns at once; the answer is picked up in
+	 * step(), and until it arrives no login attempt is made — knocking with the
+	 * spent ticket would only earn a refusal.
+	 *
+	 * Does nothing when there is no launcher to ask or no server to name. Then
+	 * the old ticket is sent as before: a server that does not check will let us
+	 * in anyway, and one that does would refuse either way.
+	 */
+	void requestFreshTicket();
+	/// Take the answer, if it has come. True while still waiting.
+	bool awaitingTicket();
 	void startAuth(AuthMechanism chosen_auth_mechanism);
 	void sendDeletedBlocks(std::vector<v3s16> &blocks);
 	void sendGotBlocks(const std::vector<v3s16> &blocks);
@@ -736,6 +756,12 @@ private:
 	// Signed proof of who this player is, handed to the server on connect.
 	// Empty when nobody vouched for them; see GameClientData::ticket.
 	std::string m_ticket;
+	// The server that ticket was issued for, see GameClientData::server_id.
+	std::string m_server_id;
+	// A ticket is spent the moment a server lets us in, so every login after
+	// the first needs a new one. These track the request for it.
+	u64 m_ticket_caller = 0;
+	bool m_ticket_pending = false;
 	// If set, this will be sent (and cleared) upon a TOCLIENT_ACCEPT_SUDO_MODE
 	std::string m_new_password;
 	// Usable by auth mechanisms.

@@ -153,6 +153,9 @@ int ModApiMainMenu::l_start(lua_State *L)
 		// Ticket for servers that ask who you are. Empty is normal: not
 		// every server asks, and not every launcher has one to give.
 		data->ticket   = getTextData(L, "ticket");
+		// The server the ticket names. Needed to ask for another one later,
+		// when this one has been spent.
+		data->server_id = getTextData(L, "server_id");
 		// There's no reason for these to have leading/trailing whitespace either.
 		data->address  = trim(getTextData(L, "address"));
 		data->port     = trim(getTextData(L, "port"));
