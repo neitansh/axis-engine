@@ -1407,28 +1407,12 @@ msgid "Use Texture Pack"
 msgstr "Использовать набор текстур"
 
 #: builtin/mainmenu/tab_local.lua
-msgid "Announce Server"
-msgstr "Анонсировать сервер"
-
-#: builtin/mainmenu/tab_local.lua
-msgid "Bind Address"
-msgstr "Привязать адрес"
-
-#: builtin/mainmenu/tab_local.lua
 msgid "Creative Mode"
 msgstr "Творческий режим"
 
 #: builtin/mainmenu/tab_local.lua
 msgid "Enable Damage"
 msgstr "Включить урон"
-
-#: builtin/mainmenu/tab_local.lua
-msgid "Host Place"
-msgstr "Запустить свой плейс"
-
-#: builtin/mainmenu/tab_local.lua
-msgid "Host Server"
-msgstr "Захостить сервер"
 
 #: builtin/mainmenu/tab_local.lua
 msgid "Install a place"
@@ -1472,14 +1456,6 @@ msgid "Select World:"
 msgstr "Выберите мир:"
 
 #: builtin/mainmenu/tab_local.lua
-msgid "Server Port"
-msgstr "Порт сервера"
-
-#: builtin/mainmenu/tab_local.lua
-msgid "Start Place"
-msgstr "Запустить плейс"
-
-#: builtin/mainmenu/tab_local.lua
 msgid "You need to install a place before you can create a world."
 msgstr "Прежде чем создавать мир, нужно установить плейс."
 
@@ -1506,16 +1482,16 @@ msgid "Favorites"
 msgstr "Избранное"
 
 #: builtin/mainmenu/tab_online.lua
+msgid "Play"
+msgstr "Играть"
+
+#: builtin/mainmenu/tab_online.lua
 msgid "Place: $1"
 msgstr "Плейс: $1"
 
 #: builtin/mainmenu/tab_online.lua
 msgid "Incompatible Servers"
 msgstr "Несовместимые сервера"
-
-#: builtin/mainmenu/tab_online.lua
-msgid "Join Place"
-msgstr "Подключиться к плейсу"
 
 #. TRANSLATORS: Login to server
 #: builtin/mainmenu/tab_online.lua
@@ -1834,7 +1810,8 @@ msgstr "Поиск сервера"
 msgid "Shutting down..."
 msgstr "Завершение..."
 
-#: src/client/game.cpp src/client/game_formspec.cpp
+#: builtin/mainmenu/tab_local.lua src/client/game.cpp
+#: src/client/game_formspec.cpp
 msgid "Singleplayer"
 msgstr "Одиночная игра"
 
@@ -2234,7 +2211,7 @@ msgid "Pause Key"
 msgstr "Pause"
 
 #: src/client/keycode.cpp
-msgid "Play"
+msgid "Play Key"
 msgstr "Воспроизвести"
 
 #. TRANSLATORS: "Print screen" key

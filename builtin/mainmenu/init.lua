@@ -134,8 +134,11 @@ local function init_globals()
 	})
 
 	tv_main:set_autosave_tab(true)
-	tv_main:add(tabs.local_place)
+	-- Сеть первой, и это порядок по важности, а не по алфавиту: игра сетевая,
+	-- за ней игрок и пришёл. Стартовая страница выделяет первую вкладку сама
+	-- (см. dlg_start), так что порядок здесь — он же и акцент.
 	tv_main:add(tabs.play_online)
+	tv_main:add(tabs.local_place)
 	tv_main:add(tabs.content)
 
 	tabs.about.sidebar = false
