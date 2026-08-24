@@ -3336,8 +3336,14 @@ void GUIFormSpecMenu::regenerateGui(v2u32 screensize)
 		);
 	}
 
-	m_default_tooltip_bgcolor = video::SColor(255,110,130,60);
-	m_default_tooltip_color = video::SColor(255,255,255,255);
+	// Подсказка одета как остальное меню: почти чёрная плашка и тот же светлый
+	// текст (#100D16 / #E8E6ED, см. builtin/common/menu_style.lua). Болотная
+	// зелень досталась от Luanti и не встречается больше нигде — рядом с
+	// фиолетовым меню она читалась как чужая деталь, а не как подсказка.
+	// Настройки уже рисовали свои пояснения этими цветами (components.lua);
+	// теперь так же выглядит и обычная подсказка.
+	m_default_tooltip_bgcolor = video::SColor(245, 0x10, 0x0D, 0x16);
+	m_default_tooltip_color = video::SColor(255, 0xE8, 0xE6, 0xED);
 
 	// Add tooltip
 	{
@@ -3348,7 +3354,7 @@ void GUIFormSpecMenu::regenerateGui(v2u32 screensize)
 		m_tooltip_element->enableOverrideColor(true);
 		m_tooltip_element->setBackgroundColor(m_default_tooltip_bgcolor);
 		m_tooltip_element->setDrawBackground(true);
-		m_tooltip_element->setDrawBorder(true);
+		m_tooltip_element->setDrawBorder(false);
 		m_tooltip_element->setOverrideColor(m_default_tooltip_color);
 		m_tooltip_element->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_CENTER);
 		m_tooltip_element->setWordWrap(false);
@@ -4120,7 +4126,6 @@ void GUIFormSpecMenu::showTooltipPanel(const core::rect<s32> &under,
 	m_tooltip_element->setBackgroundColor(faded(spec.bgcolor));
 	m_tooltip_element->setOverrideColor(faded(spec.color));
 
-	const s32 pad_x = m_btn_height / 2;
 	const s32 pad_y = m_btn_height / 3;
 	const s32 width = under.getWidth();
 
@@ -4169,12 +4174,18 @@ void GUIFormSpecMenu::showTooltip(const std::wstring &text,
 	m_tooltip_element->setTextAlignment(gui::EGUIA_CENTER, gui::EGUIA_CENTER);
 	m_tooltip_element->setBackgroundColor(bgcolor);
 	m_tooltip_element->setOverrideColor(color);
+	m_tooltip_element->setDrawBackground(true);
+	m_tooltip_element->setDrawBorder(false);
+	m_tooltip_element->setOverrideFont(m_font);
 
 	setStaticText(m_tooltip_element, ntext);
 
-	// Tooltip size
+	// Поля вокруг надписи. По высоте раньше добавлялось пять пикселей на любом
+	// экране: на крупном шрифте текст упирался в края плашки и выглядел
+	// обрезанным. Теперь оба поля считаются от той же высоты кнопки, что и
+	// остальные отступы формы, и растут вместе с ней.
 	s32 tooltip_width = m_tooltip_element->getTextWidth() + m_btn_height;
-	s32 tooltip_height = m_tooltip_element->getTextHeight() + 5;
+	s32 tooltip_height = m_tooltip_element->getTextHeight() + m_btn_height / 2;
 
 	v2u32 screenSize = Environment->getVideoDriver()->getScreenSize();
 

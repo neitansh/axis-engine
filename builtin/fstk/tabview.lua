@@ -107,21 +107,35 @@ local function get_formspec(self)
 
 	formspec = formspec .. "container_end[]"
 
-	-- Footer strip spanning both columns, inside the card
-	local footer_h = 0.6
-	local footer_y = TABHEADER_H + orig_tsize.height + menu_style.SPACE.xs
+	-- Подвал во всю ширину карточки, под содержимым вкладки.
+	--
+	-- Стоит на той же сетке, что и карточки над ним (menu_style.PAD): черта и
+	-- подпись начинаются там же, где начинается содержимое, — иначе подвал
+	-- выглядит приклеенным от другого экрана.
+	--
+	-- Подпись и кнопка делят одну строку и одну высоту, поэтому середины у них
+	-- общие. Раньше они стояли на разных отступах, и «Подробнее» висела выше
+	-- строки о правах — глазу это заметно, даже когда не знаешь, что смотришь.
+	local footer_row_h = 0.5
+	local footer_top = menu_style.SPACE.xs
+	local footer_y = TABHEADER_H + orig_tsize.height + footer_top
+	-- Воздух над строкой и под ней одинаковый: то, что осталось от подвала за
+	-- вычетом самой строки, делится пополам.
+	local footer_gap = (FOOTER_H - footer_top - footer_row_h) / 2
+	local details_w = 2.2
+	local pad = menu_style.PAD
 
 	formspec = formspec
 		.. ("container[0,%f]"):format(footer_y)
-		.. menu_style.divider(menu_style.SPACE.lg, 0, tsize.width - menu_style.SPACE.lg * 2)
-		.. menu_style.caption(menu_style.SPACE.lg, menu_style.SPACE.sm,
-			tsize.width - 2.6 - menu_style.SPACE.lg, footer_h,
+		.. menu_style.divider(pad, 0, tsize.width - pad * 2)
+		.. menu_style.caption(pad, footer_gap,
+			tsize.width - pad * 2 - details_w - menu_style.SPACE.sm, footer_row_h,
 			core.formspec_escape("Axis · the iVy Studio · " ..
 				fgettext_ne("All rights reserved")))
 		.. menu_style.ghost("mainmenu_footer_about")
 		.. ("style[mainmenu_footer_about;font_size=*0.9]")
-		.. ("button[%f,%f;2.2,%f;mainmenu_footer_about;%s]"):format(
-			tsize.width - 2.2 - menu_style.SPACE.lg, menu_style.SPACE.xs, footer_h,
+		.. ("button[%f,%f;%f,%f;mainmenu_footer_about;%s]"):format(
+			tsize.width - pad - details_w, footer_gap, details_w, footer_row_h,
 			fgettext("Details"))
 		.. "container_end[]"
 
