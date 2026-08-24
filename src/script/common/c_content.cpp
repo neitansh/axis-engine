@@ -456,6 +456,39 @@ void read_object_properties(lua_State *L, int index,
 		lua_pop(L, 1);
 	}
 
+	// The nodes a voxel-shaped object is made of: a flat list of
+	// {x, y, z, name, param2}. Offsets are whole nodes from the object's own
+	// origin, so a set built from world positions just subtracts that origin.
+	lua_getfield(L, -1, "voxels");
+	if (lua_istable(L, -1)) {
+		prop->voxels.clear();
+		const size_t count = lua_objlen(L, -1);
+		if (count > ObjectProperties::MAX_VOXELS) {
+			throw LuaError("Object has too many voxels: "
+					+ std::to_string(count) + ", at most "
+					+ std::to_string(ObjectProperties::MAX_VOXELS));
+		}
+		prop->voxels.reserve(count);
+		for (size_t i = 1; i <= count; i++) {
+			lua_rawgeti(L, -1, i);
+			if (lua_istable(L, -1)) {
+				ObjectProperties::VoxelPiece piece;
+				piece.offset = v3s16(
+					getintfield_default(L, -1, "x", 0),
+					getintfield_default(L, -1, "y", 0),
+					getintfield_default(L, -1, "z", 0));
+				// The node is read the usual way: the same table carries
+				// `name` and `param2` alongside the offset, and readnode
+				// turns a name into a content id exactly as everywhere else.
+				piece.node = readnode(L, -1);
+				if (piece.node.getContent() != CONTENT_IGNORE)
+					prop->voxels.push_back(piece);
+			}
+			lua_pop(L, 1);
+		}
+	}
+	lua_pop(L, 1);
+
 	lua_getfield(L, -1, "spritediv");
 	if (lua_istable(L, -1))
 		prop->spritediv = read_v2s16(L, -1);
@@ -612,6 +645,19 @@ void push_object_properties(lua_State *L, const ObjectProperties *prop)
 
 	pushnode(L, prop->node);
 	lua_setfield(L, -2, "node");
+
+	lua_createtable(L, prop->voxels.size(), 0);
+	for (size_t i = 0; i < prop->voxels.size(); i++) {
+		const auto &piece = prop->voxels[i];
+		// pushnode gives {name, param1, param2}; the offset joins it in the
+		// same table, so what comes back reads like what went in.
+		pushnode(L, piece.node);
+		setintfield(L, -1, "x", piece.offset.X);
+		setintfield(L, -1, "y", piece.offset.Y);
+		setintfield(L, -1, "z", piece.offset.Z);
+		lua_rawseti(L, -2, i + 1);
+	}
+	lua_setfield(L, -2, "voxels");
 	push_v2s16(L, prop->spritediv);
 	lua_setfield(L, -2, "spritediv");
 	push_v2s16(L, prop->initial_sprite_basepos);

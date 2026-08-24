@@ -10198,11 +10198,34 @@ Player properties need to be saved manually.
     -- "item" is similar to "wielditem" but ignores the 'wield_image' parameter.
     -- "node" looks exactly like a node in-world (supported since 5.12.0)
     --   Note that visual effects like waving or liquid reflections will not work.
+    -- "voxels" looks like a group of nodes in-world, drawn as one mesh.
+    --   The nodes are listed in 'voxels' (see below). Use it for a piece of the
+    --   world that has to move as one: a falling tree, a lifted structure,
+    --   debris. One object carries the whole group, instead of one object per
+    --   node, which is what such a group used to cost.
+    --   Geometry comes from the same generator that draws the map, so nodes
+    --   look exactly as they do in the world, including nodeboxes and the
+    --   connections between neighbours. Lighting is the object's, not each
+    --   node's, and waving is not applied.
 
     visual_size = {x = number, y = number, z = number},
     -- Defaults to `{x = 1, y = 1, z = 1}` for entities, but `{x = 1, y = 2, z = 1}` for players!
     -- Multipliers for the visual size. If `z` is not specified, `x` will be used
     -- to scale the entity along both horizontal axes.
+
+    voxels = {
+        {x = 0, y = 0, z = 0, name = "default:tree", param2 = 0},
+        {x = 0, y = 1, z = 0, name = "default:tree"},
+    },
+    -- The nodes an object made of the "voxels" visual consists of.
+    -- Offsets are whole nodes from the object's own position, so a group taken
+    -- from the world subtracts that position from every node's coordinates.
+    -- Each entry is a node table as read by other node-taking calls, plus the
+    -- offset: `name` and `param2` are used, `param1` is ignored (the object is
+    -- lit as a whole).
+    -- At most 4096 nodes: the list travels inside the object's properties, and
+    -- properties are resent whole whenever any of them changes. Prefer setting
+    -- it once, when the object is spawned.
 
     mesh = "model.obj",
     -- File name of mesh when using "mesh" visual.

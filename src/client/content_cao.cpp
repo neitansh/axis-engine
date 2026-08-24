@@ -271,6 +271,101 @@ static scene::SMesh *generateNodeMesh(Client *client, MapNode n,
 	return mesh.release();
 }
 
+/**
+ * Build one mesh out of a set of nodes.
+ *
+ * The engine could already show a single node as an object; a heap of them had
+ * to be a heap of objects, one per node, each tracked and sent to every player.
+ * A falling tree is exactly such a heap — a few hundred nodes that live for two
+ * seconds — and so is a moving contraption.
+ *
+ * Geometry comes from the same generator that draws the map, so nodes look here
+ * exactly as they do in the world: nodeboxes, connections between neighbours,
+ * tiles and all. The set is laid into a scratch voxel area with one node of
+ * padding, which is what lets a branch know it has a neighbour to connect to.
+ */
+static scene::SMesh *generateVoxelsMesh(Client *client,
+	const std::vector<ObjectProperties::VoxelPiece> &voxels,
+	std::vector<MeshAnimationInfo> &animation)
+{
+	auto *ndef = client->ndef();
+	auto *shdsrc = client->getShaderSource();
+
+	v3s16 min = voxels[0].offset, max = voxels[0].offset;
+	for (const auto &piece : voxels) {
+		min.X = std::min(min.X, piece.offset.X);
+		min.Y = std::min(min.Y, piece.offset.Y);
+		min.Z = std::min(min.Z, piece.offset.Z);
+		max.X = std::max(max.X, piece.offset.X);
+		max.Y = std::max(max.Y, piece.offset.Y);
+		max.Z = std::max(max.Z, piece.offset.Z);
+	}
+	const v3s16 size = max - min + v3s16(1, 1, 1);
+	const u16 side = (u16)std::max({size.X, size.Y, size.Z});
+
+	MeshCollector collector(v3f(0), v3f());
+	{
+		MeshMakeData mmd(ndef, side, MeshGrid{1});
+		mmd.m_blockpos = v3s16(0, 0, 0);
+		mmd.m_vmanip.clear();
+		// One node of padding on every side: without a neighbour to look at,
+		// the generator has nothing to decide connections and faces against.
+		mmd.m_vmanip.addArea(VoxelArea(v3s16(-1, -1, -1), v3s16(side, side, side)));
+
+		const u32 count = mmd.m_vmanip.m_area.getVolume();
+		for (u32 i = 0; i < count; i++) {
+			mmd.m_vmanip.m_data[i] = MapNode(CONTENT_AIR);
+			mmd.m_vmanip.m_flags[i] &= ~VOXELFLAG_NO_DATA;
+		}
+
+		for (const auto &piece : voxels) {
+			MapNode node = piece.node;
+			// Lit as one object, so every piece is handed full daylight and
+			// the object's own light setting does the rest.
+			node.setParam1(0xff);
+			mmd.m_vmanip.setNodeNoEmerge(piece.offset - min, node);
+		}
+
+		MapblockMeshGenerator(&mmd, &collector).generate();
+	}
+
+	// The object's origin is its own (0,0,0), not the corner of the set: a
+	// falling tree turns around its stump, not around the corner of the box
+	// that happens to contain it. The generator laid everything out from that
+	// corner, so the whole thing shifts back by it here.
+	const v3f origin_shift = v3f(min.X, min.Y, min.Z) * BS;
+
+	auto mesh = make_irr<scene::SMesh>();
+	animation.clear();
+	for (int layer = 0; layer < MAX_TILE_LAYERS; layer++) {
+		for (PreMeshBuffer &p : collector.prebuffers[layer]) {
+			for (auto &v : p.vertices) {
+				v.Color.set(0xFFFFFFFF);
+				v.Pos += origin_shift;
+			}
+			p.applyTileColor();
+
+			if (p.layer.material_flags & MATERIAL_FLAG_ANIMATION) {
+				animation.emplace_back(MeshAnimationInfo{
+					mesh->getMeshBufferCount(), 0, p.layer});
+			}
+
+			auto buf = make_irr<scene::SMeshBuffer>();
+			buf->append(&p.vertices[0], p.vertices.size(),
+					&p.indices[0], p.indices.size());
+
+			auto &mat = buf->Material;
+			p.layer.applyMaterialOptions(mat, layer);
+			getAdHocNodeShader(mat, shdsrc, "object_shader", ALPHAMODE_CLIP, layer == 1);
+
+			mesh->addMeshBuffer(buf.get());
+		}
+	}
+
+	mesh->recalculateBoundingBox();
+	return mesh.release();
+}
+
 /*
 	GenericCAO
 */
@@ -615,6 +710,7 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 
 	auto updateMaterialType = [this](bool hw_skin) {
 		if (m_prop.visual != OBJECTVISUAL_NODE &&
+				m_prop.visual != OBJECTVISUAL_VOXELS &&
 				m_prop.visual != OBJECTVISUAL_WIELDITEM &&
 				m_prop.visual != OBJECTVISUAL_ITEM)
 		{
@@ -785,6 +881,27 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 			(m_prop.visual == OBJECTVISUAL_WIELDITEM));
 
 		m_wield_meshnode->setScale(m_prop.visual_size / 2.0f);
+		break;
+	} case OBJECTVISUAL_VOXELS: {
+		if (m_prop.voxels.empty()) {
+			// Nothing to draw is not an error: a set is filled in after the
+			// object exists, and until then it simply has no shape.
+			m_spritenode = m_smgr->addBillboardSceneNode(m_matrixnode);
+			m_spritenode->grab();
+			m_spritenode->setVisible(false);
+			break;
+		}
+		auto *mesh = generateVoxelsMesh(m_client, m_prop.voxels, m_meshnode_animation);
+		assert(mesh);
+
+		m_meshnode = m_smgr->addMeshSceneNode(mesh, m_matrixnode);
+		m_meshnode->setSharedMaterials(true);
+		m_meshnode->grab();
+		mesh->drop();
+
+		m_meshnode->setScale(m_prop.visual_size);
+
+		setSceneNodeMaterials(m_meshnode);
 		break;
 	} case OBJECTVISUAL_NODE: {
 		auto *mesh = generateNodeMesh(m_client, m_prop.node, m_meshnode_animation);

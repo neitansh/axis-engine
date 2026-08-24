@@ -24,6 +24,7 @@ const struct EnumString es_ObjectVisual[] =
 	{OBJECTVISUAL_ITEM, "item"},
 	{OBJECTVISUAL_WIELDITEM, "wielditem"},
 	{OBJECTVISUAL_NODE, "node"},
+	{OBJECTVISUAL_VOXELS, "voxels"},
 	{0, nullptr},
 };
 
@@ -235,6 +236,17 @@ void ObjectProperties::serialize(std::ostream &os) const
 
 	writeU8(os, first_person_only);
 
+	// The nodes a voxel-shaped object is made of. Written last, like
+	// everything else, and skipped entirely when there are none — which is
+	// every object but the rare one that needs this.
+	writeU16(os, (u16)voxels.size());
+	for (const VoxelPiece &piece : voxels) {
+		writeV3S16(os, piece.offset);
+		writeU16(os, piece.node.getContent());
+		writeU8(os, piece.node.getParam1());
+		writeU8(os, piece.node.getParam2());
+	}
+
 	// Add stuff only at the bottom.
 	// Never remove anything, because we don't want new versions of this!
 }
@@ -355,6 +367,26 @@ void ObjectProperties::deSerialize(std::istream &is)
 		return;
 
 	first_person_only = readU8(is);
+
+	if (!canRead(is))
+		return;
+
+	// The nodes a voxel-shaped object is made of. A count that big is either a
+	// mistake or an attack: the whole set travels inside the properties, and
+	// properties are resent whole on every change.
+	const u16 piece_count = readU16(is);
+	voxels.clear();
+	if (piece_count > MAX_VOXELS)
+		throw SerializationError("Object has too many voxels");
+	voxels.reserve(piece_count);
+	for (u16 i = 0; i < piece_count; i++) {
+		VoxelPiece piece;
+		piece.offset = readV3S16(is);
+		piece.node.param0 = readU16(is);
+		piece.node.param1 = readU8(is);
+		piece.node.param2 = readU8(is);
+		voxels.push_back(piece);
+	}
 
 	//if (!canRead(is))
 	//	return;

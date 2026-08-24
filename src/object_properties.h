@@ -23,6 +23,7 @@ enum ObjectVisual : u8 {
 	OBJECTVISUAL_ITEM,
 	OBJECTVISUAL_WIELDITEM,
 	OBJECTVISUAL_NODE,
+	OBJECTVISUAL_VOXELS,
 };
 
 extern const EnumString es_ObjectVisual[];
@@ -65,6 +66,35 @@ struct ObjectProperties
 	float zoom_fov = 0.0f;
 	std::optional<u32> nametag_fontsize;
 	MapNode node = MapNode(CONTENT_IGNORE);
+
+	/**
+	 * A piece of a voxel-shaped object: which node it is and where it sits,
+	 * counted from the object's own origin in whole nodes.
+	 */
+	struct VoxelPiece
+	{
+		v3s16 offset;
+		MapNode node;
+	};
+
+	/**
+	 * The nodes this object is made of, drawn as one mesh (OBJECTVISUAL_VOXELS).
+	 *
+	 * The engine has always been able to show a single node as an object; a
+	 * heap of them had to be a heap of objects, one per node, each sent to
+	 * every player. That is what a falling tree or a moving contraption
+	 * actually is, and paying an object per node for it is why such things
+	 * stay small.
+	 *
+	 * Geometry comes from the same generator that draws the map, so a node
+	 * looks here exactly as it does in the world — nodeboxes, connections and
+	 * all.
+	 */
+	std::vector<VoxelPiece> voxels;
+
+	/// More than this many pieces are refused: the set travels inside the
+	/// object's properties, and properties are resent whole on every change.
+	static constexpr size_t MAX_VOXELS = 4096;
 	u16 hp_max = 1;
 	u16 breath_max = 0;
 	s8 glow = 0;
