@@ -68,6 +68,8 @@ Particle::Particle(
 		std::unique_ptr<ClientParticleTexture> owned_texture
 	) :
 		m_expiration(p.expirationtime),
+		m_rotation(p.rotation),
+		m_rotation_speed(p.rotation_speed),
 
 		m_base_color(color),
 
@@ -104,6 +106,27 @@ bool Particle::attachToBuffer(ParticleBuffer *buffer)
 void Particle::step(float dtime, ClientEnvironment *env)
 {
 	m_time += dtime;
+
+	/*
+	 * Улёгшийся мусор не считает ничего.
+	 *
+	 * Ни движения, ни столкновений, ни освещения, ни — главное — вершин:
+	 * буфер их уже содержит и трогать его незачем. Тысяча лежащих обломков
+	 * обходится в один обход списка и ничего больше.
+	 *
+	 * Единственное, что может их поднять, — смена смещения камеры: вершины
+	 * хранятся относительно него, и после сдвига мира их нужно переписать.
+	 */
+	if (m_settled) {
+		if (env->getCameraOffset() != m_settled_camera_offset) {
+			m_settled_camera_offset = env->getCameraOffset();
+			updateVertices(env, m_settled_color);
+		}
+		return;
+	}
+
+	if (m_rotation_speed != v3f())
+		m_rotation += m_rotation_speed * dtime;
 
 	// apply drag (not handled by collisionMoveSimple) and brownian motion
 	v3f av = vecAbsolute(m_velocity);
@@ -195,6 +218,22 @@ void Particle::step(float dtime, ClientEnvironment *env)
 			m_velocity = p_velocity / BS;
 		}
 		m_pos = p_pos / BS;
+
+		/*
+		 * Мусор, которому велено улечься, на этом успокаивается.
+		 *
+		 * Условие — коснулся земли и почти остановился. Пока он ещё катится
+		 * или сползает по склону, спать рано: улёгшийся уже не двигается
+		 * никогда, и уложить его в воздухе значило бы подвесить обломок.
+		 */
+		if (m_p.settle_on_collision && r.collides && r.touching_ground
+				&& m_velocity.getLengthSQ() < 0.35f) {
+			m_settled = true;
+			m_velocity = v3f();
+			m_acceleration = v3f();
+			m_rotation_speed = v3f();
+			m_settled_camera_offset = env->getCameraOffset();
+		}
 	} else {
 		// apply velocity and acceleration to position
 		m_pos += (m_velocity + m_acceleration * 0.5f * dtime) * dtime;
@@ -226,6 +265,11 @@ void Particle::step(float dtime, ClientEnvironment *env)
 
 	// Update model
 	updateVertices(env, col);
+
+	// Улёгшийся запоминает свой цвет: пересчитывать освещение ему больше не
+	// придётся, а при сдвиге мира вершины переписываются именно им.
+	if (m_settled)
+		m_settled_color = col;
 }
 
 video::SColor Particle::updateLight(ClientEnvironment *env)
@@ -298,6 +342,55 @@ void Particle::updateVertices(ClientEnvironment *env, video::SColor color)
 	auto half = m_p.size * .5f,
 	     hx   = half * scale.X,
 	     hy   = half * scale.Y;
+
+	auto *player = env->getLocalPlayer();
+	const v3s16 camera_offset = env->getCameraOffset();
+	const v3f origin = m_pos * BS - intToFloat(camera_offset, BS);
+
+	if (m_p.shape == ParticleShape::CUBE) {
+		/*
+		 * Кубик: шесть граней по четыре вершины.
+		 *
+		 * Развёртка у всех граней одна и та же — кусок камня со всех сторон
+		 * камень, и разводить их по текстуре незачем. Нормали настоящие: по
+		 * ним обломок ловит свет и перестаёт выглядеть плоской наклейкой.
+		 */
+		const f32 h = half * scale.X;
+		static const v3f face_normal[6] = {
+			v3f(0, 0, -1), v3f(0, 0, 1), v3f(-1, 0, 0),
+			v3f(1, 0, 0), v3f(0, 1, 0), v3f(0, -1, 0),
+		};
+		// Углы граней в порядке, дающем внешнюю сторону по часовой стрелке.
+		static const v3f face_corner[6][4] = {
+			{ v3f(-1, -1, -1), v3f( 1, -1, -1), v3f( 1,  1, -1), v3f(-1,  1, -1) },
+			{ v3f( 1, -1,  1), v3f(-1, -1,  1), v3f(-1,  1,  1), v3f( 1,  1,  1) },
+			{ v3f(-1, -1,  1), v3f(-1, -1, -1), v3f(-1,  1, -1), v3f(-1,  1,  1) },
+			{ v3f( 1, -1, -1), v3f( 1, -1,  1), v3f( 1,  1,  1), v3f( 1,  1, -1) },
+			{ v3f(-1,  1, -1), v3f( 1,  1, -1), v3f( 1,  1,  1), v3f(-1,  1,  1) },
+			{ v3f(-1, -1,  1), v3f( 1, -1,  1), v3f( 1, -1, -1), v3f(-1, -1, -1) },
+		};
+		const f32 u[4] = { tx0, tx1, tx1, tx0 };
+		const f32 v[4] = { ty1, ty1, ty0, ty0 };
+
+		for (u16 f = 0; f < 6; f++) {
+			for (u16 i = 0; i < 4; i++) {
+				v3f pos = face_corner[f][i] * h;
+				v3f normal = face_normal[f];
+				pos.rotateYZBy(m_rotation.X / core::DEGTORAD);
+				pos.rotateXZBy(m_rotation.Y / core::DEGTORAD);
+				pos.rotateXYBy(m_rotation.Z / core::DEGTORAD);
+				normal.rotateYZBy(m_rotation.X / core::DEGTORAD);
+				normal.rotateXZBy(m_rotation.Y / core::DEGTORAD);
+				normal.rotateXYBy(m_rotation.Z / core::DEGTORAD);
+				vertices[f * 4 + i] = video::S3DVertex(pos.X, pos.Y, pos.Z,
+						normal.X, normal.Y, normal.Z, color, u[i], v[i]);
+			}
+		}
+		for (u16 i = 0; i < 24; i++)
+			vertices[i].Pos += origin;
+		return;
+	}
+
 	vertices[0] = video::S3DVertex(-hx, -hy,
 		0, 0, 0, 0, color, tx0, ty1);
 	vertices[1] = video::S3DVertex(hx, -hy,
@@ -308,12 +401,23 @@ void Particle::updateVertices(ClientEnvironment *env, video::SColor color)
 		0, 0, 0, 0, color, tx0, ty0);
 
 	// Update position -- see #10398
-	auto *player = env->getLocalPlayer();
-	v3s16 camera_offset = env->getCameraOffset();
-
 	for (u16 i = 0; i < 4; i++) {
 		video::S3DVertex &vertex = vertices[i];
-		if (m_p.vertical) {
+		if (m_p.shape == ParticleShape::FLAT) {
+			/*
+			 * Плоская накладка держится своего поворота, а не камеры.
+			 *
+			 * Лоскут нарисован в плоскости XY, а лежать ему обычно на земле,
+			 * поэтому сперва он кладётся плашмя, и только потом на него
+			 * ложится заданный поворот. Так «поворот ноль» означает «лежит
+			 * горизонтально», что для следа на земле и есть естественное
+			 * положение.
+			 */
+			vertex.Pos.rotateYZBy(-90.0f);
+			vertex.Pos.rotateYZBy(m_rotation.X / core::DEGTORAD);
+			vertex.Pos.rotateXZBy(m_rotation.Y / core::DEGTORAD);
+			vertex.Pos.rotateXYBy(m_rotation.Z / core::DEGTORAD);
+		} else if (m_p.vertical) {
 			v3f ppos = player->getPosition() / BS;
 			vertex.Pos.rotateXZBy(std::atan2(ppos.Z - m_pos.Z, ppos.X - m_pos.X) /
 				core::DEGTORAD + 90);
@@ -321,7 +425,7 @@ void Particle::updateVertices(ClientEnvironment *env, video::SColor color)
 			vertex.Pos.rotateYZBy(player->getPitch());
 			vertex.Pos.rotateXZBy(player->getYaw());
 		}
-		vertex.Pos += m_pos * BS - intToFloat(camera_offset, BS);
+		vertex.Pos += origin;
 	}
 }
 
@@ -442,6 +546,15 @@ void ParticleSpawner::spawnParticle(ClientEnvironment *env, float radius,
 	}
 
 	pp.expirationtime = r_exp.pickWithin();
+
+	// Поворот и вращение — со своим разбросом на каждую частицу: горсть
+	// обломков, повёрнутых одинаково, читается как строй, а не как мусор.
+	{
+		auto r_rotation = p.rotation.blend(fac);
+		auto r_rot_speed = p.rotation_speed.blend(fac);
+		pp.rotation = r_rotation.pickWithin();
+		pp.rotation_speed = r_rot_speed.pickWithin();
+	}
 
 	if (sphere_radius != v3f()) {
 		f32 l = sphere_radius.getLength();
@@ -627,10 +740,12 @@ void ParticleSpawner::step(float dtime, ClientEnvironment *env)
 	ParticleBuffer
 */
 
-ParticleBuffer::ParticleBuffer(ClientEnvironment *env, const video::SMaterial &material)
+ParticleBuffer::ParticleBuffer(ClientEnvironment *env, const video::SMaterial &material,
+		ParticleShape shape)
 	: scene::ISceneNode(
 			env->getPlaceDef()->getSceneManager()->getRootSceneNode(),
 			env->getPlaceDef()->getSceneManager()),
+	m_shape(shape),
 	m_mesh_buffer(make_irr<scene::SMeshBuffer>())
 {
 	m_mesh_buffer->getMaterial() = material;
@@ -638,11 +753,25 @@ ParticleBuffer::ParticleBuffer(ClientEnvironment *env, const video::SMaterial &m
 
 static constexpr u16 quad_indices[] = { 0, 1, 2, 2, 3, 0 };
 
+/// Индексы кубика: шесть граней по четыре вершины, каждая двумя треугольниками.
+static constexpr u16 cube_indices[] = {
+	 0,  1,  2,  2,  3,  0,
+	 4,  5,  6,  6,  7,  4,
+	 8,  9, 10, 10, 11,  8,
+	12, 13, 14, 14, 15, 12,
+	16, 17, 18, 18, 19, 16,
+	20, 21, 22, 22, 23, 20,
+};
+
 std::optional<u16> ParticleBuffer::allocate()
 {
 	u16 index;
 
 	m_usage_timer = 0;
+
+	const u16 verts = verticesPerParticle();
+	const u16 inds = indicesPerParticle();
+	const u16 *pattern = m_shape == ParticleShape::CUBE ? cube_indices : quad_indices;
 
 	if (!m_free_list.empty()) {
 		index = m_free_list.back();
@@ -650,23 +779,23 @@ std::optional<u16> ParticleBuffer::allocate()
 		auto *vertices = static_cast<video::S3DVertex*>(m_mesh_buffer->getVertices());
 		u16 *indices = m_mesh_buffer->getIndices();
 		// reset vertices, because it is only written in Particle::step()
-		for (u16 i = 0; i < 4; i++)
-			vertices[4 * index + i] = video::S3DVertex();
-		for (u16 i = 0; i < 6; i++)
-			indices[6 * index + i] = 4 * index + quad_indices[i];
+		for (u16 i = 0; i < verts; i++)
+			vertices[verts * index + i] = video::S3DVertex();
+		for (u16 i = 0; i < inds; i++)
+			indices[inds * index + i] = verts * index + pattern[i];
 		m_live[index] = true;
 		m_indices_dirty = true;
 		return index;
 	}
 
-	if (m_count >= MAX_PARTICLES_PER_BUFFER)
+	if (m_count >= maxParticles())
 		return std::nullopt;
 
 	// append new vertices
 	// note: Our buffer never gets smaller, but ParticleManager will delete
 	//       us after a while.
-	std::array<video::S3DVertex, 4> vertices {};
-	m_mesh_buffer->append(&vertices.front(), 4, quad_indices, 6);
+	std::array<video::S3DVertex, 24> vertices {};
+	m_mesh_buffer->append(&vertices.front(), verts, pattern, inds);
 	index = m_count++;
 	m_live.resize(m_count, false);
 	m_live[index] = true;
@@ -690,7 +819,8 @@ video::S3DVertex *ParticleBuffer::getVertices(u16 index)
 	if (index >= m_count)
 		return nullptr;
 	m_bounding_box_dirty = true;
-	return &(static_cast<video::S3DVertex *>(m_mesh_buffer->getVertices())[4 * index]);
+	return &(static_cast<video::S3DVertex *>(m_mesh_buffer->getVertices())
+			[verticesPerParticle() * index]);
 }
 
 void ParticleBuffer::OnRegisterSceneNode()
@@ -811,8 +941,9 @@ void ParticleBuffer::updateIndices()
 			// Centre of the quad from its two opposite corners. Cheaper than
 			// averaging all four, and accurate enough to order by: a corner
 			// alone would misplace the large sprites an explosion throws.
-			const v3f centre = (m_mesh_buffer->getPosition(4 * i)
-					+ m_mesh_buffer->getPosition(4 * i + 2)) * 0.5f;
+			const u16 verts = verticesPerParticle();
+			const v3f centre = (m_mesh_buffer->getPosition(verts * i)
+					+ m_mesh_buffer->getPosition(verts * i + 2)) * 0.5f;
 			key = centre.getDistanceFromSQ(eye);
 		}
 		m_sort_scratch.emplace_back(key, i);
@@ -824,15 +955,19 @@ void ParticleBuffer::updateIndices()
 				[] (const auto &a, const auto &b) { return a.first > b.first; });
 	}
 
+	const u16 verts = verticesPerParticle();
+	const u16 inds = indicesPerParticle();
+	const u16 *pattern = m_shape == ParticleShape::CUBE ? cube_indices : quad_indices;
+
 	u16 *indices = m_mesh_buffer->getIndices();
 	u32 out = 0;
 	for (const auto &entry : m_sort_scratch) {
-		for (u16 j = 0; j < 6; j++)
-			indices[out++] = 4 * entry.second + quad_indices[j];
+		for (u16 j = 0; j < inds; j++)
+			indices[out++] = verts * entry.second + pattern[j];
 	}
 	// Slots without a particle collapse to a degenerate triangle, which draws
 	// nothing.
-	const u32 total = 6u * m_count;
+	const u32 total = (u32)inds * m_count;
 	while (out < total)
 		indices[out++] = 0;
 
@@ -1222,17 +1357,20 @@ bool ParticleManager::addParticle(std::unique_ptr<Particle> toadd)
 
 	auto material = getMaterialForParticle(toadd.get());
 
+	const ParticleShape shape = toadd->getShape();
+
 	ParticleBuffer *found = nullptr;
 	// simple shortcut when multiple particles of the same type get added
 	if (!m_particles.empty()) {
 		auto &last = m_particles.back();
-		if (last->getBuffer() && last->getBuffer()->getMaterial(0) == material)
+		if (last->getBuffer() && last->getBuffer()->getMaterial(0) == material
+				&& last->getBuffer()->getShape() == shape)
 			found = last->getBuffer();
 	}
 	// search fitting buffer
 	if (!found) {
 		for (auto &buffer : m_particle_buffers) {
-			if (buffer->getMaterial(0) == material) {
+			if (buffer->getMaterial(0) == material && buffer->getShape() == shape) {
 				found = buffer.get();
 				break;
 			}
@@ -1240,7 +1378,7 @@ bool ParticleManager::addParticle(std::unique_ptr<Particle> toadd)
 	}
 	// or create a new one
 	if (!found) {
-		auto tmp = make_irr<ParticleBuffer>(m_env, material);
+		auto tmp = make_irr<ParticleBuffer>(m_env, material, shape);
 		found = tmp.get();
 		m_particle_buffers.push_back(std::move(tmp));
 	}

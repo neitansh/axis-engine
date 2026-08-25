@@ -94,6 +94,8 @@ public:
 	ParticleBuffer *getBuffer() const { return m_buffer; }
 	bool attachToBuffer(ParticleBuffer *buffer);
 
+	ParticleShape getShape() const { return m_p.shape; }
+
 private:
 	video::SColor updateLight(ClientEnvironment *env);
 	void updateVertices(ClientEnvironment *env, video::SColor color);
@@ -103,6 +105,28 @@ private:
 
 	float m_time = 0.0f;
 	float m_expiration;
+
+	//! Поворот и его скорость. Билборд их не замечает.
+	v3f m_rotation;
+	v3f m_rotation_speed;
+
+	/*!
+	 * Улеглась и больше не шевелится.
+	 *
+	 * Спящая частица не считает ни движения, ни столкновений, и главное — не
+	 * переписывает свои вершины. Ради этого всё и затевалось: поле боя,
+	 * усыпанное тысячами обломков, стоит ровно столько же, сколько пустое,
+	 * пока по нему не начнут стрелять снова.
+	 *
+	 * Просыпаться ей незачем: улёгшийся мусор уже никуда не денется. Только
+	 * смена смещения камеры заставляет пересчитать вершины — они хранятся
+	 * относительно него.
+	 */
+	bool m_settled = false;
+	v3s16 m_settled_camera_offset;
+	//! Цвет, с которым частица улеглась: пересчитывать освещение ей больше
+	//! не нужно, а при сдвиге мира вершины переписываются этим цветом.
+	video::SColor m_settled_color;
 
 	// Color without lighting
 	video::SColor m_base_color;
@@ -168,19 +192,38 @@ class ParticleBuffer : public scene::ISceneNode
 {
 	friend class ParticleManager;
 public:
-	ParticleBuffer(ClientEnvironment *env, const video::SMaterial &material);
+	/*!
+	 * \param shape Форма частиц этого буфера.
+	 *
+	 * Форма входит в устройство буфера, а не в частицу: у лоскута четыре
+	 * вершины, у кубика двадцать четыре, и мешать их в одном буфере нельзя —
+	 * место частицы вычисляется умножением её номера на размер. Поэтому
+	 * буферы разводятся не только по материалу, но и по форме.
+	 */
+	ParticleBuffer(ClientEnvironment *env, const video::SMaterial &material,
+			ParticleShape shape);
 
 	// for pointer stability
 	DISABLE_CLASS_COPY(ParticleBuffer)
 
-	/// Reserves one more slot for a particle (4 vertices, 6 indices)
+	/// Reserves one more slot for a particle
 	/// @return particle index within buffer
 	std::optional<u16> allocate();
 	/// Frees the particle at `index`
 	void release(u16 index);
 
-	/// @return video::S3DVertex[4]
+	/// @return вершины частицы: verticesPerParticle() штук подряд
 	video::S3DVertex *getVertices(u16 index);
+
+	ParticleShape getShape() const { return m_shape; }
+
+	/// Сколько вершин занимает одна частица этой формы.
+	u16 verticesPerParticle() const
+	{ return m_shape == ParticleShape::CUBE ? 24 : 4; }
+
+	/// Сколько индексов занимает одна частица этой формы.
+	u16 indicesPerParticle() const
+	{ return m_shape == ParticleShape::CUBE ? 36 : 6; }
 
 	inline bool isEmpty() const {
 		return m_free_list.size() == m_count;
@@ -202,6 +245,11 @@ public:
 	// we have 16-bit indices
 	static constexpr u16 MAX_PARTICLES_PER_BUFFER = 16000;
 
+	/// Предел с оглядкой на форму: у кубика вершин вшестеро больше, и
+	/// шестнадцати бит на индексы хватает лишь на шестую часть частиц.
+	u16 maxParticles() const
+	{ return m_shape == ParticleShape::CUBE ? 2500 : MAX_PARTICLES_PER_BUFFER; }
+
 private:
 	/// Rewrites the index buffer, ordering the particles back to front when the
 	/// material needs it. Called once per frame from render().
@@ -211,6 +259,7 @@ private:
 	/// order it against the other transparent nodes.
 	void updateSortPosition();
 
+	ParticleShape m_shape = ParticleShape::BILLBOARD;
 	irr_ptr<scene::SMeshBuffer> m_mesh_buffer;
 	// unused (e.g. expired) particle indices for re-use
 	std::vector<u16> m_free_list;

@@ -43,6 +43,34 @@ void LuaParticleParams::readTexValue(lua_State* L, ServerParticleTexture& tex)
 
 }
 
+namespace
+{
+	/*!
+	 * Форма частицы по имени.
+	 *
+	 * Имена, а не числа: "billboard", "flat", "cube" читаются в моде так же
+	 * ясно, как в документации, и не путаются местами при правке.
+	 */
+	ParticleShape readShape(lua_State *L, int index, ParticleShape def)
+	{
+		lua_getfield(L, index, "shape");
+		if (lua_isstring(L, -1)) {
+			const std::string name = lua_tostring(L, -1);
+			if (name == "billboard")
+				def = ParticleShape::BILLBOARD;
+			else if (name == "flat")
+				def = ParticleShape::FLAT;
+			else if (name == "cube")
+				def = ParticleShape::CUBE;
+			else
+				throw LuaError("particle 'shape' must be "
+						"\"billboard\", \"flat\" or \"cube\"");
+		}
+		lua_pop(L, 1);
+		return def;
+	}
+}
+
 // add_particle({...})
 int ModApiParticles::l_add_particle(lua_State *L)
 {
@@ -142,6 +170,20 @@ int ModApiParticles::l_add_particle(lua_State *L)
 
 		lua_getfield(L, 1, "bounce");
 		LuaParticleParams::readLuaValue(L, p.bounce);
+		lua_pop(L, 1);
+
+		p.shape = readShape(L, 1, p.shape);
+		p.settle_on_collision = getboolfield_default(L, 1,
+				"settle_on_collision", p.settle_on_collision);
+
+		lua_getfield(L, 1, "rotation");
+		if (lua_istable(L, -1))
+			p.rotation = check_v3f(L, -1);
+		lua_pop(L, 1);
+
+		lua_getfield(L, 1, "rotation_speed");
+		if (lua_istable(L, -1))
+			p.rotation_speed = check_v3f(L, -1);
 		lua_pop(L, 1);
 	}
 
@@ -278,6 +320,13 @@ int ModApiParticles::l_add_particlespawner(lua_State *L)
 		lua_pop(L, 1);
 
 		p.node_tile = getintfield_default(L, 1, "node_tile", p.node_tile);
+
+		p.shape = readShape(L, 1, p.shape);
+		p.settle_on_collision = getboolfield_default(L, 1,
+				"settle_on_collision", p.settle_on_collision);
+
+		LuaParticleParams::readTweenTable(L, "rotation", p.rotation);
+		LuaParticleParams::readTweenTable(L, "rotation_speed", p.rotation_speed);
 
 		// meta parameters
 		playername = getstringfield_default(L, 1, "playername", "");

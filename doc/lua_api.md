@@ -12388,6 +12388,33 @@ Used by `core.add_particle`.
     -- which the particle texture is picked.
     -- Otherwise, the default behavior is used. (currently: any random tile)
 
+    shape = "billboard",
+    -- Optional. How the particle is built in space:
+    --   "billboard" (default) -- a flat sprite always turned towards the
+    --                            camera. Smoke, sparks, splashes.
+    --   "flat"                -- a flat square holding its own rotation.
+    --                            Footprints, bullet marks, scorches.
+    --   "cube"                -- a small cube holding its own rotation.
+    --                            Rubble, debris, shell casings.
+    -- Non-billboard shapes are drawn from the same buffers as ordinary
+    -- particles, so a thousand pieces of rubble cost one draw call, not a
+    -- thousand objects. Use them instead of entities for scenery clutter.
+    -- Note: "flat" with zero rotation lies horizontally, face up.
+
+    rotation = {x=0, y=0, z=0},
+    -- Optional. Rotation in radians, for "flat" and "cube" shapes.
+
+    rotation_speed = {x=0, y=0, z=0},
+    -- Optional. Rotation change per second, for "flat" and "cube" shapes.
+
+    settle_on_collision = false,
+    -- Optional, requires `collisiondetection`. The particle stops for good
+    -- once it lands, instead of sliding or bouncing on.
+    -- A settled particle stops being simulated entirely: its vertices are
+    -- never rewritten and its buffer is never touched again, so a battlefield
+    -- littered with thousands of settled fragments costs no more than an
+    -- empty one.
+
     drag = {x=0, y=0, z=0},
     -- v5.6.0 and later: Optional drag value, consult the following section
     -- Note: Only a vector is supported here. Alternative forms like a single
@@ -12490,6 +12517,33 @@ will be ignored.
     -- If set to a valid integer in range [1, 6], specifies the tile from
     -- which the particle texture is picked.
     -- Otherwise, the default behavior is used. (currently: any random tile)
+
+    shape = "billboard",
+    -- Optional. How the particle is built in space:
+    --   "billboard" (default) -- a flat sprite always turned towards the
+    --                            camera. Smoke, sparks, splashes.
+    --   "flat"                -- a flat square holding its own rotation.
+    --                            Footprints, bullet marks, scorches.
+    --   "cube"                -- a small cube holding its own rotation.
+    --                            Rubble, debris, shell casings.
+    -- Non-billboard shapes are drawn from the same buffers as ordinary
+    -- particles, so a thousand pieces of rubble cost one draw call, not a
+    -- thousand objects. Use them instead of entities for scenery clutter.
+    -- Note: "flat" with zero rotation lies horizontally, face up.
+
+    rotation = {x=0, y=0, z=0},
+    -- Optional. Rotation in radians, for "flat" and "cube" shapes.
+
+    rotation_speed = {x=0, y=0, z=0},
+    -- Optional. Rotation change per second, for "flat" and "cube" shapes.
+
+    settle_on_collision = false,
+    -- Optional, requires `collisiondetection`. The particle stops for good
+    -- once it lands, instead of sliding or bouncing on.
+    -- A settled particle stops being simulated entirely: its vertices are
+    -- never rewritten and its buffer is never touched again, so a battlefield
+    -- littered with thousands of settled fragments costs no more than an
+    -- empty one.
 
     -------------------
     -- Legacy fields --

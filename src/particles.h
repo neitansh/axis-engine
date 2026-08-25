@@ -259,6 +259,28 @@ struct ServerParticleTexture : public ParticleTexture
 			bool skipAnimation = false);
 };
 
+//! Чем частица нарисована в пространстве.
+/*!
+ * Обычная частица — билборд: плоский лоскут, всегда развёрнутый к камере.
+ * Для дыма и искр это верно, но мусору на поле боя — крошке от взрыва,
+ * следам на земле, отметинам на стене — билборд не годится: у них есть своя
+ * ориентация, и разворот к камере превращает лежащий на земле обломок в
+ * стоящую торчком картинку.
+ *
+ * Отсюда две дополнительные формы. Обе рисуются тем же буфером, что и
+ * обычные частицы, то есть тысяча обломков стоит одной команды рисования, а
+ * не тысячи объектов.
+ */
+enum class ParticleShape : u8
+{
+	//! Лоскут лицом к камере. Дым, искры, брызги.
+	BILLBOARD = 0,
+	//! Плоский квадрат со своим поворотом. Следы, отметины, подпалины.
+	FLAT = 1,
+	//! Кубик со своим поворотом. Обломки, крошка, гильзы.
+	CUBE = 2,
+};
+
 struct CommonParticleParams
 {
 	bool collisiondetection = false;
@@ -270,6 +292,16 @@ struct CommonParticleParams
 	u8 glow = 0;
 	MapNode node;
 	u8 node_tile = 0;
+	ParticleShape shape = ParticleShape::BILLBOARD;
+	/*!
+	 * Останавливается ли частица навсегда, ударившись о мир.
+	 *
+	 * Нужна мусору: обломок, упавший на землю, должен лежать, а не скользить
+	 * и не отскакивать. Улёгшаяся частица засыпает — её вершины больше не
+	 * пересчитываются и буфер не трогается, поэтому тысяча лежащих обломков
+	 * не стоит ничего, кроме места в памяти.
+	 */
+	bool settle_on_collision = false;
 
 	CommonParticleParams() {
 		animation.type = TAT_NONE;
@@ -286,6 +318,8 @@ struct CommonParticleParams
 		to.texture = texture;
 		to.animation = animation;
 		to.glow = glow;
+		to.shape = shape;
+		to.settle_on_collision = settle_on_collision;
 		to.node = node;
 		to.node_tile = node_tile;
 	}
@@ -297,6 +331,8 @@ struct ParticleParameters : CommonParticleParams
 	f32 size = 1, expirationtime = 1;
 	ParticleParamTypes::f32Range bounce;
 	ParticleParamTypes::v3fRange jitter;
+	//! Поворот в радианах и его скорость. Билборд их не замечает.
+	v3f rotation, rotation_speed;
 
 	void serialize(std::ostream &os, u16 protocol_ver) const;
 	void deSerialize(std::istream &is, u16 protocol_ver);
@@ -327,6 +363,9 @@ struct ParticleSpawnerParameters : CommonParticleParams
 		size   {1.0f},
 		attract{0.0f},
 		bounce {0.0f};
+
+	//! Поворот и вращение, как у одиночной частицы, но с разбросом.
+	ParticleParamTypes::v3fRangeTween rotation, rotation_speed;
 
 	// For historical reasons no (de-)serialization methods here
 };

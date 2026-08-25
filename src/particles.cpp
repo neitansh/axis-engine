@@ -248,6 +248,12 @@ void ParticleParameters::serialize(std::ostream &os, u16 protocol_ver) const
 	jitter.serialize(os);
 	bounce.serialize(os);
 	texture.serialize(os, protocol_ver, true, true);
+
+	// Форма, поворот и залегание — в конец, как и всё, что добавляли раньше.
+	writeU8(os, static_cast<u8>(shape));
+	writeV3F32(os, rotation);
+	writeV3F32(os, rotation_speed);
+	writeU8(os, settle_on_collision);
 }
 
 void ParticleParameters::deSerialize(std::istream &is, u16 protocol_ver)
@@ -286,4 +292,13 @@ void ParticleParameters::deSerialize(std::istream &is, u16 protocol_ver)
 	// >= 5.9.0-dev
 
 	texture.deSerialize(is, protocol_ver, true, true);
+
+	if (!canRead(is))
+		return;
+	// >= 0.0.1-dev (the-axis)
+
+	shape = static_cast<ParticleShape>(readU8(is));
+	rotation = readV3F32(is);
+	rotation_speed = readV3F32(is);
+	settle_on_collision = readU8(is);
 }
