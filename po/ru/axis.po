@@ -10306,3 +10306,9 @@ msgstr "Длина каждого штриха, а для формы «точк�
 
 msgid "How thick the crosshair lines are."
 msgstr "Толщина линий прицела."
+
+msgid "Name tags shown at once"
+msgstr "Имён на экране разом"
+
+msgid "How many names may hang over players at once. The ones nearest to the crosshair win; the rest are not drawn. Zero means no limit."
+msgstr "Сколько имён может висеть над игроками одновременно. Остаются ближайшие к прицелу, остальные не рисуются вовсе. Ноль снимает предел."

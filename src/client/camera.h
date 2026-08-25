@@ -5,6 +5,7 @@
 #pragma once
 
 #include "irrlichttypes.h"
+#include "object_properties.h"
 #include "inventory.h" // ItemStack
 #include "util/basic_macros.h"
 #include "util/numeric.h"
@@ -36,6 +37,19 @@ struct Nametag
 	std::optional<u32> textsize;
 	v3f pos; // offset from parent node
 	bool scale_z;
+
+	//! Когда эту табличку видно: расстояние, стены, взгляд (object_properties.h).
+	ObjectProperties::NametagShow show;
+
+	/*!
+	 * Что показал последний луч до головы и когда он был пущен.
+	 *
+	 * Проверять стену каждый кадр незачем: за сотую долю секунды из-за угла
+	 * не выходят. Ответ живёт около двух десятых секунды — этого не замечает
+	 * глаз, но хватает, чтобы луч пускался в десятки раз реже.
+	 */
+	bool los_ok = true;
+	u64 los_checked_ms = 0;
 
 	video::SColor getBgColor(bool use_fallback) const
 	{

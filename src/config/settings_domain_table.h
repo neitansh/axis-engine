@@ -72,6 +72,7 @@ constexpr SettingDomainEntry SETTING_DOMAIN_TABLE[] = {
 	{"contentdb_url", ConfigDomain::ClientInterface},
 	{"creative_mode", ConfigDomain::ClientSession},
 	{"crosshair_alpha", ConfigDomain::ClientGraphics},
+	{"nametag_max_visible", ConfigDomain::ClientGraphics},
 	{"crosshair_color", ConfigDomain::ClientGraphics},
 	{"crosshair_dot", ConfigDomain::ClientGraphics},
 	{"crosshair_gap", ConfigDomain::ClientGraphics},

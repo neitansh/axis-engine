@@ -1010,6 +1010,11 @@ hud_scaling (HUD scaling) float 1.0 0.5 20
 #    Mods may still set a background.
 show_nametag_backgrounds (Show name tag backgrounds by default) bool true
 
+#    How many name tags may be shown at once. The ones nearest to the crosshair
+#    win; the rest are not drawn at all. Zero means no limit.
+#    A place may narrow this further through its own rules, but not widen it.
+nametag_max_visible (Name tags shown at once) int 5 0 50
+
 #    Whether to show the client debug info (has the same effect as hitting F5).
 show_debug (Show debug info) bool false
 

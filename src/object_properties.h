@@ -153,6 +153,48 @@ struct ObjectProperties
 	bool batched = false;
 	bool show_on_minimap = false;
 	bool nametag_scale_z = false;
+
+	/*!
+	 * Когда табличку с именем видно, а когда нет.
+	 *
+	 * Обычная табличка не знает ни расстояния, ни стен: она рисуется поверх
+	 * кадра всегда и всем. В мирной игре это мелочь, в тактическом шутере —
+	 * подсказка сквозь укрытие и полсотни имён на экране, когда рядом
+	 * оказался свой отряд.
+	 *
+	 * Правила считает клиент — у него есть камера, карта и кадр, — а решает,
+	 * какими им быть, сервер: правило видимости имени такая же часть игры,
+	 * как урон.
+	 */
+	struct NametagShow
+	{
+		//! Дальше этого имя не показывается. Ноль — без предела.
+		f32 max_distance = 0.0f;
+		//! Сколько узлов перед пределом имя гаснет: выключаться рывком —
+		//! значит мигать всякий раз, когда цель качнулась на шаг.
+		f32 fade = 0.0f;
+		//! Ближе этого имя видно всегда, даже мимо взгляда: это тот, кто
+		//! буквально рядом, и прятать его незачем.
+		f32 always_within = 0.0f;
+		//! Не показывать, если между камерой и головой стена.
+		bool require_line_of_sight = false;
+		//! Показывать, только когда смотришь на человека.
+		bool only_when_pointed = false;
+		//! Насколько «на человека»: угол от середины экрана, в градусах.
+		f32 pointed_angle = 6.0f;
+
+		bool operator==(const NametagShow &o) const
+		{
+			return max_distance == o.max_distance && fade == o.fade &&
+					always_within == o.always_within &&
+					require_line_of_sight == o.require_line_of_sight &&
+					only_when_pointed == o.only_when_pointed &&
+					pointed_angle == o.pointed_angle;
+		}
+		bool operator!=(const NametagShow &o) const { return !(*this == o); }
+	};
+
+	NametagShow nametag_show;
 	StepUpMode step_up_mode = StepUpMode::LEGACY;
 
 	/*

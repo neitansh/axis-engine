@@ -738,6 +738,39 @@ void Camera::toggleCameraMode()
 		m_camera_mode = CAMERA_MODE_FIRST;
 }
 
+/*!
+ * Есть ли прямая видимость от глаза до точки.
+ *
+ * Луч идёт по узлам с полушаговым шагом и упирается в первый непроходимый.
+ * Точность здесь не нужна: вопрос не «куда попадёт пуля», а «загорожен ли
+ * человек стеной», и полшага для этого — с запасом. Незагруженный кусок
+ * карты преградой не считается: иначе имя мигало бы на краю прогрузки.
+ */
+static bool hasLineOfSight(ClientEnvironment &env, v3f from, v3f to)
+{
+	const v3f delta = to - from;
+	const f32 length = delta.getLength();
+	if (length < 0.001f)
+		return true;
+
+	const NodeDefManager *ndef = env.getPlaceDef()->ndef();
+	ClientMap &map = env.getClientMap();
+
+	const int steps = std::min(256, std::max(1, (int)std::ceil(length / (BS * 0.5f))));
+	for (int i = 1; i < steps; i++) {
+		const v3f probe = from + delta * ((f32)i / (f32)steps);
+		const v3s16 np = floatToInt(probe, BS);
+
+		bool pos_ok = false;
+		const MapNode n = map.getNode(np, &pos_ok);
+		if (!pos_ok || n.getContent() == CONTENT_IGNORE)
+			continue;
+		if (ndef->get(n).walkable)
+			return false;
+	}
+	return true;
+}
+
 void Camera::drawNametags()
 {
 	core::matrix4 trans = m_cameranode->getProjectionMatrix();
@@ -757,15 +790,62 @@ void Camera::drawNametags()
 	video::IVideoDriver *driver = RenderingEngine::get_video_driver();
 	v2u32 screensize = driver->getScreenSize();
 
-	// Note: hidden nametags (e.g. GenericCAO) are removed from the array
-	for (const Nametag *nametag : m_nametags)
+	/*
+	 * Сперва отбор, потом рисование.
+	 *
+	 * Табличка рисуется поверх кадра и потому не знает ни расстояния, ни
+	 * стен; правила ей задаёт сервер (ObjectProperties::NametagShow), а
+	 * считает их клиент — у него камера, карта и кадр. Отбор нужен и ради
+	 * цены: на каждую табличку идёт запрос шрифта нужного размера и промер
+	 * текста, и полсотни имён стоят заметно дороже пяти.
+	 */
+	struct Candidate
 	{
-		v3f pos = nametag->parent_node->getAbsolutePosition() + nametag->pos * BS;
-		f32 transformed_pos[4] = {pos.X, pos.Y, pos.Z, 1.0f};
+		const Nametag *tag;
+		v2s32 screen_pos;
+		u32 font_size;
+		f32 alpha;      //!< затухание у предела дальности
+		f32 weight;     //!< чем меньше, тем важнее показать
+	};
+	std::vector<Candidate> candidates;
+	candidates.reserve(m_nametags.size());
+
+	const v3f eye = m_cameranode->getAbsolutePosition();
+	const u64 now_ms = porting::getTimeMs();
+	const v2f screen_centre(screensize.X * 0.5f, screensize.Y * 0.5f);
+	// Угол, под которым видно экран по вертикали: по нему угловой допуск
+	// «смотрю на человека» переводится в пиксели.
+	const f32 fov_y = m_cameranode->getFOV();
+
+	// Note: hidden nametags (e.g. GenericCAO) are removed from the array
+	for (Nametag *nametag : m_nametags)
+	{
+		const v3f world_pos = nametag->parent_node->getAbsolutePosition()
+				+ nametag->pos * BS;
+		f32 transformed_pos[4] = {world_pos.X, world_pos.Y, world_pos.Z, 1.0f};
 		trans.multiplyWith1x4Matrix(transformed_pos);
 		if (transformed_pos[3] <= 0) // negative Z means behind camera
 			continue;
 		f32 zDiv = transformed_pos[3] == 0.0f ? 1.0f : (1.0f / transformed_pos[3]);
+
+		const auto &show = nametag->show;
+		const f32 distance = (world_pos - eye).getLength() / BS;
+
+		f32 alpha = 1.0f;
+		if (show.max_distance > 0.0f) {
+			if (distance > show.max_distance)
+				continue;
+			// Гаснет плавно: выключаться рывком значит мигать всякий раз,
+			// когда цель качнулась на шаг.
+			if (show.fade > 0.0f && distance > show.max_distance - show.fade) {
+				alpha = (show.max_distance - distance) / show.fade;
+				if (alpha <= 0.02f)
+					continue;
+			}
+		}
+
+		const bool near_enough = show.always_within > 0.0f
+				&& distance <= show.always_within;
 
 		u32 font_size = 0;
 		if (nametag->scale_z)
@@ -798,31 +878,79 @@ void Camera::drawNametags()
 			else if (font_size > 32)
 				font_size &= ~1;
 		}
-		auto *font = g_fontengine->getFont(font_size);
+
+		v2s32 screen_pos;
+		screen_pos.X = screensize.X * (0.5f + transformed_pos[0] * zDiv * 0.5f);
+		screen_pos.Y = screensize.Y * (0.5f - transformed_pos[1] * zDiv * 0.5f);
+
+		const f32 off_centre = v2f(screen_pos.X - screen_centre.X,
+				screen_pos.Y - screen_centre.Y).getLength();
+
+		if (show.only_when_pointed && !near_enough) {
+			// Допуск задан углом, а мерить приходится в пикселях: переводим
+			// через раствор камеры, иначе правило разъезжалось бы при смене
+			// поля зрения и разрешения.
+			const f32 allowed = screensize.Y * 0.5f
+					* std::tan(show.pointed_angle * core::DEGTORAD)
+					/ std::tan(fov_y * 0.5f);
+			if (off_centre > allowed)
+				continue;
+		}
+
+		if (show.require_line_of_sight && !near_enough) {
+			if (now_ms - nametag->los_checked_ms > 200) {
+				nametag->los_checked_ms = now_ms;
+				nametag->los_ok = hasLineOfSight(m_client->getEnv(), eye, world_pos);
+			}
+			if (!nametag->los_ok)
+				continue;
+		}
+
+		candidates.push_back({nametag, screen_pos, font_size, alpha,
+				near_enough ? -1.0f : off_centre});
+	}
+
+	/*
+	 * Сколько имён показывать разом.
+	 *
+	 * Полсотни своих в одной комнате — это полсотни надписей поверх боя, и
+	 * ни одну из них уже не прочесть. Оставляем ближайшие к прицелу: то, на
+	 * что смотришь, и есть то, о чём хочется знать.
+	 */
+	const s32 limit = g_settings->getS32("nametag_max_visible");
+	if (limit > 0 && (s32)candidates.size() > limit) {
+		std::partial_sort(candidates.begin(), candidates.begin() + limit,
+				candidates.end(), [](const Candidate &a, const Candidate &b) {
+			return a.weight < b.weight;
+		});
+		candidates.resize(limit);
+	}
+
+	for (const Candidate &c : candidates)
+	{
+		auto *font = g_fontengine->getFont(c.font_size);
 		assert(font);
 
-		const auto wtext = utf8_to_wide(nametag->text);
+		const auto wtext = utf8_to_wide(c.tag->text);
 		// Measure dimensions with escapes removed
 		core::dimension2du textsize = font->getDimension(unescape_translate(wtext).c_str());
-		v2s32 screen_pos;
-		screen_pos.X = screensize.X *
-						   (0.5f + transformed_pos[0] * zDiv * 0.5f) -
-					textsize.Width / 2;
-		screen_pos.Y = screensize.Y *
-						   (0.5f - transformed_pos[1] * zDiv * 0.5f) -
-					textsize.Height / 2;
+		v2s32 screen_pos(c.screen_pos.X - textsize.Width / 2,
+				c.screen_pos.Y - textsize.Height / 2);
 		core::rect<s32> size(0, 0, textsize.Width, textsize.Height);
 
-		auto bgcolor = nametag->getBgColor(m_show_nametag_backgrounds);
+		auto bgcolor = c.tag->getBgColor(m_show_nametag_backgrounds);
 		if (bgcolor.getAlpha() != 0)
 		{
+			bgcolor.setAlpha(myround(bgcolor.getAlpha() * c.alpha));
 			core::rect<s32> bg_size(-2, 0, textsize.Width + 2, textsize.Height);
 			driver->draw2DRectangle(bgcolor, bg_size + screen_pos);
 		}
 
+		video::SColor textcolor = c.tag->textcolor;
+		textcolor.setAlpha(myround(textcolor.getAlpha() * c.alpha));
+
 		// but draw text with escapes
-		font->draw(translate_string(wtext).c_str(),
-				   size + screen_pos, nametag->textcolor);
+		font->draw(translate_string(wtext).c_str(), size + screen_pos, textcolor);
 	}
 }
 

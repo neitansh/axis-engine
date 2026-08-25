@@ -99,6 +99,12 @@ std::string ObjectProperties::dump() const
 	os << ", shaded=" << shaded;
 	os << ", show_on_minimap=" << show_on_minimap;
 	os << ", nametag_scale_z=" << nametag_scale_z;
+	os << ", nametag_show={max_distance=" << nametag_show.max_distance
+		<< ", fade=" << nametag_show.fade
+		<< ", always_within=" << nametag_show.always_within
+		<< ", require_line_of_sight=" << nametag_show.require_line_of_sight
+		<< ", only_when_pointed=" << nametag_show.only_when_pointed
+		<< ", pointed_angle=" << nametag_show.pointed_angle << "}";
 	os << ", step_up_mode=" << enum_to_string(es_StepUpMode, step_up_mode);
 	return os.str();
 }
@@ -251,6 +257,13 @@ void ObjectProperties::serialize(std::ostream &os) const
 	writeU8(os, casts_shadow);
 	writeU8(os, batched);
 
+	writeF32(os, nametag_show.max_distance);
+	writeF32(os, nametag_show.fade);
+	writeF32(os, nametag_show.always_within);
+	writeU8(os, nametag_show.require_line_of_sight);
+	writeU8(os, nametag_show.only_when_pointed);
+	writeF32(os, nametag_show.pointed_angle);
+
 	// Add stuff only at the bottom.
 	// Never remove anything, because we don't want new versions of this!
 }
@@ -398,6 +411,13 @@ void ObjectProperties::deSerialize(std::istream &is)
 	depth_bias = readF32(is);
 	casts_shadow = readU8(is);
 	batched = readU8(is);
+
+	nametag_show.max_distance = readF32(is);
+	nametag_show.fade = readF32(is);
+	nametag_show.always_within = readF32(is);
+	nametag_show.require_line_of_sight = readU8(is);
+	nametag_show.only_when_pointed = readU8(is);
+	nametag_show.pointed_angle = readF32(is);
 
 	//if (!canRead(is))
 	//	return;

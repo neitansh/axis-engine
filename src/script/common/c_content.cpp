@@ -295,7 +295,7 @@ void push_item_definition_full(lua_State *L, const ItemDefinition &i)
 }
 
 /******************************************************************************/
-const std::array<const char *, 41> object_property_keys = {
+const std::array<const char *, 42> object_property_keys = {
 	"hp_max",
 	"breath_max",
 	"physical",
@@ -335,6 +335,7 @@ const std::array<const char *, 41> object_property_keys = {
 	// "node" is intentionally not here as it's gated behind `fallback` below!
 	"nametag_fontsize",
 	"nametag_scale_z",
+	"nametag_show",
 	"step_up_mode",
 	"first_person",
 	"first_person_only"
@@ -554,6 +555,21 @@ void read_object_properties(lua_State *L, int index,
 	lua_pop(L, 1);
 	getboolfield(L, -1, "nametag_scale_z", prop->nametag_scale_z);
 
+	lua_getfield(L, -1, "nametag_show");
+	if (lua_istable(L, -1)) {
+		auto &show = prop->nametag_show;
+		show.max_distance = getfloatfield_default(L, -1, "max_distance",
+				show.max_distance);
+		show.fade = getfloatfield_default(L, -1, "fade", show.fade);
+		show.always_within = getfloatfield_default(L, -1, "always_within",
+				show.always_within);
+		getboolfield(L, -1, "require_line_of_sight", show.require_line_of_sight);
+		getboolfield(L, -1, "only_when_pointed", show.only_when_pointed);
+		show.pointed_angle = getfloatfield_default(L, -1, "pointed_angle",
+				show.pointed_angle);
+	}
+	lua_pop(L, 1);
+
 	getstringfield(L, -1, "infotext", prop->infotext);
 	getboolfield(L, -1, "static_save", prop->static_save);
 
@@ -705,6 +721,21 @@ void push_object_properties(lua_State *L, const ObjectProperties *prop)
 	lua_setfield(L, -2, "nametag_fontsize");
 	lua_pushboolean(L, prop->nametag_scale_z);
 	lua_setfield(L, -2, "nametag_scale_z");
+
+	lua_newtable(L);
+	lua_pushnumber(L, prop->nametag_show.max_distance);
+	lua_setfield(L, -2, "max_distance");
+	lua_pushnumber(L, prop->nametag_show.fade);
+	lua_setfield(L, -2, "fade");
+	lua_pushnumber(L, prop->nametag_show.always_within);
+	lua_setfield(L, -2, "always_within");
+	lua_pushboolean(L, prop->nametag_show.require_line_of_sight);
+	lua_setfield(L, -2, "require_line_of_sight");
+	lua_pushboolean(L, prop->nametag_show.only_when_pointed);
+	lua_setfield(L, -2, "only_when_pointed");
+	lua_pushnumber(L, prop->nametag_show.pointed_angle);
+	lua_setfield(L, -2, "pointed_angle");
+	lua_setfield(L, -2, "nametag_show");
 	lua_pushlstring(L, prop->infotext.c_str(), prop->infotext.size());
 	lua_setfield(L, -2, "infotext");
 	lua_pushboolean(L, prop->static_save);

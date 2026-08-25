@@ -374,6 +374,10 @@ void set_default_settings()
 	settings->setDefault("arm_inertia", "true");
 	settings->setDefault("hurt_flash_enabled", "true");
 	settings->setDefault("show_nametag_backgrounds", "true");
+	// Сколько имён показывать разом. Полсотни своих в одной комнате — это
+	// полсотни надписей поверх боя, и ни одну из них уже не прочесть;
+	// остаются ближайшие к прицелу. Ноль снимает предел.
+	settings->setDefault("nametag_max_visible", "5");
 	settings->setDefault("show_block_bounds_radius_near", "4");
 	settings->setDefault("transparency_sorting_group_by_buffers", "true");
 	settings->setDefault("transparency_sorting_distance", "16");

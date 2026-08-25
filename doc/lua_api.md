@@ -10340,6 +10340,38 @@ Player properties need to be saved manually.
     -- smaller the further away the object is.
     -- Default: false
 
+    nametag_show = {
+        max_distance = 0,
+        -- Beyond this many nodes the name is not drawn. 0 means no limit.
+
+        fade = 0,
+        -- How many nodes before that limit the name fades out. Without it the
+        -- name blinks every time the target sways a step.
+
+        always_within = 0,
+        -- Closer than this the name is always shown -- past the crosshair
+        -- rule, past walls. That is someone standing right next to you.
+
+        require_line_of_sight = false,
+        -- Do not draw the name when a wall stands between the camera and the
+        -- object. The client traces a ray, keeping the answer for a fifth of
+        -- a second: nobody steps out of cover faster than that.
+
+        only_when_pointed = false,
+        pointed_angle = 6,
+        -- Show the name only while looking at the object, within this many
+        -- degrees off the middle of the screen.
+    },
+    -- When the nametag is visible. The rules are the server's to set and the
+    -- client's to apply -- it has the camera, the map and the frame.
+    -- Independently of this, a client draws at most `nametag_max_visible`
+    -- names at once, keeping the ones nearest to the crosshair. A client may
+    -- narrow that further, never widen it.
+    -- Note that these rules hide a name, they do not withhold it: the text
+    -- still reaches every client that can see the object. To keep a name from
+    -- reaching someone at all, put it on an object of its own and limit that
+    -- object's observers (see `set_observers`).
+
     infotext = "",
     -- Same as infotext for nodes. Empty by default
 

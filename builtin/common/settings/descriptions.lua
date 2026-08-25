@@ -66,6 +66,7 @@ return {
 	["contentdb_max_concurrent_downloads"] = { text = S("How many add-ons may download at the same time.") },
 	["contentdb_url"] = { text = S("Where the place looks for downloadable content.") },
 	["crosshair_alpha"] = { text = S("How visible the crosshair is. Zero hides it completely.") },
+	["nametag_max_visible"] = { text = S("How many names may hang over players at once. The ones nearest to the crosshair win; the rest are not drawn. Zero means no limit.") },
 	["crosshair_color"] = { text = S("Colour of the crosshair in the middle of the screen.") },
 	["crosshair_dot"] = { text = S("A dot in the very middle, on top of whatever shape is chosen. Zero for none.") },
 	["crosshair_gap"] = { text = S("How far the strokes start from the middle. A wider gap leaves the target itself uncovered.") },
