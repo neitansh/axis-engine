@@ -161,6 +161,20 @@ void LuaEntitySAO::step(float dtime, bool send_recommended)
 		sendPosition(false, true);
 	}
 
+	/*
+	 * Спящий не двигается и не думает.
+	 *
+	 * Ни физики, ни `on_step`: улёгшийся обломок никуда не денется сам, а
+	 * тысяча вызовов в Lua каждый тик стоит больше, чем всё рисование этой
+	 * тысячи. Служебное — свойства и текстуры — отправляется и во сне, оно
+	 * выше по этой же функции.
+	 *
+	 * Разбудить его может мод (`set_sleeping(false)`), удар, толчок,
+	 * перемещение — или собственный срок, если он засыпал с ним.
+	 */
+	if (stepSleep(dtime))
+		return;
+
 	m_last_sent_position_timer += dtime;
 
 	CollisionMoveResult moveresult, *moveresult_p = nullptr;
@@ -351,6 +365,9 @@ u32 LuaEntitySAO::punch(v3f dir,
 		float time_from_last_punch,
 		u16 initial_wear)
 {
+	// По спящему ударили — он обязан ответить: и уроном, и полётом.
+	wakeUp();
+
 	if (!m_registered) {
 		// Delete unknown LuaEntities when punched
 		markForRemoval();
@@ -416,6 +433,8 @@ void LuaEntitySAO::setPos(const v3f &pos)
 	if(isAttached())
 		return;
 
+	wakeUp();
+
 	// A mod that runs its own physics calls set_pos every single step. Such a
 	// "jump" of a fraction of a block is movement, not teleportation, and
 	// sending it as teleportation is what makes mod-driven vehicles stutter:
@@ -436,6 +455,7 @@ void LuaEntitySAO::moveTo(v3f pos, bool continuous)
 {
 	if(isAttached())
 		return;
+	wakeUp();
 	setBasePosition(pos);
 	if(!continuous)
 		sendPosition(true, true);
@@ -484,8 +504,30 @@ std::string LuaEntitySAO::getGUID() const
 	return "@" + m_guid.base64();
 }
 
+void LuaEntitySAO::setSleeping(bool sleeping, f32 wake_after)
+{
+	if (sleeping && !isSleeping()) {
+		/*
+		 * Перед сном объект говорит, где он встал, — и говорит это точно, без
+		 * сглаживания.
+		 *
+		 * Сглаженная посылка несёт клиенту не только место, но и скорость, с
+		 * которой его туда вести, а при нулевой собственной скорости сервер
+		 * выводит её из пройденного пути — то есть из последнего падения. Для
+		 * живого объекта это правильно: следующий пакет поправит. Для
+		 * засыпающего следующего пакета не будет, и клиент до скончания века
+		 * тащит улёгшуюся крошку по полу.
+		 */
+		sendPosition(false, true);
+	}
+	ServerActiveObject::setSleeping(sleeping, wake_after);
+}
+
 void LuaEntitySAO::setVelocity(v3f velocity)
 {
+	// Тронули за движение — значит, спать больше нечего: иначе объект
+	// получил бы скорость и остался стоять.
+	wakeUp();
 	m_velocity = velocity;
 }
 
@@ -496,6 +538,7 @@ v3f LuaEntitySAO::getVelocity()
 
 void LuaEntitySAO::setAcceleration(v3f acceleration)
 {
+	wakeUp();
 	m_acceleration = acceleration;
 }
 

@@ -9239,6 +9239,24 @@ You **must not** mix names and track numbers to refer to the same animation.
     * The object is removed after returning from Lua. However the `ObjectRef`
       itself instantly becomes unusable with all further method calls having
       no effect and returning `nil`.
+* `set_sleeping(sleeping, wake_after)`
+    * Put the entity to sleep, or wake it up.
+    * A sleeping entity is not stepped: no physics, no `on_step`. It stays
+      where it is, stays visible, can be punched, and its properties can still
+      be changed and are still sent. Only the step is skipped.
+    * Meant for clutter that has come to rest -- shell casings, debris,
+      decals. A thousand of them cost the server nothing while asleep, where
+      a thousand `on_step` calls per tick cost more than drawing them all.
+    * `wake_after` (optional, seconds): wake up on its own after that long.
+      Omitted or negative means sleep until woken. Time passes while asleep,
+      but the entity's own `dtime` does not: an entity that has to know its
+      age should count the sleep it asked for, not the step it woke up in.
+    * Anything that touches the entity's motion wakes it: `set_velocity`,
+      `add_velocity`, `set_acceleration`, `set_pos`, `move_to`, a punch. An
+      entity that were pushed and stayed put would be a bug no mod can see.
+    * The entity's position is sent once before it falls asleep, so clients
+      stop carrying it forward on its last known velocity.
+* `get_sleeping()`: returns whether the entity is asleep
 * `set_velocity(vel)`
     * Sets the velocity
     * `vel` is a vector, e.g. `{x=0.0, y=2.3, z=1.0}`

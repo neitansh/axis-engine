@@ -1277,6 +1277,37 @@ int ObjectRef::l_get_nametag_attributes(lua_State *L)
 /* LuaEntitySAO-only */
 
 // set_velocity(self, velocity)
+// set_sleeping(self, sleeping, wake_after)
+int ObjectRef::l_set_sleeping(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	ObjectRef *ref = checkObject<ObjectRef>(L, 1);
+	LuaEntitySAO *sao = getluaobject(ref);
+	if (sao == nullptr)
+		return 0;
+
+	const bool sleeping = readParam<bool>(L, 2, true);
+	// Отрицательный срок — спать, пока не разбудят.
+	const f32 wake_after = lua_isnoneornil(L, 3)
+			? -1.0f : readParam<float>(L, 3);
+
+	sao->setSleeping(sleeping, wake_after);
+	return 0;
+}
+
+// get_sleeping(self)
+int ObjectRef::l_get_sleeping(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	ObjectRef *ref = checkObject<ObjectRef>(L, 1);
+	ServerActiveObject *sao = getobject(ref);
+	if (sao == nullptr)
+		return 0;
+
+	lua_pushboolean(L, sao->isSleeping());
+	return 1;
+}
+
 int ObjectRef::l_set_velocity(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
@@ -3238,6 +3269,8 @@ luaL_Reg ObjectRef::methods[] = {
 	luamethod(ObjectRef, get_observers),
 	luamethod(ObjectRef, get_effective_observers),
 
+	luamethod(ObjectRef, set_sleeping),
+	luamethod(ObjectRef, get_sleeping),
 	luamethod_aliased(ObjectRef, set_velocity, setvelocity),
 	luamethod_aliased(ObjectRef, add_velocity, add_player_velocity),
 	luamethod_aliased(ObjectRef, get_velocity, getvelocity),

@@ -46,9 +46,18 @@ public:
 	u16 getHP() const;
 	std::string getGUID() const;
 
+	/*!
+	 * Уложить спать или разбудить.
+	 *
+	 * Перед сном объект досылает своё место: клиент ведёт его по последней
+	 * известной скорости, и уснуть, не сказав «я встал», значило бы оставить
+	 * гильзу уезжать по полу на чужой стороне.
+	 */
+	void setSleeping(bool sleeping, f32 wake_after = -1.0f);
+
 	/* LuaEntitySAO-specific */
 	void setVelocity(v3f velocity);
-	void addVelocity(v3f velocity) { m_velocity += velocity; }
+	void addVelocity(v3f velocity) { wakeUp(); m_velocity += velocity; }
 	v3f getVelocity();
 	void setAcceleration(v3f acceleration);
 	v3f getAcceleration();

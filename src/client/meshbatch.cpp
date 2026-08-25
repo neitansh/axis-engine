@@ -3,6 +3,7 @@
 
 #include "meshbatch.h"
 
+#include "profiler.h"
 #include "renderingengine.h"
 #include "shadows/dynamicshadowsrender.h"
 
@@ -173,6 +174,10 @@ void MeshBatch::updateIndices()
 			ibuf.push_back(static_cast<u16>(base + index));
 	}
 
+	// Перестройка индексов — не бесплатная работа: буфер уезжает на карту
+	// заново. Считаем её, чтобы было видно, если пакет начнёт перестраиваться
+	// каждый кадр, а не тогда, когда жильцы приходят и уходят.
+	g_profiler->avg("MeshBatch: перестроек индексов [#]", 1);
 	m_mesh_buffer->setDirty(scene::EBT_INDEX);
 	m_indices_dirty = false;
 }

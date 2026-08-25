@@ -183,6 +183,12 @@ private:
 	/* LuaEntitySAO-only */
 
 	// set_velocity(self, velocity)
+	// set_sleeping(self, sleeping, wake_after)
+	static int l_set_sleeping(lua_State *L);
+
+	// get_sleeping(self)
+	static int l_get_sleeping(lua_State *L);
+
 	static int l_set_velocity(lua_State *L);
 
 	// add_velocity(self, velocity)

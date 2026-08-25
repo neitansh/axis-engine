@@ -84,6 +84,62 @@ public:
 
 	virtual std::string getDescription(){return "SAO";}
 
+	/*!
+	 * Спит ли объект.
+	 *
+	 * Мусор, который улёгся, ничего больше не делает: он не двигается, не
+	 * сталкивается и не думает. Считать ему движение и звать его `on_step`
+	 * каждый тик — это работа ради работы, и на тысяче обломков она съедает
+	 * больше, чем всё их рисование.
+	 *
+	 * Спящий объект остаётся объектом во всём остальном: он на месте, он
+	 * виден, по нему можно ударить, его свойства можно менять, и он сам
+	 * отправляет то, что должен. Не делается только одно — шаг.
+	 */
+	bool isSleeping() const { return m_sleeping; }
+
+	/*!
+	 * Уложить объект спать или разбудить.
+	 *
+	 * \param sleeping спать ли
+	 * \param wake_after через сколько секунд проснуться самому;
+	 *        отрицательное — спать, пока не разбудят
+	 */
+	void setSleeping(bool sleeping, f32 wake_after = -1.0f)
+	{
+		m_sleeping = sleeping;
+		m_sleep_left = sleeping ? wake_after : -1.0f;
+	}
+
+	/*!
+	 * Разбудить, если спал.
+	 *
+	 * Зовётся отовсюду, где объект трогают за движение: толкнули, передвинули,
+	 * ударили. Спящий, которого толкнули и который не проснулся, — это
+	 * застрявшая в воздухе гильза, и ловить такую ошибку в моде некому.
+	 */
+	void wakeUp() { setSleeping(false); }
+
+	/*!
+	 * Отсчитать сон. Возвращает true, если объект спит и шаг ему не нужен.
+	 *
+	 * Время считается и во сне: это единственное, что спящий делает. Иначе
+	 * усыплённому мусору пришлось бы держать по таймеру на брата в моде.
+	 */
+	bool stepSleep(f32 dtime)
+	{
+		if (!m_sleeping)
+			return false;
+		if (m_sleep_left >= 0.0f) {
+			m_sleep_left -= dtime;
+			if (m_sleep_left <= 0.0f) {
+				setSleeping(false);
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/*
 		Step object in time.
 		Messages added to messages are sent to client over network.
@@ -280,6 +336,10 @@ protected:
 		Note: Do not assign this directly, use markForRemoval() instead.
 	*/
 	bool m_pending_removal = false;
+
+	//! Спит ли объект и сколько ему осталось спать (отрицательное — без срока).
+	bool m_sleeping = false;
+	f32 m_sleep_left = -1.0f;
 
 	/*
 		Queue of messages to be sent to the client
