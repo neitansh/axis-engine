@@ -8024,6 +8024,43 @@ Particles
     * If playername is specified, only deletes on the player's client,
       otherwise on all clients.
 
+* `core.shock_particles(definition)`
+    * Push every physical particle inside a sphere away from its centre —
+      the blast wave of an explosion, applied to debris that is already
+      lying around.
+    * Particles live on the client, so the server cannot push them one by
+      one the way it pushes entities. This sends the *place* instead: every
+      client that can see it finds its own particles there and scatters
+      them. One list walk per call, no matter how much debris is on the
+      ground.
+    * Only particles with `collisiondetection` are affected. Particles that
+      pass through the world — smoke, footprints, bullet marks — are left
+      alone: a blast does not blow away a footprint.
+    * Particles that had settled (`settle_on_collision`) wake up again, with
+      their acceleration and tumbling restored.
+    * Definition:
+
+          {
+              pos = {x=0, y=0, z=0},
+              -- centre of the blast, in nodes. Required.
+
+              radius = 5,
+              -- how far it reaches, in nodes. Nothing outside is touched.
+
+              strength = 12,
+              -- speed given at the centre, in nodes per second, falling off
+              -- linearly to nothing at the edge.
+
+              lift = 6,
+              -- extra upward push. A wave lifts what lies on the ground
+              -- rather than dragging it along the floor.
+
+              spread = 0.5,
+              -- how much directions vary, 0 to 1. At zero everything flies
+              -- straight out from the centre and the scatter reads as a
+              -- formation rather than an explosion.
+          }
+
 Schematics
 ----------
 

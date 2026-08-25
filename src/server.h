@@ -58,6 +58,7 @@ struct ChatInterface;
 struct ChatMessage;
 struct CloudParams;
 struct GameParams;
+struct ParticleShockwave;
 struct Lighting;
 struct MoonParams;
 struct PackedValue;
@@ -448,6 +449,9 @@ public:
 	 * камеры украшение, а не правило.
 	 */
 	bool SendCameraImpulse(session_t peer_id, const CameraImpulse &impulse);
+
+	/// @brief разослать ударную волну для частиц всем, кто её достаёт
+	void SendParticleShockwave(const ParticleShockwave &wave);
 	void SendPlayerBreath(PlayerSAO *sao);
 	void SendInventory(RemotePlayer *player, bool incremental, bool skip_wield_anim = false);
 	void SendMovePlayer(PlayerSAO *sao);

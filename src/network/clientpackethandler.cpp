@@ -1175,6 +1175,15 @@ void Client::handleCommand_AddParticleSpawner(NetworkPacket* pkt)
 			p.texpool.push_back(newtex);
 		}
 
+		if (!canRead(is))
+			break;
+		// >= 0.0.1-dev (the-axis)
+
+		p.shape = static_cast<ParticleShape>(readU8(is));
+		p.rotation.deSerialize(is);
+		p.rotation_speed.deSerialize(is);
+		p.settle_on_collision = readU8(is);
+
 		//if (!canRead(is))
 		//	break;
 		// Add new code here
@@ -2046,4 +2055,16 @@ void Client::handleCommand_CameraImpulse(NetworkPacket *pkt)
 			<< ", ignored." << std::endl;
 		break;
 	}
+}
+
+void Client::handleCommand_ParticleShockwave(NetworkPacket *pkt)
+{
+	auto *wave = new ParticleShockwave();
+	*pkt >> wave->pos.X >> wave->pos.Y >> wave->pos.Z
+		>> wave->radius >> wave->strength >> wave->lift >> wave->spread;
+
+	ClientEvent *event = new ClientEvent();
+	event->type = CE_PARTICLE_SHOCKWAVE;
+	event->particle_shockwave = wave;
+	m_client_event_queue.push(event);
 }

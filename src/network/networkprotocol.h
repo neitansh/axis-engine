@@ -818,7 +818,23 @@ enum ToClientCommand : u16
 		kind == 3 (сброс): без полей
 	*/
 
-	TOCLIENT_NUM_MSG_TYPES = 0x68,
+	TOCLIENT_PARTICLE_SHOCKWAVE = 0x68,
+	/*
+		Ударная волна для частиц: раскидать мусор, который уже лежит.
+
+		Частицы живут на клиенте, и сервер их не знает — послать толчок
+		каждой, как сущности, он не может. Поэтому посылается место: где
+		рвануло и с какой силой. Клиент сам находит свои частицы в этом
+		шаре и раскидывает их (ParticleManager::applyShockwave).
+
+		f32 pos X, Y, Z   // в узлах
+		f32 radius
+		f32 strength
+		f32 lift
+		f32 spread
+	*/
+
+	TOCLIENT_NUM_MSG_TYPES = 0x69,
 };
 
 enum ToServerCommand : u16

@@ -2110,6 +2110,12 @@ void Server::SendAddParticleSpawner(session_t peer_id, u16 protocol_version,
 			tex.serialize(os, protocol_version);
 		}
 
+		// Форма частиц, их поворот и то, ложатся ли они навсегда.
+		writeU8(os, static_cast<u8>(p.shape));
+		p.rotation.serialize(os);
+		p.rotation_speed.serialize(os);
+		writeU8(os, p.settle_on_collision);
+
 		pkt.putRawString(os.str());
 	}
 
@@ -2126,6 +2132,35 @@ void Server::SendDeleteParticleSpawner(session_t peer_id, u32 id)
 		Send(&pkt);
 	else
 		m_clients.sendToAll(&pkt);
+}
+
+void Server::SendParticleShockwave(const ParticleShockwave &wave)
+{
+	/*
+	 * Волна шлётся тем, кто её увидит.
+	 *
+	 * Смысл пакета — на клиенте: раскидать мусор, лежащий вокруг разрыва
+	 * (ParticleManager::applyShockwave). Игроку, который сидит за километр,
+	 * посылать нечего — его частиц там нет: мусор считается тем клиентом,
+	 * который его видит, и дальше границы отправки блоков его не бывает.
+	 */
+	static thread_local const float range =
+		g_settings->getS16("max_block_send_distance") * MAP_BLOCKSIZE * BS;
+	const float reach_sq = (range + wave.radius * BS) * (range + wave.radius * BS);
+	const v3f center = wave.pos * BS;
+
+	for (session_t peer_id : m_clients.getClientIDs()) {
+		PlayerSAO *sao = getPlayerSAO(peer_id);
+		if (!sao || sao->isGone())
+			continue;
+		if (sao->getBasePosition().getDistanceFromSQ(center) > reach_sq)
+			continue;
+
+		NetworkPacket pkt(TOCLIENT_PARTICLE_SHOCKWAVE, 7 * sizeof(f32), peer_id);
+		pkt << wave.pos.X << wave.pos.Y << wave.pos.Z
+			<< wave.radius << wave.strength << wave.lift << wave.spread;
+		Send(&pkt);
+	}
 }
 
 void Server::SendHUDAdd(session_t peer_id, u32 id, HudElement *form)
