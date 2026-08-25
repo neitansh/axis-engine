@@ -8,6 +8,13 @@
 #include "gettext.h"
 #include "IRenderTarget.h"
 #include "SColor.h"
+#include "profiler.h"
+
+#include <typeinfo>
+#if defined(__GNUC__) || defined(__clang__)
+#include <cxxabi.h>
+#include <cstdlib>
+#endif
 
 #include <vector>
 #include <memory>
@@ -291,6 +298,26 @@ RenderTarget *RenderPipeline::getOutput()
 	return &m_output;
 }
 
+const std::string &RenderStep::getProfilerName()
+{
+	if (m_profiler_name.empty()) {
+		const char *raw = typeid(*this).name();
+#if defined(__GNUC__) || defined(__clang__)
+		// У GCC и Clang имя типа приходит закодированным (12PostProcess...),
+		// и читать профиль в таком виде нельзя.
+		int status = 0;
+		char *pretty = abi::__cxa_demangle(raw, nullptr, nullptr, &status);
+		if (status == 0 && pretty) {
+			m_profiler_name = std::string("Pipeline: ") + pretty + " [us]";
+			free(pretty);
+		}
+#endif
+		if (m_profiler_name.empty())
+			m_profiler_name = std::string("Pipeline: ") + raw + " [us]";
+	}
+	return m_profiler_name;
+}
+
 void RenderPipeline::run(PipelineContext &context)
 {
 	v2u32 original_size = context.target_size;
@@ -299,8 +326,13 @@ void RenderPipeline::run(PipelineContext &context)
 	for (auto &object : m_objects)
 		object->reset(context);
 
-	for (auto &step: m_pipeline)
+	for (auto &step: m_pipeline) {
+		// Замер стоит на процессорной стороне шага: видеокарта исполняет его
+		// позже и своего времени наружу не отдаёт. Что из этого следует и как
+		// считается стоимость на стороне видеокарты — в отчёте аудита.
+		ScopeProfiler sp(g_profiler, step->getProfilerName(), SPT_AVG, PRECISION_MICRO);
 		step->run(context);
+	}
 
 	context.target_size = original_size;
 }

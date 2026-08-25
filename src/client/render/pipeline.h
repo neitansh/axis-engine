@@ -301,6 +301,19 @@ public:
 	 * Runs the step. This method is invoked by the pipeline.
 	 */
 	virtual void run(PipelineContext &context) = 0;
+
+	/**
+	 * Имя шага для профайлера.
+	 *
+	 * Конвейер собирается из полутора десятков шагов, и без имён профиль
+	 * показывает одну общую отрисовку, в которой не разобрать, что дороже —
+	 * карта теней, свечение или лучи. Имя берётся у самого типа шага, поэтому
+	 * новый шаг попадает в профиль сам, без правок здесь.
+	 */
+	const std::string &getProfilerName();
+
+private:
+	std::string m_profiler_name;
 };
 
 /**

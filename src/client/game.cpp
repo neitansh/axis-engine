@@ -4773,10 +4773,25 @@ void Game::drawScene(ProfilerGraph *graph, RunStats *stats)
 									  NULL);
 	}
 
+	/*
+	 * Present отделён от остальной отрисовки намеренно.
+	 *
+	 * Драйвер OpenGL работает вдогонку: вызовы рисования только складываются в
+	 * очередь, а исполняет их видеокарта позже. Поэтому по времени самих
+	 * вызовов нельзя понять, кто кого ждёт. А вот endScene упирается в очередь,
+	 * когда та переполнена, — то есть когда видеокарта не поспевает. Большое
+	 * время здесь и означает «процессор ждёт видеокарту», и наоборот.
+	 */
+	TimeTaker tt_present("Present", nullptr, PRECISION_MICRO);
 	this->driver->endScene();
+	u32 present_time = tt_present.stop(true);
 
 	stats->drawtime = tt_draw.stop(true);
 	g_profiler->graphAdd("Draw scene [us]", stats->drawtime);
+	// Те же числа, но средними: график живёт только на экране, а в profile.txt
+	// уходит именно эта половина профайлера.
+	g_profiler->avg("Draw: scene total [us]", stats->drawtime);
+	g_profiler->avg("Draw: present (CPU waits GPU) [us]", present_time);
 }
 
 /****************************************************************************
