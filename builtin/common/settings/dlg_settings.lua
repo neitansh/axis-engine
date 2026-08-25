@@ -7,6 +7,7 @@ local path = core.get_builtin_path() .. "common" .. DIR_DELIM .. "settings" .. D
 
 local component_funcs =  dofile(path .. "components.lua")
 local shadows_component =  dofile(path .. "shadows_component.lua")
+local crosshair_component = dofile(path .. "crosshair_component.lua")
 
 local loaded = false
 local info_icon_path = core.formspec_escape(defaulttexturedir .. "settings_info.png")
@@ -93,6 +94,9 @@ local PAGES = {
 			{ heading = fgettext_ne("General") },
 			"language", "font_size", "gui_scaling", "hud_scaling",
 			"menu_theme", "menu_clouds",
+			{ heading = fgettext_ne("Crosshair") },
+			"crosshair_shape", "crosshair_size", "crosshair_thickness",
+			"crosshair_gap", "crosshair_dot", "crosshair_outline",
 			{ heading = fgettext_ne("Hints") },
 			"tooltip_show_delay", "tooltip_append_itemname", "show_nametag_backgrounds",
 			{ heading = fgettext_ne("Chat") },
@@ -291,6 +295,17 @@ local function load()
 		local idx = table.indexof(content, "touch_controls")
 		if idx > 0 then
 			table.insert(content, idx + 1, touchscreen_layout)
+		end
+	end
+
+	do
+		-- Перекрестье правится числами, но выбирается глазами: предпросмотр
+		-- и наборы встают перед самими настройками, чтобы до ползунков
+		-- дошёл только тот, кому нужно своё.
+		local content = page_by_id.interface.content
+		local idx = table.indexof(content, "crosshair_shape")
+		if idx > 0 then
+			table.insert(content, idx, crosshair_component)
 		end
 	end
 

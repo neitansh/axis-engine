@@ -17,6 +17,13 @@ private:
 	static int l_normalize_keycode(lua_State *L);
 	static int l_get_key_description(lua_State *L);
 
+	// Буфер обмена и перекрестье нужны обоим меню — и стартовому, и тому,
+	// что открывается из игры: настройки там одни и те же.
+	static int l_copy_to_clipboard(lua_State *L);
+	static int l_paste_from_clipboard(lua_State *L);
+	static int l_get_crosshair(lua_State *L);
+	static int l_set_crosshair_code(lua_State *L);
+
 public:
 	static void Initialize(lua_State *L, int top);
 	static void InitializeAsync(lua_State *L, int top);

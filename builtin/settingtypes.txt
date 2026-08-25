@@ -597,14 +597,6 @@ selectionbox_color (Selection box color) string (0,0,0)
 #    Width of the selection box lines around nodes.
 selectionbox_width (Selection box width) int 2 1 5
 
-#    Crosshair color (R,G,B).
-#    Also controls the object crosshair color
-crosshair_color (Crosshair color) string (255,255,255)
-
-#    Crosshair alpha (opaqueness, between 0 and 255).
-#    This also applies to the object crosshair.
-crosshair_alpha (Crosshair alpha) int 255 0 255
-
 [**Fog]
 
 #    Whether to fog out the end of the visible area.
@@ -926,6 +918,45 @@ mute_sound (Mute sound) bool false
 #    Set the language. By default, the system language is used.
 #    A restart is required after changing this.
 language (Language) enum   ,be,bg,ca,cs,da,de,el,en,eo,es,et,eu,fi,fr,gd,gl,hu,id,it,ja,jbo,kk,ko,lt,lv,ms,nb,nl,nn,pl,pt,pt_BR,ro,ru,sk,sl,sr_Cyrl,sr_Latn,sv,sw,tr,uk,vi,zh_CN,zh_TW
+
+[**Crosshair]
+
+#    Crosshair color (R,G,B).
+#    Also controls the object crosshair color
+crosshair_color (Crosshair color) string (255,255,255)
+
+#    Crosshair alpha (opaqueness, between 0 and 255).
+#    This also applies to the object crosshair.
+crosshair_alpha (Crosshair alpha) int 255 0 255
+
+#    Shape the crosshair is built from.
+#    Only used when no crosshair.png is provided by a texture pack.
+crosshair_shape (Crosshair shape) enum cross cross,x,dot,circle,square,brackets,none
+
+#    Length of each crosshair stroke, in pixels.
+crosshair_size (Crosshair size) int 6 0 32
+
+#    Thickness of the crosshair lines, in pixels.
+crosshair_thickness (Crosshair thickness) int 2 1 8
+
+#    Gap between the centre and where the strokes begin, in pixels.
+crosshair_gap (Crosshair gap) int 3 0 24
+
+#    Size of the dot in the centre, in pixels. Zero for no dot.
+crosshair_dot (Crosshair centre dot) int 0 0 8
+
+#    Thickness of the dark outline around the crosshair, in pixels.
+#    Without it a white crosshair disappears against snow and sky.
+crosshair_outline (Crosshair outline) int 1 0 3
+
+#    Crosshair outline color (R,G,B).
+crosshair_outline_color (Crosshair outline color) string (0,0,0)
+
+#    Crosshair outline alpha (opaqueness, between 0 and 255).
+crosshair_outline_alpha (Crosshair outline alpha) int 160 0 255
+
+#    Crosshair color while pointing at a player or entity (R,G,B).
+crosshair_object_color (Crosshair color on target) string (255,80,80)
 
 [**GUI]
 

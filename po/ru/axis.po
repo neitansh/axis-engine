@@ -10171,3 +10171,101 @@ msgstr "Подключиться"
 
 msgid "Connecting…"
 msgstr "Подключение…"
+
+#. Настройка перекрестья: наборы, цвета и обмен кодом.
+msgid "Crosshair"
+msgstr "Прицел"
+
+msgid "Preset"
+msgstr "Набор"
+
+msgid "Outline"
+msgstr "Обводка"
+
+msgid "On target"
+msgstr "На цели"
+
+msgid "Set colors"
+msgstr "Задать"
+
+msgid "Share"
+msgstr "Обмен"
+
+msgid "Paste"
+msgstr "Вставить"
+
+msgid "Copy your crosshair as a code you can send to others"
+msgstr "Скопировать свой прицел кодом — его можно переслать"
+
+msgid "Apply a crosshair code from the clipboard"
+msgstr "Применить код прицела из буфера обмена"
+
+msgid "Cross"
+msgstr "Крест"
+
+msgid "Cross, no gap"
+msgstr "Крест без просвета"
+
+msgid "Thick cross"
+msgstr "Толстый крест"
+
+msgid "Ticks"
+msgstr "Штрихи"
+
+msgid "Cross with dot"
+msgstr "Крест с точкой"
+
+msgid "Dot"
+msgstr "Точка"
+
+msgid "Small dot"
+msgstr "Мелкая точка"
+
+msgid "Ring with dot"
+msgstr "Кольцо с точкой"
+
+msgid "Frame with dot"
+msgstr "Рамка с точкой"
+
+msgid "Brackets"
+msgstr "Уголки"
+
+msgid "Diagonal cross"
+msgstr "Косой крест"
+
+msgid "Nothing"
+msgstr "Ничего"
+
+msgid "Copy"
+msgstr "Скопировать"
+
+msgid "Color"
+msgstr "Цвет"
+
+#. Названия настроек перекрестья в списке.
+msgid "Crosshair shape"
+msgstr "Форма прицела"
+
+msgid "Crosshair size"
+msgstr "Размер прицела"
+
+msgid "Crosshair thickness"
+msgstr "Толщина линий"
+
+msgid "Crosshair gap"
+msgstr "Просвет в центре"
+
+msgid "Crosshair centre dot"
+msgstr "Точка в центре"
+
+msgid "Crosshair outline"
+msgstr "Обводка"
+
+msgid "Crosshair outline color"
+msgstr "Цвет обводки"
+
+msgid "Crosshair outline alpha"
+msgstr "Прозрачность обводки"
+
+msgid "Crosshair color on target"
+msgstr "Цвет прицела на цели"

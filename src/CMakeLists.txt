@@ -488,6 +488,7 @@ set(common_SRCS
 	clientdynamicinfo.cpp
 	collision.cpp
 	content_mapnode.cpp
+	crosshair.cpp
 	defaultsettings.cpp
 	emerge.cpp
 	environment.cpp

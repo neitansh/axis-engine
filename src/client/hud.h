@@ -6,6 +6,7 @@
 #pragma once
 
 #include <vector>
+#include "crosshair.h"
 #include <IGUIFont.h>
 #include <SMaterial.h>
 #include <CMeshBuffer.h>
@@ -42,6 +43,15 @@ public:
 	} m_block_bounds_mode = BLOCK_BOUNDS_OFF;
 
 	video::SColor crosshair_argb;
+	//! Как собрано перекрестье: форма, размеры, цвета. Читается из настроек
+	//! при создании HUD и при их изменении.
+	CrosshairStyle crosshair_style;
+
+	//! Перечитать перекрестье: его настройки могли поменять только что, в
+	//! соседнем окне.
+	void crosshairChanged();
+	static void crosshair_changed_callback(const std::string &name, void *data)
+	{ static_cast<Hud *>(data)->crosshairChanged(); }
 	video::SColor selectionbox_argb;
 
 	bool use_crosshair_image = false;

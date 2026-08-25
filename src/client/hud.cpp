@@ -50,6 +50,16 @@ Hud::Hud(Client *client, LocalPlayer *player,
 	g_settings->registerChangedCallback("display_density_factor", setting_changed_callback, this);
 	g_settings->registerChangedCallback("hud_scaling", setting_changed_callback, this);
 
+	// Перекрестье перечитывается на лету: его настраивают, глядя на него же,
+	// и «поменяйте и перезайдите» здесь никуда не годится.
+	for (const char *name : {
+			"crosshair_shape", "crosshair_size", "crosshair_thickness",
+			"crosshair_gap", "crosshair_dot", "crosshair_outline",
+			"crosshair_color", "crosshair_alpha", "crosshair_outline_color",
+			"crosshair_outline_alpha", "crosshair_object_color"}) {
+		g_settings->registerChangedCallback(name, crosshair_changed_callback, this);
+	}
+
 	for (auto &hbar_color : hbar_colors)
 		hbar_color = video::SColor(255, 255, 255, 255);
 
@@ -61,6 +71,11 @@ Hud::Hud(Client *client, LocalPlayer *player,
 	u32 cross_b = rangelim(myround(crosshair_color.Z), 0, 255);
 	u32 cross_a = rangelim(g_settings->getS32("crosshair_alpha"), 0, 255);
 	crosshair_argb = video::SColor(cross_a, cross_r, cross_g, cross_b);
+
+	// Перекрестье собирается из прямоугольников по описанию из настроек
+	// (crosshair.h). Картинка, если игрок её положил, всё равно старше:
+	// нарисованное руками описанием не заменишь.
+	crosshair_style = CrosshairStyle::fromSettings(g_settings);
 
 	v3f selectionbox_color = g_settings->getV3F("selectionbox_color").value_or(v3f());
 	u32 sbox_r = rangelim(myround(selectionbox_color.X), 0, 255);
@@ -823,8 +838,39 @@ void Hud::drawHotbar(const v2s32 &pos, const v2f &offset, u16 dir, const v2f &al
 }
 
 
+void Hud::crosshairChanged()
+{
+	crosshair_style = CrosshairStyle::fromSettings(g_settings);
+
+	v3f color = g_settings->getV3F("crosshair_color").value_or(v3f());
+	crosshair_argb = video::SColor(
+			rangelim(g_settings->getS32("crosshair_alpha"), 0, 255),
+			rangelim(myround(color.X), 0, 255),
+			rangelim(myround(color.Y), 0, 255),
+			rangelim(myround(color.Z), 0, 255));
+}
+
 void Hud::drawCrosshair()
 {
+	//! Нарисовать перекрестье по описанию: сперва обводка, затем оно само.
+	auto draw_style_crosshair = [this] (video::SColor color) {
+		auto paint = [this] (const std::vector<CrosshairStyle::Piece> &pieces,
+				video::SColor c) {
+			for (const auto &p : pieces) {
+				core::rect<s32> r(m_displaycenter.X + p.x, m_displaycenter.Y + p.y,
+						m_displaycenter.X + p.x + p.w, m_displaycenter.Y + p.y + p.h);
+				driver->draw2DRectangle(c, r);
+			}
+		};
+
+		// Обводка идёт первой и целиком: рисовать её вокруг каждого штриха
+		// по очереди значило бы получить её тёмные полосы поверх соседних
+		// штрихов там, где они сходятся.
+		paint(crosshair_style.outlinePieces(m_scale_factor),
+				crosshair_style.outline_color);
+		paint(crosshair_style.pieces(m_scale_factor), color);
+	};
+
 	auto draw_image_crosshair = [this] (video::ITexture *tex) {
 		core::dimension2di orig_size(tex->getOriginalSize());
 		// Integer scaling to avoid artifacts, floor instead of round since too
@@ -847,16 +893,10 @@ void Hud::drawCrosshair()
 		if (use_object_crosshair_image) {
 			draw_image_crosshair(tsrc->getTexture("object_crosshair.png"));
 		} else {
-			s32 line_size = core::round32(OBJECT_CROSSHAIR_LINE_SIZE * m_scale_factor);
-
-			driver->draw2DLine(
-					m_displaycenter - v2s32(line_size, line_size),
-					m_displaycenter + v2s32(line_size, line_size),
-					crosshair_argb);
-			driver->draw2DLine(
-					m_displaycenter + v2s32(line_size, -line_size),
-					m_displaycenter + v2s32(-line_size, line_size),
-					crosshair_argb);
+			// Форма та же, цвет другой: прицел не должен менять очертания в
+			// тот момент, когда по нему целятся, — меняется только то, что
+			// говорит «здесь живой».
+			draw_style_crosshair(crosshair_style.object_color);
 		}
 
 		return;
@@ -865,12 +905,7 @@ void Hud::drawCrosshair()
 	if (use_crosshair_image) {
 		draw_image_crosshair(tsrc->getTexture("crosshair.png"));
 	} else {
-		s32 line_size = core::round32(CROSSHAIR_LINE_SIZE * m_scale_factor);
-
-		driver->draw2DLine(m_displaycenter - v2s32(line_size, 0),
-				m_displaycenter + v2s32(line_size, 0), crosshair_argb);
-		driver->draw2DLine(m_displaycenter - v2s32(0, line_size),
-				m_displaycenter + v2s32(0, line_size), crosshair_argb);
+		draw_style_crosshair(crosshair_style.color);
 	}
 }
 
