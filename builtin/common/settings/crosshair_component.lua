@@ -28,17 +28,17 @@ local PREVIEW = 2.4
 свои: это описание, а не чужие картинки.
 ]]
 local PRESETS = {
-	{ name = fgettext_ne("Cross"),            code = "AXCH1-cross-6-2-3-0-1" },
-	{ name = fgettext_ne("Cross, no gap"),    code = "AXCH1-cross-7-2-0-0-1" },
-	{ name = fgettext_ne("Thick cross"),      code = "AXCH1-cross-4-3-0-0-1" },
-	{ name = fgettext_ne("Ticks"),            code = "AXCH1-cross-3-2-5-0-1" },
-	{ name = fgettext_ne("Cross with dot"),   code = "AXCH1-cross-6-2-3-2-1" },
-	{ name = fgettext_ne("Dot"),              code = "AXCH1-dot-3-1-0-0-1" },
-	{ name = fgettext_ne("Small dot"),        code = "AXCH1-dot-1-1-0-0-1" },
-	{ name = fgettext_ne("Ring with dot"),    code = "AXCH1-circle-5-1-0-1-1" },
-	{ name = fgettext_ne("Frame with dot"),   code = "AXCH1-square-5-1-0-1-1" },
-	{ name = fgettext_ne("Brackets"),         code = "AXCH1-brackets-4-2-4-0-1" },
-	{ name = fgettext_ne("Diagonal cross"),   code = "AXCH1-x-5-2-2-0-1" },
+	{ name = fgettext_ne("Cross"),            code = "AXCH1-cross-6-2-3-0-0" },
+	{ name = fgettext_ne("Cross, no gap"),    code = "AXCH1-cross-7-2-0-0-0" },
+	{ name = fgettext_ne("Thick cross"),      code = "AXCH1-cross-4-3-0-0-0" },
+	{ name = fgettext_ne("Ticks"),            code = "AXCH1-cross-3-2-5-0-0" },
+	{ name = fgettext_ne("Cross with dot"),   code = "AXCH1-cross-6-2-3-2-0" },
+	{ name = fgettext_ne("Dot"),              code = "AXCH1-dot-3-1-0-0-0" },
+	{ name = fgettext_ne("Small dot"),        code = "AXCH1-dot-1-1-0-0-0" },
+	{ name = fgettext_ne("Ring with dot"),    code = "AXCH1-circle-5-1-0-1-0" },
+	{ name = fgettext_ne("Frame with dot"),   code = "AXCH1-square-5-1-0-1-0" },
+	{ name = fgettext_ne("Brackets"),         code = "AXCH1-brackets-4-2-4-0-0" },
+	{ name = fgettext_ne("Diagonal cross"),   code = "AXCH1-x-5-2-2-0-0" },
 	{ name = fgettext_ne("Nothing"),          code = "AXCH1-none-0-1-0-0-0" },
 }
 
@@ -207,12 +207,10 @@ return {
 		fs[#fs + 1] = ("tooltip[crosshair_apply;%s]"):format(
 			fgettext("Apply a crosshair code from the clipboard"))
 
-		-- Короткий ответ на нажатие: без него непонятно, случилось ли
-		-- что-нибудь — буфер обмена молчалив.
-		if self.copied then
-			fs[#fs + 1] = ("label[5.5,%f;%s]"):format(code_y + 0.3,
-				core.colorize("#8f8", fgettext("Copied")))
-		elseif self.pasted_bad then
+		-- Об удачном копировании отвечает сам движок — строкой внизу окна;
+		-- второй такой же ответ здесь был бы просто дублем. А вот про чужую
+		-- строку в буфере сказать больше некому.
+		if self.pasted_bad then
 			fs[#fs + 1] = ("label[5.5,%f;%s]"):format(code_y + 0.3,
 				core.colorize("#f88", fgettext("No crosshair code in the clipboard")))
 		end
@@ -236,8 +234,7 @@ return {
 		-- приходят вместе с ними просто за компанию.
 		if fields.crosshair_copy then
 			core.copy_to_clipboard(core.get_crosshair(1).code)
-			self.copied = true
-			return true
+			return false
 		end
 
 		if fields.crosshair_apply then
@@ -245,12 +242,9 @@ return {
 			-- у товарища. Чужую строку не разбираем на части — либо она
 			-- целиком наша, либо не применяется вовсе.
 			local code = core.paste_from_clipboard()
-			self.copied = false
 			self.pasted_bad = not (code and core.set_crosshair_code(code))
 			return true
 		end
-
-		self.copied = false
 
 		-- Цвета. Берутся при любой отправке, а не только по кнопке: игрок
 		-- правит поле и жмёт что угодно, ожидая, что введённое возьмётся.

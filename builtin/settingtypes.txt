@@ -946,8 +946,9 @@ crosshair_gap (Crosshair gap) int 3 0 24
 crosshair_dot (Crosshair centre dot) int 0 0 8
 
 #    Thickness of the dark outline around the crosshair, in pixels.
-#    Without it a white crosshair disappears against snow and sky.
-crosshair_outline (Crosshair outline) int 1 0 3
+#    Helps a white crosshair stand out against snow and sky, at the cost of
+#    thicker strokes. Zero for none.
+crosshair_outline (Crosshair outline) int 0 0 3
 
 #    Crosshair outline color (R,G,B).
 crosshair_outline_color (Crosshair outline color) string (0,0,0)

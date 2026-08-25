@@ -10275,3 +10275,6 @@ msgstr "Скопировано"
 
 msgid "No crosshair code in the clipboard"
 msgstr "В буфере обмена нет кода прицела"
+
+msgid "Copied to clipboard!"
+msgstr "Скопировано в буфер обмена"

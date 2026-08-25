@@ -326,14 +326,15 @@ void set_default_settings()
 	settings->setDefault("crosshair_color", "(255,255,255)");
 	settings->setDefault("crosshair_alpha", "255");
 	// Перекрестье собирается из прямоугольников по этому описанию (crosshair.h).
-	// Умолчание — привычный крест с просветом: он не закрывает цель и виден на
-	// любом фоне благодаря обводке.
+	// Умолчание — привычный крест с просветом: он не закрывает цель. Обводка
+	// по умолчанию выключена: она выручает на пёстром фоне, но утолщает штрихи
+	// и в спокойной картинке только мешает — кому нужна, тот её включит.
 	settings->setDefault("crosshair_shape", "cross");
 	settings->setDefault("crosshair_size", "6");
 	settings->setDefault("crosshair_thickness", "2");
 	settings->setDefault("crosshair_gap", "3");
 	settings->setDefault("crosshair_dot", "0");
-	settings->setDefault("crosshair_outline", "1");
+	settings->setDefault("crosshair_outline", "0");
 	settings->setDefault("crosshair_outline_color", "(0,0,0)");
 	settings->setDefault("crosshair_outline_alpha", "160");
 	settings->setDefault("crosshair_object_color", "(255,80,80)");
