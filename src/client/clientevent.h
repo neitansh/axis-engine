@@ -10,7 +10,6 @@
 
 struct ParticleParameters;
 struct ParticleSpawnerParameters;
-struct ParticleShockwave;
 struct SkyboxParams;
 struct SunParams;
 struct MoonParams;
@@ -28,7 +27,6 @@ enum ClientEventType : u8
 	CE_SPAWN_PARTICLE,
 	CE_ADD_PARTICLESPAWNER,
 	CE_DELETE_PARTICLESPAWNER,
-	CE_PARTICLE_SHOCKWAVE,
 	CE_HUDADD,
 	CE_HUDRM,
 	CE_HUDCHANGE,
@@ -104,7 +102,6 @@ struct ClientEvent
 		{
 			u32 id;
 		} delete_particlespawner;
-		ParticleShockwave *particle_shockwave;
 		ClientEventHudAdd *hudadd;
 		struct
 		{

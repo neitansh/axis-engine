@@ -103,28 +103,6 @@ bool Particle::attachToBuffer(ParticleBuffer *buffer)
 	return false;
 }
 
-void Particle::shock(const v3f &impulse)
-{
-	/*
-	 * Спящая частица просыпается целиком, а не наполовину.
-	 *
-	 * Улёгшись, она отдала и ускорение, и вращение — считать их лежащему
-	 * обломку незачем. Поднимая её, всё это надо вернуть: без ускорения
-	 * подброшенная крошка улетит по прямой и никогда не упадёт, а без
-	 * вращения будет висеть в воздухе плашмя.
-	 */
-	if (m_settled) {
-		m_settled = false;
-		m_acceleration = m_p.acc;
-		m_rotation_speed = v3f(
-			(f32)myrand_range(-700, 700) / 100.0f,
-			(f32)myrand_range(-700, 700) / 100.0f,
-			(f32)myrand_range(-700, 700) / 100.0f);
-	}
-
-	m_velocity += impulse;
-}
-
 void Particle::step(float dtime, ClientEnvironment *env)
 {
 	m_time += dtime;
@@ -1127,74 +1105,10 @@ void ParticleManager::clearAll()
 	m_particle_buffers.clear();
 }
 
-void ParticleManager::applyShockwave(const ParticleShockwave &wave)
-{
-	if (wave.radius <= 0.0f)
-		return;
-
-	MutexAutoLock lock(m_particle_list_lock);
-
-	const f32 radius_sq = wave.radius * wave.radius;
-
-	for (auto &particle : m_particles) {
-		if (!particle->isPhysical())
-			continue;
-
-		const v3f away = particle->getPos() - wave.pos;
-		const f32 dist_sq = away.getLengthSQ();
-		if (dist_sq > radius_sq)
-			continue;
-
-		const f32 dist = std::sqrt(dist_sq);
-		// Ближе к разрыву — сильнее. Спад линейный: квадратичный оставляет
-		// от волны один центр, а нужен разлёт по всей воронке.
-		const f32 falloff = 1.0f - dist / wave.radius;
-
-		/*
-		 * Куда лететь. Обычно — прочь от разрыва, но частицу, лежащую в
-		 * самом его центре, гнать некуда: направление там вырождается.
-		 * Такой достаётся случайная сторона — так же, как достаётся ей на
-		 * самом деле.
-		 */
-		v3f dir = dist > 0.01f ? away / dist
-				: v3f((f32)myrand_range(-100, 100), 0.0f, (f32)myrand_range(-100, 100));
-		dir.normalize();
-
-		/*
-		 * Разнобой. Без него весь мусор в шаре получает направление, зависящее
-		 * только от того, где он лежал, и разлетается ровными лучами — видно
-		 * сразу, что это расчёт, а не взрыв. Каждая крошка лежала своим боком
-		 * и волну поймала по-своему.
-		 */
-		if (wave.spread > 0.0f) {
-			dir += v3f(
-				(f32)myrand_range(-100, 100) / 100.0f * wave.spread,
-				(f32)myrand_range(-100, 100) / 100.0f * wave.spread * 0.7f,
-				(f32)myrand_range(-100, 100) / 100.0f * wave.spread);
-			dir.normalize();
-		}
-
-		// Сила тоже вразнобой: полтора раза между самой вялой крошкой и самой
-		// резвой.
-		const f32 force = falloff * (0.6f + (f32)myrand_range(0, 90) / 100.0f);
-
-		v3f impulse = dir * (force * wave.strength);
-		// Вверх — всегда: волна поднимает лежащее, а не возит его по полу.
-		impulse.Y += force * wave.lift;
-
-		particle->shock(impulse);
-	}
-}
-
 void ParticleManager::handleParticleEvent(ClientEvent *event, Client *client,
 	LocalPlayer *player)
 {
 	switch (event->type) {
-		case CE_PARTICLE_SHOCKWAVE: {
-			applyShockwave(*event->particle_shockwave);
-			delete event->particle_shockwave;
-			break;
-		}
 		case CE_DELETE_PARTICLESPAWNER: {
 			deleteParticleSpawner(event->delete_particlespawner.id);
 			// no allocated memory in delete event

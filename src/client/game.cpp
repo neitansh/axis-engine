@@ -3064,7 +3064,6 @@ const ClientEventHandler Game::clientEventHandler[CLIENTEVENT_MAX] = {
 	{&Game::handleClientEvent_HandleParticleEvent},
 	{&Game::handleClientEvent_HandleParticleEvent},
 	{&Game::handleClientEvent_HandleParticleEvent},
-	{&Game::handleClientEvent_HandleParticleEvent},
 	{&Game::handleClientEvent_HudAdd},
 	{&Game::handleClientEvent_HudRemove},
 	{&Game::handleClientEvent_HudChange},

@@ -96,21 +96,6 @@ public:
 
 	ParticleShape getShape() const { return m_p.shape; }
 
-	//! Где частица сейчас, в узлах.
-	const v3f &getPos() const { return m_pos; }
-
-	//! Признаёт ли частица мир: только такие поднимает ударная волна.
-	bool isPhysical() const { return m_p.collisiondetection; }
-
-	/*!
-	 * Толчок: поднять и разбросать.
-	 *
-	 * Улёгшаяся частица при этом просыпается — ей возвращается и ускорение,
-	 * с которым она была задумана, и вращение. Взрыв рядом с россыпью гильз
-	 * должен поднять её всю, а не только то, что ещё летело.
-	 */
-	void shock(const v3f &impulse);
-
 private:
 	video::SColor updateLight(ClientEnvironment *env);
 	void updateVertices(ClientEnvironment *env, video::SColor color);
@@ -336,14 +321,6 @@ public:
 	 * cannot outlive the session that created them. Also used at shutdown.
 	 */
 	void clearAll();
-
-	/*!
-	 * Ударная волна: раскидать мусор вокруг точки.
-	 *
-	 * Один обход списка частиц на взрыв. Частицы, которые мир не признают
-	 * (дым, следы на земле, отметины от пуль), волна не трогает.
-	 */
-	void applyShockwave(const ParticleShockwave &wave);
 
 protected:
 	static bool getNodeParticleParams(Client *client, const MapNode &n,

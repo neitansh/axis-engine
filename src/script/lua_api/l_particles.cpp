@@ -325,14 +325,14 @@ int ModApiParticles::l_add_particlespawner(lua_State *L)
 		p.settle_on_collision = getboolfield_default(L, 1,
 				"settle_on_collision", p.settle_on_collision);
 
-		// readTweenTable читает от вершины стека, а таблица параметров лежит
-		// первым аргументом: кладём её копию наверх, как это делают вызовы
-		// выше, идущие сразу после входа в функцию.
+		/*
+		 * Диапазоны читаются с вершины стека, а не по номеру аргумента, и к
+		 * этому месту вершина — уже не таблица спавнера: выше по функции её
+		 * поля разбирались через getfield. Поэтому кладём её обратно на время
+		 * чтения — иначе поворот ищется в чём попало и падает на nil.
+		 */
 		lua_pushvalue(L, 1);
 		LuaParticleParams::readTweenTable(L, "rotation", p.rotation);
-		lua_pop(L, 1);
-
-		lua_pushvalue(L, 1);
 		LuaParticleParams::readTweenTable(L, "rotation_speed", p.rotation_speed);
 		lua_pop(L, 1);
 
@@ -367,35 +367,10 @@ int ModApiParticles::l_delete_particlespawner(lua_State *L)
 	return 1;
 }
 
-
-// shock_particles({pos=, radius=, strength=, lift=, spread=})
-int ModApiParticles::l_shock_particles(lua_State *L)
-{
-	NO_MAP_LOCK_REQUIRED;
-	luaL_checktype(L, 1, LUA_TTABLE);
-
-	ParticleShockwave wave;
-
-	lua_getfield(L, 1, "pos");
-	if (lua_isnil(L, -1))
-		throw LuaError("shock_particles: pos is required");
-	wave.pos = check_v3f(L, -1);
-	lua_pop(L, 1);
-
-	wave.radius = getfloatfield_default(L, 1, "radius", wave.radius);
-	wave.strength = getfloatfield_default(L, 1, "strength", wave.strength);
-	wave.lift = getfloatfield_default(L, 1, "lift", wave.lift);
-	wave.spread = getfloatfield_default(L, 1, "spread", wave.spread);
-
-	getServer(L)->SendParticleShockwave(wave);
-	return 0;
-}
-
 void ModApiParticles::Initialize(lua_State *L, int top)
 {
 	API_FCT(add_particle);
 	API_FCT(add_particlespawner);
 	API_FCT(delete_particlespawner);
-	API_FCT(shock_particles);
 }
 
