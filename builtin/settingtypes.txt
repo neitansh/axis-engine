@@ -779,25 +779,11 @@ shadow_map_texture_size (Shadow map texture size) int 2048 128 8192
 #    Requires: enable_dynamic_shadows, shadows_support
 shadow_map_texture_32bit (Shadow map texture in 32 bits) bool true
 
-#    Define shadow filtering quality.
-#    This simulates the soft shadows effect by applying a PCF or Poisson disk
-#    but also uses more resources.
-#
-#    Requires: enable_dynamic_shadows, shadows_support
-shadow_filters (Shadow filter quality) enum 1 0,1,2
-
 #    Enable colored shadows for transculent nodes.
 #    This is expensive.
 #
 #    Requires: enable_dynamic_shadows, shadows_support
 shadow_map_color (Colored shadows) bool false
-
-#    Set the soft shadow radius size.
-#    Lower values mean sharper shadows, bigger values mean softer shadows.
-#    Minimum value: 1.0; maximum value: 15.0
-#
-#    Requires: enable_dynamic_shadows, shadows_support
-shadow_soft_radius (Soft shadow radius) float 5.0 1.0 15.0
 
 #    Set the default tilt of Sun/Moon orbit in degrees.
 #    Games may change orbit tilt via API.
@@ -2244,12 +2230,6 @@ client_mesh_chunk (Client Mesh Chunksize) int 1 1 16
 #
 #    Requires: enable_post_processing
 post_processing_texture_bits (Color depth for post-processing texture) enum 16 8,10,16
-
-#    Enable Poisson disk filtering.
-#    On true uses Poisson disk to make "soft shadows". Otherwise uses PCF filtering.
-#
-#    Requires: enable_dynamic_shadows, shadows_support
-shadow_poisson_filter (Poisson filtering) bool true
 
 #    Spread a complete update of the shadow map over a given number of frames.
 #    Higher values might make shadows laggy, lower values

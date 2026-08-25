@@ -445,7 +445,7 @@ void set_default_settings()
 	// see "shadows_component.lua"
 	settings->setDefault("shadow_map_max_distance", "140.0");
 	settings->setDefault("shadow_map_texture_size", "2048");
-	settings->setDefault("shadow_filters", "1");
+	settings->setDefault("shadow_filters", "0");
 #else
 	// equivalent to "Low" preset
 	settings->setDefault("shadow_map_max_distance", "93.0");

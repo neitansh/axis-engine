@@ -68,7 +68,7 @@ local PAGES = {
 		sources = { "Graphics and Audio|Effects" },
 		basic = {
 			{ heading = fgettext_ne("Shadows") },
-			"enable_dynamic_shadows", "shadow_map_max_distance", "shadow_filters",
+			"enable_dynamic_shadows", "shadow_map_max_distance", "shadow_map_texture_size",
 			{ heading = fgettext_ne("Lighting") },
 			"enable_post_processing", "enable_bloom", "enable_volumetric_lighting",
 			"enable_auto_exposure",
