@@ -595,6 +595,10 @@ core.registered_on_shutdown, core.register_on_shutdown = make_registration()
 core.registered_on_punchnodes, core.register_on_punchnode = make_registration()
 core.registered_on_placenodes, core.register_on_placenode = make_registration()
 core.registered_on_dignodes, core.register_on_dignode = make_registration()
+-- Нода осыпалась: перестала быть нодой и полетела вниз сущностью. Копанием
+-- это не считается — никто её не копал, — а знать об этом нужно тем же, кому
+-- нужно знать про копание: всему, что на ней лежало.
+core.registered_on_node_fallings, core.register_on_node_falling = make_registration()
 core.registered_on_generateds, core.register_on_generated = make_registration()
 core.registered_on_newplayers, core.register_on_newplayer = make_registration()
 core.registered_on_dieplayers, core.register_on_dieplayer = make_registration()

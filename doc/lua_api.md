@@ -6641,6 +6641,13 @@ Call these functions only at load time!
     * Called after a node has been dug.
     * **Not recommended**; Use `on_destruct` or `after_dig_node` in node
       definition whenever possible.
+* `core.register_on_node_falling(function(pos, oldnode))`
+    * Called when a node stops being a node and starts falling: either it
+      became a falling entity, or it was attached to something that went away
+      and dropped as an item.
+    * Nobody dug it, so `register_on_dignode` does not fire — but whatever was
+      resting on that node is now hanging in the air, and this is where to
+      learn about it.
 * `core.register_on_punchnode(function(pos, node, puncher, pointed_thing))`
     * Called when a node is punched
 * `core.register_on_generated(function(minp, maxp, blockseed))`

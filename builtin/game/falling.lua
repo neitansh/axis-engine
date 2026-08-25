@@ -347,6 +347,13 @@ local function convert_to_falling_node(pos, node)
 
 	obj:get_luaentity():set_node(node, metatable)
 	core.remove_node(pos)
+
+	-- Нода перестала быть нодой. Тем, кто на неё опирался, об этом знать
+	-- важнее, чем самой ноде: они остались висеть в воздухе.
+	for _, callback in ipairs(core.registered_on_node_fallings) do
+		callback(vector.copy(pos), node)
+	end
+
 	return true, obj
 end
 
@@ -378,6 +385,13 @@ local function drop_attached_node(p)
 		core.sound_play(def.sounds.fall, {pos = p}, true)
 	end
 	core.remove_node(p)
+
+	-- Отвалившаяся нода уходит так же, как осыпавшаяся: её больше нет, и
+	-- всё, что на ней лежало, теперь висит в воздухе.
+	for _, callback in ipairs(core.registered_on_node_fallings) do
+		callback(vector.copy(p), n)
+	end
+
 	for _, item in pairs(drops) do
 		local pos = {
 			x = p.x + math.random()/2 - 0.25,
