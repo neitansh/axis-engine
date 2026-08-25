@@ -951,8 +951,13 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 	if (scene::ISceneNode *node = getSceneNode()) {
 		node->setParent(m_matrixnode);
 
-		if (auto shadow = RenderingEngine::get_shadow_renderer())
-			shadow->addNodeToShadowList(node);
+		// Накладки в карту теней не пишутся: тень от плоского лоскута,
+		// лежащего на поверхности, не видна всё равно, а проход отрисовки
+		// он бы занял наравне со всеми.
+		if (m_prop.casts_shadow) {
+			if (auto shadow = RenderingEngine::get_shadow_renderer())
+				shadow->addNodeToShadowList(node);
+		}
 	}
 
 	updateNametag();

@@ -295,7 +295,7 @@ void push_item_definition_full(lua_State *L, const ItemDefinition &i)
 }
 
 /******************************************************************************/
-const std::array<const char *, 39> object_property_keys = {
+const std::array<const char *, 40> object_property_keys = {
 	"hp_max",
 	"breath_max",
 	"physical",
@@ -328,6 +328,7 @@ const std::array<const char *, 39> object_property_keys = {
 	"use_texture_alpha",
 	"shaded",
 	"depth_bias",
+	"casts_shadow",
 	"damage_texture_modifier",
 	"show_on_minimap",
 	// "node" is intentionally not here as it's gated behind `fallback` below!
@@ -564,6 +565,7 @@ void read_object_properties(lua_State *L, int index,
 	getboolfield(L, -1, "use_texture_alpha", prop->use_texture_alpha);
 	getboolfield(L, -1, "shaded", prop->shaded);
 	getfloatfield(L, -1, "depth_bias", prop->depth_bias);
+	getboolfield(L, -1, "casts_shadow", prop->casts_shadow);
 	getboolfield(L, -1, "show_on_minimap", prop->show_on_minimap);
 
 	// Don't set if nil
@@ -715,6 +717,8 @@ void push_object_properties(lua_State *L, const ObjectProperties *prop)
 	lua_setfield(L, -2, "shaded");
 	lua_pushnumber(L, prop->depth_bias);
 	lua_setfield(L, -2, "depth_bias");
+	lua_pushboolean(L, prop->casts_shadow);
+	lua_setfield(L, -2, "casts_shadow");
 	lua_pushlstring(L, prop->damage_texture_modifier.c_str(), prop->damage_texture_modifier.size());
 	lua_setfield(L, -2, "damage_texture_modifier");
 	lua_pushboolean(L, prop->show_on_minimap);

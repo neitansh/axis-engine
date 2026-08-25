@@ -248,6 +248,7 @@ void ObjectProperties::serialize(std::ostream &os) const
 	}
 
 	writeF32(os, depth_bias);
+	writeU8(os, casts_shadow);
 
 	// Add stuff only at the bottom.
 	// Never remove anything, because we don't want new versions of this!
@@ -394,6 +395,7 @@ void ObjectProperties::deSerialize(std::istream &is)
 		return;
 
 	depth_bias = readF32(is);
+	casts_shadow = readU8(is);
 
 	//if (!canRead(is))
 	//	return;

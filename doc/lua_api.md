@@ -10348,6 +10348,11 @@ Player properties need to be saved manually.
     -- Negative values pull the object towards the camera by depth only,
     -- leaving its position in the world untouched. -1 is usually enough.
 
+    casts_shadow = true,
+    -- Whether the object is drawn into the shadow map.
+    -- Flat decals lying on a surface cast no visible shadow, but still cost a
+    -- second pass over their geometry; set this to false for them.
+
     show_on_minimap = false,
     -- Defaults to true for players, false for other entities.
     -- If set to true the entity will show as a marker on the minimap.

@@ -124,6 +124,14 @@ struct ObjectProperties
 	 * чтобы выиграть спор, и нисколько в мире.
 	 */
 	f32 depth_bias = 0.0f;
+	/*!
+	 * Пишется ли объект в карту теней.
+	 *
+	 * Плоской накладке тень отбрасывать нечем — она сама лежит на
+	 * поверхности, — а в карту теней она рисуется наравне со всеми, то есть
+	 * стоит второго прохода отрисовки ни за что.
+	 */
+	bool casts_shadow = true;
 	bool show_on_minimap = false;
 	bool nametag_scale_z = false;
 	StepUpMode step_up_mode = StepUpMode::LEGACY;
