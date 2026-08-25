@@ -86,6 +86,37 @@ static aabb3f getNodeBoundingBox(const std::vector<aabb3f> &nodeboxes)
 	return b_max;
 }
 
+/*
+ * Сопротивление среды по всему росту игрока, а не по одной точке.
+ *
+ * Раньше оно бралось там же, где решается «в жидкости ли он» — на пол-узла
+ * выше ног. Для воды этого хватает: в воду входят целиком. А вот листва
+ * начинается на любой высоте, и человек, идущий под кроной, попадал в неё
+ * головой и грудью, но не той единственной точкой, которую спрашивали, —
+ * и шёл сквозь ветви как по чистому полю. Падал он при этом медленно, потому
+ * что при падении точка проходит через крону обязательно.
+ *
+ * Берётся наибольшее сопротивление из встреченных: если хоть часть тела в
+ * гуще, продираться приходится всему.
+ */
+static u8 getMoveResistanceAround(Map *map, const NodeDefManager *nodemgr,
+		const v3f &position)
+{
+	// Ноги, пояс, грудь, голова. Рост игрока - 1.75 узла.
+	static const f32 heights[] = {0.1f, 0.6f, 1.1f, 1.6f};
+
+	u8 resistance = 0;
+	for (f32 height : heights) {
+		bool is_valid_position = false;
+		v3s16 pp = floatToInt(position + v3f(0.0f, BS * height, 0.0f), BS);
+		MapNode node = map->getNode(pp, &is_valid_position);
+		if (!is_valid_position)
+			continue;
+		resistance = std::max(resistance, nodemgr->get(node.getContent()).move_resistance);
+	}
+	return resistance;
+}
+
 bool LocalPlayer::updateSneakNode(Map *map, const v3f &position,
 								  const v3f &sneak_max)
 {
@@ -368,7 +399,6 @@ void LocalPlayer::move(f32 dtime, Environment *env,
 		{
 			const ContentFeatures &cf = nodemgr->get(node.getContent());
 			in_liquid = cf.liquid_move_physics;
-			move_resistance = cf.move_resistance;
 		}
 		else
 		{
@@ -385,13 +415,14 @@ void LocalPlayer::move(f32 dtime, Environment *env,
 		{
 			const ContentFeatures &cf = nodemgr->get(node.getContent());
 			in_liquid = cf.liquid_move_physics;
-			move_resistance = cf.move_resistance;
 		}
 		else
 		{
 			in_liquid = false;
 		}
 	}
+
+	move_resistance = getMoveResistanceAround(map, nodemgr, position);
 
 	/*
 		Check if player is in liquid (the stable value)
@@ -1068,7 +1099,6 @@ void LocalPlayer::old_move(f32 dtime, Environment *env,
 		{
 			const ContentFeatures &cf = nodemgr->get(node.getContent());
 			in_liquid = cf.liquid_move_physics;
-			move_resistance = cf.move_resistance;
 		}
 		else
 		{
@@ -1084,13 +1114,14 @@ void LocalPlayer::old_move(f32 dtime, Environment *env,
 		{
 			const ContentFeatures &cf = nodemgr->get(node.getContent());
 			in_liquid = cf.liquid_move_physics;
-			move_resistance = cf.move_resistance;
 		}
 		else
 		{
 			in_liquid = false;
 		}
 	}
+
+	move_resistance = getMoveResistanceAround(map, nodemgr, position);
 
 	/*
 		Check if player is in liquid (the stable value)
