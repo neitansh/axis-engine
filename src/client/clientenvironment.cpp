@@ -114,6 +114,29 @@ void ClientEnvironment::step(float dtime)
 		};
 
 		m_ao_manager.step(object_dtime, cb_state);
+
+		// ВРЕМЕННО: ищем объекты, которые клиент рисует в воздухе.
+		if (g_settings->getBool("debug_hanging_objects")
+				&& m_hanging_check.step(dtime, 5.0f)) {
+			int hanging = 0, total = 0;
+			const NodeDefManager *ndef = getPlaceDef()->ndef();
+			auto count = [&](ClientActiveObject *cao) {
+				if (cao->isLocalPlayer())
+					return;
+				total++;
+				const v3f p = cao->getPosition();
+				const v3s16 under = floatToInt(p - v3f(0, 0.35f * BS, 0), BS);
+				bool ok = false;
+				const MapNode n = getClientMap().getNode(under, &ok);
+				if (!ok || n.getContent() == CONTENT_IGNORE)
+					return;
+				if (!ndef->get(n).walkable)
+					hanging++;
+			};
+			m_ao_manager.step(0.0f, count);
+			warningstream << "[hang] клиент: объектов " << total
+					<< ", над пустотой " << hanging << std::endl;
+		}
 	}
 
 	/*
