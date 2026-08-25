@@ -110,7 +110,56 @@ void Particle::step(float dtime, ClientEnvironment *env)
 	av -= av * (m_p.drag * dtime);
 	m_velocity = av*vecSign(m_velocity) + v3f(m_p.jitter.pickWithin())*dtime;
 
-	if (m_p.collisiondetection) {
+	/*
+	 * Частица, которая гибнет от первого касания, не нуждается в разборе
+	 * столкновений — ей нужен ответ «да или нет».
+	 *
+	 * Разница не в мелочи. Полный разбор берёт коробку размером с частицу, а
+	 * размер у частицы — это размер спрайта: у дождя он доходит до трёх узлов,
+	 * и капля обходит десятки узлов за кадр. Тысяча капель — и кадр вырастает
+	 * вдвое, причём на процессоре, где его никто не ищет. Капле же коробка не
+	 * нужна вовсе: физически это точка, а спрайт растянут только для вида.
+	 *
+	 * Поэтому здесь путь короче: летим свободно, а отрезок пути проверяем
+	 * точками, шагом не крупнее половины узла — быстрая капля не перепрыгнет
+	 * преграду, а медленной хватит одной проверки. Гаснет частица там же, где
+	 * гасла раньше, так что на глаз не меняется ничего.
+	 */
+	const bool vanishes_on_touch = m_p.collisiondetection && m_p.collision_removal
+			&& !m_p.object_collision && m_p.bounce.max <= 0.0f;
+
+	if (vanishes_on_touch) {
+		const v3f start = m_pos;
+		m_pos += (m_velocity + m_acceleration * 0.5f * dtime) * dtime;
+		m_velocity += m_acceleration * dtime;
+
+		const v3f delta = m_pos - start;
+		const f32 length = delta.getLength();
+		// Шестнадцать шагов — это восемь узлов пути за кадр. Дальше частица
+		// летит быстрее, чем имеет смысл проверять: на таких скоростях её и
+		// не видно.
+		const int steps = std::min(16, std::max(1, (int)std::ceil(length / 0.5f)));
+		const NodeDefManager *ndef = env->getPlaceDef()->ndef();
+
+		for (int i = 1; i <= steps; i++) {
+			const v3f probe = start + delta * ((f32)i / (f32)steps);
+			const v3s16 np(std::floor(probe.X + 0.5f), std::floor(probe.Y + 0.5f),
+					std::floor(probe.Z + 0.5f));
+
+			bool pos_ok = false;
+			const MapNode n = env->getClientMap().getNode(np, &pos_ok);
+			// Незагруженный кусок карты преградой не считается: иначе дождь
+			// обрывался бы по краю прогрузки.
+			if (!pos_ok || n.getContent() == CONTENT_IGNORE)
+				continue;
+
+			if (ndef->get(n).walkable) {
+				m_pos = probe;
+				m_expiration = -1.0f;   // погасить на месте касания
+				break;
+			}
+		}
+	} else if (m_p.collisiondetection) {
 		aabb3f box(v3f(-m_p.size / 2.0f), v3f(m_p.size / 2.0f));
 		v3f p_pos = m_pos * BS;
 		v3f p_velocity = m_velocity * BS;
