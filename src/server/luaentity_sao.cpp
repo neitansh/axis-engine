@@ -162,6 +162,28 @@ void LuaEntitySAO::step(float dtime, bool send_recommended)
 	}
 
 	/*
+	 * Спящему, которого повернули или переставили, есть что сказать.
+	 *
+	 * Обычно место и поворот уезжают клиенту в конце шага. У спящего конца
+	 * шага нет, а мод вправе тронуть его и после того, как тот уснул: мода
+	 * это не касается — он просто ставит поворот. Поэтому сверяемся здесь,
+	 * до выхода: разошлось с последним отправленным — досылаем.
+	 *
+	 * Сверка стоит нескольких сравнений на объект и делается только у
+	 * спящих. Это несравнимо дешевле, чем то, ради чего они спят.
+	 */
+	if (isSleeping()) {
+		const bool moved = getBasePosition().getDistanceFromSQ(
+				m_last_sent_position) > 0.0001f * BS * BS;
+		const bool turned =
+				std::fabs(m_rotation.X - m_last_sent_rotation.X) > 0.1f ||
+				std::fabs(m_rotation.Y - m_last_sent_rotation.Y) > 0.1f ||
+				std::fabs(m_rotation.Z - m_last_sent_rotation.Z) > 0.1f;
+		if (moved || turned)
+			sendPosition(false, true);
+	}
+
+	/*
 	 * Спящий не двигается и не думает.
 	 *
 	 * Ни физики, ни `on_step`: улёгшийся обломок никуда не денется сам, а
