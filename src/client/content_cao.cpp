@@ -1318,6 +1318,23 @@ void GenericCAO::updateNametag()
 	if (m_is_local_player) // No nametag for local player
 		return;
 
+	/*
+	 * Ни на себе, ни на том, что к себе прицеплено.
+	 *
+	 * Своё имя над своей же головой — не сведение, а помеха: игрок и так
+	 * знает, как его зовут. У самого игрока таблички не было и раньше; теперь
+	 * её нет и у всего, что висит на нём, — а именно так подписывают друг
+	 * друга там, где имя врагу видеть не положено: отдельной табличкой с
+	 * собственным списком наблюдателей.
+	 */
+	if (m_attached_to_local) {
+		if (m_nametag) {
+			m_client->getCamera()->removeNametag(m_nametag);
+			m_nametag = nullptr;
+		}
+		return;
+	}
+
 	if (m_prop.nametag.empty() || m_prop.nametag_color.getAlpha() == 0) {
 		// Delete nametag
 		if (m_nametag) {
@@ -1951,7 +1968,12 @@ void GenericCAO::updateAttachments()
 {
 	ClientActiveObject *parent = getParent();
 
+	const bool was_attached_to_local = m_attached_to_local;
 	m_attached_to_local = parent && parent->isLocalPlayer();
+	// Прицепили к своему игроку или отцепили — табличка появляется или
+	// исчезает вместе с этим, а не ждёт следующей смены свойств.
+	if (was_attached_to_local != m_attached_to_local)
+		updateNametag();
 
 	/*
 	Following cases exist:
