@@ -10390,6 +10390,24 @@ Player properties need to be saved manually.
     -- Flat decals lying on a surface cast no visible shadow, but still cost a
     -- second pass over their geometry; set this to false for them.
 
+    batched = false,
+    -- Draw this object together with identical ones in a shared buffer,
+    -- one draw call for the whole scattering instead of one per object.
+    -- Meant for clutter: shell casings, debris, decals, footprints -- the
+    -- hundreds of small things that make a place look lived in. Each object
+    -- keeps its own position, rotation, light and server-side behaviour;
+    -- only the geometry is shared.
+    -- Objects join a batch when their model, texture and material settings
+    -- match, so a batch holds one kind of thing.
+    -- Not available for: skeletal or frame animation (the vertices are
+    -- shared, so bones have nothing of their own to move), attachments,
+    -- nametags and minimap markers -- an object that needs those is drawn
+    -- the ordinary way. Also unsuitable for blended visuals such as smoke
+    -- or glass: instances inside a batch are not depth-sorted against each
+    -- other. Alpha-clipped textures are fine, since they write depth.
+    -- Supported visuals: "mesh" (static), "node", "cube".
+    -- Falling back is silent and costs nothing but the speed-up.
+
     show_on_minimap = false,
     -- Defaults to true for players, false for other entities.
     -- If set to true the entity will show as a marker on the minimap.

@@ -657,6 +657,9 @@ void GenericCAO::removeFromScene(bool permanent)
 		if (auto node = getSceneNode())
 			shadow->removeNodeFromShadowList(node);
 
+	// Место в общем буфере отдаётся обратно: следующая гильза ляжет туда же.
+	releaseBatchSlots();
+
 	if (m_meshnode) {
 		m_meshnode->remove();
 		m_meshnode->drop();
@@ -692,11 +695,253 @@ void GenericCAO::removeFromScene(bool permanent)
 		m_client->getMinimap()->removeMarker(&m_marker);
 }
 
+void GenericCAO::updateObjectMaterialType(bool hw_skin)
+{
+	if (m_prop.visual != OBJECTVISUAL_NODE &&
+			m_prop.visual != OBJECTVISUAL_VOXELS &&
+			m_prop.visual != OBJECTVISUAL_WIELDITEM &&
+			m_prop.visual != OBJECTVISUAL_ITEM)
+	{
+		IShaderSource *shader_source = m_client->getShaderSource();
+		MaterialType material_type;
+
+		if (m_prop.shaded && m_prop.glow == 0)
+			material_type = (m_prop.use_texture_alpha) ?
+				TILE_MATERIAL_ALPHA : TILE_MATERIAL_BASIC;
+		else
+			material_type = (m_prop.use_texture_alpha) ?
+				TILE_MATERIAL_PLAIN_ALPHA : TILE_MATERIAL_PLAIN;
+
+		ShaderFeatures features;
+		features.skinning = hw_skin;
+		u32 shader_id = shader_source->getShader(
+				"object_shader", material_type, NDT_NORMAL, features);
+		m_material_type = shader_source->getShaderInfo(shader_id).material;
+	} else {
+		// Not used, so make sure it's not valid
+		m_material_type = video::EMT_INVALID;
+	}
+}
+
+void GenericCAO::applyObjectMaterial(video::SMaterial &mat)
+{
+	if (m_material_type != video::EMT_INVALID)
+		mat.MaterialType = m_material_type;
+	mat.FogEnable = true;
+	/*
+	 * Накладки на поверхность — отметины от пуль, следы на траве — стоят
+	 * вплотную к грани и спорят с ней за глубину. Смещение решает спор
+	 * в буфере глубины, ничего не двигая в мире: отодвинуть накладку от
+	 * стены нельзя, с угла это сразу видно.
+	 */
+	if (m_prop.depth_bias != 0.0f) {
+		mat.PolygonOffsetSlopeScale = m_prop.depth_bias;
+		mat.PolygonOffsetDepthBias = m_prop.depth_bias;
+	}
+	mat.forEachTexture([] (auto &tex) {
+		// Как и у блоков карты: тексель берётся один, а между уровнями
+		// мельчения идёт переход, см. setMaterialFilters()
+		tex.MinFilter = video::ETMINF_NEAREST_MIPMAP_LINEAR;
+		tex.MagFilter = video::ETMAGF_NEAREST;
+	});
+}
+
+/*
+	Пакетная отрисовка: сущность без своего узла сцены
+*/
+
+/*!
+ * Собрать матрицу экземпляра: где он стоит, как повёрнут, какого размера.
+ *
+ * Ровно то же, что делает узел сцены обычной сущности, — только считаем это
+ * мы сами и кладём результат прямо в вершины.
+ */
+static core::matrix4 batchInstanceMatrix(v3f pos, v3f rot_deg, v3f scale)
+{
+	core::matrix4 translation, rotation, scaling;
+	translation.setTranslation(pos);
+	setPitchYawRoll(rotation, rot_deg);
+	scaling.setScale(scale);
+	return translation * rotation * scaling;
+}
+
+bool GenericCAO::setupBatchedVisual(ITextureSource *tsrc)
+{
+	if (!m_prop.batched || m_is_local_player || m_is_player)
+		return false;
+
+	auto *manager = m_client->getMeshBatchManager(m_smgr);
+	if (!manager)
+		return false;
+
+	/*
+	 * Геометрия берётся ровно та же, из которой сложился бы обычный узел, —
+	 * и на этом всё сходство кончается: узел заводить не будем, вершины
+	 * лягут в общий буфер.
+	 */
+	irr_ptr<scene::IMesh> mesh;
+	std::string key_head;
+
+	switch (m_prop.visual) {
+	case OBJECTVISUAL_MESH: {
+		// Ссылка приходит во владение: getMesh() отдаёт её так же, как
+		// обычному пути, где её потом дропает узел сцены.
+		irr_ptr<scene::IAnimatedMesh> animated(m_client->getMesh(m_prop.mesh, true));
+		if (!animated)
+			return false;
+		// Скелет двигает вершины модели, а вершины здесь общие: анимированное
+		// в пакет не идёт и рисуется по-старому.
+		if (animated->getTrackCount() > 0 || animated->needsHwSkinning())
+			return false;
+		if (!checkMeshNormals(animated.get())) {
+			m_smgr->getMeshManipulator()->recalculateNormals(
+					animated.get(), true, false);
+		}
+		mesh = irr_ptr<scene::IMesh>(animated.release());
+		key_head = "m:" + m_prop.mesh;
+		break;
+	}
+	case OBJECTVISUAL_NODE: {
+		mesh.reset(generateNodeMesh(m_client, m_prop.node, m_meshnode_animation));
+		// Меняющаяся плитка (вода, лава) перерисовывается кадр за кадром и в
+		// общий буфер не годится: материал у соседей по пакету один.
+		if (!m_meshnode_animation.empty())
+			return false;
+		key_head = "n:" + itos(m_prop.node.getContent())
+				+ ":" + itos(m_prop.node.getParam2());
+
+		break;
+	}
+	case OBJECTVISUAL_CUBE: {
+		mesh.reset(createCubeMesh(v3f(BS, BS, BS)));
+		key_head = "c:";
+		for (const auto &tex : m_prop.textures)
+			key_head += tex + ";";
+		break;
+	}
+	default:
+		return false;
+	}
+
+	if (!mesh || mesh->getMeshBufferCount() == 0)
+		return false;
+
+	updateObjectMaterialType(false);
+
+	const bool transparent = m_prop.use_texture_alpha;
+
+	for (u32 i = 0; i < mesh->getMeshBufferCount(); i++) {
+		scene::IMeshBuffer *buf = mesh->getMeshBuffer(i);
+		// Формат вершин у пакета один — обычный, с цветом и нормалью.
+		// Модель с касательными в него не ляжет, и это не беда: такой
+		// сущности пакет и не предлагали.
+		if (!buf || buf->getVertexType() != video::EVT_STANDARD
+				|| buf->getVertexCount() == 0 || buf->getIndexCount() == 0) {
+			releaseBatchSlots();
+			return false;
+		}
+
+		video::SMaterial material = buf->getMaterial();
+		applyObjectMaterial(material);
+		/*
+		 * Свет обычной сущности живёт в материале (`ColorParam`), и шейдер
+		 * умножает на него цвет вершины. Материал здесь общий на всю
+		 * россыпь, и светить им всем одинаково нельзя: гильза в тени и
+		 * гильза на солнце лежат в одном буфере. Поэтому материал держится
+		 * белым, а свет каждого экземпляра пишется в его вершины.
+		 */
+		material.ColorParam = video::SColor(0xFFFFFFFF);
+
+		std::string key = key_head + "|b" + itos(i);
+
+		// У модели текстура своя, у куска мира — уже в материале.
+		if (m_prop.visual == OBJECTVISUAL_MESH) {
+			const u32 slot = mesh->getTextureSlot(i);
+			if (slot < m_prop.textures.size() && !m_prop.textures[slot].empty()) {
+				if (!setMaterialTextureAndFilters(material,
+						m_prop.textures[slot], tsrc)) {
+					releaseBatchSlots();
+					return false;
+				}
+				key += "|t" + m_prop.textures[slot];
+			}
+		} else if (m_prop.visual == OBJECTVISUAL_CUBE) {
+			const std::string &tex = i < m_prop.textures.size()
+					? m_prop.textures[i] : std::string("no_texture.png");
+			if (!setMaterialTextureAndFilters(material, tex, tsrc)) {
+				releaseBatchSlots();
+				return false;
+			}
+			key += "|t" + tex;
+		}
+
+		// Всё, что делает материал непохожим на соседский, входит в ключ:
+		// иначе сущность попадёт в чужой пакет и оденется в чужое.
+		key += "|a" + itos(m_prop.use_texture_alpha)
+				+ "|s" + itos(m_prop.shaded)
+				+ "|g" + itos(m_prop.glow)
+				+ "|c" + itos(m_prop.backface_culling)
+				+ "|d" + ftos(m_prop.depth_bias)
+				+ "|h" + itos(m_prop.casts_shadow);
+
+		auto slot = manager->acquire(key, material, transparent,
+				m_prop.casts_shadow,
+				static_cast<const video::S3DVertex *>(buf->getVertices()),
+				buf->getVertexCount(), buf->getIndices(), buf->getIndexCount());
+		if (!slot.valid()) {
+			releaseBatchSlots();
+			return false;
+		}
+		m_batch_slots.push_back(slot);
+	}
+
+	// Первая запись обязательна: пока экземпляр не написан, его вершины
+	// схлопнуты в точку и его попросту не видно.
+	m_batch_written = false;
+	updateBatchInstance();
+	return true;
+}
+
+void GenericCAO::updateBatchInstance()
+{
+	if (m_batch_slots.empty())
+		return;
+
+	const v3s16 camera_offset = m_env->getCameraOffset();
+	const v3f pos = pos_translator.val_current - intToFloat(camera_offset, BS);
+	const v3f rot = -rot_translator.val_current;
+
+	// Невидимую сущность из буфера не выкидываем: она вернётся, а место
+	// стоит дороже, чем нулевой размер. Схлопнутый экземпляр не рисуется.
+	const v3f scale = m_is_visible ? m_prop.visual_size : v3f(0, 0, 0);
+
+	core::matrix4 transform = batchInstanceMatrix(pos, rot, scale);
+
+	if (m_batch_written && transform == m_batch_transform
+			&& m_batch_color == m_last_light)
+		return;
+
+	m_batch_transform = transform;
+	m_batch_color = m_last_light;
+	m_batch_written = true;
+
+	for (auto &slot : m_batch_slots)
+		slot.batch->write(slot.index, transform, m_last_light);
+}
+
+void GenericCAO::releaseBatchSlots()
+{
+	for (auto &slot : m_batch_slots)
+		slot.batch->release(slot.index);
+	m_batch_slots.clear();
+	m_batch_written = false;
+}
+
 void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 {
 	m_smgr = smgr;
 
-	if (getSceneNode() != NULL) {
+	if (getSceneNode() != NULL || isBatched()) {
 		return;
 	}
 
@@ -705,59 +950,30 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 	if (!m_prop.is_visible)
 		return;
 
+	/*
+	 * Пакетная сущность узла сцены не заводит вовсе — ни своего, ни
+	 * вспомогательного. В этом весь смысл: узел стоит команды рисования, а
+	 * пустой узел-держатель — ещё и места в обходе сцены, которое на тысяче
+	 * гильз перестаёт быть пренебрежимым.
+	 *
+	 * Не получилось (анимация, чужой формат вершин, ещё нет сцены) — идём
+	 * обычным путём: пакет не обязателен, он ускорение, а не условие.
+	 */
+	if (m_prop.batched && setupBatchedVisual(tsrc))
+		return;
+
 	infostream << "GenericCAO::addToScene(): " <<
 		enum_to_string(es_ObjectVisual, m_prop.visual)<< std::endl;
 
 	auto updateMaterialType = [this](bool hw_skin) {
-		if (m_prop.visual != OBJECTVISUAL_NODE &&
-				m_prop.visual != OBJECTVISUAL_VOXELS &&
-				m_prop.visual != OBJECTVISUAL_WIELDITEM &&
-				m_prop.visual != OBJECTVISUAL_ITEM)
-		{
-			IShaderSource *shader_source = m_client->getShaderSource();
-			MaterialType material_type;
-
-			if (m_prop.shaded && m_prop.glow == 0)
-				material_type = (m_prop.use_texture_alpha) ?
-					TILE_MATERIAL_ALPHA : TILE_MATERIAL_BASIC;
-			else
-				material_type = (m_prop.use_texture_alpha) ?
-					TILE_MATERIAL_PLAIN_ALPHA : TILE_MATERIAL_PLAIN;
-
-			ShaderFeatures features;
-			features.skinning = hw_skin;
-			u32 shader_id = shader_source->getShader(
-					"object_shader", material_type, NDT_NORMAL, features);
-			m_material_type = shader_source->getShaderInfo(shader_id).material;
-		} else {
-			// Not used, so make sure it's not valid
-			m_material_type = video::EMT_INVALID;
-		}
+		updateObjectMaterialType(hw_skin);
 	};
 
 	m_matrixnode = m_smgr->addDummyTransformationSceneNode();
 	m_matrixnode->grab();
 
 	auto setMaterial = [this](video::SMaterial &mat) {
-		if (m_material_type != video::EMT_INVALID)
-			mat.MaterialType = m_material_type;
-		mat.FogEnable = true;
-		/*
-		 * Накладки на поверхность — отметины от пуль, следы на траве — стоят
-		 * вплотную к грани и спорят с ней за глубину. Смещение решает спор
-		 * в буфере глубины, ничего не двигая в мире: отодвинуть накладку от
-		 * стены нельзя, с угла это сразу видно.
-		 */
-		if (m_prop.depth_bias != 0.0f) {
-			mat.PolygonOffsetSlopeScale = m_prop.depth_bias;
-			mat.PolygonOffsetDepthBias = m_prop.depth_bias;
-		}
-		mat.forEachTexture([] (auto &tex) {
-			// Как и у блоков карты: тексель берётся один, а между уровнями
-			// мельчения идёт переход, см. setMaterialFilters()
-			tex.MinFilter = video::ETMINF_NEAREST_MIPMAP_LINEAR;
-			tex.MagFilter = video::ETMAGF_NEAREST;
-		});
+		applyObjectMaterial(mat);
 	};
 
 	auto setSceneNodeMaterials = [&] (scene::ISceneNode *node, bool hw_skin = false) {
@@ -1049,6 +1265,13 @@ void GenericCAO::setNodeLight(const video::SColor &light_color)
 		return;
 	}
 
+	if (isBatched()) {
+		// Свет пакетной сущности живёт в цвете её вершин: своего материала
+		// у неё нет, материал общий на всю россыпь.
+		updateBatchInstance();
+		return;
+	}
+
 	{
 		auto *node = getSceneNode();
 		if (!node)
@@ -1126,6 +1349,11 @@ void GenericCAO::updateNodePos()
 {
 	if (getParent() != NULL)
 		return;
+
+	if (isBatched()) {
+		updateBatchInstance();
+		return;
+	}
 
 	scene::ISceneNode *node = getSceneNode();
 

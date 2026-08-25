@@ -14,6 +14,7 @@
 #include "clientmedia.h"
 #include "client/mesh_generator_thread.h"
 #include "client/particles.h"
+#include "client/meshbatch.h"
 #include "client/renderingengine.h"
 #include "client/sound.h"
 #include "client/texturepaths.h"
@@ -576,6 +577,22 @@ void Client::step(float dtime)
 		dtime = DTIME_LIMIT;
 
 	m_animation_time = fmodf(m_animation_time + dtime, 60.0f);
+
+	/*
+	 * Пустые буферы сущностей убираются не сразу, а изредка.
+	 *
+	 * Мусор появляется приступами — очередь, взрыв, — и буфер, снесённый
+	 * через секунду после того, как исчезла последняя гильза, был бы заведён
+	 * заново со следующим выстрелом. Раз в полминуты достаточно, чтобы
+	 * память не копилась, и достаточно редко, чтобы не мешать.
+	 */
+	if (m_mesh_batch_manager) {
+		m_mesh_batch_gc -= dtime;
+		if (m_mesh_batch_gc <= 0.0f) {
+			m_mesh_batch_gc = 30.0f;
+			m_mesh_batch_manager->collectEmpty();
+		}
+	}
 
 	ReceiveAll();
 
@@ -1398,6 +1415,8 @@ void Client::resetWorld(bool keep_map)
 
 	m_env.clearActiveObjects();
 	m_particle_manager->clearAll();
+	if (m_mesh_batch_manager)
+		m_mesh_batch_manager->clearAll();
 
 	if (!keep_map) {
 		// Content IDs only mean something within one session: a block kept
@@ -2703,6 +2722,21 @@ MtEventManager *Client::getEventManager()
 ParticleManager *Client::getParticleManager()
 {
 	return m_particle_manager.get();
+}
+
+MeshBatchManager *Client::getMeshBatchManager(scene::ISceneManager *smgr)
+{
+	if (!smgr)
+		return nullptr;
+
+	// Пакеты — узлы сцены, поэтому менеджер заводится вместе с первой
+	// пакетной сущностью, а не вместе с клиентом: до входа в мир сцены ещё
+	// нет. Сменилась сцена — старые пакеты не наши, начинаем заново.
+	if (!m_mesh_batch_manager || m_mesh_batch_scene != smgr) {
+		m_mesh_batch_manager = std::make_unique<MeshBatchManager>(smgr);
+		m_mesh_batch_scene = smgr;
+	}
+	return m_mesh_batch_manager.get();
 }
 
 scene::IAnimatedMesh *Client::getMesh(const std::string &filename, bool cache)

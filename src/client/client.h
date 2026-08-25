@@ -46,6 +46,7 @@ class NetworkPacket;
 class NodeDefManager;
 struct NodeVisuals;
 class ParticleManager;
+class MeshBatchManager;
 class RenderingEngine;
 class SingleMediaDownloader;
 class ClientScripting;
@@ -221,6 +222,7 @@ public:
 	void handleCommand_ChatCommands(NetworkPacket *pkt);
 	void handleCommand_Transfer(NetworkPacket *pkt);
 	void handleCommand_CameraImpulse(NetworkPacket *pkt);
+	void handleCommand_ParticleShockwave(NetworkPacket *pkt);
 
 	/// Commands the server said this player may use, for completing them
 	std::vector<ChatCommand> m_chat_commands;
@@ -559,6 +561,13 @@ public:
 	virtual ISoundManager* getSoundManager();
 	MtEventManager* getEventManager();
 	virtual ParticleManager* getParticleManager();
+	/*!
+	 * Кто сводит одинаковые сущности в общие буферы.
+	 *
+	 * Появляется вместе со сценой и уходит вместе с ней: пакеты — это узлы
+	 * сцены, и держать их без неё негде.
+	 */
+	MeshBatchManager *getMeshBatchManager(scene::ISceneManager *smgr);
 	bool checkLocalPrivilege(const std::string &priv)
 	{ return checkPrivilege(priv); }
 	virtual scene::IAnimatedMesh* getMesh(const std::string &filename, bool cache = false);
@@ -716,6 +725,9 @@ private:
 	std::unique_ptr<MeshUpdateManager> m_mesh_update_manager;
 	ClientEnvironment m_env;
 	std::unique_ptr<ParticleManager> m_particle_manager;
+	std::unique_ptr<MeshBatchManager> m_mesh_batch_manager;
+	scene::ISceneManager *m_mesh_batch_scene = nullptr;
+	float m_mesh_batch_gc = 30.0f;
 	std::unique_ptr<con::IConnection> m_con;
 	std::string m_address_name;
 	ELoginRegister m_allow_login_or_register = ELoginRegister::Any;

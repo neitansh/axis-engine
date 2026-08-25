@@ -15,6 +15,7 @@
 #include "constants.h"
 #include "itemgroup.h"
 #include "client/tile.h"
+#include "client/meshbatch.h"
 #include <cassert>
 #include <memory>
 #include <deque>
@@ -105,6 +106,25 @@ private:
 	video::SColor m_last_light = video::SColor(0xFFFFFFFF);
 	bool m_is_visible = false;
 	std::vector<MeshAnimationInfo> m_meshnode_animation;
+
+	/*!
+	 * Места этой сущности в общих буферах — по одному на кусок модели.
+	 *
+	 * Заняты только у пакетной сущности (`batched` в свойствах). Пока список
+	 * не пуст, узла сцены у объекта нет вовсе: его геометрия лежит в чужих
+	 * буферах вперемешку с такими же.
+	 */
+	std::vector<MeshBatchManager::Slot> m_batch_slots;
+	/*!
+	 * Чем экземпляр записан в буфер сейчас.
+	 *
+	 * Место и свет переписываются, только когда они изменились: лежащий
+	 * мусор не двигается, а шаг у него идёт каждый кадр, и переписывать
+	 * тысячу неподвижных обломков было бы работой ради работы.
+	 */
+	core::matrix4 m_batch_transform;
+	video::SColor m_batch_color = video::SColor(0xFFFFFFFF);
+	bool m_batch_written = false;
 
 	// Material
 	video::E_MATERIAL_TYPE m_material_type = video::EMT_INVALID;
@@ -363,6 +383,29 @@ public:
 	void updateMarker();
 
 	void updateNodePos();
+
+	/*!
+	 * Уложить сущность в общий буфер вместо своего узла сцены.
+	 *
+	 * \return получилось ли. Не получается у анимированных моделей, у
+	 * непонятных видов и до входа в мир — такие рисуются как раньше.
+	 */
+	//! Выбрать шейдерный материал по свойствам объекта.
+	void updateObjectMaterialType(bool hw_skin);
+
+	//! Общая настройка материала: туман, фильтры, смещение глубины.
+	void applyObjectMaterial(video::SMaterial &mat);
+
+	bool setupBatchedVisual(ITextureSource *tsrc);
+
+	//! Переписать своё место в буфере: где, как повёрнут, каким освещён.
+	void updateBatchInstance();
+
+	//! Освободить занятые места.
+	void releaseBatchSlots();
+
+	//! Лежит ли сущность в общем буфере.
+	bool isBatched() const { return !m_batch_slots.empty(); }
 
 	/**
 	 * Places the model of the local player where the player now is.
