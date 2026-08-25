@@ -10278,3 +10278,31 @@ msgstr "В буфере обмена нет кода прицела"
 
 msgid "Copied to clipboard!"
 msgstr "Скопировано в буфер обмена"
+
+#. Описания настроек прицела (подсказки в списке).
+msgid "A dot in the very middle, on top of whatever shape is chosen. Zero for none."
+msgstr "Точка ровно посередине, поверх выбранной формы. Ноль — без точки."
+
+msgid "How far the strokes start from the middle. A wider gap leaves the target itself uncovered."
+msgstr "Насколько штрихи отодвинуты от середины. Чем шире просвет, тем меньше закрыта сама цель."
+
+msgid "Colour the crosshair turns while it points at a player or a creature."
+msgstr "Цвет, в который прицел окрашивается, когда наведён на игрока или существо."
+
+msgid "Dark outline around the crosshair. Helps it stand out against snow and sky, but thickens the strokes."
+msgstr "Тёмная обводка вокруг прицела. Помогает не потерять его на снегу и в небе, но утолщает штрихи."
+
+msgid "How visible the outline is."
+msgstr "Насколько заметна обводка."
+
+msgid "Colour of the outline. Black reads best on a light background."
+msgstr "Цвет обводки. Чёрный лучше всего читается на светлом фоне."
+
+msgid "What the crosshair is built from: a cross, a diagonal cross, a dot, a ring, a frame, corner brackets — or nothing at all."
+msgstr "Из чего собран прицел: крест, косой крест, точка, кольцо, рамка, уголки — или ничего."
+
+msgid "Length of each stroke, and the size of the dot for the dot shape."
+msgstr "Длина каждого штриха, а для формы «точка» — её размер."
+
+msgid "How thick the crosshair lines are."
+msgstr "Толщина линий прицела."
