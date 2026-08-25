@@ -183,34 +183,62 @@ void ClientEnvironment::step(float dtime)
 				// HACK the factor 2 for gravity is arbitrary and should be removed eventually
 				lplayer->gravity = 2 * lplayer->movement_liquid_sink * lplayer->physics_override.liquid_sink;
 
-			// Movement resistance
+			// Сопротивление среды.
+			//
+			// В жидкости оно одно на все три оси: вода одинаково держит и
+			// шаг, и падение. Вне жидкости — листва, кусты, сугроб — оси
+			// разведены, и это не украшательство, а единственный способ
+			// получить «сквозь неё можно, но медленно».
+			//
+			// Считать легко: гравитация разгоняет вдвое сильнее (19.6 нод/с²
+			// после множителя 2 ниже), чем разгоняется шаг (3 нод/с²).
+			// Одна вязкость на обе оси, подобранная так, чтобы заметно
+			// придержать падающего, глушит шаг почти в ноль — игрок не идёт
+			// медленнее, а стоит в кроне на месте. Поэтому ось падения
+			// гасится сильно, ось шага — втрое слабее: крона держит
+			// падающего и пропускает идущего.
 			if (lplayer->move_resistance > 0) {
 				v3f speed = lplayer->getSpeed();
+				const bool in_liquid_stable =
+					lplayer->in_liquid_stable || lplayer->in_liquid;
 
-				// How much the node's move_resistance blocks movement, ranges
-				// between 0 and 1. Should match the scale at which liquid_viscosity
-				// increase affects other liquid attributes.
-				static const f32 resistance_factor = 0.3f;
-				float fluidity = lplayer->movement_liquid_fluidity;
-				fluidity *= MYMAX(1.0f, lplayer->physics_override.liquid_fluidity);
-				fluidity = MYMAX(0.001f, fluidity); // prevent division by 0
-				float fluidity_smooth = lplayer->movement_liquid_fluidity_smooth;
-				fluidity_smooth *= lplayer->physics_override.liquid_fluidity_smooth;
-				fluidity_smooth = MYMAX(0.0f, fluidity_smooth);
+				if (in_liquid_stable) {
+					// How much the node's move_resistance blocks movement, ranges
+					// between 0 and 1. Should match the scale at which liquid_viscosity
+					// increase affects other liquid attributes.
+					static const f32 resistance_factor = 0.3f;
+					float fluidity = lplayer->movement_liquid_fluidity;
+					fluidity *= MYMAX(1.0f, lplayer->physics_override.liquid_fluidity);
+					fluidity = MYMAX(0.001f, fluidity); // prevent division by 0
+					float fluidity_smooth = lplayer->movement_liquid_fluidity_smooth;
+					fluidity_smooth *= lplayer->physics_override.liquid_fluidity_smooth;
+					fluidity_smooth = MYMAX(0.0f, fluidity_smooth);
 
-				v3f d_wanted;
-				bool in_liquid_stable = lplayer->in_liquid_stable || lplayer->in_liquid;
-				if (in_liquid_stable)
-					d_wanted = -speed / fluidity;
-				else
-					d_wanted = -speed / BS;
-				f32 dl = d_wanted.getLength();
-				if (in_liquid_stable)
-					dl = MYMIN(dl, fluidity_smooth);
-				dl *= (lplayer->move_resistance * resistance_factor) +
-					(1 - resistance_factor);
-				v3f d = d_wanted.normalize() * (dl * dtime_part * 100.0f);
-				speed += d;
+					v3f d_wanted = -speed / fluidity;
+					f32 dl = MYMIN(d_wanted.getLength(), fluidity_smooth);
+					dl *= (lplayer->move_resistance * resistance_factor) +
+						(1 - resistance_factor);
+					v3f d = d_wanted.normalize() * (dl * dtime_part * 100.0f);
+					speed += d;
+				} else {
+					// Доля скорости, которую среда съедает за секунду, на
+					// единицу move_resistance. При семёрке — самой густой
+					// среде, какую позволяет описание ноды, — падение
+					// садится до 2.3 нод/с, шаг до 1.1 нод/с.
+					static const f32 drag_fall = 1.2f;
+					static const f32 drag_walk = 0.4f;
+
+					// За шаг съедается не больше всей скорости: иначе
+					// длинный кадр развернул бы движение назад.
+					const f32 fall = MYMIN(1.0f,
+						lplayer->move_resistance * drag_fall * dtime_part);
+					const f32 walk = MYMIN(1.0f,
+						lplayer->move_resistance * drag_walk * dtime_part);
+
+					speed.Y -= speed.Y * fall;
+					speed.X -= speed.X * walk;
+					speed.Z -= speed.Z * walk;
+				}
 
 				lplayer->setSpeed(speed);
 			}

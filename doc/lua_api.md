@@ -10982,7 +10982,13 @@ Used by `core.register_node`.
     -- If this is nil, it will be equal to liquid_viscosity.
     -- Note: If liquid movement physics apply to the node
     -- (see `liquid_move_physics`), the movement speed will also be
-    -- affected by the `movement_liquid_*` settings.
+    -- affected by the `movement_liquid_*` settings, and the same drag is
+    -- applied to every axis.
+    -- Without liquid movement physics the axes are separate: falling is
+    -- damped about three times as hard as walking, so a node can catch a
+    -- falling player and still be walked through (leaves, bushes, deep
+    -- snow). At 7 falling settles around 2.3 nodes/s and walking around
+    -- 1.1 nodes/s.
 
     buildable_to = false,  -- If true, placed nodes can replace this node
 
