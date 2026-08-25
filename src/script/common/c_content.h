@@ -61,7 +61,7 @@ extern struct EnumString es_TileAnimationType[];
 extern struct EnumString es_ItemType[];
 extern struct EnumString es_TouchInteractionMode[];
 
-extern const std::array<const char *, 38> object_property_keys;
+extern const std::array<const char *, 39> object_property_keys;
 
 void read_content_features(lua_State *L, ContentFeatures &f, int index);
 void push_content_features(lua_State *L, const ContentFeatures &c);

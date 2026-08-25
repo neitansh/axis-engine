@@ -742,6 +742,16 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 		if (m_material_type != video::EMT_INVALID)
 			mat.MaterialType = m_material_type;
 		mat.FogEnable = true;
+		/*
+		 * Накладки на поверхность — отметины от пуль, следы на траве — стоят
+		 * вплотную к грани и спорят с ней за глубину. Смещение решает спор
+		 * в буфере глубины, ничего не двигая в мире: отодвинуть накладку от
+		 * стены нельзя, с угла это сразу видно.
+		 */
+		if (m_prop.depth_bias != 0.0f) {
+			mat.PolygonOffsetSlopeScale = m_prop.depth_bias;
+			mat.PolygonOffsetDepthBias = m_prop.depth_bias;
+		}
 		mat.forEachTexture([] (auto &tex) {
 			// Как и у блоков карты: тексель берётся один, а между уровнями
 			// мельчения идёт переход, см. setMaterialFilters()

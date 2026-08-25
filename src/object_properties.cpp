@@ -247,6 +247,8 @@ void ObjectProperties::serialize(std::ostream &os) const
 		writeU8(os, piece.node.getParam2());
 	}
 
+	writeF32(os, depth_bias);
+
 	// Add stuff only at the bottom.
 	// Never remove anything, because we don't want new versions of this!
 }
@@ -387,6 +389,11 @@ void ObjectProperties::deSerialize(std::istream &is)
 		piece.node.param2 = readU8(is);
 		voxels.push_back(piece);
 	}
+
+	if (!canRead(is))
+		return;
+
+	depth_bias = readF32(is);
 
 	//if (!canRead(is))
 	//	return;

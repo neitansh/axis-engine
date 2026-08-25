@@ -10338,6 +10338,16 @@ Player properties need to be saved manually.
     -- Setting this to 'false' disables diffuse lighting of entity
     -- Note: ignored for "item", "wielditem" and "node" visual
 
+    depth_bias = 0,
+    -- Depth-buffer offset, in depth-buffer steps. For flat decals drawn
+    -- against a surface: bullet marks, scorches, footprints.
+    -- A decal sitting exactly on the face fights it for depth and tears into
+    -- stripes, because the buffer stores distance with limited precision and
+    -- on a far surface both land in the same step. Moving the decal away in
+    -- world space is not a fix either: from an angle it visibly floats.
+    -- Negative values pull the object towards the camera by depth only,
+    -- leaving its position in the world untouched. -1 is usually enough.
+
     show_on_minimap = false,
     -- Defaults to true for players, false for other entities.
     -- If set to true the entity will show as a marker on the minimap.
