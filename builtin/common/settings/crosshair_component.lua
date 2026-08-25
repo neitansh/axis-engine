@@ -207,25 +207,53 @@ return {
 		fs[#fs + 1] = ("tooltip[crosshair_apply;%s]"):format(
 			fgettext("Apply a crosshair code from the clipboard"))
 
+		-- Короткий ответ на нажатие: без него непонятно, случилось ли
+		-- что-нибудь — буфер обмена молчалив.
+		if self.copied then
+			fs[#fs + 1] = ("label[5.5,%f;%s]"):format(code_y + 0.3,
+				core.colorize("#8f8", fgettext("Copied")))
+		elseif self.pasted_bad then
+			fs[#fs + 1] = ("label[5.5,%f;%s]"):format(code_y + 0.3,
+				core.colorize("#f88", fgettext("No crosshair code in the clipboard")))
+		end
+
 		return table.concat(fs), code_y + 0.9
 	end,
 
 	on_submit = function(self, fields)
-		if fields.crosshair_preset then
-			-- Первый пункт — «своё», он ничего не меняет.
-			local idx = tonumber(fields.crosshair_preset)
-			local preset = idx and idx > 1 and PRESETS[idx - 1]
-			if preset and core.set_crosshair_code(preset_code(preset.code)) then
-				return true
-			end
-			return false
+		-- Порядок здесь важнее, чем кажется.
+		--
+		-- Формспек присылает не только то, что нажали, но и содержимое всех
+		-- своих полей и списков разом. Выпадающий список наборов приходит
+		-- каждый раз, и обработчик, начинавшийся с него, выходил на первом же
+		-- условии: цвета и кнопки обмена до дела не доходили вовсе.
+		--
+		-- Поэтому сперва разбираются нажатия, потом всё остальное, и ветки не
+		-- обрываются возвратом, пока не сделано всё.
+		local changed = false
+
+		-- Кнопки — первыми: они говорят о намерении прямо, а поля и списки
+		-- приходят вместе с ними просто за компанию.
+		if fields.crosshair_copy then
+			core.copy_to_clipboard(core.get_crosshair(1).code)
+			self.copied = true
+			return true
 		end
 
-		-- Цвета применяются при любом действии в этом разделе, а не только по
-		-- кнопке: игрок правит поле и жмёт что угодно — Enter, соседний
-		-- ползунок, саму кнопку, — и ждёт, что введённое возьмётся. Кнопка
-		-- остаётся для тех, кому нужно нажать что-то явно.
-		local applied = false
+		if fields.crosshair_apply then
+			-- Код приходит из буфера обмена: игрок скопировал его из чата или
+			-- у товарища. Чужую строку не разбираем на части — либо она
+			-- целиком наша, либо не применяется вовсе.
+			local code = core.paste_from_clipboard()
+			self.copied = false
+			self.pasted_bad = not (code and core.set_crosshair_code(code))
+			return true
+		end
+
+		self.copied = false
+
+		-- Цвета. Берутся при любой отправке, а не только по кнопке: игрок
+		-- правит поле и жмёт что угодно, ожидая, что введённое возьмётся.
 		for field, setting in pairs({
 			crosshair_hex = "crosshair_color",
 			crosshair_outline_hex = "crosshair_outline_color",
@@ -238,32 +266,20 @@ return {
 				-- него что-то своё хуже, чем оставить как было.
 				if hex and hex ~= setting_color(setting, "") then
 					set_setting_color(setting, hex)
-					applied = true
+					changed = true
 				end
 			end
 		end
-		if applied then
-			return true
-		end
-		if fields.crosshair_colors then
-			-- Нажали «задать», а менять нечего: цвета уже те самые.
-			return false
+
+		-- Набор. Первый пункт списка — «своё», он ничего не меняет; после
+		-- применения список снова показывает его, так что повторно тот же
+		-- набор не навязывается.
+		local idx = tonumber(fields.crosshair_preset)
+		local preset = idx and idx > 1 and PRESETS[idx - 1]
+		if preset and core.set_crosshair_code(preset_code(preset.code)) then
+			changed = true
 		end
 
-		if fields.crosshair_copy then
-			core.copy_to_clipboard(core.get_crosshair(1).code)
-			return false
-		end
-
-		if fields.crosshair_apply then
-			-- Код приходит из буфера обмена: игрок скопировал его из чата
-			-- или у товарища. Чужую строку не разбираем на части — либо она
-			-- целиком наша, либо не применяется вовсе.
-			local code = core.paste_from_clipboard()
-			if code and core.set_crosshair_code(code) then
-				return true
-			end
-			return false
-		end
+		return changed
 	end,
 }

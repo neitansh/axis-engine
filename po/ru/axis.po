@@ -10269,3 +10269,9 @@ msgstr "Прозрачность обводки"
 
 msgid "Crosshair color on target"
 msgstr "Цвет прицела на цели"
+
+msgid "Copied"
+msgstr "Скопировано"
+
+msgid "No crosshair code in the clipboard"
+msgstr "В буфере обмена нет кода прицела"

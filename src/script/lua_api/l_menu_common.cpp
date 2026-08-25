@@ -126,8 +126,13 @@ int ModApiMenuCommon::l_get_crosshair(lua_State *L)
 	};
 
 	auto push_color = [L](const char *name, video::SColor color) {
+		// Формспек читает цвет как #rrggbbaa, а SColor хранит его как aarrggbb.
+		// Отданное «как лежит» превращало зелёный в пурпурный: каналы
+		// разъезжались на один разряд.
 		char buf[16];
-		porting::mt_snprintf(buf, sizeof(buf), "#%08x", (unsigned)color.color);
+		porting::mt_snprintf(buf, sizeof(buf), "#%02x%02x%02x%02x",
+				(unsigned)color.getRed(), (unsigned)color.getGreen(),
+				(unsigned)color.getBlue(), (unsigned)color.getAlpha());
 		lua_pushstring(L, buf);
 		lua_setfield(L, -2, name);
 	};
