@@ -26,30 +26,57 @@ float mapDepth(float depth)
 	return min(1., 1. / (1.00001 - depth) / far);
 }
 
-float noise(vec3 uvd) {
-	return fract(dot(sin(uvd * vec3(13041.19699, 27723.29171, 61029.77801)), vec3(73137.11101, 37312.92319, 10108.89991)));
+/*
+ * Упорядоченный сдвиг начала луча (матрица Байера 4x4).
+ *
+ * Шестнадцати шагов на луч мало, чтобы обойтись без сдвига: без него на месте
+ * шагов встают ровные полосы поперёк луча. Раньше сдвиг брался случайным
+ * хешем от координаты, и это меняло одну беду на другую - полосы рассыпались
+ * в грязь, которая на половинном разрешении читается как шум по всему лучу.
+ *
+ * Матрица Байера раскладывает те же шестнадцать шагов по соседним пикселям
+ * так, что каждый берёт свою долю пути: соседи дополняют друг друга, а не
+ * повторяют. После размытия, через которое луч всё равно проходит, из этого
+ * складывается ровный градиент - как будто шагов было вчетверо больше.
+ */
+float orderedDither(vec2 fragment)
+{
+	vec2 cell = floor(mod(fragment, 4.0));
+	// Классическая матрица 4x4, развёрнутая в арифметику: заводить массив
+	// ради шестнадцати чисел дороже, чем посчитать.
+	float x = cell.x;
+	float y = cell.y;
+	float a = mod(2.0 * x + y, 4.0);
+	float b = mod(x + 3.0 * y, 4.0);
+	return (a * 4.0 + b) / 16.0;
 }
 
 float sampleVolumetricLight(vec2 uv, vec3 lightVec, float rawDepth)
 {
 	lightVec = 0.5 * lightVec / lightVec.z + 0.5;
-	// Шагов вдоль луча. Каждый - это выборка глубины, и они же составляют
-	// почти всю стоимость эффекта. Полосы, которые появляются от малого числа
-	// шагов, размывает случайный сдвиг bias ниже и цепочка bloom после.
+	// Шагов вдоль луча. Каждый - выборка глубины, и они составляют почти всю
+	// стоимость эффекта, поэтому число здесь трогать дорого. Ровность луча
+	// вытягивается не количеством шагов, а тем, как они расставлены.
 	const float samples = 16.;
 	// Глубина под самим пикселем нужна дважды, а стоит выборки
 	float depthHere = texture2D(depthmap, uv).r;
-	float result = depthHere < 1. ? 0.0 : 1.0;
-	float bias = noise(vec3(uv, rawDepth));
+	float lit = depthHere < 1. ? 0.0 : 1.0;
+	// Сколько выборок вообще состоялось. Луч к солнцу быстро уходит за край
+	// экрана, и раньше пропущенные выборки всё равно делили результат - от
+	// этого лучи к краям кадра слепли на ровном месте.
+	float taken = 1.0;
+	float bias = orderedDither(gl_FragCoord.xy);
 	vec2 samplepos;
 	for (float i = 1.; i < samples; i++) {
 		samplepos = mix(uv, lightVec.xy, (i + bias) / samples);
-		if (min(samplepos.x, samplepos.y) > 0. && max(samplepos.x, samplepos.y) < 1.)
-			result += texture2D(depthmap, samplepos).r < 1. ? 0.0 : 1.0;
+		if (min(samplepos.x, samplepos.y) > 0. && max(samplepos.x, samplepos.y) < 1.) {
+			lit += texture2D(depthmap, samplepos).r < 1. ? 0.0 : 1.0;
+			taken += 1.0;
+		}
 	}
 	// We use the depth map to approximate the effect of depth on the light intensity.
 	// The exponent was chosen based on aesthetic preference.
-	return result / samples * pow(depthHere, 128.0);
+	return lit / taken * pow(depthHere, 128.0);
 }
 
 vec3 getDirectLightScatteringAtGround(vec3 v_LightDirection)
