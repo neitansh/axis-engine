@@ -14,6 +14,7 @@
 #include "client/mapblock_mesh.h"
 #include "client/sound.h"
 #include "clientmap.h"
+#include "client/render/pipeline.h"
 #include "clientmedia.h" // For clientMediaUpdateCacheCopy
 #include "config.h"
 #include "content_cao.h"
@@ -1932,6 +1933,33 @@ void Game::updateProfilers(const RunStats &stats, const FpsControl &draw_times,
 	g_profiler->graphAdd("Sleep [us]", draw_times.sleep_time);
 
 	g_profiler->graphSet("FPS", 1.0f / dtime);
+
+	/*
+	 * Ответы видеокарты о том, сколько она провозилась с каждым участком кадра.
+	 *
+	 * Приходят они с опозданием на кадр-другой - раньше их просто нет, - и
+	 * поэтому ложатся в профиль не тем кадром, в котором были заданы. На
+	 * средних за интервал это не сказывается: за пять секунд опоздание в два
+	 * кадра из четырёхсот ничего не меняет.
+	 */
+	if (driver->supportsTimerQueries()) {
+		m_gpu_timings.clear();
+		driver->collectTimerQueries(m_gpu_timings);
+		u64 gpu_total = 0;
+		for (const auto &timing : m_gpu_timings) {
+			const std::string &name = getGpuSlotName(timing.first);
+			if (name.empty())
+				continue;
+			// Имя шага уже кончается на «[us]», и микросекунды здесь тоже.
+			g_profiler->avg("GPU " + name, timing.second / 1000.0f);
+			// В сумму по кадру идёт только верхний уровень: шаг «мир» уже
+			// содержит в себе конвейер постобработки целиком.
+			if (!isGpuSlotNested(timing.first))
+				gpu_total += timing.second;
+		}
+		if (!m_gpu_timings.empty())
+			g_profiler->avg("GPU: кадр целиком [us]", gpu_total / 1000.0f);
+	}
 
 	auto stats2 = driver->getFrameStats();
 	g_profiler->avg("Irr: drawcalls", stats2.Drawcalls);

@@ -16,6 +16,8 @@
 #include "EDriverFeatures.h"
 #include "EPrimitiveTypes.h"
 #include "EVideoTypes.h"
+#include <utility>
+#include <vector>
 #include "SExposedVideoData.h"
 #include "SOverrideMaterial.h"
 #include "S3DVertex.h" // E_VERTEX_TYPE
@@ -805,6 +807,23 @@ public:
 	//! can be updated from outside during rendering.
 	//! \return Statistics about the last (current) frame.
 	virtual SFrameStats &getFrameStats() = 0;
+
+	//! Does this driver measure how long the GPU spends on a part of a frame?
+	virtual bool supportsTimerQueries() const { return false; }
+
+	//! Mark the start of a GPU-timed section.
+	/** The GPU runs behind the CPU, so the result is not available now.
+	Call collectTimerQueries() on later frames to pick up finished ones.
+	Sections may be nested; each begin must have a matching end.
+	\param slot Caller-chosen id the result is reported under. */
+	virtual void beginTimerQuery(u32 slot) {}
+
+	//! Mark the end of the innermost open GPU-timed section.
+	virtual void endTimerQuery() {}
+
+	//! Collect the GPU timings that have become available.
+	/** \param out Receives (slot, nanoseconds) for every finished section. */
+	virtual void collectTimerQueries(std::vector<std::pair<u32, u64>> &out) {}
 
 	//! Gets name of this video driver.
 	/** \return Returns the name of the video driver, e.g. in case

@@ -239,6 +239,12 @@ public:
 
 	COpenGL3CacheHandler *getCacheHandler() const;
 
+	//! Замер времени на стороне видеокарты (см. Driver.cpp).
+	bool supportsTimerQueries() const override { return TimerQueriesSupported; }
+	void beginTimerQuery(u32 slot) override;
+	void endTimerQuery() override;
+	void collectTimerQueries(std::vector<std::pair<u32, u64>> &out) override;
+
 protected:
 	virtual bool genericDriverInit(const core::dimension2d<u32> &screenSize, bool stencilBuffer);
 
@@ -359,6 +365,35 @@ private:
 	u16 MaxJointTransforms = 0;
 	void initMaxJointTransforms();
 	OGLBufferObject JointTransformsUBO = OGLBufferObject(OGLBufferObject::TARGET_UBO);
+
+	/*
+	 * Замеры времени видеокарты.
+	 *
+	 * Видеокарта идёт позади процессора: команды складываются в очередь, и
+	 * узнать, сколько она провозилась с участком кадра, можно только спустя
+	 * несколько кадров. Поэтому здесь не «замерить и вернуть», а «поставить
+	 * метки и потом собрать»: каждая пара меток живёт своей жизнью, а готовые
+	 * результаты забирает collectTimerQueries().
+	 *
+	 * Метки ставятся счётчиком времени (GL_TIMESTAMP), а не измерением
+	 * промежутка (GL_TIME_ELAPSED), ровно по одной причине: промежутки нельзя
+	 * вкладывать друг в друга, а конвейер отрисовки вложен — внутри шага
+	 * «мир» живёт целый свой конвейер постобработки.
+	 */
+	struct TimerQuery
+	{
+		u32 slot;
+		GLuint start;
+		GLuint end;
+	};
+
+	bool TimerQueriesSupported = false;
+	std::vector<GLuint> FreeQueries;      // отработавшие метки, готовые к переиспользованию
+	std::vector<TimerQuery> PendingQueries;
+	std::vector<u32> OpenQueries;         // индексы незакрытых замеров, для вложенности
+
+	GLuint takeQueryObject();
+	void releaseQueryObjects();
 
 	void debugCb(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message);
 	static void APIENTRY debugCb(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam);

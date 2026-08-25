@@ -312,9 +312,28 @@ public:
 	 */
 	const std::string &getProfilerName();
 
+	/**
+	 * Номер участка для замера на видеокарте.
+	 *
+	 * Видеокарта отвечает с опозданием на кадр-другой, поэтому связать её
+	 * ответ с шагом можно только через устойчивый номер: имена к тому времени
+	 * уже никто не помнит. Номер выдаётся один раз и живёт до конца работы.
+	 */
+	u32 getGpuSlot();
+
 private:
 	std::string m_profiler_name;
+	u32 m_gpu_slot = 0;
+	bool m_gpu_slot_valid = false;
 };
+
+/// Имя участка по номеру, для профиля. Пустая строка, если номера нет.
+const std::string &getGpuSlotName(u32 slot);
+
+/// Лежит ли участок внутри другого. Вложенные не идут в сумму по кадру:
+/// шаг «мир» уже содержит в себе весь конвейер постобработки, и сложить их
+/// вместе значило бы посчитать одну и ту же работу дважды.
+bool isGpuSlotNested(u32 slot);
 
 /**
  * Provides default empty implementation of supporting methods in a rendering step.

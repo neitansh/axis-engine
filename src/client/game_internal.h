@@ -154,6 +154,10 @@ protected:
 	bool inLimbo() const { return m_limbo.active; }
 	void processQueues();
 	void updateProfilers(const RunStats &stats, const FpsControl &draw_times, f32 dtime);
+
+	// Ответы видеокарты о времени участков кадра. Живёт полем, а не местной
+	// переменной, чтобы не перевыделять память каждый кадр.
+	std::vector<std::pair<u32, u64>> m_gpu_timings;
 	void updateDebugState();
 	void updateStats(RunStats *stats, const FpsControl &draw_times, f32 dtime);
 	void updateProfilerGraphs(ProfilerGraph *graph);

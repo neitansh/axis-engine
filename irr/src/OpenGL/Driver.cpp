@@ -187,6 +187,7 @@ COpenGL3DriverBase::~COpenGL3DriverBase()
 	deleteAllTextures();
 	removeAllOcclusionQueries();
 	removeAllHardwareBuffers();
+	releaseQueryObjects();
 
 	delete MaterialRenderer2DTexture;
 	delete MaterialRenderer2DNoTexture;
@@ -276,6 +277,12 @@ bool COpenGL3DriverBase::genericDriverInit(const core::dimension2d<u32> &screenS
 
 	initQuadsIndices();
 	initMaxJointTransforms();
+
+	// Метки времени видеокарты есть в OpenGL с версии 3.3; в ES их даёт только
+	// расширение, которого может и не быть. Без них замер просто не работает,
+	// а всё остальное - как обычно.
+	TimerQueriesSupported = GL.QueryCounter != NULL && GL.GetQueryObjectui64v != NULL
+			&& GL.GenQueries != NULL && GL.GetQueryObjectuiv != NULL;
 
 	// reset cache handler
 	delete CacheHandler;
@@ -1934,6 +1941,124 @@ const SMaterial &COpenGL3DriverBase::getCurrentMaterial() const
 COpenGL3CacheHandler *COpenGL3DriverBase::getCacheHandler() const
 {
 	return CacheHandler;
+}
+
+
+/*
+ * Замер времени видеокарты.
+ *
+ * Пара меток на участок: одна ставится в очередь команд при входе, вторая при
+ * выходе. Когда видеокарта до них доберётся, каждая запишет своё показание
+ * часов, и разница между ними - это и есть время, которое участок занял у неё,
+ * а не у процессора.
+ *
+ * Метки не ждут: результат забирается позже, когда он готов. Объекты запросов
+ * переиспользуются, поэтому после первых кадров новых выделений не происходит.
+ */
+
+GLuint COpenGL3DriverBase::takeQueryObject()
+{
+	if (!FreeQueries.empty()) {
+		GLuint id = FreeQueries.back();
+		FreeQueries.pop_back();
+		return id;
+	}
+	GLuint id = 0;
+	GL.GenQueries(1, &id);
+	return id;
+}
+
+void COpenGL3DriverBase::releaseQueryObjects()
+{
+	if (!TimerQueriesSupported)
+		return;
+
+	for (const auto &q : PendingQueries) {
+		if (q.start)
+			GL.DeleteQueries(1, &q.start);
+		if (q.end)
+			GL.DeleteQueries(1, &q.end);
+	}
+	PendingQueries.clear();
+	OpenQueries.clear();
+
+	for (GLuint id : FreeQueries)
+		GL.DeleteQueries(1, &id);
+	FreeQueries.clear();
+}
+
+void COpenGL3DriverBase::beginTimerQuery(u32 slot)
+{
+	if (!TimerQueriesSupported)
+		return;
+
+	// Хвост незабранных замеров означает, что результаты никто не собирает.
+	// Дальше расти ему незачем: это была бы утечка на ровном месте.
+	if (PendingQueries.size() > 256)
+		return;
+
+	TimerQuery q;
+	q.slot = slot;
+	q.start = takeQueryObject();
+	q.end = 0;
+	if (q.start == 0)
+		return;
+
+	GL.QueryCounter(q.start, GL.TIMESTAMP);
+	OpenQueries.push_back((u32)PendingQueries.size());
+	PendingQueries.push_back(q);
+}
+
+void COpenGL3DriverBase::endTimerQuery()
+{
+	if (!TimerQueriesSupported || OpenQueries.empty())
+		return;
+
+	TimerQuery &q = PendingQueries[OpenQueries.back()];
+	OpenQueries.pop_back();
+
+	q.end = takeQueryObject();
+	if (q.end == 0)
+		return;
+	GL.QueryCounter(q.end, GL.TIMESTAMP);
+}
+
+void COpenGL3DriverBase::collectTimerQueries(std::vector<std::pair<u32, u64>> &out)
+{
+	if (!TimerQueriesSupported)
+		return;
+
+	size_t keep = 0;
+	for (size_t i = 0; i < PendingQueries.size(); i++) {
+		TimerQuery q = PendingQueries[i];
+
+		// Замер ещё не закрыт с нашей стороны - ждём.
+		if (q.end == 0) {
+			PendingQueries[keep++] = q;
+			continue;
+		}
+
+		GLuint ready = 0;
+		GL.GetQueryObjectuiv(q.end, GL.QUERY_RESULT_AVAILABLE, &ready);
+		if (!ready) {
+			PendingQueries[keep++] = q;
+			continue;
+		}
+
+		GLuint64 t0 = 0, t1 = 0;
+		GL.GetQueryObjectui64v(q.start, GL.QUERY_RESULT, &t0);
+		GL.GetQueryObjectui64v(q.end, GL.QUERY_RESULT, &t1);
+		if (t1 >= t0)
+			out.emplace_back(q.slot, (u64)(t1 - t0));
+
+		FreeQueries.push_back(q.start);
+		FreeQueries.push_back(q.end);
+	}
+	PendingQueries.resize(keep);
+
+	// Индексы открытых замеров сдвинулись вместе с очередью, а закрывать их
+	// после сборки всё равно некому: собирают в конце кадра.
+	OpenQueries.clear();
 }
 
 } // end namespace

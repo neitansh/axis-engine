@@ -9,6 +9,9 @@
 #include "IRenderTarget.h"
 #include "SColor.h"
 #include "profiler.h"
+#include "threading/mutex_auto_lock.h"
+
+#include <mutex>
 
 #include <typeinfo>
 #if defined(__GNUC__) || defined(__clang__)
@@ -298,6 +301,45 @@ RenderTarget *RenderPipeline::getOutput()
 	return &m_output;
 }
 
+namespace
+{
+	// Имена участков по номерам. Заполняется один раз на шаг, при первом
+	// замере, и дальше только читается.
+	std::vector<std::string> g_gpu_slot_names;
+	std::vector<bool> g_gpu_slot_nested;
+	std::mutex g_gpu_slot_mutex;
+
+	// Насколько глубоко мы сейчас внутри конвейеров. Ноль - верхний уровень.
+	thread_local int g_pipeline_depth = 0;
+}
+
+u32 RenderStep::getGpuSlot()
+{
+	if (!m_gpu_slot_valid) {
+		MutexAutoLock lock(g_gpu_slot_mutex);
+		m_gpu_slot = (u32)g_gpu_slot_names.size();
+		g_gpu_slot_names.push_back(getProfilerName());
+		g_gpu_slot_nested.push_back(g_pipeline_depth > 1);
+		m_gpu_slot_valid = true;
+	}
+	return m_gpu_slot;
+}
+
+const std::string &getGpuSlotName(u32 slot)
+{
+	static const std::string empty;
+	MutexAutoLock lock(g_gpu_slot_mutex);
+	if (slot >= g_gpu_slot_names.size())
+		return empty;
+	return g_gpu_slot_names[slot];
+}
+
+bool isGpuSlotNested(u32 slot)
+{
+	MutexAutoLock lock(g_gpu_slot_mutex);
+	return slot < g_gpu_slot_nested.size() && g_gpu_slot_nested[slot];
+}
+
 const std::string &RenderStep::getProfilerName()
 {
 	if (m_profiler_name.empty()) {
@@ -326,14 +368,25 @@ void RenderPipeline::run(PipelineContext &context)
 	for (auto &object : m_objects)
 		object->reset(context);
 
+	auto *driver = context.device->getVideoDriver();
+	const bool gpu_timing = driver->supportsTimerQueries();
+
+	g_pipeline_depth++;
+
 	for (auto &step: m_pipeline) {
-		// Замер стоит на процессорной стороне шага: видеокарта исполняет его
-		// позже и своего времени наружу не отдаёт. Что из этого следует и как
-		// считается стоимость на стороне видеокарты — в отчёте аудита.
+		// Два замера на шаг, и они меряют разное. Секундомер здесь считает
+		// процессорное время: сколько заняли сами вызовы. Метки видеокарты
+		// считают её собственную работу, и ответ приходит через кадр-другой —
+		// его подбирает Game::updateProfilers().
 		ScopeProfiler sp(g_profiler, step->getProfilerName(), SPT_AVG, PRECISION_MICRO);
+		if (gpu_timing)
+			driver->beginTimerQuery(step->getGpuSlot());
 		step->run(context);
+		if (gpu_timing)
+			driver->endTimerQuery();
 	}
 
+	g_pipeline_depth--;
 	context.target_size = original_size;
 }
 
