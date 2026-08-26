@@ -58,6 +58,17 @@ static constexpr float PLAYER_INTERACT_RATE = 20.0f;
  */
 static constexpr float PLAYER_INTERACT_BURST = 0.5f;
 
+/**
+ * How much travel one position packet may carry beyond the time it took to
+ * arrive, in seconds' worth.
+ *
+ * The server counts the gap between packets in whole server steps and the
+ * client walks it out frame by frame, so the two never agree exactly. Half a
+ * second is for that disagreement; at ordinary walking speed it is a couple of
+ * blocks, which is room to breathe and nowhere to hide.
+ */
+static constexpr float PLAYER_MOVE_STEP_SLACK = 0.5f;
+
 PlayerSAO::PlayerSAO(ServerEnvironment *env_, RemotePlayer *player_, session_t peer_id_,
 		bool is_singleplayer):
 	UnitSAO(env_, v3f(0,0,0)),
@@ -1115,7 +1126,27 @@ const char *PlayerSAO::checkMovementCheat()
 
 	required_time /= anticheat_movement_tolerance;
 
-	if (m_move_pool.grab(required_time)) {
+	/*
+		A stall is forgiven; a jump inside a heartbeat is not.
+
+		The pool fills to five seconds or more, and it has to: a link that goes
+		quiet and then delivers everything at once is ordinary, and the player
+		on the other end of it really did walk all that way. But saved-up time
+		could also be spent all at once — stand still for a moment, then be
+		twenty blocks away, with the seconds honestly in hand and nothing in the
+		log to say otherwise.
+
+		What tells the two apart is not how much time was saved but how much of
+		it really passed. A stalled client sends its position three seconds
+		later; one covering the same ground in a single heartbeat sends it a
+		heartbeat later. So the travel a packet carries is measured against the
+		time since the last one, and the pool goes on covering everything else.
+	*/
+	const float elapsed = m_time_from_last_speed;
+	const bool one_step_too_far =
+			required_time > elapsed + PLAYER_MOVE_STEP_SLACK;
+
+	if (!one_step_too_far && m_move_pool.grab(required_time)) {
 		m_last_good_position = getBasePosition();
 	} else {
 		const float LAG_POOL_MIN = 5.0;
@@ -1124,6 +1155,7 @@ const char *PlayerSAO::checkMovementCheat()
 		if (m_time_from_last_teleport > lag_pool_max) {
 			actionstream << "Server: " << m_player->getName()
 					<< " moved too fast: V=" << d_vert << ", H=" << d_horiz
+					<< (one_step_too_far ? ", all of it in one step" : "")
 					<< "; resetting position." << std::endl;
 			cheated = true;
 		}
