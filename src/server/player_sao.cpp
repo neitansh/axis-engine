@@ -327,6 +327,14 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 	m_nocheat_dig_time += dtime;
 	m_max_speed_override_time = MYMAX(m_max_speed_override_time - dtime, 0.0f);
 
+	// Counted here rather than per packet: this asks how long somebody has
+	// been off the ground, and time passes on the server whether or not the
+	// client is talking.
+	static thread_local const u32 anticheat_flags =
+		g_settings->getFlagStr("anticheat_flags", flagdesc_anticheat, nullptr);
+	if (anticheat_flags & AC_MOVEMENT)
+		watchForHovering(dtime);
+
 	// Each frame, parent position is copied if the object is attached,
 	// otherwise it's calculated normally.
 	// If the object gets detached this comes into effect automatically from
@@ -938,6 +946,140 @@ u16 PlayerSAO::allowedFallDamage() const
 	// Never more than the whole of them: the field is a u16 and a fall is not
 	// a way to hand the server an arbitrary number.
 	return (u16)MYMIN(damage + 1.0f, (float)m_prop.hp_max);
+}
+
+/// How far below the feet to look for ground, in blocks. A player resting on a
+/// surface is a hair above it, and a player who has just stepped off it is not
+/// falling yet.
+static constexpr float PLAYER_SUPPORT_REACH = 0.2f;
+
+bool PlayerSAO::isSupported() const
+{
+	aabb3f box(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	if (!getCollisionBox(&box))
+		return true; // no body to hold up
+
+	// Look a little below the feet: what holds a player up is whatever their
+	// own box would meet on the way down.
+	box.MinEdge.Y -= PLAYER_SUPPORT_REACH * BS;
+
+	Map &map = m_env->getMap();
+	const NodeDefManager *ndef = m_env->getPlaceDef()->ndef();
+
+	const v3s16 min = floatToInt(box.MinEdge, BS);
+	const v3s16 max = floatToInt(box.MaxEdge, BS);
+
+	std::vector<aabb3f> boxes;
+	// Bottom up: the ground under the feet answers this on the first row,
+	// which is where nearly every player nearly always is.
+	for (s16 y = min.Y; y <= max.Y; y++)
+	for (s16 z = min.Z; z <= max.Z; z++)
+	for (s16 x = min.X; x <= max.X; x++) {
+		const v3s16 p(x, y, z);
+		bool pos_ok = false;
+		const MapNode n = map.getNode(p, &pos_ok);
+		// Nothing known here, so nothing to conclude. Somewhere the server
+		// cannot see is not a place to catch anybody out.
+		if (!pos_ok || n.getContent() == CONTENT_IGNORE)
+			return true;
+
+		const ContentFeatures &f = ndef->get(n);
+		// Something to climb or to swim in holds a player up as surely as
+		// ground does, and neither has to be underfoot to do it.
+		if (f.climbable || f.liquid_move_physics)
+			return true;
+		if (!f.walkable)
+			continue;
+
+		boxes.clear();
+		n.getCollisionBoxes(ndef, &boxes, n.getNeighbors(p, &map));
+
+		const v3f node_pos = intToFloat(p, BS);
+		for (aabb3f node_box : boxes) {
+			node_box.MinEdge += node_pos;
+			node_box.MaxEdge += node_pos;
+			if (node_box.intersectsWithBox(box))
+				return true;
+		}
+	}
+
+	// And whatever else is standing about. A deck, a boat, another player's
+	// head — the client's own physics collide with objects, so a check that
+	// only knew about nodes would call standing on one of them impossible.
+	std::vector<ServerActiveObject *> objects;
+	m_env->getObjectsInArea(objects, box, nullptr);
+	for (ServerActiveObject *obj : objects) {
+		if (obj == this || obj->isGone())
+			continue;
+		aabb3f other(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+		if (obj->getCollisionBox(&other) && other.intersectsWithBox(box))
+			return true;
+	}
+
+	return false;
+}
+
+/**
+ * How long a player may hang in the air before it stops looking like a jump,
+ * in seconds, and how far they have to come down to prove that gravity is
+ * still working on them, in blocks.
+ *
+ * Three seconds and one block: falling covers forty-five blocks in that time
+ * and the shallowest glide covers far more than one, so nothing that is on its
+ * way down is ever asked about. What is left is hanging still, or going up and
+ * staying up, and neither is something the engine's own physics can do.
+ */
+static constexpr float PLAYER_HOVER_TIME = 3.0f;
+static constexpr float PLAYER_HOVER_DROP = 1.0f;
+
+void PlayerSAO::watchForHovering(float dtime)
+{
+	const v3f pos = getBasePosition();
+
+	/*
+		Everything that legitimately keeps a player off the ground, and there
+		is a good deal of it: being carried, being thrown by a mod, a game that
+		has turned gravity off, the privilege that exists for exactly this, and
+		the moment right after the server moved somebody.
+
+		This is deliberately generous, because the answer here is a suspicion
+		and not a verdict. What the engine can prove is that under its own
+		physics, an unheld player with gravity on them comes down; what it
+		cannot prove is that no game ever had a reason to hold one up. So it
+		says what it saw and leaves the deciding to the game, which knows
+		whether it has flying machines in it.
+	*/
+	if (isAttached() || m_is_singleplayer ||
+			m_privs.count("fly") != 0 ||
+			m_player->physics_override.gravity <= 0.0f ||
+			m_max_speed_override_time > 0.0f ||
+			m_time_from_last_teleport < PLAYER_HOVER_TIME ||
+			m_ride_id != 0 ||
+			isSupported()) {
+		m_hover_time = 0.0f;
+		m_hover_top_y = pos.Y;
+		return;
+	}
+
+	// Coming down is the end of the question. A jump goes up and comes back,
+	// and by the time it has come back a block, whatever it was, it was not
+	// hanging there.
+	if (pos.Y < m_hover_top_y - PLAYER_HOVER_DROP * BS) {
+		m_hover_time = 0.0f;
+		m_hover_top_y = pos.Y;
+		return;
+	}
+
+	m_hover_top_y = MYMAX(m_hover_top_y, pos.Y);
+	m_hover_time += dtime;
+
+	if (m_hover_time >= PLAYER_HOVER_TIME) {
+		// Once per stretch, not once per packet: the point is to say that it
+		// is happening, and to go on saying so while it does.
+		m_hover_time = 0.0f;
+		m_hover_top_y = pos.Y;
+		m_env->getScriptIface()->on_cheat(this, "hovering");
+	}
 }
 
 bool PlayerSAO::wentThroughSolid(const v3f &from, const v3f &to) const

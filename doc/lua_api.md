@@ -6733,6 +6733,16 @@ Call these functions only at load time!
         * `finished_unknown_dig`
         * `dug_unbreakable`
         * `dug_too_fast`
+        * `hovering` — the player has stayed off the ground for seconds without
+          coming down, with nothing holding them up: not attached, not in
+          liquid, nothing to climb, nothing under their feet, no `fly`
+          privilege, gravity on, and no push from a mod. Unlike the others this
+          is a **suspicion, not a verdict**: the engine can prove that its own
+          physics bring such a player down, not that no game ever had a reason
+          to keep one up. Nothing is undone and no position is reset — the
+          report is there for the game to act on, because only the game knows
+          whether it has flying machines in it. Repeats every few seconds while
+          it goes on.
         * `interacted_too_fast` — uses, placements or activations arrived
           faster than a hand could ask for them. Digging and punching have
           always been paced; this covers the rest, so that one packet cannot

@@ -243,6 +243,12 @@ private:
 	/// ground. See the implementation for why this is the one movement
 	/// question with an answer that does not depend on the game.
 	bool wentThroughSolid(const v3f &from, const v3f &to) const;
+	/// Whether anything is holding the player up: ground under their feet,
+	/// something to climb or swim in, or an object they are standing on.
+	bool isSupported() const;
+	/// Keep count of how long the player has hung in the air without coming
+	/// down, and say so once it stops being a jump. See the implementation.
+	void watchForHovering(float dtime);
 
 	RemotePlayer *m_player = nullptr;
 	// Extra variable because during shutdown m_player is unavailable, but we still need to know.
@@ -284,6 +290,10 @@ private:
 	float m_fall_peak_y = 0.0f;
 	float m_fall_depth = 0.0f;
 	float m_time_from_last_fall = 0.0f;
+	/// How long the player has been in the air with nothing bringing them
+	/// down, and the highest they got while they were. See watchForHovering().
+	float m_hover_time = 0.0f;
+	float m_hover_top_y = 0.0f;
 	/**
 	 * Seconds since the last position packet went out.
 	 *
