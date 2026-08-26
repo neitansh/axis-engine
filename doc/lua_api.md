@@ -6733,6 +6733,10 @@ Call these functions only at load time!
         * `finished_unknown_dig`
         * `dug_unbreakable`
         * `dug_too_fast`
+        * `interacted_too_fast` — uses, placements or activations arrived
+          faster than a hand could ask for them. Digging and punching have
+          always been paced; this covers the rest, so that one packet cannot
+          set off a whole inventory inside a single server step.
         * `impossible_fall_damage` — the client reported more fall damage than
           the fall the server watched could have caused, or reported one after
           no fall at all. The damage is cut down to what it could have been

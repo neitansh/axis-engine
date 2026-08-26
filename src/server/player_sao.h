@@ -169,6 +169,19 @@ public:
 	float getNoCheatDigTime() { return m_nocheat_dig_time; }
 	void noCheatDigEnd() { m_nocheat_dig_pos = v3s16(32767, 32767, 32767); }
 	LagPool &getDigPool() { return m_dig_pool; }
+	/**
+	 * Take one use, place or activate out of the player's allowance.
+	 *
+	 * Digging has its own pool and punching its own timer; using an item had
+	 * neither, so a client could set off as many of them as it could fit in a
+	 * packet. One player emptying an inventory into a single server step is
+	 * not a hand moving quickly — it is a whole game's worth of work asked for
+	 * at once, and whatever the items do, the server does all of it.
+	 *
+	 * @return false when the action is coming faster than anyone could ask for
+	 *         it, and should be dropped.
+	 */
+	bool grabInteraction();
 	void setMaxSpeedOverride(const v3f &vel);
 	/**
 	 * Work out how fast the player is going, from where they have been.
@@ -239,6 +252,7 @@ private:
 	// Cheat prevention
 	LagPool m_dig_pool;
 	LagPool m_move_pool;
+	LagPool m_use_pool;
 	v3f m_last_good_position;
 	float m_time_from_last_teleport = 0.0f;
 	float m_time_from_last_punch = 0.0f;

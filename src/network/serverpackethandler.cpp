@@ -1187,6 +1187,33 @@ void Server::handleCommand_Interact(NetworkPacket *pkt)
 	}
 
 	/*
+		Check that they are not asking for it faster than a hand can ask
+
+		Digging is paced by its own pool and punching by its own timer; using
+		an item had neither, so a client could fit as many uses into one packet
+		as it liked and the server would carry out every one of them inside a
+		single step. Whatever the item does — light a charge, throw a grenade,
+		place a block — it does it that many times at once.
+	*/
+	if ((action == INTERACT_PLACE || action == INTERACT_USE ||
+			action == INTERACT_ACTIVATE) &&
+			(anticheat_flags & AC_INTERACTION) && !isSingleplayer()) {
+		if (!playersao->grabInteraction()) {
+			actionstream << "Player " << player->getName()
+					<< " used items faster than anyone could; ignoring."
+					<< std::endl;
+			m_script->on_cheat(playersao, "interacted_too_fast");
+			if (pointed.type == POINTEDTHING_NODE) {
+				// Re-send block to revert change on client-side
+				RemoteClient *client = getClient(peer_id);
+				v3s16 blockpos = getNodeBlockPos(pointed.node_abovesurface);
+				client->SetBlockNotSent(blockpos);
+			}
+			return;
+		}
+	}
+
+	/*
 		If something goes wrong, this player is to blame
 	*/
 	RollbackScopeActor rollback_scope(m_rollback,

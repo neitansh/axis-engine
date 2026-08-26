@@ -287,6 +287,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 	// Increment cheat prevention timers
 	m_dig_pool.add(dtime);
 	m_move_pool.add(dtime);
+	m_use_pool.add(dtime);
 	m_time_from_last_speed += dtime;
 	m_time_from_last_fall += dtime;
 	m_time_from_last_teleport += dtime;
@@ -794,6 +795,29 @@ bool PlayerSAO::rideHolds(ServerActiveObject *ride, const v3f &offset) const
  * far side of the world costs one comparison rather than a walk across the map.
  */
 static constexpr int PLAYER_PASSAGE_MAX_NODES = 64;
+
+/**
+ * How fast a player may use, place or activate things, in actions per second.
+ *
+ * Not a limit on the hand — a hand is faster than any check here should care
+ * about — but a ceiling on what a single burst of packets can set off.
+ */
+static constexpr float PLAYER_INTERACT_RATE = 20.0f;
+
+/**
+ * And how much of that allowance may be spent at once, in seconds' worth.
+ *
+ * A link that stalls and then delivers everything together is ordinary, and
+ * half a second of held-up actions has to go through. A client that saved up
+ * for a minute in order to spend it all in one server step is not that.
+ */
+static constexpr float PLAYER_INTERACT_BURST = 0.5f;
+
+bool PlayerSAO::grabInteraction()
+{
+	m_use_pool.setMax(PLAYER_INTERACT_BURST);
+	return m_use_pool.grab(1.0f / PLAYER_INTERACT_RATE);
+}
 
 void PlayerSAO::measureSpeed()
 {
