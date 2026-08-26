@@ -913,7 +913,9 @@ u16 PlayerSAO::fallDamage() const
 	float factor = 1.0f + itemgroup_get(ground.groups, "fall_damage_add_percent") / 100.0f;
 	factor *= 1.0f + itemgroup_get(getArmorGroups(), "fall_damage_add_percent") / 100.0f;
 
-	const float tolerance = 14.0f; // 5 blocks of free fall, as on the client
+	// Fourteen blocks a second, exactly as on the client — which is about ten
+	// blocks of free fall, whatever the comment there says.
+	const float tolerance = 14.0f;
 	const float damage = speed * factor - tolerance;
 	if (damage <= 0.0f)
 		return 0;
