@@ -950,21 +950,29 @@ bool PlayerSAO::isSupported(bool *soft) const
 {
 	*soft = false;
 
-	aabb3f box(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	if (!getCollisionBox(&box)) {
+	aabb3f body(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	if (!getCollisionBox(&body)) {
 		*soft = true;
 		return true; // no body to hold up
 	}
 
-	// Look a little below the feet: what holds a player up is whatever their
-	// own box would meet on the way down.
-	box.MinEdge.Y -= PLAYER_SUPPORT_REACH * BS;
+	// Two boxes, because two different things hold a player up.
+	//
+	// Water and ladders hold the whole of them: a ladder at chest height is
+	// enough, and so is being waist-deep. Ground holds their feet and only
+	// their feet — a wall beside a falling player does not stop them, and
+	// neither does a ceiling above one, however closely their head brushes it.
+	// Measuring both against the whole body made hugging a ceiling a way of
+	// being held up by it.
+	aabb3f footing = body;
+	footing.MinEdge.Y -= PLAYER_SUPPORT_REACH * BS;
+	footing.MaxEdge.Y = body.MinEdge.Y + 0.5f * BS;
 
 	Map &map = m_env->getMap();
 	const NodeDefManager *ndef = m_env->getPlaceDef()->ndef();
 
-	const v3s16 min = floatToInt(box.MinEdge, BS);
-	const v3s16 max = floatToInt(box.MaxEdge, BS);
+	const v3s16 min = floatToInt(footing.MinEdge, BS);
+	const v3s16 max = floatToInt(body.MaxEdge, BS);
 
 	std::vector<aabb3f> boxes;
 	// Bottom up: the ground under the feet answers this on the first row,
@@ -983,9 +991,8 @@ bool PlayerSAO::isSupported(bool *soft) const
 		}
 
 		const ContentFeatures &f = ndef->get(n);
-		// Something to climb or to swim in holds a player up as surely as
-		// ground does, and neither has to be underfoot to do it. It is not
-		// ground to land on, though: nobody breaks their legs on water.
+		// Something to climb or to swim in is not ground to land on, either:
+		// nobody breaks their legs on water.
 		if (f.climbable || f.liquid_move_physics) {
 			*soft = true;
 			return true;
@@ -1000,7 +1007,7 @@ bool PlayerSAO::isSupported(bool *soft) const
 		for (aabb3f node_box : boxes) {
 			node_box.MinEdge += node_pos;
 			node_box.MaxEdge += node_pos;
-			if (node_box.intersectsWithBox(box))
+			if (node_box.intersectsWithBox(footing))
 				return true;
 		}
 	}
@@ -1009,12 +1016,12 @@ bool PlayerSAO::isSupported(bool *soft) const
 	// head — the client's own physics collide with objects, so a check that
 	// only knew about nodes would call standing on one of them impossible.
 	std::vector<ServerActiveObject *> objects;
-	m_env->getObjectsInArea(objects, box, nullptr);
+	m_env->getObjectsInArea(objects, footing, nullptr);
 	for (ServerActiveObject *obj : objects) {
 		if (obj == this || obj->isGone())
 			continue;
 		aabb3f other(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-		if (obj->getCollisionBox(&other) && other.intersectsWithBox(box))
+		if (obj->getCollisionBox(&other) && other.intersectsWithBox(footing))
 			return true;
 	}
 
