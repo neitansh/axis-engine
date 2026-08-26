@@ -824,19 +824,28 @@ void PlayerSAO::measureSpeed()
 	const v3f now = getBasePosition();
 	const float dtime = m_time_from_last_speed;
 
-	m_time_from_last_speed = 0.0f;
-
 	// Attached players are carried, and step() already says their own speed is
 	// nothing. Nothing to measure and nothing to overwrite.
 	if (isAttached()) {
+		m_time_from_last_speed = 0.0f;
 		m_speed_reference = now;
 		return;
 	}
 
-	// Nothing measurable: two positions from the same instant, or a jump the
-	// server itself made. A teleport is not travel, and dividing it by time
+	// Two positions from the same instant say nothing about speed: this packet
+	// and the one before it arrived inside a single server step. The clock and
+	// the mark stay where they are so the next measurement covers the whole
+	// stretch — starting over here would hand a client that sends twice in a
+	// step exactly what measuring was meant to take away from it, a way to
+	// report itself standing still.
+	if (dtime < 0.0001f)
+		return;
+
+	m_time_from_last_speed = 0.0f;
+
+	// A jump the server itself made is not travel, and dividing it by time
 	// would report a speed nobody moved at.
-	if (dtime < 0.0001f || m_time_from_last_teleport < dtime) {
+	if (m_time_from_last_teleport < dtime) {
 		m_speed_reference = now;
 		m_player->setSpeed(v3f());
 		return;
