@@ -1416,6 +1416,18 @@ const char *PlayerSAO::checkMovementCheat()
 					<< (one_step_too_far ? ", all of it in one step" : "")
 					<< "; resetting position." << std::endl;
 			cheated = true;
+		} else {
+			// Right after the server moved somebody, the same refusal happens
+			// without a word: the pool was emptied by the move and the player
+			// is not to blame for what it cannot pay for yet. But the position
+			// is still thrown away, and a position thrown away in silence is
+			// the hardest kind of thing to find afterwards — a player who
+			// stops falling in mid-air leaves no trace at all.
+			verbosestream << "Server: " << m_player->getName()
+					<< " moved V=" << d_vert << ", H=" << d_horiz
+					<< " which the pool cannot pay for yet ("
+					<< m_time_from_last_teleport << "s since it was moved); "
+					<< "position dropped quietly." << std::endl;
 		}
 		setBasePosition(m_last_good_position);
 	}
