@@ -69,6 +69,22 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 		return;
 	}
 
+	// The same thing again, for the stretch the check above cannot see.
+	//
+	// Asking the account service no longer blocks, so between the question and
+	// the answer the connection sits in CS_Created — the very state that just
+	// passed. A repeat during that stretch used to allocate a second fetch
+	// caller, send a second question, and overwrite the first in
+	// m_awaiting_auth with nobody left to free it. One connection could
+	// therefore leak a caller and make the service answer a question per
+	// packet, before it had been let in at all.
+	if (m_awaiting_auth.count(peer_id) > 0) {
+		verbosestream << "Server: Ignoring TOSERVER_INIT from " << addr_s <<
+			" (peer_id=" << peer_id << "): its account check is still out" <<
+			std::endl;
+		return;
+	}
+
 	client->setCachedAddress(addr);
 
 	verbosestream << "Server: Got TOSERVER_INIT from " << addr_s <<

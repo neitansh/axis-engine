@@ -3544,6 +3544,16 @@ void Server::DeleteClient(session_t peer_id, ClientDeletionReason reason)
 		// clear formspec info so the next client can't abuse the current state
 		m_formspec_state_data.erase(peer_id);
 
+		// Same reasoning for a question about this connection that is still
+		// out: the peer id goes to whoever knocks next, and an answer about
+		// the person who just left must not decide whether a stranger gets in.
+		// Dropping it here also frees the fetch caller, which stepAwaitingAuth
+		// would otherwise only get to on its next round.
+		if (auto it = m_awaiting_auth.find(peer_id); it != m_awaiting_auth.end()) {
+			httpfetch_caller_free(it->second.caller);
+			m_awaiting_auth.erase(it);
+		}
+
 		RemotePlayer *player = m_env->getPlayer(peer_id);
 
 		/* Run scripts and remove from environment */
