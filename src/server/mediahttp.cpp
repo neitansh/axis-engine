@@ -26,6 +26,7 @@ typedef WSAPOLLFD PollFd;
 #define POLL_SOCKETS(fds, n, ms) WSAPoll(fds, n, ms)
 #define MSG_NOSIGNAL 0
 #else
+#include <arpa/inet.h>
 #include <cerrno>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -49,6 +50,13 @@ namespace
 	// игроков на сервере может быть много — но бесконечной очереди тут не
 	// место: остальные подождут в очереди ядра.
 	const int MAX_CONNECTIONS = 256;
+	// И сколько из них может принадлежать одному адресу.
+	//
+	// Общего потолка мало: молчащее соединение держится столько же, сколько
+	// качающее, поэтому одна машина могла занять все двести пятьдесят шесть и
+	// не отпускать — раздача вставала для всех, ничего не скачав. Клиент берёт
+	// файлы десятками, так что доля щедрая; она лишь не даёт забрать всё.
+	const int MAX_CONNECTIONS_PER_ADDRESS = 24;
 
 	bool sendAll(int sock, const char *data, size_t size)
 	{
@@ -99,6 +107,25 @@ namespace
 			out.push_back(static_cast<char>((hi << 4) | lo));
 		}
 		return out;
+	}
+
+	/// Кто на том конце, одной строкой. Порт отбрасывается намеренно: доля
+	/// считается на машину, а не на сокет, иначе она не считалась бы вовсе.
+	std::string addressOf(const sockaddr_storage &peer)
+	{
+		char buf[INET6_ADDRSTRLEN] = {0};
+		if (peer.ss_family == AF_INET6) {
+			const auto *in6 = (const sockaddr_in6 *)&peer;
+			if (::inet_ntop(AF_INET6, &in6->sin6_addr, buf, sizeof(buf)))
+				return buf;
+		} else if (peer.ss_family == AF_INET) {
+			const auto *in4 = (const sockaddr_in *)&peer;
+			if (::inet_ntop(AF_INET, &in4->sin_addr, buf, sizeof(buf)))
+				return buf;
+		}
+		// Не разобрали — считаем всех такими одним и тем же: доля им общая,
+		// и это строже, а не мягче.
+		return "?";
 	}
 
 	bool isSha1Hex(const std::string &s)
@@ -313,6 +340,37 @@ std::string MediaHttpServer::findPath(const std::string &sha1_hex) const
 	return it == m_by_hash.end() ? std::string() : it->second;
 }
 
+bool MediaHttpServer::takeSlot(const std::string &address)
+{
+	std::lock_guard<std::mutex> lock(m_slots_mutex);
+	Slots &slots = m_slots[address];
+	if (slots.held >= MAX_CONNECTIONS_PER_ADDRESS) {
+		if (!slots.warned) {
+			// Один раз на адрес, пока он держится на пределе: жалоб при таком
+			// упорстве было бы столько же, сколько попыток.
+			slots.warned = true;
+			warningstream << "MediaHttpServer: " << address << " holds "
+				<< MAX_CONNECTIONS_PER_ADDRESS << " connections; refusing more"
+				<< std::endl;
+		}
+		return false;
+	}
+	slots.held++;
+	return true;
+}
+
+void MediaHttpServer::freeSlot(const std::string &address)
+{
+	std::lock_guard<std::mutex> lock(m_slots_mutex);
+	auto it = m_slots.find(address);
+	if (it == m_slots.end())
+		return;
+	// Ушло последнее живое соединение — уходит и запись: иначе карта росла бы
+	// адресом на каждого, кто когда-либо заходил.
+	if (--it->second.held <= 0)
+		m_slots.erase(it);
+}
+
 bool MediaHttpServer::serveOnce(int sock)
 {
 	// Заголовок запроса целиком, но не длиннее разумного.
@@ -408,7 +466,9 @@ void MediaHttpServer::threadMain()
 		if (ready == 0)
 			continue;
 
-		const int sock = ::accept(m_listen_sock, nullptr, nullptr);
+		sockaddr_storage peer{};
+		socklen_t peer_len = sizeof(peer);
+		const int sock = ::accept(m_listen_sock, (sockaddr *)&peer, &peer_len);
 		if (sock < 0)
 			continue;
 
@@ -420,18 +480,25 @@ void MediaHttpServer::threadMain()
 			continue;
 		}
 
+		const std::string address = addressOf(peer);
+		if (!takeSlot(address)) {
+			CLOSE_SOCKET(sock);
+			continue;
+		}
+
 		// Мелкие ответы не должны ждать попутчиков.
 		int on = 1;
 		::setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char *)&on, sizeof(on));
 
 		m_connections++;
-		std::thread([this, sock]() {
+		std::thread([this, sock, address]() {
 			// Соединение живёт, пока клиент просит файлы: он берёт их сотнями,
 			// и рукопожатие на каждый было бы дороже самого файла.
 			while (!m_stop && serveOnce(sock)) {
 			}
 			CLOSE_SOCKET(sock);
 			m_connections--;
+			freeSlot(address);
 		}).detach();
 	}
 }

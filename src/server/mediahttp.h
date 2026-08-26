@@ -54,6 +54,17 @@ private:
 	void buildBundles();
 	std::string bundleIndex();
 	std::string bundlePart(size_t number);
+	/**
+	 * Take a connection slot for one address, or refuse it.
+	 *
+	 * The overall ceiling alone was no protection: one address could hold
+	 * every slot there is and keep them, because a connection that says
+	 * nothing is held open for as long as a connection that is downloading.
+	 * A player takes files by the dozen from one machine, so the per-address
+	 * share is generous — it only rules out taking all of them.
+	 */
+	bool takeSlot(const std::string &address);
+	void freeSlot(const std::string &address);
 
 	const u16 m_port;
 	std::atomic<bool> m_running{false};
@@ -61,6 +72,17 @@ private:
 	std::atomic<int> m_connections{0};
 	int m_listen_sock = -1;
 	std::thread m_thread;
+
+	// Сколько соединений держит каждый адрес и жаловались ли мы на него.
+	// Отдельный замок: сюда ходят на каждом подключении и отключении, а
+	// раздача медиа под своим стоит долго.
+	struct Slots
+	{
+		int held = 0;
+		bool warned = false;
+	};
+	std::mutex m_slots_mutex;
+	std::unordered_map<std::string, Slots> m_slots;
 
 	mutable std::mutex m_media_mutex;
 	std::unordered_map<std::string, std::string> m_by_hash;
