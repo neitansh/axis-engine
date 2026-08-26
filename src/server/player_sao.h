@@ -191,16 +191,13 @@ public:
 	 */
 	void measureSpeed();
 	/**
-	 * The most fall damage the player could honestly be reporting right now.
+	 * Watch the ground under the player: what they land from, and what keeps
+	 * them up when nothing should.
 	 *
-	 * Fall damage is worked out by the client, because the physics that
-	 * produce it are the client's. What the server has is the record of where
-	 * the player has been, and that is enough to say how far they fell — and
-	 * therefore how much a fall could possibly have cost them.
-	 *
-	 * @return zero when no fall has been seen at all.
+	 * Both questions are the same question — is anything holding this player —
+	 * asked once a step, which is why they are answered in one place.
 	 */
-	u16 allowedFallDamage() const;
+	void watchFooting(float dtime);
 	/**
 	 * Weigh the position the player just claimed.
 	 *
@@ -243,12 +240,17 @@ private:
 	/// ground. See the implementation for why this is the one movement
 	/// question with an answer that does not depend on the game.
 	bool wentThroughSolid(const v3f &from, const v3f &to) const;
-	/// Whether anything is holding the player up: ground under their feet,
-	/// something to climb or swim in, or an object they are standing on.
-	bool isSupported() const;
-	/// Keep count of how long the player has hung in the air without coming
-	/// down, and say so once it stops being a jump. See the implementation.
-	void watchForHovering(float dtime);
+	/**
+	 * Whether anything is holding the player up: ground under their feet,
+	 * something to climb or swim in, or an object they are standing on.
+	 *
+	 * @param soft set when the only thing holding them is liquid or something
+	 *             climbable — support enough to stand on, and not a landing.
+	 */
+	bool isSupported(bool *soft) const;
+	/// What the fall the player has just finished cost them, by the same
+	/// arithmetic the client uses. See the implementation.
+	u16 fallDamage() const;
 
 	RemotePlayer *m_player = nullptr;
 	// Extra variable because during shutdown m_player is unavailable, but we still need to know.
@@ -289,11 +291,13 @@ private:
 	/// See allowedFallDamage().
 	float m_fall_peak_y = 0.0f;
 	float m_fall_depth = 0.0f;
-	float m_time_from_last_fall = 0.0f;
 	/// How long the player has been in the air with nothing bringing them
-	/// down, and the highest they got while they were. See watchForHovering().
+	/// down, and the highest they got while they were. See watchFooting().
 	float m_hover_time = 0.0f;
 	float m_hover_top_y = 0.0f;
+	/// Whether something was holding them up a step ago. A player who arrives
+	/// standing has not just landed, so this starts true.
+	bool m_was_supported = true;
 	/**
 	 * Seconds since the last position packet went out.
 	 *

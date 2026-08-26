@@ -924,62 +924,33 @@ void Server::handleCommand_ChatMessage(NetworkPacket* pkt)
 	}
 }
 
+/**
+ * The client saying what a fall cost it.
+ *
+ * Nothing is done with the number any more, and the packet is kept only so
+ * that a client sending it is not treated as speaking nonsense.
+ *
+ * It used to be believed outright: the client named an amount and the server
+ * subtracted it. A client that said nothing therefore fell from any height for
+ * free, and one that said sixty-five thousand ended itself on the spot — at
+ * will, in the middle of a fight, taking the kill from whoever was about to
+ * earn it. There was no version of trusting it that was safe, because the
+ * damage was not a claim about the world that could be checked; it was the
+ * whole of the answer.
+ *
+ * So the answer moved. The physics of a fall are still the client's, but its
+ * depth is a distance, and the server has watched where this player has been.
+ * PlayerSAO::watchFooting() works the cost out by the same arithmetic the
+ * client uses and applies it when the ground arrives.
+ */
 void Server::handleCommand_Damage(NetworkPacket* pkt)
 {
 	u16 damage;
-
 	*pkt >> damage;
 
-	session_t peer_id = pkt->getPeerId();
-	RemotePlayer *player = m_env->getPlayer(peer_id);
-	if (!player) {
-		warningstream << FUNCTION_NAME << ": player is null" << std::endl;
-		return;
-	}
-
-	PlayerSAO *playersao = player->getPlayerSAO();
-	if (!playersao) {
-		warningstream << FUNCTION_NAME << ": player SAO is null" << std::endl;
-		return;
-	}
-
-	if (!playersao->isImmortal()) {
-		if (playersao->isDead()) {
-			verbosestream << "Server: "
-				"Ignoring damage as player " << player->getName()
-				<< " is already dead" << std::endl;
-			return;
-		}
-
-		// Fall damage is worked out by the client, because the physics that
-		// produce it are the client's. That is the whole of what the client
-		// gets to decide here: the server watched where the player has been,
-		// so it knows whether there was a fall at all and how deep, and a
-		// claim past that is cut down to what it could have been.
-		//
-		// Left unchecked this was a way to hand the server any number at all
-		// out of nowhere — up to sixty-five thousand, at any moment, standing
-		// still. A player could end themselves on demand, and in a game that
-		// keeps score, take the kill away from whoever was about to earn it.
-		const u16 allowed = playersao->allowedFallDamage();
-		if (damage > allowed) {
-			actionstream << "Server: " << player->getName()
-					<< " reported " << (int)damage << " hp of fall damage "
-					"after a fall worth " << (int)allowed << "; cutting it "
-					"down." << std::endl;
-			m_script->on_cheat(playersao, "impossible_fall_damage");
-			damage = allowed;
-		}
-		if (damage == 0)
-			return;
-
-		actionstream << player->getName() << " damaged by "
-				<< (int)damage << " hp at " << (playersao->getBasePosition() / BS)
-				<< std::endl;
-
-		PlayerHPChangeReason reason(PlayerHPChangeReason::FALL);
-		playersao->setHP((s32)playersao->getHP() - (s32)damage, reason, true);
-	}
+	verbosestream << "Server: " << getPlayerName(pkt->getPeerId())
+		<< " reports " << (int)damage << " hp of fall damage; the server has "
+		"its own count" << std::endl;
 }
 
 void Server::handleCommand_PlayerItem(NetworkPacket* pkt)

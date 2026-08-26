@@ -6747,10 +6747,6 @@ Call these functions only at load time!
           faster than a hand could ask for them. Digging and punching have
           always been paced; this covers the rest, so that one packet cannot
           set off a whole inventory inside a single server step.
-        * `impossible_fall_damage` — the client reported more fall damage than
-          the fall the server watched could have caused, or reported one after
-          no fall at all. The damage is cut down to what it could have been
-          rather than refused, so a slow link costs the player nothing.
         * `moved_through_solid` — the straight way from the player's last
           accepted position to the one they just claimed runs through nodes
           that would have stopped them. Unlike `moved_too_fast` this is not a
@@ -12232,7 +12228,12 @@ The `PlayerHPChangeReason` table specifies a reason for player health changes.
        without giving a damage type, or by setting `set_hp`
        as damage type explicitly
     * `punch`: Was punched. `reason.object` will hold the puncher, or nil if none.
-    * `fall`: Fall damage.
+    * `fall`: Fall damage. Worked out and applied by the server, when the
+      player lands, from the drop it watched them take — not from the amount
+      the client reports, which is no longer read. A game that wants falls to
+      hurt more, less or not at all still says so the same ways: the
+      `fall_damage_add_percent` group on the ground or on the player, the
+      `immortal` group, or cancelling the change here.
     * `node_damage`: `damage_per_second` from a neighboring node.
                      `reason.node` will hold the node name or nil.
                      `reason.node_pos` will hold the position of the node
