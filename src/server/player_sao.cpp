@@ -473,6 +473,11 @@ void PlayerSAO::setPos(const v3f &pos)
 	m_last_good_position = getBasePosition();
 	m_move_pool.empty();
 	m_time_from_last_teleport = 0.0;
+	// And the fall they were in the middle of, if any, was not finished by
+	// them. A mod snatching somebody out of a drop is a rescue; charging them
+	// for the part they had already fallen would make it a sentence.
+	m_fall_depth = 0.0f;
+	m_fall_peak_y = getBasePosition().Y;
 	m_env->getServer()->SendMovePlayer(this);
 }
 
@@ -497,6 +502,11 @@ void PlayerSAO::addPos(const v3f &added_pos)
 	m_last_good_position = getBasePosition();
 	m_move_pool.empty();
 	m_time_from_last_teleport = 0.0;
+	// And the fall they were in the middle of, if any, was not finished by
+	// them. A mod snatching somebody out of a drop is a rescue; charging them
+	// for the part they had already fallen would make it a sentence.
+	m_fall_depth = 0.0f;
+	m_fall_peak_y = getBasePosition().Y;
 	m_env->getServer()->SendMovePlayerRel(getPeerID(), added_pos);
 }
 
@@ -510,6 +520,11 @@ void PlayerSAO::moveTo(v3f pos, bool continuous)
 	m_last_good_position = getBasePosition();
 	m_move_pool.empty();
 	m_time_from_last_teleport = 0.0;
+	// And the fall they were in the middle of, if any, was not finished by
+	// them. A mod snatching somebody out of a drop is a rescue; charging them
+	// for the part they had already fallen would make it a sentence.
+	m_fall_depth = 0.0f;
+	m_fall_peak_y = getBasePosition().Y;
 	m_env->getServer()->SendMovePlayer(this);
 }
 
@@ -875,9 +890,8 @@ void PlayerSAO::measureSpeed()
 	m_player->setSpeed((now - m_speed_reference) / dtime);
 	m_speed_reference = now;
 
-	// Watch the descent while it happens. The client will report what the fall
-	// cost it once the fall is over, and by then only this record can say
-	// whether there was one. Anything but going down starts the count again.
+	// Watch the descent while it happens: this record is the whole of what the
+	// landing will be charged for. Anything but going down starts it again.
 	if (m_player->getSpeed().Y < 0.0f) {
 		m_fall_depth = MYMAX(m_fall_depth, (m_fall_peak_y - now.Y) / BS);
 	} else {
@@ -895,10 +909,10 @@ u16 PlayerSAO::fallDamage() const
 	// its own but falling, and the drop is measured from the top of it, where
 	// they were not moving — so this is the whole of it. Plus whatever the
 	// server itself threw them with, because that push was ours.
-	// In blocks, not in the engine's internal units: the drop is counted in
-	// blocks and the client's threshold below is a speed in blocks a second,
-	// so this is the one place where the two have to be spoken in the same
-	// language.
+	//
+	// In blocks a second, not in the engine's own units: the drop is counted
+	// in blocks and the client's threshold below is a speed in blocks, so this
+	// is where the two have to be spoken in the same language.
 	const float gravity = m_player->movement_gravity / BS *
 			m_player->physics_override.gravity;
 	float speed = std::sqrt(MYMAX(0.0f, 2.0f * gravity * fall));
@@ -1054,12 +1068,16 @@ void PlayerSAO::watchFooting(float dtime)
 		player up without stopping them.
 	*/
 	if (supported && !m_was_supported && !soft && !isImmortal() && !isDead()) {
-		if (const u16 damage = fallDamage()) {
+		const u16 damage = fallDamage();
+		if (damage > 0) {
 			PlayerHPChangeReason reason(PlayerHPChangeReason::FALL);
-			// from_client, because the client has already shown this to the
-			// player and moved their own bar: it needs the true number back
-			// even when the true number turns out to be none.
 			setHP((s32)getHP() - (s32)damage, reason, true);
+		} else if (m_fall_depth > 0.5f) {
+			// The client works the same sum out for itself and has already
+			// moved its own bar by the answer. When ours comes out at nothing
+			// there is no change to send, and without this the player would go
+			// on seeing whatever their own arithmetic came to.
+			m_env->getServer()->SendPlayerHP(this, true);
 		}
 	}
 	if (supported) {
