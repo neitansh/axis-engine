@@ -2025,6 +2025,23 @@ void Server::handleCommand_UpdateClientInfo(NetworkPacket *pkt)
 		*pkt >> info.touch_controls;
 	}
 
+	// Nothing here decides anything about the world, but it does decide the
+	// size of what a game draws on this player's screen, and it arrives as
+	// four raw floats. A window a million blocks wide, or one no bigger than
+	// nothing, or a NaN, is not a screen — it is a client trying its luck with
+	// whatever arithmetic the game does on these numbers.
+	auto sane = [](f32 value, f32 low, f32 high, f32 fallback) {
+		if (!(value == value)) // NaN, which compares equal to nothing
+			return fallback;
+		return std::clamp(value, low, high);
+	};
+	info.render_target_size.X = (u32)sane((f32)info.render_target_size.X, 1.0f, 16384.0f, 1024.0f);
+	info.render_target_size.Y = (u32)sane((f32)info.render_target_size.Y, 1.0f, 16384.0f, 768.0f);
+	info.real_gui_scaling = sane(info.real_gui_scaling, 0.1f, 20.0f, 1.0f);
+	info.real_hud_scaling = sane(info.real_hud_scaling, 0.1f, 20.0f, 1.0f);
+	info.max_fs_size.X = sane(info.max_fs_size.X, 1.0f, 1000.0f, 20.0f);
+	info.max_fs_size.Y = sane(info.max_fs_size.Y, 1.0f, 1000.0f, 12.0f);
+
 	session_t peer_id = pkt->getPeerId();
 	RemoteClient *client = getClient(peer_id, CS_Invalid);
 	client->setDynamicInfo(info);
