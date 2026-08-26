@@ -305,7 +305,16 @@ void ClientEnvironment::step(float dtime)
 			f32 damage_f = (speed - tolerance) / BS;
 			u16 damage = (u16)MYMIN(damage_f + 0.5, U16_MAX);
 			if (damage != 0) {
-				damageLocalPlayer(damage, true);
+				// Пережитое показывается, но не засчитывается: сколько стоило
+				// падение, решает сервер — он вёл спуск и знает его глубину.
+				//
+				// Раньше клиент вычитал здоровье себе сам и сообщал сумму.
+				// Теперь сумму у него не спрашивают, и вычитать себе тоже
+				// нельзя: обнулив здоровье, клиент считает себя мёртвым и
+				// перестаёт слать позицию (Client::sendPlayerPos), а сервер про
+				// эту смерть не знает и поправить его не может. Игрок остаётся
+				// висеть навсегда — молча, для всех.
+				damageLocalPlayer(damage, false);
 				m_client->getEventManager()->put(
 					new SimpleTriggerEvent(MtEvent::PLAYER_FALLING_DAMAGE));
 			}
