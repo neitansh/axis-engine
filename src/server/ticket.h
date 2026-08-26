@@ -61,7 +61,11 @@ enum class TicketError
  *                      let its holder play as anyone
  * @param server_id     this server's name in the registry; a ticket issued for
  *                      another server is refused, so one that reaches a
- *                      stranger's server is worthless anywhere else
+ *                      stranger's server is worthless anywhere else. A ticket
+ *                      that names no server, and a server that has no name of
+ *                      its own, are refused too: neither can be matched to the
+ *                      other, and a ticket good everywhere is a key to every
+ *                      Axis server there is
  * @param out           filled in on success
  * @return TicketError::None when the ticket holds up
  */

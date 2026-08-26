@@ -131,12 +131,20 @@ TicketError checkTicket(const std::string &ticket, const std::string &expect_log
 	if (id.expires <= (s64)std::time(nullptr))
 		return TicketError::Expired;
 
-	// A ticket may name the server it was issued for. Then it is good there
-	// and nowhere else: one that ends up on somebody else's server — and it
-	// will, because the client shows it to whoever it connects to — is worth
-	// nothing anywhere but there.
+	// A ticket names the server it was issued for, and it is good there and
+	// nowhere else: one that ends up on somebody else's server — and it will,
+	// because the client shows it to whoever it connects to — is worth nothing
+	// anywhere but there.
+	//
+	// A ticket naming nobody used to be accepted everywhere. Nothing issues
+	// one — the account service refuses to write a ticket for a server the
+	// registry does not know — but that is a promise kept in another service,
+	// and this is the only place where breaking it would matter: one such
+	// ticket would be a key to every Axis server in the world, ours and other
+	// people's alike. A server with no name of its own refuses everyone for
+	// the same reason: it cannot tell whether a ticket was meant for it.
 	const std::string issued_for = payload.get("srv", "").asString();
-	if (!issued_for.empty() && issued_for != server_id)
+	if (issued_for.empty() || server_id.empty() || issued_for != server_id)
 		return TicketError::WrongServer;
 
 	if (id.login != expect_login)
