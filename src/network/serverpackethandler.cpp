@@ -564,6 +564,7 @@ void Server::process_PlayerPos(RemotePlayer *player, PlayerSAO *playersao,
 	u8 f32fov;
 
 	*pkt >> ps;
+	// Read to get past it, and no further: see measureSpeed() at the end.
 	*pkt >> ss;
 	*pkt >> f32pitch;
 	*pkt >> f32yaw;
@@ -622,7 +623,6 @@ void Server::process_PlayerPos(RemotePlayer *player, PlayerSAO *playersao,
 	}
 
 	v3f position((f32)ps.X / 100.0f, (f32)ps.Y / 100.0f, (f32)ps.Z / 100.0f);
-	v3f speed((f32)ss.X / 100.0f, (f32)ss.Y / 100.0f, (f32)ss.Z / 100.0f);
 
 	pitch = modulo360f(pitch);
 	yaw = wrapDegrees_0_360(yaw);
@@ -631,7 +631,6 @@ void Server::process_PlayerPos(RemotePlayer *player, PlayerSAO *playersao,
 		// Only update player positions when moving freely
 		// to not interfere with attachment handling
 		playersao->setBasePosition(position);
-		player->setSpeed(speed);
 	}
 	playersao->setLookPitch(pitch);
 	playersao->setPlayerYaw(yaw);
@@ -645,10 +644,16 @@ void Server::process_PlayerPos(RemotePlayer *player, PlayerSAO *playersao,
 		SendMovePlayer(playersao);
 	}
 
-	// After the movement check and not before it. What the player says they
-	// stand on is weighed against where they are, and where they are is only
-	// settled once that check has had its say — a claim measured against a
-	// position the server is about to take back answers the wrong question.
+	// Both of these read the position and so both come after the check that
+	// settles it: a claim measured against a position the server is about to
+	// take back answers the wrong question.
+	//
+	// How fast the player is going is worked out from where they have been,
+	// and the speed the packet carries (`ss` above) is not read into anything.
+	// It is the same journey described twice, and the two descriptions do not
+	// have to agree — a client saying it stands still while it runs was buying
+	// itself accuracy in games that ask how fast a player is moving.
+	playersao->measureSpeed();
 	playersao->setRide(ride_id, ride_offset);
 }
 

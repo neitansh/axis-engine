@@ -9019,6 +9019,13 @@ child will follow movement and rotation of that bone.
     * `pos` is a vector `{x=num, y=num, z=num}`.
     * In comparison to using `set_pos`, `add_pos` will avoid synchronization problems.
 * `get_velocity()`: returns the velocity, a vector.
+    * For a player this is measured by the server, from the positions the
+      player has been at, and not taken from the packet the client sends.
+      A client can write whatever it likes in that field, and games that ask
+      how fast someone is moving would be answered by the person moving.
+      The measurement is therefore an average over the last stretch between
+      position packets rather than an instantaneous value, and it reads zero
+      right after the player has been moved by the server.
 * `add_velocity(vel)`
     * Changes velocity by adding to the current velocity.
     * `vel` is a vector, e.g. `{x=0.0, y=2.3, z=1.0}`

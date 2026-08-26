@@ -171,6 +171,13 @@ public:
 	LagPool &getDigPool() { return m_dig_pool; }
 	void setMaxSpeedOverride(const v3f &vel);
 	/**
+	 * Work out how fast the player is going, from where they have been.
+	 *
+	 * Call this once the position from a packet has been settled. See the
+	 * implementation for why the speed the packet itself carries is not it.
+	 */
+	void measureSpeed();
+	/**
 	 * Weigh the position the player just claimed.
 	 *
 	 * @return the name of what they were caught at, ready for on_cheat, or
@@ -242,6 +249,10 @@ private:
 	/// The last claim that did not hold up. Kept so that a client repeating an
 	/// impossible one twenty times a second is reported once, not twenty times.
 	u16 m_ride_refused = 0;
+	/// Where the player was when their speed was last worked out, and how long
+	/// ago that was. See measureSpeed().
+	v3f m_speed_reference;
+	float m_time_from_last_speed = 0.0f;
 	/**
 	 * Seconds since the last position packet went out.
 	 *

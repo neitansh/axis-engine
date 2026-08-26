@@ -107,6 +107,9 @@ void PlayerSAO::addedToEnvironment(u32 dtime_s)
 	m_player->setPeerId(m_peer_id_initial);
 	m_peer_id_initial = PEER_ID_INEXISTENT; // don't try to use it again.
 	m_last_good_position = getBasePosition();
+	// Where they came in, so the first measured speed is the distance from
+	// there and not from the origin of the world.
+	m_speed_reference = getBasePosition();
 }
 
 // Called before removing from environment
@@ -281,6 +284,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 	// Increment cheat prevention timers
 	m_dig_pool.add(dtime);
 	m_move_pool.add(dtime);
+	m_time_from_last_speed += dtime;
 	m_time_from_last_teleport += dtime;
 	m_time_from_last_punch += dtime;
 	m_nocheat_dig_time += dtime;
@@ -786,6 +790,33 @@ bool PlayerSAO::rideHolds(ServerActiveObject *ride, const v3f &offset) const
  * far side of the world costs one comparison rather than a walk across the map.
  */
 static constexpr int PLAYER_PASSAGE_MAX_NODES = 64;
+
+void PlayerSAO::measureSpeed()
+{
+	const v3f now = getBasePosition();
+	const float dtime = m_time_from_last_speed;
+
+	m_time_from_last_speed = 0.0f;
+
+	// Attached players are carried, and step() already says their own speed is
+	// nothing. Nothing to measure and nothing to overwrite.
+	if (isAttached()) {
+		m_speed_reference = now;
+		return;
+	}
+
+	// Nothing measurable: two positions from the same instant, or a jump the
+	// server itself made. A teleport is not travel, and dividing it by time
+	// would report a speed nobody moved at.
+	if (dtime < 0.0001f || m_time_from_last_teleport < dtime) {
+		m_speed_reference = now;
+		m_player->setSpeed(v3f());
+		return;
+	}
+
+	m_player->setSpeed((now - m_speed_reference) / dtime);
+	m_speed_reference = now;
+}
 
 bool PlayerSAO::wentThroughSolid(const v3f &from, const v3f &to) const
 {
