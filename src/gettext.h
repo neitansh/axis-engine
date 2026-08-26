@@ -32,6 +32,21 @@
 void init_gettext(const char *path, const std::string &configured_language,
 	int argc, char *argv[]);
 
+/**
+ * Сменить язык переводов на ходу, без перезапуска.
+ *
+ * Переводит движок: меню, настройки, подписи в игре — всё, что идёт через
+ * gettext. Строки, присланные сервером (`.tr` модов), выбираются при входе на
+ * сервер и здесь не меняются.
+ *
+ * Само по себе окно не перерисовывает: кто держит открытый формспек, тот и
+ * собирает его заново. В клиенте это делает подписка на настройку `language`
+ * (см. ClientLauncher).
+ *
+ * @param configured_language код языка («ru», «de»); пустая строка — системный
+ */
+void set_gettext_language(const std::string &configured_language);
+
 inline std::string strgettext(const char *str)
 {
 	// We must check here that is not an empty string to avoid trying to translate it

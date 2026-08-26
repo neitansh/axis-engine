@@ -113,7 +113,7 @@ local function init_globals()
 		actions = {
 			{
 				name = "open_settings",
-				label = fgettext("Settings"),
+				label = "Settings",
 				on_click = function(tabview)
 					local dlg = create_settings_dlg()
 					dlg:set_parent(tabview)
@@ -124,7 +124,7 @@ local function init_globals()
 			},
 			{
 				name = "quit",
-				label = fgettext("Exit"),
+				label = "Exit",
 				on_click = function()
 					core.close()
 					return true

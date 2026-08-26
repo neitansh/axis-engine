@@ -136,6 +136,10 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 	g_settings->registerChangedCallback("display_density_factor", setting_changed_callback, this);
 	g_settings->registerChangedCallback("gui_scaling", setting_changed_callback, this);
 	g_settings->registerChangedCallback("smooth_scrolling", setting_changed_callback, this);
+	// Язык применяется сразу, а не со следующего запуска. Подписка, а не вызов
+	// из меню настроек: язык меняют не только оттуда — есть и `/set language`,
+	// и правка конфига модом, — а перевод обязан сойтись во всех случаях.
+	g_settings->registerChangedCallback("language", language_changed_callback, this);
 
 	try
 	{
@@ -346,6 +350,18 @@ void ClientLauncher::init_input()
 void ClientLauncher::setting_changed_callback(const std::string &name, void *data)
 {
 	static_cast<ClientLauncher *>(data)->config_guienv();
+}
+
+void ClientLauncher::language_changed_callback(const std::string &name, void *data)
+{
+	// Настройку могли и снять — тогда язык системный, и `get` бы бросил.
+	set_gettext_language(g_settings->exists("language")
+		? g_settings->get("language") : "");
+
+	// Перерисовывать здесь нечего: открытое окно — это формспек, а он собирается
+	// заново на ближайшем обновлении, и подписи в нём переводятся в момент
+	// сборки. Меню настроек обновляется сразу после записи настройки, поэтому
+	// новый язык видно на том же экране, где его выбрали.
 }
 
 static video::ITexture *loadTexture(video::IVideoDriver *driver, const char *path)

@@ -146,6 +146,80 @@ static void MSVC_LocaleWorkaround(int argc, char* argv[])
 
 #endif
 
+#if USE_GETTEXT
+
+/*
+ * Смена языка на ходу.
+ *
+ * Переведённые строки gettext держит в памяти и второй раз с диска не читает —
+ * иначе каждое обращение стоило бы файла. Поэтому одной новой LANGUAGE в
+ * окружении мало: пока каталог лежит в кэше, отдавать будут прежний язык.
+ *
+ * Сбрасывается кэш единственным способом, какой у GNU gettext есть, — счётчиком
+ * _nl_msg_cat_cntr: увидев, что он изменился, gettext перечитывает каталоги.
+ * Объявления в libintl.h у счётчика нет, он только вывезен наружу библиотекой,
+ * поэтому объявляем сами.
+ *
+ * Слабым символом, потому что gettext бывает не GNU: у musl своя реализация, и
+ * счётчика в ней нет вовсе. Со слабым символом такая сборка соберётся и
+ * запустится — просто язык там останется прежним до перезапуска, как и был.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+extern "C" int _nl_msg_cat_cntr __attribute__((weak));
+static inline bool can_drop_catalogs() { return &_nl_msg_cat_cntr != nullptr; }
+#else
+extern "C" int _nl_msg_cat_cntr;
+static inline bool can_drop_catalogs() { return true; }
+#endif
+
+/// Поставить язык в окружение и в локаль. Общее у первой установки и у смены.
+static void apply_language(const std::string &configured_language)
+{
+	if (!configured_language.empty()) {
+		// Set LANGUAGE which overrides all others, see
+		// <https://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html>
+		setenv("LANGUAGE", configured_language.c_str(), 1);
+#ifdef _WIN32
+		SetEnvironmentVariableA("LANGUAGE", configured_language.c_str());
+#endif
+		// Reload locale with changed environment
+		setlocale(LC_ALL, "");
+	} else {
+		// Системный язык. Убрать переменную, а не оставить прежнее значение:
+		// иначе «по умолчанию» означало бы «как было выбрано в прошлый раз».
+		unsetenv("LANGUAGE");
+#ifdef _WIN32
+		SetEnvironmentVariableA("LANGUAGE", nullptr);
+#endif
+		setlocale(LC_ALL, "");
+	}
+}
+
+void set_gettext_language(const std::string &configured_language)
+{
+	apply_language(configured_language);
+
+	if (can_drop_catalogs())
+		++_nl_msg_cat_cntr;
+
+	// Числа остаются в C-локали при любом языке: по ним разбирают формспеки, и
+	// запятая вместо точки ломает разбор. То же самое делает init_gettext.
+	setlocale(LC_NUMERIC, "C");
+
+	infostream << "Gettext: language is now \""
+		<< (configured_language.empty() ? "(system)" : configured_language)
+		<< "\"" << std::endl;
+}
+
+#else
+
+void set_gettext_language(const std::string &configured_language)
+{
+	// Переводов в сборке нет — менять нечего.
+}
+
+#endif // if USE_GETTEXT
+
 /******************************************************************************/
 void init_gettext(const char *path, const std::string &configured_language,
 	int argc, char *argv[])

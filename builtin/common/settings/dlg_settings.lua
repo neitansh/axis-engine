@@ -49,38 +49,38 @@ end
 local PAGES = {
 	{
 		id = "graphics",
-		title = fgettext_ne("Graphics"),
+		title = "Graphics",
 		sources = { "Graphics and Audio|Graphics" },
 		basic = {
-			{ heading = fgettext_ne("Window") },
+			{ heading = "Window" },
 			"fullscreen", "vsync", "fps_max", "fps_max_unfocused", "pause_on_lost_focus",
-			{ heading = fgettext_ne("World") },
+			{ heading = "World" },
 			"viewing_range", "fov", "enable_fog", "enable_3d_clouds",
-			{ heading = fgettext_ne("Quality") },
+			{ heading = "Quality" },
 			"smooth_lighting", "leaves_style", "antialiasing", "mip_map",
 			"performance_tradeoffs", "undersampling",
-			{ heading = fgettext_ne("Picture") },
+			{ heading = "Picture" },
 			"display_gamma",
 		},
 	},
 	{
 		id = "effects",
-		title = fgettext_ne("Effects"),
+		title = "Effects",
 		sources = { "Graphics and Audio|Effects" },
 		basic = {
-			{ heading = fgettext_ne("Shadows") },
+			{ heading = "Shadows" },
 			"enable_dynamic_shadows", "shadow_map_max_distance", "shadow_map_texture_size",
-			{ heading = fgettext_ne("Lighting") },
+			{ heading = "Lighting" },
 			"enable_post_processing", "enable_bloom", "enable_volumetric_lighting",
 			"enable_auto_exposure",
-			{ heading = fgettext_ne("Water and foliage") },
+			{ heading = "Water and foliage" },
 			"enable_waving_leaves", "enable_waving_plants", "enable_waving_water",
 			"translucent_liquids", "enable_water_reflections", "connected_glass",
 		},
 	},
 	{
 		id = "audio",
-		title = fgettext_ne("Audio"),
+		title = "Audio",
 		sources = { "Graphics and Audio|Audio" },
 		basic = {
 			"sound_volume", "sound_volume_unfocused", "mute_sound",
@@ -88,54 +88,54 @@ local PAGES = {
 	},
 	{
 		id = "interface",
-		title = fgettext_ne("Interface"),
+		title = "Interface",
 		sources = { "Graphics and Audio|User Interfaces" },
 		basic = {
-			{ heading = fgettext_ne("General") },
+			{ heading = "General" },
 			"language", "font_size", "gui_scaling", "hud_scaling",
 			"menu_theme", "menu_clouds",
-			{ heading = fgettext_ne("Crosshair") },
+			{ heading = "Crosshair" },
 			"crosshair_shape", "crosshair_size", "crosshair_thickness",
 			"crosshair_gap", "crosshair_dot", "crosshair_outline",
-			{ heading = fgettext_ne("Hints") },
+			{ heading = "Hints" },
 			"tooltip_show_delay", "tooltip_append_itemname", "show_nametag_backgrounds",
-			{ heading = fgettext_ne("Chat") },
+			{ heading = "Chat" },
 			"chat_font_size", "recent_chat_messages", "console_height", "console_alpha",
-			{ heading = fgettext_ne("Debugging") },
+			{ heading = "Debugging" },
 			"show_debug",
 		},
 	},
 	{
 		id = "controls",
-		title = fgettext_ne("Controls"),
+		title = "Controls",
 		sources = {
 			"Controls|General", "Controls|Keyboard and Mouse",
 			"Controls|Touchscreen", "Controls|Gamepads and Joysticks",
 		},
 		basic = {
-			{ heading = fgettext_ne("Mouse") },
+			{ heading = "Mouse" },
 			"mouse_sensitivity", "invert_mouse", "enable_hotbar_mouse_wheel",
-			{ heading = fgettext_ne("Movement") },
+			{ heading = "Movement" },
 			"autojump", "doubletap_jump", "always_fly_fast", "aux1_descends",
 			"toggle_sneak_key", "toggle_aux1_key",
-			{ heading = fgettext_ne("Interaction") },
+			{ heading = "Interaction" },
 			"safe_dig_and_place", "enable_build_where_you_stand",
 			"repeat_place_time", "repeat_dig_time",
-			{ heading = fgettext_ne("Menus") },
+			{ heading = "Menus" },
 			"enable_esc_dialog",
 		},
 	},
 	{
 		id = "keys",
-		title = fgettext_ne("Keys"),
+		title = "Keys",
 		sources = { "Controls|Actions and Keybindings" },
 		basic = {
-			{ heading = fgettext_ne("Movement") },
+			{ heading = "Movement" },
 			"keymap_forward", "keymap_backward", "keymap_left", "keymap_right",
 			"keymap_jump", "keymap_sneak", "keymap_sprint", "keymap_aux1",
-			{ heading = fgettext_ne("Interaction") },
+			{ heading = "Interaction" },
 			"keymap_dig", "keymap_place", "keymap_drop", "keymap_inventory",
-			{ heading = fgettext_ne("Interface") },
+			{ heading = "Interface" },
 			"keymap_chat", "keymap_cmd", "keymap_zoom", "keymap_pickitem",
 			"keymap_help", "keymap_screenshot",
 			"keymap_fullscreen", "keymap_pause",
@@ -143,23 +143,23 @@ local PAGES = {
 	},
 	{
 		id = "multiplayer",
-		title = fgettext_ne("Place and network"),
+		title = "Place and network",
 		sources = {
 			"Client and Server|Client", "Client and Server|Server",
 			"Client and Server|Server Security", "Client and Server|Server Gameplay",
 		},
 		basic = {
-			{ heading = fgettext_ne("Player") },
+			{ heading = "Player" },
 			"name",
-			{ heading = fgettext_ne("Hosting") },
+			{ heading = "Hosting" },
 			"server_name", "server_description", "max_users", "port", "server_announce",
-			{ heading = fgettext_ne("Client") },
+			{ heading = "Client" },
 			"enable_local_map_saving",
 		},
 	},
 	{
 		id = "worldgen",
-		title = fgettext_ne("World generation"),
+		title = "World generation",
 		sources = {
 			"Mapgen|", "Mapgen|Biome API", "Mapgen|Mapgen V5", "Mapgen|Mapgen V6",
 			"Mapgen|Mapgen V7", "Mapgen|Mapgen Carpathian", "Mapgen|Mapgen Flat",
@@ -169,7 +169,7 @@ local PAGES = {
 	},
 	{
 		id = "developer",
-		title = fgettext_ne("Developer"),
+		title = "Developer",
 		sources = {
 			"Advanced|", "Advanced|Developer Options", "Advanced|Advanced",
 			"Advanced|Hide: Temporary Settings",
@@ -198,7 +198,7 @@ local function collect_by_source()
 				subsection = entry.name
 			elseif entry.level == 2 and section then
 				local list = bucket()
-				list[#list + 1] = { heading = fgettext_ne(entry.readable_name or entry.name) }
+				list[#list + 1] = { heading = entry.readable_name or entry.name }
 			end
 		elseif section then
 			local list = bucket()
@@ -406,25 +406,25 @@ local function load()
 
 	get_setting_info("touch_controls").option_labels = {
 		-- TRANSLATORS: Automatic
-		["auto"] = fgettext_ne("Auto"),
-		["true"] = fgettext_ne("Enabled"),
-		["false"] = fgettext_ne("Disabled"),
+		["auto"] = "Auto",
+		["true"] = "Enabled",
+		["false"] = "Disabled",
 	}
 
 	get_setting_info("touch_interaction_style").option_labels = {
 		-- TRANSLATORS: Touchscreen interaction style
-		["tap"] = fgettext_ne("Tap"),
+		["tap"] = "Tap",
 		-- TRANSLATORS: Touchscreen interaction style
-		["tap_crosshair"] = fgettext_ne("Tap with crosshair"),
+		["tap_crosshair"] = "Tap with crosshair",
 		-- TRANSLATORS: Touchscreen interaction style
-		["buttons_crosshair"] = fgettext("Buttons with crosshair"),
+		["buttons_crosshair"] = "Buttons with crosshair",
 	}
 
 	get_setting_info("touch_punch_gesture").option_labels = {
 		-- TRANSLATORS: Touchscreen gesture
-		["short_tap"] = fgettext_ne("Short tap"),
+		["short_tap"] = "Short tap",
 		-- TRANSLATORS: Touchscreen gesture
-		["long_tap"] = fgettext_ne("Long tap"),
+		["long_tap"] = "Long tap",
 	}
 end
 
@@ -667,7 +667,10 @@ local function build_page_components(page, expanded)
 		elseif item.get_formspec then
 			retval[i] = item
 		elseif item.heading then
-			retval[i] = component_funcs.heading(item.heading)
+			-- Переводится здесь, при сборке окна, а не там, где заголовок
+			-- объявлен: объявления читаются один раз за запуск, а язык меняют
+			-- когда угодно, и переведённое при загрузке осталось бы на прежнем.
+			retval[i] = component_funcs.heading(fgettext_ne(item.heading))
 		end
 	end
 

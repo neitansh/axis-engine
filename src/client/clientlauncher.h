@@ -29,6 +29,7 @@ private:
 	void init_input();
 
 	static void setting_changed_callback(const std::string &name, void *data);
+	static void language_changed_callback(const std::string &name, void *data);
 	void config_guienv();
 
 	bool launch_game(GameErrorData &errordata,

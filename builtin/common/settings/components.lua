@@ -149,7 +149,7 @@ end
 local function get_description(setting)
 	local own = own_descriptions[setting.name]
 	if own then
-		local text = own.text or own
+		local text = fgettext_ne(own.text or own)
 		local line = own.load and load_line(own.load)
 		return core.formspec_escape(line and (text .. line) or text)
 	end
@@ -582,10 +582,14 @@ function make.enum(setting)
 			local value = core.settings:get(setting.name) or setting.default
 			self.resettable = differs_from_default(setting)
 
+			-- Подписи переводятся здесь, при сборке строки, а не там, где они
+			-- заданы: задаются они один раз за запуск, а язык меняют когда
+			-- угодно (см. dlg_settings.lua, load).
 			local labels = setting.option_labels or {}
 			local items = {}
 			for i, option in ipairs(setting.values) do
-				items[i] = core.formspec_escape(labels[option] or option)
+				local label = labels[option]
+				items[i] = core.formspec_escape(label and fgettext_ne(label) or option)
 			end
 
 			local desc = get_description(setting)

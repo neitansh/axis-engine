@@ -13,7 +13,13 @@
 -- отдельной строкой и красит, чтобы уровень был виден, не читая текста.
 -- Настройке, которая ничего не стоит, поле не нужно.
 
-local S = fgettext_ne
+-- Пометка для перевода, а не сам перевод. Этот файл читается один раз за
+-- запуск, а язык меняют когда угодно; переведи здесь — и после смены языка
+-- пояснения остались бы на прежнем. Переводит их тот, кто собирает строку
+-- настройки (get_description в components.lua).
+local function S(text)
+	return text
+end
 
 return {
 	["3d_mode"] = { text = S("Stereo picture for 3D glasses or a split screen. Anything except «none» draws the world twice and roughly halves the frame rate."), load = "high" },

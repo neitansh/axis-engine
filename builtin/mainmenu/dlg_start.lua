@@ -18,6 +18,9 @@ local start_page
 local function get_entries(tabview)
 	local tabs, actions = {}, {}
 
+	-- Подписи переводятся здесь, при сборке страницы, а не там, где вкладки
+	-- объявлены: объявления читаются один раз за запуск, а язык меняют когда
+	-- угодно, и переведённое при загрузке осталось бы на прежнем языке.
 	for i, tab in ipairs(tabview.tablist) do
 		if tab.sidebar then
 			local caption = tab.caption
@@ -27,7 +30,7 @@ local function get_entries(tabview)
 
 			tabs[#tabs + 1] = {
 				name = "start_tab_" .. i,
-				label = caption,
+				label = fgettext(caption),
 				tab_index = i,
 			}
 		end
@@ -36,7 +39,7 @@ local function get_entries(tabview)
 	for _, action in ipairs(tabview.sidebar and tabview.sidebar.actions or {}) do
 		actions[#actions + 1] = {
 			name = "start_action_" .. action.name,
-			label = action.label,
+			label = fgettext(action.label),
 			action = action,
 		}
 	end
