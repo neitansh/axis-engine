@@ -2393,6 +2393,13 @@ void GenericCAO::processMessage(const std::string &data)
 		bool expire_visuals = visualExpiryRequired(newprops);
 		bool textures_changed = m_prop.textures != newprops.textures;
 
+		// Лента воспроизведения принадлежит объекту, которого ведёт сервер.
+		// Стал physical — место ему считает своя физика, и записанное на
+		// ленту устарело; перестал — ленту начинать заново, а не с середины
+		// прошлой жизни.
+		if (m_prop.physical != newprops.physical)
+			resetMotion();
+
 		// Apply changes
 		m_prop = std::move(newprops);
 

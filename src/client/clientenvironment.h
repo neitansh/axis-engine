@@ -165,7 +165,6 @@ private:
 	std::vector<ClientSimpleObject*> m_simple_objects;
 	std::queue<ClientEnvEvent> m_client_event_queue;
 	IntervalLimiter m_active_object_light_update_interval;
-	IntervalLimiter m_hanging_check;
 	std::set<std::string> m_player_names;
 	v3s16 m_camera_offset;
 	u64 m_frame_time = 0;
