@@ -69,6 +69,17 @@ static constexpr float PLAYER_INTERACT_BURST = 0.5f;
  */
 static constexpr float PLAYER_MOVE_STEP_SLACK = 0.5f;
 
+/**
+ * How long a measured speed stands without a fresh position, in seconds.
+ *
+ * A client stops sending position packets exactly when there is nothing to
+ * report — position, speed and keys all unchanged. So silence means standing
+ * still, and a speed left over from before the silence would say the opposite:
+ * a player who came to a halt would go on being reported at a run, for as long
+ * as they stood there, to everything that asks how fast they are moving.
+ */
+static constexpr float PLAYER_SPEED_STALE = 0.5f;
+
 u16 fallDamageFromDrop(f32 drop, f32 gravity, f32 factor, f32 pushed, u16 hp_max)
 {
 	if (drop <= 0.0f || factor <= 0.0f)
@@ -352,6 +363,13 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 	m_time_from_last_punch += dtime;
 	m_nocheat_dig_time += dtime;
 	m_max_speed_override_time = MYMAX(m_max_speed_override_time - dtime, 0.0f);
+
+	// Nothing has arrived for a while, so measure what that silence means. For
+	// a player standing still it comes out at nothing, which is the truth; for
+	// one whose packets went missing it comes out as the average over the whole
+	// gap, which is the best the record allows.
+	if (m_time_from_last_speed > PLAYER_SPEED_STALE)
+		measureSpeed();
 
 	// Counted here rather than per packet: what this answers is about the
 	// ground under somebody, and the ground is there whether or not the client
