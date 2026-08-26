@@ -3462,6 +3462,20 @@ void Server::HandlePlayerDeath(PlayerSAO *playersao, const PlayerHPChangeReason 
 
 	playersao->clearParentAttachment();
 
+	/*
+		A dead player is not pressing anything.
+
+		Position packets are dropped while dead — handleCommand_PlayerPos turns
+		them away — so whatever keys were held at the moment of death stayed
+		held for as long as the body lay there, and anything driven by them
+		went on acting out the last living intent. One trigger held down at the
+		wrong moment was enough to go on firing, and to go on killing.
+
+		Cleared before the game is told, so that on_dieplayer already sees an
+		empty hand rather than having to guess at one.
+	*/
+	playersao->getPlayer()->control = PlayerControl();
+
 	// Trigger scripted stuff
 	m_script->on_dieplayer(playersao, reason);
 }
