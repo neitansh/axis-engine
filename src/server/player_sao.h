@@ -178,6 +178,17 @@ public:
 	 */
 	void measureSpeed();
 	/**
+	 * The most fall damage the player could honestly be reporting right now.
+	 *
+	 * Fall damage is worked out by the client, because the physics that
+	 * produce it are the client's. What the server has is the record of where
+	 * the player has been, and that is enough to say how far they fell — and
+	 * therefore how much a fall could possibly have cost them.
+	 *
+	 * @return zero when no fall has been seen at all.
+	 */
+	u16 allowedFallDamage() const;
+	/**
 	 * Weigh the position the player just claimed.
 	 *
 	 * @return the name of what they were caught at, ready for on_cheat, or
@@ -253,6 +264,12 @@ private:
 	/// ago that was. See measureSpeed().
 	v3f m_speed_reference;
 	float m_time_from_last_speed = 0.0f;
+	/// The current descent, as the server has watched it: the height it
+	/// started from, how deep it has got, and how long ago it last went on.
+	/// See allowedFallDamage().
+	float m_fall_peak_y = 0.0f;
+	float m_fall_depth = 0.0f;
+	float m_time_from_last_fall = 0.0f;
 	/**
 	 * Seconds since the last position packet went out.
 	 *

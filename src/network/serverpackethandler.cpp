@@ -951,6 +951,28 @@ void Server::handleCommand_Damage(NetworkPacket* pkt)
 			return;
 		}
 
+		// Fall damage is worked out by the client, because the physics that
+		// produce it are the client's. That is the whole of what the client
+		// gets to decide here: the server watched where the player has been,
+		// so it knows whether there was a fall at all and how deep, and a
+		// claim past that is cut down to what it could have been.
+		//
+		// Left unchecked this was a way to hand the server any number at all
+		// out of nowhere — up to sixty-five thousand, at any moment, standing
+		// still. A player could end themselves on demand, and in a game that
+		// keeps score, take the kill away from whoever was about to earn it.
+		const u16 allowed = playersao->allowedFallDamage();
+		if (damage > allowed) {
+			actionstream << "Server: " << player->getName()
+					<< " reported " << (int)damage << " hp of fall damage "
+					"after a fall worth " << (int)allowed << "; cutting it "
+					"down." << std::endl;
+			m_script->on_cheat(playersao, "impossible_fall_damage");
+			damage = allowed;
+		}
+		if (damage == 0)
+			return;
+
 		actionstream << player->getName() << " damaged by "
 				<< (int)damage << " hp at " << (playersao->getBasePosition() / BS)
 				<< std::endl;

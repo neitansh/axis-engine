@@ -4,6 +4,7 @@
 // Copyright (C) 2013-2020 Minetest core developers & community
 
 #include "player_sao.h"
+#include "itemgroup.h"
 #include "luaentity_sao.h"
 #include "nodedef.h"
 #include "remoteplayer.h"
@@ -108,8 +109,10 @@ void PlayerSAO::addedToEnvironment(u32 dtime_s)
 	m_peer_id_initial = PEER_ID_INEXISTENT; // don't try to use it again.
 	m_last_good_position = getBasePosition();
 	// Where they came in, so the first measured speed is the distance from
-	// there and not from the origin of the world.
+	// there and not from the origin of the world, and the first fall is
+	// counted from the ground they arrived on.
 	m_speed_reference = getBasePosition();
+	m_fall_peak_y = getBasePosition().Y;
 }
 
 // Called before removing from environment
@@ -285,6 +288,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 	m_dig_pool.add(dtime);
 	m_move_pool.add(dtime);
 	m_time_from_last_speed += dtime;
+	m_time_from_last_fall += dtime;
 	m_time_from_last_teleport += dtime;
 	m_time_from_last_punch += dtime;
 	m_nocheat_dig_time += dtime;
@@ -816,6 +820,77 @@ void PlayerSAO::measureSpeed()
 
 	m_player->setSpeed((now - m_speed_reference) / dtime);
 	m_speed_reference = now;
+
+	// Watch the descent while it happens. The client will report what the fall
+	// cost it once the fall is over, and by then only this record can say
+	// whether there was one. Anything but going down starts the count again.
+	if (m_player->getSpeed().Y < 0.0f) {
+		m_fall_depth = MYMAX(m_fall_depth, (m_fall_peak_y - now.Y) / BS);
+		m_time_from_last_fall = 0.0f;
+	} else {
+		m_fall_peak_y = now.Y;
+	}
+}
+
+/**
+ * How long a finished fall is still worth reporting, in seconds.
+ *
+ * The client works out the damage the moment it lands and sends it straight
+ * away, while the position that shows the landing goes out on its own timer —
+ * so the report regularly arrives first. Forgetting the fall the instant it
+ * ends would turn every one of those into an accusation.
+ */
+static constexpr float PLAYER_FALL_REPORT_GRACE = 1.0f;
+
+/**
+ * How much room the ceiling below is given, as a multiplier.
+ *
+ * The server watches the fall ten or twenty times a second and the client
+ * lives it frame by frame, so the two do not measure quite the same drop. The
+ * slack is for that difference and for nothing else; it is a multiplier rather
+ * than a constant so that it stays proportionate on a long fall.
+ */
+static constexpr float PLAYER_FALL_SLACK = 1.25f;
+
+u16 PlayerSAO::allowedFallDamage() const
+{
+	if (m_time_from_last_fall > PLAYER_FALL_REPORT_GRACE)
+		return 0; // no fall to speak of, or one long since over
+
+	const float fall = m_fall_depth;
+	if (fall <= 0.0f)
+		return 0;
+
+	// The fastest they could be going after coming down that far. Falling is
+	// the only thing that speeds a body up by itself, so free fall is the
+	// ceiling — plus whatever the server itself threw them with, because that
+	// push was ours and they did not invent it.
+	const float gravity = m_player->movement_gravity *
+			m_player->physics_override.gravity;
+	float speed = std::sqrt(MYMAX(0.0f, 2.0f * gravity * fall));
+	if (m_max_speed_override_time > 0.0f)
+		speed += std::fabs(m_max_speed_override.Y) / BS;
+
+	// The client's own arithmetic, from ClientEnvironment::step(): below the
+	// tolerance a fall costs nothing, and what is left of it is multiplied by
+	// the ground landed on and by what the player is wearing. Both factors are
+	// read here rather than guessed, so a game that makes falls hurt more is
+	// not called a liar for it.
+	const v3s16 below = floatToInt(getBasePosition() + v3f(0.0f, -0.1f * BS, 0.0f), BS);
+	const ContentFeatures &ground = m_env->getPlaceDef()->ndef()->get(
+			m_env->getMap().getNode(below));
+
+	float factor = 1.0f + itemgroup_get(ground.groups, "fall_damage_add_percent") / 100.0f;
+	factor *= 1.0f + itemgroup_get(getArmorGroups(), "fall_damage_add_percent") / 100.0f;
+
+	const float tolerance = 14.0f; // 5 nodes of free fall, as on the client
+	const float damage = (speed * factor - tolerance) * PLAYER_FALL_SLACK;
+	if (damage <= 0.0f)
+		return 0;
+
+	// Never more than the whole of them: the field is a u16 and a fall is not
+	// a way to hand the server an arbitrary number.
+	return (u16)MYMIN(damage + 1.0f, (float)m_prop.hp_max);
 }
 
 bool PlayerSAO::wentThroughSolid(const v3f &from, const v3f &to) const

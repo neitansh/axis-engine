@@ -6733,6 +6733,10 @@ Call these functions only at load time!
         * `finished_unknown_dig`
         * `dug_unbreakable`
         * `dug_too_fast`
+        * `impossible_fall_damage` — the client reported more fall damage than
+          the fall the server watched could have caused, or reported one after
+          no fall at all. The damage is cut down to what it could have been
+          rather than refused, so a slow link costs the player nothing.
         * `moved_through_solid` — the straight way from the player's last
           accepted position to the one they just claimed runs through nodes
           that would have stopped them. Unlike `moved_too_fast` this is not a
