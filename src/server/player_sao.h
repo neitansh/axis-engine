@@ -291,10 +291,12 @@ private:
 	/// See allowedFallDamage().
 	float m_fall_peak_y = 0.0f;
 	float m_fall_depth = 0.0f;
-	/// How long the player has been in the air with nothing bringing them
-	/// down, and the highest they got while they were. See watchFooting().
-	float m_hover_time = 0.0f;
-	float m_hover_top_y = 0.0f;
+	/// The flight the player is in the middle of: how long since the ground
+	/// let go of them, where it let go, and whether the ground in question
+	/// was something that throws people. See watchFooting().
+	float m_air_time = 0.0f;
+	float m_air_from_y = 0.0f;
+	bool m_air_bouncy = false;
 	/// Whether something was holding them up a step ago. A player who arrives
 	/// standing has not just landed, so this starts true.
 	bool m_was_supported = true;

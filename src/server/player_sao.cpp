@@ -895,7 +895,11 @@ u16 PlayerSAO::fallDamage() const
 	// its own but falling, and the drop is measured from the top of it, where
 	// they were not moving — so this is the whole of it. Plus whatever the
 	// server itself threw them with, because that push was ours.
-	const float gravity = m_player->movement_gravity *
+	// In blocks, not in the engine's internal units: the drop is counted in
+	// blocks and the client's threshold below is a speed in blocks a second,
+	// so this is the one place where the two have to be spoken in the same
+	// language.
+	const float gravity = m_player->movement_gravity / BS *
 			m_player->physics_override.gravity;
 	float speed = std::sqrt(MYMAX(0.0f, 2.0f * gravity * fall));
 	if (m_max_speed_override_time > 0.0f)
@@ -1004,17 +1008,24 @@ bool PlayerSAO::isSupported(bool *soft) const
 }
 
 /**
- * How long a player may hang in the air before it stops looking like a jump,
- * in seconds, and how far they have to come down to prove that gravity is
- * still working on them, in blocks.
+ * How much higher than its own arithmetic the engine lets a jump go.
  *
- * Three seconds and one block: falling covers forty-five blocks in that time
- * and the shallowest glide covers far more than one, so nothing that is on its
- * way down is ever asked about. What is left is hanging still, or going up and
- * staying up, and neither is something the engine's own physics can do.
+ * A body thrown upward and left alone traces one curve and no other, and the
+ * engine knows every number in it: the jump speed it granted, the gravity it
+ * applies. The slack is for the difference between watching that curve twenty
+ * times a second and living it frame by frame, and for nothing else.
  */
-static constexpr float PLAYER_HOVER_TIME = 3.0f;
-static constexpr float PLAYER_HOVER_DROP = 1.0f;
+static constexpr float PLAYER_AIR_SLACK = 1.3f;
+
+/**
+ * And how long a flight has to have lasted before its height is worth
+ * measuring, in seconds.
+ *
+ * The first fraction of a jump is where the two clocks disagree most and where
+ * the curve is steepest, so a tenth of a second either way is a large fraction
+ * of the answer. A quarter of a second in, it is not.
+ */
+static constexpr float PLAYER_AIR_GRACE = 0.25f;
 
 void PlayerSAO::watchFooting(float dtime)
 {
@@ -1029,15 +1040,15 @@ void PlayerSAO::watchFooting(float dtime)
 		Fall damage used to be the client's word entirely: it worked out what
 		the drop cost and told the server, which subtracted it. A client that
 		said nothing therefore fell from any height for free, and one that said
-		sixty thousand ended itself on the spot — at will, in the middle of a
-		fight, taking the kill away from whoever was about to earn it.
+		sixty-five thousand ended itself on the spot — at will, in the middle of
+		a fight, taking the kill away from whoever was about to earn it.
 
-		The physics that produce a fall are still the client's, and they have
-		to be: it runs them frame by frame and the server does not. But the
-		drop itself is no longer the client's to describe. The server has
-		watched where this player has been, and a fall is a distance — so it
-		works out the cost by the same arithmetic the client uses and applies
-		it here, when the ground arrives.
+		The physics that produce a fall are still the client's, and they have to
+		be: it runs them frame by frame and the server does not. But the drop
+		itself is no longer the client's to describe. The server has watched
+		where this player has been, and a fall is a distance — so it works out
+		the cost by the same arithmetic the client uses and applies it here,
+		when the ground arrives.
 
 		Landing in water or catching a ladder is not landing: those hold a
 		player up without stopping them.
@@ -1055,54 +1066,79 @@ void PlayerSAO::watchFooting(float dtime)
 		m_fall_depth = 0.0f;
 		m_fall_peak_y = pos.Y;
 	}
-	m_was_supported = supported;
 
 	/*
-		And the opposite question: nothing under them, and they are not coming
-		down either.
-
 		Everything that legitimately keeps a player off the ground is let
-		through, and there is a good deal of it: being carried, being thrown by
-		a mod, a game that has turned gravity off, the privilege that exists
-		for exactly this, and the moment right after the server moved somebody.
-
-		Deliberately generous, because the answer here is a suspicion and not a
-		verdict. What the engine can prove is that under its own physics an
-		unheld player with gravity on them comes down; what it cannot prove is
-		that no game ever had a reason to hold one up. So it says what it saw
-		and leaves the deciding to the game, which knows whether it has flying
-		machines in it.
+		through here, and there is a good deal of it: being carried, being
+		thrown by a mod, a game that has turned gravity off, the privilege that
+		exists for exactly this, and the moment right after the server moved
+		somebody.
 	*/
-	if (supported || isAttached() || m_is_singleplayer ||
+	const bool excused = isAttached() || m_is_singleplayer ||
 			m_privs.count("fly") != 0 ||
 			m_player->physics_override.gravity <= 0.0f ||
 			m_max_speed_override_time > 0.0f ||
-			m_time_from_last_teleport < PLAYER_HOVER_TIME ||
-			m_ride_id != 0) {
-		m_hover_time = 0.0f;
-		m_hover_top_y = pos.Y;
+			m_time_from_last_teleport < PLAYER_AIR_GRACE ||
+			m_ride_id != 0;
+
+	if (supported || excused) {
+		// Standing again, so the next flight starts from here. What the ground
+		// under them is matters: a bouncy node throws a player upward by an
+		// amount the engine itself does not bound — the comment in
+		// checkMovementCheat() has said so for years — and there is no curve to
+		// measure a flight that starts off one.
+		m_air_time = 0.0f;
+		m_air_from_y = pos.Y;
+		if (supported) {
+			const v3s16 below = floatToInt(
+					pos + v3f(0.0f, -0.1f * BS, 0.0f), BS);
+			const ContentFeatures &ground = m_env->getPlaceDef()->ndef()->get(
+					m_env->getMap().getNode(below));
+			m_air_bouncy = itemgroup_get(ground.groups, "bouncy") != 0;
+		}
+		m_was_supported = supported;
 		return;
 	}
 
-	// Coming down is the end of the question. A jump goes up and comes back,
-	// and by the time it has come back a block, whatever it was, it was not
-	// hanging there.
-	if (pos.Y < m_hover_top_y - PLAYER_HOVER_DROP * BS) {
-		m_hover_time = 0.0f;
-		m_hover_top_y = pos.Y;
+	m_was_supported = supported;
+	m_air_time += dtime;
+
+	if (m_air_bouncy || m_air_time < PLAYER_AIR_GRACE)
 		return;
-	}
 
-	m_hover_top_y = MYMAX(m_hover_top_y, pos.Y);
-	m_hover_time += dtime;
+	/*
+		And the question this was all for: is this still a jump?
 
-	if (m_hover_time >= PLAYER_HOVER_TIME) {
-		// Once per stretch, not once per step: the point is to say that it is
-		// happening, and to go on saying so while it does.
-		m_hover_time = 0.0f;
-		m_hover_top_y = pos.Y;
-		m_env->getScriptIface()->on_cheat(this, "hovering");
-	}
+		A body thrown upward and left alone traces one curve. Its highest point
+		is set by the speed it left with, and the engine granted that speed
+		itself — the jump it allows this player, with this game's gravity. So
+		the height at any moment since the ground let go has a ceiling, and it
+		is arithmetic rather than judgement.
+
+		Whoever is above it is not falling and not jumping. That is as far as
+		the engine will go: it can prove that its own physics bring such a
+		player down, not that no game ever had a reason to hold one up. So it
+		says what it saw, undoes nothing, and leaves the deciding to the game,
+		which knows whether it has flying machines in it.
+	*/
+	const float jump = m_player->movement_speed_jump *
+			m_player->physics_override.jump * PLAYER_AIR_SLACK;
+	const float gravity = m_player->movement_gravity *
+			m_player->physics_override.gravity;
+	const float t = m_air_time;
+	// Speeds and positions are both in the engine's own units here, so the
+	// curve is worked out in them and compared in them.
+	const float ceiling = m_air_from_y + jump * t - 0.5f * gravity * t * t;
+
+	if (pos.Y <= ceiling)
+		return;
+
+	// Said once per stretch, not once per step, and then measured afresh from
+	// where they are: the point is to say that it is happening, and to go on
+	// saying so while it does.
+	m_air_time = 0.0f;
+	m_air_from_y = pos.Y;
+	m_env->getScriptIface()->on_cheat(this, "hovering");
 }
 
 bool PlayerSAO::wentThroughSolid(const v3f &from, const v3f &to) const
