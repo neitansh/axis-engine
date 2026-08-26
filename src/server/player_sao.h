@@ -100,14 +100,18 @@ public:
 	/**
 	 * Notes the moving object the player says they stand on, and where on it.
 	 *
-	 * Taken on the client's word, so it is checked before use: the object has
-	 * to exist and the offset has to describe standing on something.
+	 * Where this ends up is not the player's own screen but everybody else's:
+	 * a viewer draws a rider against the object rather than against the world.
+	 * That makes it the one thing a client says about itself that decides
+	 * where others see it, so it is checked before it is believed, and a claim
+	 * that does not hold is dropped rather than passed on. See the
+	 * implementation for what "holds" means.
+	 *
+	 * Call this after the position from the same packet has been accepted:
+	 * the check compares the two, and comparing against a position that is
+	 * about to be rolled back would answer the wrong question.
 	 */
-	void setRide(u16 ride_id, v3f ride_offset)
-	{
-		m_ride_id = ride_id;
-		m_ride_offset = ride_offset;
-	}
+	void setRide(u16 ride_id, v3f ride_offset);
 
 	/*
 		Interaction interface
@@ -166,8 +170,14 @@ public:
 	void noCheatDigEnd() { m_nocheat_dig_pos = v3s16(32767, 32767, 32767); }
 	LagPool &getDigPool() { return m_dig_pool; }
 	void setMaxSpeedOverride(const v3f &vel);
-	// Returns true if cheated
-	bool checkMovementCheat();
+	/**
+	 * Weigh the position the player just claimed.
+	 *
+	 * @return the name of what they were caught at, ready for on_cheat, or
+	 *         nullptr when the claim held up. The position is put back to the
+	 *         last one that did whenever a name is returned.
+	 */
+	const char *checkMovementCheat();
 
 	// Other
 
@@ -195,6 +205,13 @@ private:
 	std::string getPropertyPacket();
 	void unlinkPlayerSessionAndSave();
 	std::string generateUpdatePhysicsOverrideCommand() const;
+	/// Whether a ride claim describes something that can actually be ridden,
+	/// and a place on it the player could actually be. See setRide().
+	bool rideHolds(ServerActiveObject *ride, const v3f &offset) const;
+	/// Whether the straight way between two positions runs through solid
+	/// ground. See the implementation for why this is the one movement
+	/// question with an answer that does not depend on the game.
+	bool wentThroughSolid(const v3f &from, const v3f &to) const;
 
 	RemotePlayer *m_player = nullptr;
 	// Extra variable because during shutdown m_player is unavailable, but we still need to know.
@@ -218,9 +235,13 @@ private:
 	IntervalLimiter m_node_hurt_interval;
 
 	bool m_position_not_sent = false;
-	/// What the player claims to stand on, 0 for none, and where on it
+	/// What the player stands on, 0 for none, and where on it. Only ever set
+	/// through setRide(), which is where a client's claim is weighed.
 	u16 m_ride_id = 0;
 	v3f m_ride_offset;
+	/// The last claim that did not hold up. Kept so that a client repeating an
+	/// impossible one twenty times a second is reported once, not twenty times.
+	u16 m_ride_refused = 0;
 	/**
 	 * Seconds since the last position packet went out.
 	 *

@@ -6733,6 +6733,16 @@ Call these functions only at load time!
         * `finished_unknown_dig`
         * `dug_unbreakable`
         * `dug_too_fast`
+        * `moved_through_solid` — the straight way from the player's last
+          accepted position to the one they just claimed runs through nodes
+          that would have stopped them. Unlike `moved_too_fast` this is not a
+          matter of speeds, privileges or lag, so it is refused outright; the
+          `noclip` privilege exempts its holder.
+        * `impossible_ride` — the player said they were standing on an object,
+          and that could not be: the object is not something with a body to
+          stand on, or the place they claimed on it is nowhere near where they
+          actually are. A rider is drawn against the object on everybody else's
+          screen, so an accepted claim decides where others see them.
 * `core.register_on_chat_message(function(name, message))`
     * Called always when a player says something
     * Return `true` to mark the message as handled, which means that it will

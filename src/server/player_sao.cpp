@@ -4,6 +4,7 @@
 // Copyright (C) 2013-2020 Minetest core developers & community
 
 #include "player_sao.h"
+#include "luaentity_sao.h"
 #include "nodedef.h"
 #include "remoteplayer.h"
 #include "scripting_server.h"
@@ -11,11 +12,33 @@
 #include "serverenvironment.h"
 #include "settings.h"
 #include "util/serialize.h"
+#include "voxelalgorithms.h"
 
 /// How far from an object a player may sit and still be said to stand on it,
 /// in blocks. A deck is wide, so this is generous; what it rules out is a
 /// client naming something across the map to have their model drawn there.
 static constexpr float PLAYER_RIDE_RANGE = 8.0f;
+
+/**
+ * How stale the deck under a rider may be, in seconds.
+ *
+ * The offset is worked out on the client because only there are the player and
+ * the deck seen at one instant. The player half of that instant reaches us in
+ * the same packet as the offset, so the only thing that can have moved since is
+ * the deck — by however far it travels while the packet is in the air. That is
+ * a generous half second, and it is the whole of what "the offset is not the
+ * past" is allowed to mean.
+ */
+static constexpr float PLAYER_RIDE_SLACK_TIME = 0.5f;
+
+/**
+ * And a fixed allowance on top of it, in blocks.
+ *
+ * A deck standing still still needs a little: the position travels in
+ * hundredths of a block, the player takes steps on the deck between packets,
+ * and neither is worth an accusation.
+ */
+static constexpr float PLAYER_RIDE_SLACK_DIST = 1.0f;
 
 PlayerSAO::PlayerSAO(ServerEnvironment *env_, RemotePlayer *player_, session_t peer_id_,
 		bool is_singleplayer):
@@ -306,10 +329,12 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 		u16 ride_id = 0;
 		v3f ride_offset;
 
+		// Whether the claim holds was settled when it arrived, in setRide().
+		// All that is left here is that the deck may have been removed since.
 		if (m_ride_id != 0 && !isAttached()) {
 			ServerActiveObject *ride = m_env->getActiveObject(m_ride_id);
 
-			if (ride && m_ride_offset.getLength() < PLAYER_RIDE_RANGE * BS) {
+			if (ride && !ride->isGone()) {
 				ride_id = m_ride_id;
 				ride_offset = m_ride_offset;
 			}
@@ -667,7 +692,171 @@ void PlayerSAO::setMaxSpeedOverride(const v3f &vel)
 	}
 }
 
-bool PlayerSAO::checkMovementCheat()
+void PlayerSAO::setRide(u16 ride_id, v3f ride_offset)
+{
+	// Refused until proven otherwise. A claim that does not hold leaves the
+	// player drawn where they are, which is always a truthful answer.
+	m_ride_id = 0;
+	m_ride_offset = v3f();
+
+	if (ride_id == 0) {
+		m_ride_refused = 0;
+		return;
+	}
+
+	// Someone held by an attachment is already drawn against their parent;
+	// a deck underneath has nothing left to explain, and the send path skips
+	// it anyway.
+	if (isAttached()) {
+		m_ride_refused = 0;
+		return;
+	}
+
+	ServerActiveObject *ride = m_env->getActiveObject(ride_id);
+	// Gone since the client looked at it. That is not a lie — objects are
+	// removed constantly and the client is always a moment behind — so the
+	// claim is dropped without a word.
+	if (!ride || ride->isGone()) {
+		m_ride_refused = 0;
+		return;
+	}
+
+	if (!rideHolds(ride, ride_offset)) {
+		// Say it once per claim. A client insisting on an impossible one
+		// sends it with every position packet, and twenty lines a second
+		// about one player buries the log it belongs in.
+		if (m_ride_refused != ride_id) {
+			m_ride_refused = ride_id;
+			m_env->getScriptIface()->on_cheat(this, "impossible_ride");
+		}
+		return;
+	}
+
+	m_ride_refused = 0;
+	m_ride_id = ride_id;
+	m_ride_offset = ride_offset;
+}
+
+bool PlayerSAO::rideHolds(ServerActiveObject *ride, const v3f &offset) const
+{
+	// A deck is an object with a body. Players are not decks, and neither are
+	// the bodiless odds and ends a world fills up with — decals, spent shells,
+	// splinters, markers. Those exist in numbers, near everybody, and letting
+	// one carry a rider is what turns this field from "which platform" into
+	// "draw me wherever I like".
+	if (ride->getType() != ACTIVEOBJECT_TYPE_LUAENTITY)
+		return false;
+
+	aabb3f box(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	if (!ride->getCollisionBox(&box))
+		return false;
+
+	// The offset has to fit on the thing it describes.
+	if (offset.getLength() >= PLAYER_RIDE_RANGE * BS)
+		return false;
+
+	// And the check this whole function exists for.
+	//
+	// Where the client asks to be drawn is `deck + offset`. Where the player
+	// is, is what the very same packet just told us. Those two are the same
+	// instant on the client, so on the server they may differ by exactly one
+	// thing: how far the deck moved while the packet travelled. A deck that
+	// stands still leaves no room at all.
+	//
+	// Without this the offset was bounded and the deck was not, so naming an
+	// object on the far side of the world moved a player's body there on
+	// every other screen while the server went on shooting at the real one.
+	float deck_speed = 0.0f;
+	if (auto *entity = dynamic_cast<LuaEntitySAO *>(ride))
+		deck_speed = entity->getVelocity().getLength();
+
+	const v3f drawn = ride->getBasePosition() + offset;
+	const float drift = (drawn - getBasePosition()).getLength();
+	const float allowed = deck_speed * PLAYER_RIDE_SLACK_TIME
+			+ PLAYER_RIDE_SLACK_DIST * BS;
+
+	return drift <= allowed;
+}
+
+/**
+ * How many nodes of a single step are worth examining for solid ground.
+ *
+ * A step longer than this is not a step at all, and the speed check below deals
+ * with it on its own terms. The bound is here so that a made-up position on the
+ * far side of the world costs one comparison rather than a walk across the map.
+ */
+static constexpr int PLAYER_PASSAGE_MAX_NODES = 64;
+
+bool PlayerSAO::wentThroughSolid(const v3f &from, const v3f &to) const
+{
+	// The line is drawn through the middle of the player's own collision box,
+	// not at some fixed height: a game may make its players any size it likes,
+	// and the middle of a body is the part a wall is surest to stop.
+	const float mid = (m_prop.collisionbox.MinEdge.Y + m_prop.collisionbox.MaxEdge.Y)
+			* 0.5f * BS;
+	const v3f eye_from = from + v3f(0.0f, mid, 0.0f);
+	const v3f eye_to = to + v3f(0.0f, mid, 0.0f);
+
+	const v3f travel = eye_to - eye_from;
+	const f32 length = travel.getLength();
+	if (length < 0.001f)
+		return false; // stood still; nothing was crossed
+
+	const v3f middle = (eye_from + eye_to) * 0.5f;
+	const v3f direction = travel / length;
+	const f32 half_length = length * 0.5f;
+
+	Map &map = m_env->getMap();
+	const NodeDefManager *ndef = m_env->getPlaceDef()->ndef();
+
+	// Whatever the player is standing in *now* is not evidence against them: a
+	// mod can drop a node onto somebody, and walking out of it is the right
+	// thing to do rather than a cheat. Where they say they are going is
+	// another matter and is not forgiven — otherwise a wall could be crossed
+	// in two steps, ending inside it and then leaving it.
+	const v3s16 leaving = floatToInt(eye_from / BS, 1.0f);
+
+	voxalgo::VoxelLineIterator iterator(eye_from / BS, (eye_to - eye_from) / BS);
+	std::vector<aabb3f> boxes;
+
+	for (int steps = 0; iterator.hasNext() && steps < PLAYER_PASSAGE_MAX_NODES;
+			++steps) {
+		iterator.next();
+		const v3s16 p = iterator.m_current_node_pos;
+		if (p == leaving)
+			continue;
+
+		bool pos_ok = false;
+		const MapNode n = map.getNode(p, &pos_ok);
+		// Not loaded here, so we do not know what is here, so nobody is
+		// accused of anything. Silence is the only honest answer.
+		if (!pos_ok || n.getContent() == CONTENT_IGNORE)
+			return false;
+
+		const ContentFeatures &f = ndef->get(n);
+		if (!f.walkable)
+			continue;
+
+		// The node's real shape, the same one the client's own collision code
+		// was given. Stairs, slabs, fences and plants are walkable and do not
+		// fill their cube; measuring them as full blocks would accuse honest
+		// players on every staircase.
+		boxes.clear();
+		n.getCollisionBoxes(ndef, &boxes, n.getNeighbors(p, &map));
+
+		const v3f node_pos = intToFloat(p, BS);
+		for (aabb3f box : boxes) {
+			box.MinEdge += node_pos;
+			box.MaxEdge += node_pos;
+			if (box.intersectsWithLine(middle, direction, half_length))
+				return true;
+		}
+	}
+
+	return false;
+}
+
+const char *PlayerSAO::checkMovementCheat()
 {
 	static thread_local const u32 anticheat_flags =
 		g_settings->getFlagStr("anticheat_flags", flagdesc_anticheat, nullptr);
@@ -676,7 +865,31 @@ bool PlayerSAO::checkMovementCheat()
 			isAttached() ||
 			!(anticheat_flags & AC_MOVEMENT)) {
 		m_last_good_position = getBasePosition();
-		return false;
+		return nullptr;
+	}
+
+	/*
+		Was this way even open?
+
+		Everything below asks how long the move should have taken, and every
+		part of that answer belongs to the game: its walking speeds, the
+		player's privileges, what a mod did to them a moment ago, how much the
+		link lags. Whether they went through a wall belongs to none of it —
+		which is what makes it the one thing that can be refused outright
+		instead of paid for out of a pool.
+
+		A player holding `noclip` is not asked: passing through the world is
+		exactly what that privilege grants. Neither is one the server itself
+		has just moved — a mod may put anybody anywhere, and the straight line
+		from wherever they were is nobody's route.
+	*/
+	if (m_privs.count("noclip") == 0 && m_time_from_last_teleport > 1.0f &&
+			wentThroughSolid(m_last_good_position, getBasePosition())) {
+		actionstream << "Server: " << m_player->getName()
+				<< " moved through solid ground; resetting position."
+				<< std::endl;
+		setBasePosition(m_last_good_position);
+		return "moved_through_solid";
 	}
 
 	bool cheated = false;
@@ -774,7 +987,7 @@ bool PlayerSAO::checkMovementCheat()
 		}
 		setBasePosition(m_last_good_position);
 	}
-	return cheated;
+	return cheated ? "moved_too_fast" : nullptr;
 }
 
 bool PlayerSAO::getCollisionBox(aabb3f *toset) const

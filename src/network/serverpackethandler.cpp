@@ -638,13 +638,18 @@ void Server::process_PlayerPos(RemotePlayer *player, PlayerSAO *playersao,
 	playersao->setFov(fov);
 	playersao->setWantedRange(wanted_range);
 	playersao->setCameraInverted(bits & 0x01);
-	playersao->setRide(ride_id, ride_offset);
 
-	if (playersao->checkMovementCheat()) {
+	if (const char *cheat = playersao->checkMovementCheat()) {
 		// Call callbacks
-		m_script->on_cheat(playersao, "moved_too_fast");
+		m_script->on_cheat(playersao, cheat);
 		SendMovePlayer(playersao);
 	}
+
+	// After the movement check and not before it. What the player says they
+	// stand on is weighed against where they are, and where they are is only
+	// settled once that check has had its say — a claim measured against a
+	// position the server is about to take back answers the wrong question.
+	playersao->setRide(ride_id, ride_offset);
 }
 
 void Server::handleCommand_PlayerPos(NetworkPacket* pkt)
