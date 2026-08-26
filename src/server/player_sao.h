@@ -52,6 +52,37 @@ public:
 	}
 };
 
+/**
+ * What a drop costs, in hit points.
+ *
+ * The arithmetic the client has always used for this, moved to where the
+ * server can do it too: below the tolerance a fall costs nothing, and what is
+ * left of the speed is what it costs. Kept out of the class on purpose — it is
+ * four numbers in and one out, and that is a thing a test can hold.
+ *
+ * @param drop     how far they came down, in blocks
+ * @param gravity  blocks per second squared
+ * @param factor   what the ground landed on and the player's armour make of
+ *                 it; zero means a fall costs nothing here
+ * @param pushed   downward speed the server itself gave them, blocks a second
+ * @param hp_max   never more than the whole of them
+ */
+u16 fallDamageFromDrop(f32 drop, f32 gravity, f32 factor, f32 pushed, u16 hp_max);
+
+/**
+ * How high a jump could have carried a body by now, above where it left the
+ * ground.
+ *
+ * A body thrown upward and left alone traces one curve and no other. Negative
+ * once the jump is spent — by then it is below where it started, and going on
+ * down.
+ *
+ * @param jump_speed what it left the ground with
+ * @param gravity    in the same units of length as the speed
+ * @param t          seconds since it left
+ */
+f32 jumpReachAfter(f32 jump_speed, f32 gravity, f32 t);
+
 class RemotePlayer;
 
 class PlayerSAO : public UnitSAO

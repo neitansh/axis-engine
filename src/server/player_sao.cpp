@@ -69,6 +69,33 @@ static constexpr float PLAYER_INTERACT_BURST = 0.5f;
  */
 static constexpr float PLAYER_MOVE_STEP_SLACK = 0.5f;
 
+u16 fallDamageFromDrop(f32 drop, f32 gravity, f32 factor, f32 pushed, u16 hp_max)
+{
+	if (drop <= 0.0f || factor <= 0.0f)
+		return 0;
+
+	// How fast they were going when they arrived. Nothing speeds a body up on
+	// its own but falling, and the drop is measured from the top of it, where
+	// they were not moving — so this is the whole of it. Plus whatever pushed
+	// them, because that was not theirs to invent.
+	const f32 speed = std::sqrt(MYMAX(0.0f, 2.0f * gravity * drop)) +
+			std::fabs(pushed);
+
+	// Fourteen blocks a second, exactly as on the client — which is about ten
+	// blocks of free fall, whatever the comment there says.
+	const f32 tolerance = 14.0f;
+	const f32 damage = speed * factor - tolerance;
+	if (damage <= 0.0f)
+		return 0;
+
+	return (u16)MYMIN(damage + 0.5f, (f32)hp_max);
+}
+
+f32 jumpReachAfter(f32 jump_speed, f32 gravity, f32 t)
+{
+	return jump_speed * t - 0.5f * gravity * t * t;
+}
+
 PlayerSAO::PlayerSAO(ServerEnvironment *env_, RemotePlayer *player_, session_t peer_id_,
 		bool is_singleplayer):
 	UnitSAO(env_, v3f(0,0,0)),
@@ -326,13 +353,12 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 	m_nocheat_dig_time += dtime;
 	m_max_speed_override_time = MYMAX(m_max_speed_override_time - dtime, 0.0f);
 
-	// Counted here rather than per packet: both questions this answers are
-	// about the ground under somebody, and the ground is there whether or not
-	// the client is talking.
-	static thread_local const u32 anticheat_flags =
-		g_settings->getFlagStr("anticheat_flags", flagdesc_anticheat, nullptr);
-	if (anticheat_flags & AC_MOVEMENT)
-		watchFooting(dtime);
+	// Counted here rather than per packet: what this answers is about the
+	// ground under somebody, and the ground is there whether or not the client
+	// is talking. Not behind the anticheat flag, either — one half of it is
+	// fall damage, which is a rule of the world and not a suspicion about the
+	// player. Turning the checks off must not turn gravity off with them.
+	watchFooting(dtime);
 
 	// Each frame, parent position is copied if the object is attached,
 	// otherwise it's calculated normally.
@@ -901,44 +927,25 @@ void PlayerSAO::measureSpeed()
 
 u16 PlayerSAO::fallDamage() const
 {
-	const float fall = m_fall_depth;
-	if (fall <= 0.0f)
-		return 0;
-
-	// How fast they were going when they arrived. Nothing speeds a body up on
-	// its own but falling, and the drop is measured from the top of it, where
-	// they were not moving — so this is the whole of it. Plus whatever the
-	// server itself threw them with, because that push was ours.
-	//
 	// In blocks a second, not in the engine's own units: the drop is counted
-	// in blocks and the client's threshold below is a speed in blocks, so this
-	// is where the two have to be spoken in the same language.
-	const float gravity = m_player->movement_gravity / BS *
+	// in blocks and the threshold is a speed in blocks, so this is where the
+	// two have to be spoken in the same language.
+	const f32 gravity = m_player->movement_gravity / BS *
 			m_player->physics_override.gravity;
-	float speed = std::sqrt(MYMAX(0.0f, 2.0f * gravity * fall));
-	if (m_max_speed_override_time > 0.0f)
-		speed += std::fabs(m_max_speed_override.Y) / BS;
+	const f32 pushed = m_max_speed_override_time > 0.0f
+			? std::fabs(m_max_speed_override.Y) / BS : 0.0f;
 
-	// The client's own arithmetic, from ClientEnvironment::step(): below the
-	// tolerance a fall costs nothing, and what is left of it is multiplied by
-	// the ground landed on and by what the player is wearing. Both factors are
-	// read here rather than guessed, so a game that makes falls hurt more or
-	// not at all is obeyed and not overruled.
+	// What the ground landed on and what the player is wearing make of it.
+	// Both are read rather than guessed, so a game that makes falls hurt more
+	// or not at all is obeyed and not overruled.
 	const v3s16 below = floatToInt(getBasePosition() + v3f(0.0f, -0.1f * BS, 0.0f), BS);
 	const ContentFeatures &ground = m_env->getPlaceDef()->ndef()->get(
 			m_env->getMap().getNode(below));
 
-	float factor = 1.0f + itemgroup_get(ground.groups, "fall_damage_add_percent") / 100.0f;
+	f32 factor = 1.0f + itemgroup_get(ground.groups, "fall_damage_add_percent") / 100.0f;
 	factor *= 1.0f + itemgroup_get(getArmorGroups(), "fall_damage_add_percent") / 100.0f;
 
-	// Fourteen blocks a second, exactly as on the client — which is about ten
-	// blocks of free fall, whatever the comment there says.
-	const float tolerance = 14.0f;
-	const float damage = speed * factor - tolerance;
-	if (damage <= 0.0f)
-		return 0;
-
-	return (u16)MYMIN(damage + 0.5f, (float)m_prop.hp_max);
+	return fallDamageFromDrop(m_fall_depth, gravity, factor, pushed, m_prop.hp_max);
 }
 
 /// How far below the feet to look for ground, in blocks. A player resting on a
@@ -1128,6 +1135,13 @@ void PlayerSAO::watchFooting(float dtime)
 	m_was_supported = supported;
 	m_air_time += dtime;
 
+	// The other half is a suspicion about the player, and that half is what
+	// the anticheat flag governs.
+	static thread_local const u32 anticheat_flags =
+		g_settings->getFlagStr("anticheat_flags", flagdesc_anticheat, nullptr);
+	if (!(anticheat_flags & AC_MOVEMENT))
+		return;
+
 	if (m_air_bouncy || m_air_time < PLAYER_AIR_GRACE)
 		return;
 
@@ -1146,14 +1160,14 @@ void PlayerSAO::watchFooting(float dtime)
 		says what it saw, undoes nothing, and leaves the deciding to the game,
 		which knows whether it has flying machines in it.
 	*/
+	// Speeds and positions are both in the engine's own units here, so the
+	// curve is worked out in them and compared in them.
 	const float jump = m_player->movement_speed_jump *
 			m_player->physics_override.jump * PLAYER_AIR_SLACK;
 	const float gravity = m_player->movement_gravity *
 			m_player->physics_override.gravity;
-	const float t = m_air_time;
-	// Speeds and positions are both in the engine's own units here, so the
-	// curve is worked out in them and compared in them.
-	const float ceiling = m_air_from_y + jump * t - 0.5f * gravity * t * t;
+	const float ceiling = m_air_from_y +
+			jumpReachAfter(jump, gravity, m_air_time);
 
 	if (pos.Y <= ceiling)
 		return;
