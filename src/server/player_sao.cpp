@@ -41,6 +41,23 @@ static constexpr float PLAYER_RIDE_SLACK_TIME = 0.5f;
  */
 static constexpr float PLAYER_RIDE_SLACK_DIST = 1.0f;
 
+/**
+ * How fast a player may use, place or activate things, in actions per second.
+ *
+ * Not a limit on the hand — a hand is faster than any check here should care
+ * about — but a ceiling on what a single burst of packets can set off.
+ */
+static constexpr float PLAYER_INTERACT_RATE = 20.0f;
+
+/**
+ * And how much of that allowance may be spent at once, in seconds' worth.
+ *
+ * A link that stalls and then delivers everything together is ordinary, and
+ * half a second of held-up actions has to go through. A client that saved up
+ * for a minute in order to spend it all in one server step is not that.
+ */
+static constexpr float PLAYER_INTERACT_BURST = 0.5f;
+
 PlayerSAO::PlayerSAO(ServerEnvironment *env_, RemotePlayer *player_, session_t peer_id_,
 		bool is_singleplayer):
 	UnitSAO(env_, v3f(0,0,0)),
@@ -283,6 +300,10 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 		lag_pool_max = LAG_POOL_MIN;
 	m_dig_pool.setMax(lag_pool_max);
 	m_move_pool.setMax(lag_pool_max);
+	// Using an item is not paced by the link the way digging and moving are:
+	// its allowance is a fixed half second and does not grow with lag, or a
+	// player on a bad line would be handed a bigger burst than anyone needs.
+	m_use_pool.setMax(PLAYER_INTERACT_BURST);
 
 	// Increment cheat prevention timers
 	m_dig_pool.add(dtime);
@@ -796,26 +817,8 @@ bool PlayerSAO::rideHolds(ServerActiveObject *ride, const v3f &offset) const
  */
 static constexpr int PLAYER_PASSAGE_MAX_NODES = 64;
 
-/**
- * How fast a player may use, place or activate things, in actions per second.
- *
- * Not a limit on the hand — a hand is faster than any check here should care
- * about — but a ceiling on what a single burst of packets can set off.
- */
-static constexpr float PLAYER_INTERACT_RATE = 20.0f;
-
-/**
- * And how much of that allowance may be spent at once, in seconds' worth.
- *
- * A link that stalls and then delivers everything together is ordinary, and
- * half a second of held-up actions has to go through. A client that saved up
- * for a minute in order to spend it all in one server step is not that.
- */
-static constexpr float PLAYER_INTERACT_BURST = 0.5f;
-
 bool PlayerSAO::grabInteraction()
 {
-	m_use_pool.setMax(PLAYER_INTERACT_BURST);
 	return m_use_pool.grab(1.0f / PLAYER_INTERACT_RATE);
 }
 
