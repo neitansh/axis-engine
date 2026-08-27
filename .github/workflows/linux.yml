@@ -47,7 +47,7 @@ jobs:
   # текущим компилятором и проходят ли юнит-тесты.
   build:
     name: "gcc 14 + unit tests"
-    runs-on: [self-hosted, linux, x64, public]
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - name: Install deps

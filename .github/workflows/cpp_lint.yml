@@ -28,13 +28,14 @@ on:
       - 'util/ci/**'
       - '.github/workflows/**.yml'
 
-# На раннере Ubuntu 26.04, clang-tidy-15 там уже нет — самый старый доступный 20.
+# clang-tidy-20 есть только на образе 26.04: у GitHub на 24.04 верхняя версия 18,
+# а upstream'ного 15 нет уже нигде. Отсюда и ubuntu-26.04 в runs-on.
 env:
   CLANG_TIDY: clang-tidy-20
 
 jobs:
   clang_tidy:
-    runs-on: [self-hosted, linux, x64, public]
+    runs-on: ubuntu-26.04
     steps:
     - uses: actions/checkout@v7
     - name: Install deps
@@ -48,7 +49,7 @@ jobs:
 
   settings_domains:
     name: "Settings domain table"
-    runs-on: [self-hosted, linux, x64, public]
+    runs-on: ubuntu-26.04
     steps:
     - uses: actions/checkout@v7
     # Every setting belongs to exactly one configuration file. The table the
