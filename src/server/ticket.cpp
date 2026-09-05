@@ -176,7 +176,7 @@ bool startAccountServiceCheck(u64 caller, const std::string &ticket,
 
 	HTTPFetchRequest req;
 	req.caller = caller;
-	req.url = url + "/v1/verify";
+	req.url = url + "/v1/servers/verify";
 	req.method = HTTP_POST;
 	req.raw_data = fastWriteJson(body);
 	req.extra_headers.emplace_back("Content-Type: application/json");
