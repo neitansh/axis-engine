@@ -12,7 +12,15 @@ RUN apk add --no-cache git build-base cmake curl-dev zlib-dev zstd-dev \
 
 WORKDIR /usr/src/
 
-ADD https://github.com/jupp0r/prometheus-cpp.git?branch=master /usr/src/prometheus-cpp
+# prometheus-cpp тянется клоном с подмодулями и по метке, а не `ADD ...git`
+# с ветки master. Двумя частями это одна и та же причина: сборщик `ADD` берёт
+# только сам репозиторий, а civetweb, на котором стоит выдача метрик, лежит в
+# нём подмодулем — и master, съехав на внешний civetweb, ломает сборку в тот
+# день, когда его туда переведут, а не в тот, когда мы что-то поменяли.
+ARG PROMETHEUS_CPP_VERSION=v1.3.0
+RUN git clone --depth 1 --recurse-submodules --shallow-submodules \
+		--branch ${PROMETHEUS_CPP_VERSION} \
+		https://github.com/jupp0r/prometheus-cpp.git /usr/src/prometheus-cpp
 ADD https://github.com/libspatialindex/libspatialindex.git?branch=main /usr/src/libspatialindex
 ADD --keep-git-dir https://luajit.org/git/luajit.git?branch=${LUAJIT_VERSION} /usr/src/luajit
 
