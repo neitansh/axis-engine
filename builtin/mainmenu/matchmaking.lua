@@ -600,15 +600,18 @@ local function waiting_card(x, y, w, h)
 	end
 	fs[#fs + 1] = menu_style.body(cx, y + h * 0.28 + 1.0, w - 1, 0.6, ESC(line))
 
-	-- Считаем, пока Диспетчер называет секунды, и не смотрим на состояние
-	-- комнаты: арену он греет заранее, а уходит она всё равно по сроку.
-	-- Сказать «отправляемся» и продержать полминуты — соврать.
+	-- Считаем, пока Диспетчер называет секунды. Когда счёт кончился, комната
+	-- ещё не ушла: сервер матча в это время строит арену, и это полминуты, а
+	-- не миг. Сказать «отправляемся» и продержать полминуты — соврать, поэтому
+	-- пока греется, так и говорим.
 	local left = q.starts_in or 0
 	local below
 	if left > 0 then
 		below = fgettext("Starts in $1 s", tostring(left))
 	elseif (q.waiting or 0) < (q.min or 1) then
 		below = fgettext("Waiting for more players")
+	elseif q.room_state == "warming" then
+		below = fgettext("Preparing the arena")
 	else
 		below = fgettext("Starting")
 	end

@@ -8385,6 +8385,10 @@ msgid "Waiting for more players"
 msgstr "Ждём ещё игроков"
 
 #: builtin/mainmenu/matchmaking.lua
+msgid "Preparing the arena"
+msgstr "Готовим арену"
+
+#: builtin/mainmenu/matchmaking.lua
 msgid "Starting"
 msgstr "Отправляемся"
 
