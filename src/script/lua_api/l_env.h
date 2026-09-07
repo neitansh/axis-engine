@@ -202,6 +202,9 @@ private:
 	// line_of_sight(pos1, pos2) -> true/false
 	static int l_line_of_sight(lua_State *L);
 
+	// sight_of(pos1, pos2) -> bool, v3s16
+	static int l_sight_of(lua_State *L);
+
 	// raycast(pos1, pos2, objects, liquids) -> Raycast
 	static int l_raycast(lua_State *L);
 

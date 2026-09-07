@@ -1059,6 +1059,26 @@ int ModApiEnv::l_line_of_sight(lua_State *L)
 	return 1;
 }
 
+// Как line_of_sight, но преградой считается лишь то, что закрывает обзор:
+// трава, листва и вода сквозные. Отдельной функцией, а не доводом к прежней,
+// потому что смыслы разные: одна отвечает «пролетит ли», другая — «видно ли».
+int ModApiEnv::l_sight_of(lua_State *L)
+{
+	GET_PLAIN_ENV_PTR;
+
+	v3f pos1 = checkFloatPos(L, 1);
+	v3f pos2 = checkFloatPos(L, 2);
+
+	v3s16 p;
+	bool success = env->sight_of(pos1, pos2, &p);
+	lua_pushboolean(L, success);
+	if (!success) {
+		push_v3s16(L, p);
+		return 2;
+	}
+	return 1;
+}
+
 int ModApiEnv::l_fix_light(lua_State *L)
 {
 	GET_ENV_PTR;
@@ -1405,6 +1425,7 @@ void ModApiEnv::Initialize(lua_State *L, int top)
 	API_FCT(spawn_tree);
 	API_FCT(find_path);
 	API_FCT(line_of_sight);
+	API_FCT(sight_of);
 	API_FCT(raycast);
 	API_FCT(transforming_liquid_add);
 	API_FCT(forceload_block);

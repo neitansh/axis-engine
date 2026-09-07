@@ -8,6 +8,8 @@
 #include "settings.h"
 #include "daynightratio.h"
 #include "emerge.h"
+#include "nodedef.h"
+#include "placedef.h"
 
 
 Environment::Environment(IPlaceDef *placedef):
@@ -72,6 +74,39 @@ bool Environment::line_of_sight(v3f pos1, v3f pos2, v3s16 *p)
 			if (p)
 				*p = iterator.m_current_node_pos;
 			return false;
+		}
+		iterator.next();
+	} while (iterator.m_current_index <= iterator.m_last_index);
+	return true;
+}
+
+bool Environment::sight_of(v3f pos1, v3f pos2, v3s16 *p)
+{
+	const NodeDefManager *nodedef = m_placedef->ndef();
+
+	voxalgo::VoxelLineIterator iterator(pos1 / BS, (pos2 - pos1) / BS);
+	do {
+		MapNode n = getMap().getNode(iterator.m_current_node_pos);
+
+		if (n.param0 != CONTENT_AIR) {
+			// Незагруженная карта закрывает обзор. Про неё не известно
+			// ничего, и считать её прозрачной — значит показывать сквозь
+			// неё то, чего не видно: у CONTENT_IGNORE walkable ложно, и без
+			// этой ветки правило ниже пропустило бы луч через весь мир.
+			if (n.param0 == CONTENT_IGNORE) {
+				if (p)
+					*p = iterator.m_current_node_pos;
+				return false;
+			}
+			// Закрывает обзор то, сквозь что не пройти и не проходит свет.
+			// Стена и бетон — да; стекло проходит свет, трава и вода не
+			// держат шага, и сквозь них видно.
+			const ContentFeatures &f = nodedef->get(n);
+			if (f.walkable && !f.light_propagates) {
+				if (p)
+					*p = iterator.m_current_node_pos;
+				return false;
+			}
 		}
 		iterator.next();
 	} while (iterator.m_current_index <= iterator.m_last_index);
