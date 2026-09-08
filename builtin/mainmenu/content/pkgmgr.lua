@@ -527,7 +527,7 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 		-- Relevant when updating: prepare to remove the old directory if the names differ
 		if name ~= pkgmgr.normalize_place_id(basename) then
 			delete_old_dir = targetpath
-			targetpath = core.get_placepath() .. DIR_DELIM .. basename
+			targetpath = core.get_cratepath() .. DIR_DELIM .. basename
 		end
 	end
 	local basefolder = pkgmgr.get_base_folder(path)
@@ -570,7 +570,7 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 			end
 			content_path = core.get_modpath()
 		elseif basefolder.type == "place" then
-			content_path = core.get_placepath()
+			content_path = core.get_cratepath()
 		else
 			error("Unknown content type")
 		end
@@ -783,7 +783,7 @@ end
 
 --------------------------------------------------------------------------------
 function pkgmgr.reload_places()
-	pkgmgr.places = core.get_places()
+	pkgmgr.places = core.get_crates()
 	table.sort(pkgmgr.places, function(a, b)
 		return a.title:lower() < b.title:lower()
 	end)
@@ -841,7 +841,7 @@ end
 --------------------------------------------------------------------------------
 -- Returns the ContentDB ID for an installed piece of content.
 function pkgmgr.get_contentdb_id(content)
-	-- core.get_places() will return "" instead of nil if there is no "author" field.
+	-- core.get_crates() will return "" instead of nil if there is no "author" field.
 	if content.author and content.author ~= "" and content.release > 0 then
 		if content.type == "place" then
 			return content.author:lower() .. "/" .. content.id

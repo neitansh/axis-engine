@@ -326,7 +326,7 @@ int ModApiMainMenu::l_get_worlds(lua_State *L)
 }
 
 /******************************************************************************/
-int ModApiMainMenu::l_get_places(lua_State *L)
+int ModApiMainMenu::l_get_crates(lua_State *L)
 {
 	std::vector<CrateSpec> games = getAvailablePlaces();
 
@@ -793,7 +793,7 @@ int ModApiMainMenu::l_get_clientmodpath(lua_State *L)
 }
 
 /******************************************************************************/
-int ModApiMainMenu::l_get_placepath(lua_State *L)
+int ModApiMainMenu::l_get_cratepath(lua_State *L)
 {
 	std::string gamepath = fs::RemoveRelativePathComponents(
 		porting::path_user + DIR_DELIM + "depot" + DIR_DELIM);
@@ -1161,7 +1161,7 @@ void ModApiMainMenu::Initialize(lua_State *L, int top)
 	API_FCT(get_textlist_index);
 	API_FCT(get_table_index);
 	API_FCT(get_worlds);
-	API_FCT(get_places);
+	API_FCT(get_crates);
 	API_FCT(get_content_info);
 	API_FCT(get_mod_list);
 	API_FCT(check_mod_configuration);
@@ -1178,7 +1178,7 @@ void ModApiMainMenu::Initialize(lua_State *L, int top)
 	API_FCT(get_modpath);
 	API_FCT(get_modpaths);
 	API_FCT(get_clientmodpath);
-	API_FCT(get_placepath);
+	API_FCT(get_cratepath);
 	API_FCT(get_texturepath);
 	API_FCT(get_texturepath_share);
 	API_FCT(get_cache_path);
@@ -1470,13 +1470,13 @@ int ModApiMainMenu::l_probe_link(lua_State *L)
 void ModApiMainMenu::InitializeAsync(lua_State *L, int top)
 {
 	API_FCT(get_worlds);
-	API_FCT(get_places);
+	API_FCT(get_crates);
 	API_FCT(get_mapgen_names);
 	API_FCT(get_user_path);
 	API_FCT(get_modpath);
 	API_FCT(get_modpaths);
 	API_FCT(get_clientmodpath);
-	API_FCT(get_placepath);
+	API_FCT(get_cratepath);
 	API_FCT(get_texturepath);
 	API_FCT(get_texturepath_share);
 	API_FCT(get_cache_path);

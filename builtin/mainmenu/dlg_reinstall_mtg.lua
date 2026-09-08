@@ -22,7 +22,7 @@ function check_reinstall_mtg(parent)
 		return parent
 	end
 
-	local places = core.get_places()
+	local places = core.get_crates()
 	for _, place in ipairs(places) do
 		if place.id == "minetest" then
 			cache_settings:set_bool(SETTING_NAME, true)

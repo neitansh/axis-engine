@@ -6142,7 +6142,7 @@ Utilities
         * Available since 5.16.0
         * `true`: Sorted according to the load order.
         * `false`: Sorted alphabetically.
-* `core.get_place_info()`: returns a table containing information about the
+* `core.get_crate_info()`: returns a table containing information about the
   current game. Note that other meta information (e.g. version/release number)
   can be manually read from `crate.conf` in the game's root directory.
 

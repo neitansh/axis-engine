@@ -569,8 +569,8 @@ int ModApiServer::l_get_modnames(lua_State *L)
 	return 1;
 }
 
-// get_place_info()
-int ModApiServer::l_get_place_info(lua_State *L)
+// get_crate_info()
+int ModApiServer::l_get_crate_info(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
 	const CrateSpec *crate_spec = getCrateDef(L)->getGameSpec();
@@ -801,7 +801,7 @@ void ModApiServer::Initialize(lua_State *L, int top)
 	API_FCT(get_current_modname);
 	API_FCT(get_modpath);
 	API_FCT(get_modnames);
-	API_FCT(get_place_info);
+	API_FCT(get_crate_info);
 
 	API_FCT(print);
 
@@ -842,5 +842,5 @@ void ModApiServer::InitializeAsync(lua_State *L, int top)
 	API_FCT(get_current_modname);
 	API_FCT(get_modpath);
 	API_FCT(get_modnames);
-	API_FCT(get_place_info);
+	API_FCT(get_crate_info);
 }

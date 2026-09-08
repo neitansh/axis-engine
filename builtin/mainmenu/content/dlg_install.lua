@@ -241,7 +241,7 @@ function install_or_update_package(parent, package)
 	if package.type == "mod" then
 		install_parent = core.get_modpath()
 	elseif package.type == "place" then
-		install_parent = core.get_placepath()
+		install_parent = core.get_cratepath()
 	elseif package.type == "txp" then
 		install_parent = core.get_texturepath()
 	else
