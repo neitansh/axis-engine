@@ -5,7 +5,7 @@
 #include "mod_configuration.h"
 #include "log.h"
 #include "settings.h"
-#include "places.h"
+#include "crates.h"
 #include "filesys.h"
 #include "gettext.h"
 #include "exceptions.h"
@@ -105,14 +105,14 @@ void ModConfiguration::addMods(const std::vector<ModSpec> &new_mods)
 	}
 }
 
-void ModConfiguration::addGameMods(const PlaceSpec &placespec)
+void ModConfiguration::addGameMods(const CrateSpec &cratespec)
 {
-	std::string place_virtual_path;
-	place_virtual_path.append("places/").append(placespec.id).append("/mods");
-	addModsInPath(placespec.placemods_path, place_virtual_path);
+	std::string crate_virtual_path;
+	crate_virtual_path.append("depot/").append(cratespec.id).append("/mods");
+	addModsInPath(cratespec.cratemods_path, crate_virtual_path);
 
-	m_first_mod = placespec.first_mod;
-	m_last_mod = placespec.last_mod;
+	m_first_mod = cratespec.first_mod;
+	m_last_mod = cratespec.last_mod;
 }
 
 void ModConfiguration::addModsFromPaths(

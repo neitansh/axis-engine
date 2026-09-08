@@ -11,14 +11,14 @@ public:
 
 	const char *getName() { return "TestGettext"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testFmtgettext();
 };
 
 static TestGettext g_test_instance;
 
-void TestGettext::runTests(IPlaceDef *placedef)
+void TestGettext::runTests(ICrateDef *cratedef)
 {
 	TEST(testFmtgettext);
 }

@@ -4,7 +4,7 @@
 
 #include "nodemetadata.h"
 #include "exceptions.h"
-#include "placedef.h"
+#include "cratedef.h"
 #include "inventory.h"
 #include "irrlicht_changes/printing.h"
 #include "log.h"

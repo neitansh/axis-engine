@@ -5,7 +5,7 @@
 #include "test.h"
 #include <algorithm>
 #include <fstream>
-#include "content/places.h"
+#include "content/crates.h"
 #include "filesys.h"
 #include "server/mods.h"
 #include "settings.h"
@@ -21,7 +21,7 @@ public:
 	TestServerModManager() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestServerModManager"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	std::string m_worlddir;
 
@@ -72,7 +72,7 @@ void TestServerModManager::makeMod(const std::string &path,
 	writeFile(path + DIR_DELIM "textures" DIR_DELIM "test.png", "");
 }
 
-void TestServerModManager::runTests(IPlaceDef *placedef)
+void TestServerModManager::runTests(ICrateDef *cratedef)
 {
 	// A game of four mods: one forced first, one forced last, and a pair
 	// where the second overrides media of the first.
@@ -81,7 +81,7 @@ void TestServerModManager::runTests(IPlaceDef *placedef)
 	const auto gamemods = game + (DIR_DELIM "mods" DIR_DELIM);
 
 	fs::CreateAllDirs(game);
-	writeFile(game + (DIR_DELIM "place.conf"),
+	writeFile(game + (DIR_DELIM "crate.conf"),
 			"title = Test Game\n"
 			"first_mod = first_mod\n"
 			"last_mod = last_mod\n");
@@ -129,7 +129,7 @@ void TestServerModManager::testCreation()
 {
 	std::string path = m_worlddir + DIR_DELIM + "world.mt";
 	Settings world_config;
-	world_config.set("placeid", PLACE_ID);
+	world_config.set("crateid", PLACE_ID);
 	world_config.set("load_mod_test_mod", "true");
 	UASSERTEQ(bool, world_config.updateConfigFile(path.c_str()), true);
 
@@ -198,7 +198,7 @@ void TestServerModManager::testLoadsInstalledMods()
 
 	std::string path = m_worlddir + DIR_DELIM + "world.mt";
 	Settings world_config;
-	world_config.set("placeid", PLACE_ID);
+	world_config.set("crateid", PLACE_ID);
 	UASSERTEQ(bool, world_config.updateConfigFile(path.c_str()), true);
 
 	{

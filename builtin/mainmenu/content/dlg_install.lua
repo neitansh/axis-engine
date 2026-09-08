@@ -27,9 +27,9 @@ local function get_formspec(data)
 		return get_loading_formspec()
 	end
 
-	local selected_place, selected_place_idx = pkgmgr.find_by_placeid(core.settings:get("menu_last_place"))
-	if not selected_place_idx then
-		selected_place_idx = 1
+	local selected_place, selected_crate_idx = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
+	if not selected_crate_idx then
+		selected_crate_idx = 1
 		selected_place = pkgmgr.places[1]
 	end
 
@@ -38,23 +38,23 @@ local function get_formspec(data)
 		place_list[i] = core.formspec_escape(place.title)
 	end
 
-	if not data.deps_ready[selected_place_idx] and
-			not data.deps_loading[selected_place_idx] then
-		data.deps_loading[selected_place_idx] = true
+	if not data.deps_ready[selected_crate_idx] and
+			not data.deps_loading[selected_crate_idx] then
+		data.deps_loading[selected_crate_idx] = true
 
 		contentdb.resolve_dependencies(data.package, selected_place, function(deps)
 			if not is_still_visible(data.dlg) then
 				return
 			end
-			data.deps_ready[selected_place_idx] = deps
+			data.deps_ready[selected_crate_idx] = deps
 			ui.update()
 		end)
 	end
 
-	-- The value of `data.deps_ready[selected_place_idx]` may have changed
+	-- The value of `data.deps_ready[selected_crate_idx]` may have changed
 	-- since the last if statement since `contentdb.resolve_dependencies`
 	-- calls the callback immediately if the dependencies are already cached.
-	if not data.deps_ready[selected_place_idx] then
+	if not data.deps_ready[selected_crate_idx] then
 		return get_loading_formspec()
 	end
 
@@ -64,7 +64,7 @@ local function get_formspec(data)
 	local deps_to_install = 0
 	local deps_not_found = 0
 
-	data.deps_chosen = data.deps_ready[selected_place_idx]
+	data.deps_chosen = data.deps_ready[selected_crate_idx]
 	local formatted_deps = {}
 	for _, dep in pairs(data.deps_chosen) do
 		formatted_deps[#formatted_deps + 1] = "#fff"
@@ -120,7 +120,7 @@ local function get_formspec(data)
 
 		"label[0,0.4;", fgettext("Base Place:"), "]",
 		"dropdown[", padded_w - dropdown_w, ",0;", dropdown_w, ",0.8;selected_place;",
-				table.concat(place_list, ","), ";", selected_place_idx, "]",
+				table.concat(place_list, ","), ";", selected_crate_idx, "]",
 
 		"label[0,1.1;", fgettext("Dependencies:"), "]",
 
@@ -176,7 +176,7 @@ local function handle_submit(this, fields)
 	if fields.selected_place then
 		for _, place in pairs(pkgmgr.places) do
 			if place.title == fields.selected_place then
-				core.settings:set("menu_last_place", place.id)
+				core.settings:set("menu_last_crate", place.id)
 				break
 			end
 		end

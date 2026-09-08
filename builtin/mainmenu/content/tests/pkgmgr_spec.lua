@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
 local mods_dir = "/tmp/.minetest/mods"
-local places_dir = "/tmp/.minetest/places"
+local depot_dir = "/tmp/.minetest/depot"
 local txp_dir = "/tmp/.minetest/textures"
 
 local function reset()
@@ -40,7 +40,7 @@ local function reset()
 		return mods_dir
 	end
 	function core.get_placepath()
-		return places_dir
+		return depot_dir
 	end
 	function env.fgettext_ne(fmt, ...)
 		return fmt
@@ -121,16 +121,16 @@ describe("install_dir", function()
 		end
 
 		local path, message = env.pkgmgr.install_dir("place", "/tmp/123", "myplace", nil)
-		assert.is.equal(places_dir .. "/myplace", path)
+		assert.is.equal(depot_dir .. "/myplace", path)
 		assert.is._nil(message)
 		env.assert_calls({
-			{ "delete_dir", places_dir .. "/myplace" },
-			{ "copy_dir", "/tmp/123", places_dir .. "/myplace", false },
+			{ "delete_dir", depot_dir .. "/myplace" },
+			{ "copy_dir", "/tmp/123", depot_dir .. "/myplace", false },
 		})
 	end)
 
 	it("updates place (alias)", function()
-		local old_place_path = places_dir .. "/myplace"
+		local old_place_path = depot_dir .. "/myplace"
 		local env = reset()
 		-- Temporary download directory of the content
 		local DL_DIR = "/tmp/123"
@@ -139,12 +139,12 @@ describe("install_dir", function()
 		end
 
 		local path, message = env.pkgmgr.install_dir("place", DL_DIR, "mynewplace", old_place_path)
-		assert.is.equal(places_dir .. "/mynewplace", path)
+		assert.is.equal(depot_dir .. "/mynewplace", path)
 		assert.is._nil(message)
 		env.assert_calls({
-			{ "delete_dir", places_dir .. "/myplace" },
-			{ "delete_dir", places_dir .. "/mynewplace" },
-			{ "copy_dir", DL_DIR, places_dir .. "/mynewplace", false },
+			{ "delete_dir", depot_dir .. "/myplace" },
+			{ "delete_dir", depot_dir .. "/mynewplace" },
+			{ "copy_dir", DL_DIR, depot_dir .. "/mynewplace", false },
 		})
 	end)
 

@@ -9,13 +9,13 @@
 #include "daynightratio.h"
 #include "emerge.h"
 #include "nodedef.h"
-#include "placedef.h"
+#include "cratedef.h"
 
 
-Environment::Environment(IPlaceDef *placedef):
+Environment::Environment(ICrateDef *cratedef):
 	m_time_of_day_speed(0.0f),
 	m_day_count(0),
-	m_placedef(placedef)
+	m_cratedef(cratedef)
 {
 	m_time_of_day = g_settings->getU32("world_start_time");
 	m_time_of_day_f = (float)m_time_of_day / 24000.0f;
@@ -82,7 +82,7 @@ bool Environment::line_of_sight(v3f pos1, v3f pos2, v3s16 *p)
 
 bool Environment::sight_of(v3f pos1, v3f pos2, v3s16 *p)
 {
-	const NodeDefManager *nodedef = m_placedef->ndef();
+	const NodeDefManager *nodedef = m_cratedef->ndef();
 
 	voxalgo::VoxelLineIterator iterator(pos1 / BS, (pos2 - pos1) / BS);
 	do {

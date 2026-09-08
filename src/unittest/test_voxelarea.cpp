@@ -11,7 +11,7 @@ public:
 	TestVoxelArea() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestVoxelArea"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void test_addarea();
 	void test_pad();
@@ -49,7 +49,7 @@ public:
 
 static TestVoxelArea g_test_instance;
 
-void TestVoxelArea::runTests(IPlaceDef *placedef)
+void TestVoxelArea::runTests(ICrateDef *cratedef)
 {
 	TEST(test_addarea);
 	TEST(test_pad);

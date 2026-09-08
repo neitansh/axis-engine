@@ -12,7 +12,7 @@
 #include "mapblock.h"
 #include "nodedef.h"
 #include "nodemetadata.h"
-#include "placedef.h"
+#include "cratedef.h"
 #include "porting.h"
 #include "profiler.h"
 #include "raycast.h"

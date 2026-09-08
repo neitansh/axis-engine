@@ -21,7 +21,7 @@ public:
 
 	const char *getName() { return "TestSocket"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testIPv4Socket();
 	void testIPv6Socket();
@@ -31,7 +31,7 @@ public:
 
 static TestSocket g_test_instance;
 
-void TestSocket::runTests(IPlaceDef *placedef)
+void TestSocket::runTests(ICrateDef *cratedef)
 {
 	TEST(testIPv4Socket);
 

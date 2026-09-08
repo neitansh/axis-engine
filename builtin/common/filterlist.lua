@@ -245,7 +245,7 @@ function compare_worlds(world1,world2)
 		return false
 	end
 
-	if world1.placeid ~= world2.placeid then
+	if world1.crateid ~= world2.crateid then
 		return false
 	end
 

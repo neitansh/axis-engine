@@ -21,7 +21,7 @@ public:
 	TestSAO() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestSAO"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testStaticSave(ServerEnvironment *env);
 	void testNotSaved(ServerEnvironment *env);
@@ -46,7 +46,7 @@ core.register_entity(":test:non_static", {
 })
 )";
 
-void TestSAO::runTests(IPlaceDef *placedef)
+void TestSAO::runTests(ICrateDef *cratedef)
 {
 	MockServer server(getTestTempDirectory());
 
@@ -75,7 +75,7 @@ void TestSAO::runTests(IPlaceDef *placedef)
 	//       EmergeManager should become mockable
 	MetricsBackend mb;
 	EmergeManager emerge(&server, &mb);
-	auto map = std::make_unique<ServerMap>(server.getWorldPath(), placedef, &emerge, &mb);
+	auto map = std::make_unique<ServerMap>(server.getWorldPath(), cratedef, &emerge, &mb);
 	ServerEnvironment env(std::move(map), &server, &mb);
 	env.loadMeta();
 

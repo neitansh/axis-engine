@@ -33,7 +33,7 @@ function check_reinstall_mtg(parent)
 	local mtg_world_found = false
 	local worlds = core.get_worlds()
 	for _, world in ipairs(worlds) do
-		if world.placeid == "minetest" then
+		if world.crateid == "minetest" then
 			mtg_world_found = true
 			break
 		end
@@ -98,7 +98,7 @@ end
 
 local function eventhandler(event)
 	if event == "DialogShow" then
-		mm_place_theme.set_engine()
+		mm_crate_theme.set_engine()
 		return true
 	elseif event == "MenuQuit" then
 		-- Don't allow closing the dialog with ESC, but still allow exiting

@@ -56,7 +56,7 @@ struct NodeVisuals
 
 private:
 	NodeVisuals(ContentFeatures *features) : f{features} {}
-	friend class DummyPlaceDef; // Unittests need constructor
+	friend class DummyCrateDef; // Unittests need constructor
 
 	ContentFeatures *f = nullptr;
 

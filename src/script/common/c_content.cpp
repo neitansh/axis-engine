@@ -1694,7 +1694,7 @@ void push_inventory_lists(lua_State *L, const Inventory &inv)
 
 /******************************************************************************/
 void read_inventory_list(lua_State *L, int tableindex,
-		Inventory *inv, const char *name, IPlaceDef *gdef, int forcesize)
+		Inventory *inv, const char *name, ICrateDef *gdef, int forcesize)
 {
 	if (tableindex < 0)
 		tableindex = lua_gettop(L) + 1 + tableindex;
@@ -2163,7 +2163,7 @@ void push_items(lua_State *L, const std::vector<ItemStack> &items)
 }
 
 /******************************************************************************/
-std::vector<ItemStack> read_items(lua_State *L, int index, IPlaceDef *gdef)
+std::vector<ItemStack> read_items(lua_State *L, int index, ICrateDef *gdef)
 {
 	if (index < 0)
 		index = lua_gettop(L) + 1 + index;

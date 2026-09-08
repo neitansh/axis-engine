@@ -16,7 +16,7 @@
 #include "util/numeric.h" // getContainerPos
 
 class Map;
-class IPlaceDef;
+class ICrateDef;
 class MapBlockMesh;
 class VoxelManipulator;
 class NameIdMapping;
@@ -57,7 +57,7 @@ enum ModReason : u32 {
 class MapBlock
 {
 public:
-	MapBlock(v3s16 pos, IPlaceDef *placedef);
+	MapBlock(v3s16 pos, ICrateDef *cratedef);
 	~MapBlock();
 
 	// Any server-modding code can "delete" arbitrary blocks (i.e. with
@@ -457,7 +457,7 @@ private:
 	static void getBlockNodeIdMapping(NameIdMapping *nimap, MapNode *nodes,
 		u32 count, const NodeDefManager *nodedef);
 	static void correctBlockNodeIds(const NameIdMapping *nimap, MapNode *nodes,
-			IPlaceDef *placedef);
+			ICrateDef *cratedef);
 
 	/*
 	 * PLEASE NOTE: When adding something here be mindful of position and size
@@ -499,7 +499,7 @@ private:
 	MapNode *data = nullptr;
 
 	// provides the item and node definitions
-	IPlaceDef *m_placedef;
+	ICrateDef *m_cratedef;
 
 	/*
 		When the block is accessed, this is set to 0.

@@ -11,7 +11,7 @@
 #include <vector>
 
 
-struct PlaceSpec
+struct CrateSpec
 {
 	std::string id;
 	std::string title;
@@ -20,7 +20,7 @@ struct PlaceSpec
 	std::string first_mod; // "" <=> no mod
 	std::string last_mod; // "" <=> no mod
 	std::string path;
-	std::string placemods_path;
+	std::string cratemods_path;
 
 	/**
 	 * Map from virtual path to mods path
@@ -28,18 +28,18 @@ struct PlaceSpec
 	std::unordered_map<std::string, std::string> addon_mods_paths;
 
 	/**
-	 * All worlds are marked with a specific placeid. To allow inheriting worlds
-	 * by a game with different placeid after deprecation or renaming, this set
-	 * contains the placeid values that used to refer to the game and may be used
-	 * to automatically find the best matching placeid.
+	 * All worlds are marked with a specific crateid. To allow inheriting worlds
+	 * by a game with different crateid after deprecation or renaming, this set
+	 * contains the crateid values that used to refer to the game and may be used
+	 * to automatically find the best matching crateid.
 	 */
 	std::unordered_set<std::string> aliases;
 
 	// For logging purposes
 	std::vector<const char *> deprecation_msgs;
 
-	PlaceSpec(const std::string &id = "", const std::string &path = "",
-			const std::string &placemods_path = "",
+	CrateSpec(const std::string &id = "", const std::string &path = "",
+			const std::string &cratemods_path = "",
 			const std::unordered_map<std::string, std::string> &addon_mods_paths = {},
 			const std::string &title = "",
 			const std::string &author = "", int release = 0,
@@ -51,7 +51,7 @@ struct PlaceSpec
 			first_mod(first_mod),
 			last_mod(last_mod),
 			path(path),
-			placemods_path(placemods_path),
+			cratemods_path(cratemods_path),
 			addon_mods_paths(addon_mods_paths),
 			aliases(aliases)
 	{
@@ -61,11 +61,11 @@ struct PlaceSpec
 	void checkAndLog() const;
 };
 
-PlaceSpec findPlace(const std::string &id);
-PlaceSpec findWorldPlace(const std::string &world_path);
+CrateSpec findPlace(const std::string &id);
+CrateSpec findWorldPlace(const std::string &world_path);
 
 std::set<std::string> getAvailablePlaceIds();
-std::vector<PlaceSpec> getAvailablePlaces();
+std::vector<CrateSpec> getAvailablePlaces();
 // Get the list of paths to mods in the environment variable LUANTI_MOD_PATH
 std::vector<std::string> getEnvModPaths();
 
@@ -78,18 +78,18 @@ struct WorldSpec
 {
 	std::string path;
 	std::string name;
-	std::string placeid;
+	std::string crateid;
 
 	WorldSpec(const std::string &path = "", const std::string &name = "",
-			const std::string &placeid = "") :
+			const std::string &crateid = "") :
 			path(path),
-			name(name), placeid(placeid)
+			name(name), crateid(crateid)
 	{
 	}
 
 	bool isValid() const
 	{
-		return (!name.empty() && !path.empty() && !placeid.empty());
+		return (!name.empty() && !path.empty() && !crateid.empty());
 	}
 };
 
@@ -98,4 +98,4 @@ std::vector<WorldSpec> getAvailableWorlds();
 // loads the place's config and creates world directory
 // and world.mt if they don't exist
 void loadPlaceConfAndInitWorld(const std::string &path, const std::string &name,
-		const PlaceSpec &placespec, bool create_world);
+		const CrateSpec &cratespec, bool create_world);

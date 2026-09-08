@@ -223,8 +223,8 @@ local function get_formspec(tabview, name, tabdata)
 		local mods = selected_server.mods
 		if mods and #mods > 0 then
 			local tooltip = ""
-			if selected_server.placeid then
-				tooltip = fgettext("Place: $1", selected_server.placeid) .. "\n"
+			if selected_server.crateid then
+				tooltip = fgettext("Place: $1", selected_server.crateid) .. "\n"
 			end
 			tooltip = tooltip .. fgettext("Number of mods: $1", #mods)
 
@@ -411,7 +411,7 @@ local function uncapitalize_server(server)
 	return {
 		name = (server.name or ""):lower(),
 		description = (server.description or ""):lower(),
-		placeid = (server.placeid or ""):lower(),
+		crateid = (server.crateid or ""):lower(),
 		mods = table_lower(server.mods),
 		clients_list = table_lower(server.clients_list),
 	}
@@ -438,7 +438,7 @@ local function matches_query(server, query)
 	end
 
 	-- Check if place matches
-	if query.place and query.place ~= server.placeid then
+	if query.place and query.place ~= server.crateid then
 		return false
 	end
 
@@ -696,7 +696,7 @@ end
 
 local function on_change(type)
 	if type == "ENTER" then
-		mm_place_theme.set_engine()
+		mm_crate_theme.set_engine()
 		serverlistmgr.sync()
 		-- Экран открыли заново: список арен мог измениться, пока нас не было.
 		matchmaking.on_enter()

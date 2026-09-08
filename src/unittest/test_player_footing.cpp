@@ -64,7 +64,7 @@ public:
 	TestPlayerFooting() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestPlayerFooting"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testShallowFallsAreFree();
 	void testDeepFallsFollowTheCurve();
@@ -79,7 +79,7 @@ public:
 
 static TestPlayerFooting g_test_instance;
 
-void TestPlayerFooting::runTests(IPlaceDef *placedef)
+void TestPlayerFooting::runTests(ICrateDef *cratedef)
 {
 	TEST(testShallowFallsAreFree);
 	TEST(testDeepFallsFollowTheCurve);

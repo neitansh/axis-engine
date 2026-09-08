@@ -85,16 +85,16 @@ local function create_world_formspec(dialogdata)
 
 	local flags = dialogdata.flags
 
-	local place = pkgmgr.find_by_placeid(core.settings:get("menu_last_place"))
+	local place = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
 	if place == nil then
 		-- should never happen but just pick the first place
 		place = pkgmgr.places[1]
-		core.settings:set("menu_last_place", place.id)
+		core.settings:set("menu_last_crate", place.id)
 	end
 
 	local disallowed_mapgen_settings = {}
 	if place ~= nil then
-		local placeconfig = Settings(place.path.."/place.conf")
+		local placeconfig = Settings(place.path.."/crate.conf")
 
 		current_mg = current_mg or placeconfig:get("default_mapgen") or core.settings:get("mg_name")
 
@@ -325,7 +325,7 @@ local function create_world_buttonhandler(this, fields)
 		end
 
 		local worldname = fields["te_world_name"]
-		local place, _ = pkgmgr.find_by_placeid(core.settings:get("menu_last_place"))
+		local place, _ = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
 
 		local message
 		if place == nil then
@@ -373,7 +373,7 @@ local function create_world_buttonhandler(this, fields)
 		end
 
 		if message == nil then
-			core.settings:set("menu_last_place", place.id)
+			core.settings:set("menu_last_crate", place.id)
 			menudata.worldlist:set_filtercriteria(place.id)
 			menudata.worldlist:refresh()
 			core.settings:set("mainmenu_last_selected_world",
@@ -390,7 +390,7 @@ local function create_world_buttonhandler(this, fields)
 
 	if fields["games"] then
 		local placeindex = core.get_textlist_index("games")
-		core.settings:set("menu_last_place", pkgmgr.places[placeindex].id)
+		core.settings:set("menu_last_crate", pkgmgr.places[placeindex].id)
 		return true
 	end
 

@@ -14,20 +14,20 @@ public:
 	TestLBMManager() { TestManager::registerTestModule(this); }
 	const char *getName() {	return "TestLBMManager"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
-	void testNew(IPlaceDef *placedef);
-	void testExisting(IPlaceDef *placedef);
-	void testDiscard(IPlaceDef *placedef);
+	void testNew(ICrateDef *cratedef);
+	void testExisting(ICrateDef *cratedef);
+	void testDiscard(ICrateDef *cratedef);
 };
 
 static TestLBMManager g_test_instance;
 
-void TestLBMManager::runTests(IPlaceDef *placedef)
+void TestLBMManager::runTests(ICrateDef *cratedef)
 {
-	TEST(testNew, placedef);
-	TEST(testExisting, placedef);
-	TEST(testDiscard, placedef);
+	TEST(testNew, cratedef);
+	TEST(testExisting, cratedef);
+	TEST(testDiscard, cratedef);
 }
 
 namespace {
@@ -40,14 +40,14 @@ namespace {
 	};
 }
 
-void TestLBMManager::testNew(IPlaceDef *placedef)
+void TestLBMManager::testNew(ICrateDef *cratedef)
 {
 	LBMManager mgr;
 
 	mgr.addLBMDef(new FakeLBM(":foo:bar", false));
 	mgr.addLBMDef(new FakeLBM("not:this", true));
 
-	mgr.loadIntroductionTimes("", placedef, 1234);
+	mgr.loadIntroductionTimes("", cratedef, 1234);
 
 	auto str = mgr.createIntroductionTimesString();
 	// name of first lbm should have been stripped
@@ -55,25 +55,25 @@ void TestLBMManager::testNew(IPlaceDef *placedef)
 	UASSERTEQ(auto, str, "foo:bar~1234;");
 }
 
-void TestLBMManager::testExisting(IPlaceDef *placedef)
+void TestLBMManager::testExisting(ICrateDef *cratedef)
 {
 	LBMManager mgr;
 
 	mgr.addLBMDef(new FakeLBM("foo:bar", false));
 
 	// colon should also be stripped when loading (due to old versions)
-	mgr.loadIntroductionTimes(":foo:bar~22;", placedef, 1234);
+	mgr.loadIntroductionTimes(":foo:bar~22;", cratedef, 1234);
 
 	auto str = mgr.createIntroductionTimesString();
 	UASSERTEQ(auto, str, "foo:bar~22;");
 }
 
-void TestLBMManager::testDiscard(IPlaceDef *placedef)
+void TestLBMManager::testDiscard(ICrateDef *cratedef)
 {
 	LBMManager mgr;
 
 	// LBMs that no longer exist are dropped
-	mgr.loadIntroductionTimes("some:thing~2;", placedef, 10);
+	mgr.loadIntroductionTimes("some:thing~2;", cratedef, 10);
 
 	auto str = mgr.createIntroductionTimesString();
 	UASSERTEQ(auto, str, "");

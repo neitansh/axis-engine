@@ -32,7 +32,7 @@ extern const struct EnumString es_TouchInteractionStyle[];
 enum touch_gui_button_id : u8
 {
 	dig_id = 0,
-	place_id,
+	crate_id,
 
 	jump_id,
 	sneak_id,

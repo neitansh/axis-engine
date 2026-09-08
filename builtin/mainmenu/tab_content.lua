@@ -38,7 +38,7 @@ end
 
 local function on_change(type)
 	if type == "ENTER" then
-		mm_place_theme.set_engine()
+		mm_crate_theme.set_engine()
 		update_packages()
 	end
 end
@@ -203,8 +203,8 @@ local function handle_doubleclick(pkg)
 		packages = nil
 		pkgmgr.reload_texture_packs()
 
-		mm_place_theme.init()
-		mm_place_theme.set_engine()
+		mm_crate_theme.init()
+		mm_crate_theme.set_engine()
 	end
 end
 
@@ -268,8 +268,8 @@ local function handle_buttons(tabview, fields, tabname, tabdata)
 		packages = nil
 		pkgmgr.reload_texture_packs()
 
-		mm_place_theme.init()
-		mm_place_theme.set_engine()
+		mm_crate_theme.init()
+		mm_crate_theme.set_engine()
 		return true
 	end
 

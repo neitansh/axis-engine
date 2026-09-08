@@ -21,7 +21,7 @@
 #include "util/basic_macros.h"
 #include "line3d.h"
 
-class IPlaceDef;
+class ICrateDef;
 class Map;
 struct PointedThing;
 class RaycastState;
@@ -31,7 +31,7 @@ class Environment
 {
 public:
 	// Environment will delete the map passed to the constructor
-	Environment(IPlaceDef *placedef);
+	Environment(ICrateDef *cratedef);
 	virtual ~Environment() = default;
 	DISABLE_CLASS_COPY(Environment);
 
@@ -110,7 +110,7 @@ public:
 	// counter used internally when triggering ABMs
 	u32 m_added_objects;
 
-	IPlaceDef *getPlaceDef() { return m_placedef; }
+	ICrateDef *getCrateDef() { return m_cratedef; }
 
 protected:
 	std::atomic<float> m_time_of_day_speed;
@@ -135,7 +135,7 @@ protected:
 	 * Above: values managed by m_time_lock
 	 */
 
-	IPlaceDef *m_placedef;
+	ICrateDef *m_cratedef;
 
 private:
 	std::mutex m_time_lock;

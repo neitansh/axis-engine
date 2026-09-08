@@ -99,7 +99,7 @@ local function start_install(package, reason)
 						conf_path = path .. DIR_DELIM .. "mod.conf"
 					end
 				elseif package.type == "place" then
-					conf_path = path .. DIR_DELIM .. "place.conf"
+					conf_path = path .. DIR_DELIM .. "crate.conf"
 					name_is_title = true
 				elseif package.type == "txp" then
 					conf_path = path .. DIR_DELIM .. "texture_pack.conf"
@@ -443,7 +443,7 @@ function contentdb.set_packages_from_api(packages)
 		if package.aliases then
 			local suffix = "/" .. package.name
 			for _, alias in ipairs(package.aliases) do
-				-- We currently only support placeid and author changing
+				-- We currently only support crateid and author changing
 				if package.type == "place" or alias:sub(-#suffix) == suffix then
 					contentdb.aliases[strip_place_suffix(packages.type, alias:lower())] = package.id
 				end

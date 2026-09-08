@@ -11,7 +11,7 @@ public:
 	TestAreaStore() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestAreaStore"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void genericStoreTest(AreaStore *store);
 	void testVectorStore();
@@ -21,7 +21,7 @@ public:
 
 static TestAreaStore g_test_instance;
 
-void TestAreaStore::runTests(IPlaceDef *placedef)
+void TestAreaStore::runTests(ICrateDef *cratedef)
 {
 	TEST(testVectorStore);
 #if USE_SPATIAL

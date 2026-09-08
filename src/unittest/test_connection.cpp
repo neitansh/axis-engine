@@ -23,7 +23,7 @@ public:
 
 	const char *getName() { return "TestConnection"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testNetworkPacketSerialize();
 	void testHelpers();
@@ -32,7 +32,7 @@ public:
 
 static TestConnection g_test_instance;
 
-void TestConnection::runTests(IPlaceDef *placedef)
+void TestConnection::runTests(ICrateDef *cratedef)
 {
 	TEST(testNetworkPacketSerialize);
 	TEST(testHelpers);

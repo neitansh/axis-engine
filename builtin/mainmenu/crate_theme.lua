@@ -2,7 +2,7 @@
 -- Copyright (C) 2013 sapier
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
-mm_place_theme = {}
+mm_crate_theme = {}
 
 local COLORS = {
 	dark = { clouds = "#1c2a47", sky = "#090b1a" },
@@ -10,35 +10,35 @@ local COLORS = {
 }
 
 --------------------------------------------------------------------------------
-function mm_place_theme.init()
-	mm_place_theme.texturepack = core.settings:get("texture_path")
+function mm_crate_theme.init()
+	mm_crate_theme.texturepack = core.settings:get("texture_path")
 
-	mm_place_theme.placeid = nil
+	mm_crate_theme.crateid = nil
 
-	mm_place_theme.music_handle = nil
+	mm_crate_theme.music_handle = nil
 end
 
 --------------------------------------------------------------------------------
-function mm_place_theme.set_engine(hide_decorations)
-	mm_place_theme.placeid = nil
-	mm_place_theme.stop_music()
+function mm_crate_theme.set_engine(hide_decorations)
+	mm_crate_theme.crateid = nil
+	mm_crate_theme.stop_music()
 
 	core.set_topleft_text("")
 
 	local have_bg = false
-	local have_overlay = mm_place_theme.set_engine_single("overlay")
+	local have_overlay = mm_crate_theme.set_engine_single("overlay")
 
 	if not have_overlay then
-		have_bg = mm_place_theme.set_engine_single("background")
+		have_bg = mm_crate_theme.set_engine_single("background")
 	end
 
-	mm_place_theme.clear_single("header")
-	mm_place_theme.clear_single("footer")
+	mm_crate_theme.clear_single("header")
+	mm_crate_theme.clear_single("footer")
 	core.set_clouds(false)
 
 	if not hide_decorations then
-		mm_place_theme.set_engine_single("header")
-		mm_place_theme.set_engine_single("footer")
+		mm_crate_theme.set_engine_single("header")
+		mm_crate_theme.set_engine_single("footer")
 	end
 
 	local c = COLORS[core.settings:get("menu_theme")]
@@ -55,30 +55,30 @@ function mm_place_theme.set_engine(hide_decorations)
 end
 
 --------------------------------------------------------------------------------
-function mm_place_theme.set_place(placedetails)
+function mm_crate_theme.set_place(placedetails)
 	assert(placedetails ~= nil)
 
-	if mm_place_theme.placeid == placedetails.id then
+	if mm_crate_theme.crateid == placedetails.id then
 		return
 	end
-	mm_place_theme.placeid = placedetails.id
-	mm_place_theme.set_music(placedetails)
+	mm_crate_theme.crateid = placedetails.id
+	mm_crate_theme.set_music(placedetails)
 
 	core.set_topleft_text(placedetails.name)
 
 	local have_bg = false
-	local have_overlay = mm_place_theme.set_place_single("overlay", placedetails)
+	local have_overlay = mm_crate_theme.set_place_single("overlay", placedetails)
 
 	if not have_overlay then
-		have_bg = mm_place_theme.set_place_single("background", placedetails)
+		have_bg = mm_crate_theme.set_place_single("background", placedetails)
 	end
 
-	mm_place_theme.clear_single("header")
-	mm_place_theme.clear_single("footer")
+	mm_crate_theme.clear_single("header")
+	mm_crate_theme.clear_single("footer")
 	core.set_clouds(false)
 
-	mm_place_theme.set_place_single("header", placedetails)
-	mm_place_theme.set_place_single("footer", placedetails)
+	mm_crate_theme.set_place_single("header", placedetails)
+	mm_crate_theme.set_place_single("footer", placedetails)
 
 	local c = COLORS[core.settings:get("menu_theme")]
 	if not c then
@@ -94,7 +94,7 @@ function mm_place_theme.set_place(placedetails)
 end
 
 --------------------------------------------------------------------------------
-function mm_place_theme.clear_single(identifier)
+function mm_crate_theme.clear_single(identifier)
 	core.set_background(identifier, "")
 end
 
@@ -105,11 +105,11 @@ local valid_image_extensions = {
 	".jpeg",
 }
 
-function mm_place_theme.set_engine_single(identifier)
+function mm_crate_theme.set_engine_single(identifier)
 	--try texture pack first
-	if mm_place_theme.texturepack ~= nil then
+	if mm_crate_theme.texturepack ~= nil then
 		for _, extension in pairs(valid_image_extensions) do
-			local path = mm_place_theme.texturepack .. DIR_DELIM .. "menu_" .. identifier .. extension
+			local path = mm_crate_theme.texturepack .. DIR_DELIM .. "menu_" .. identifier .. extension
 			if core.set_background(identifier, path) then
 				return true
 			end
@@ -125,14 +125,14 @@ function mm_place_theme.set_engine_single(identifier)
 end
 
 --------------------------------------------------------------------------------
-function mm_place_theme.set_place_single(identifier, placedetails)
+function mm_crate_theme.set_place_single(identifier, placedetails)
 	local extensions_randomised = table.copy(valid_image_extensions)
 	table.shuffle(extensions_randomised)
 	for _, extension in pairs(extensions_randomised) do
 		assert(placedetails ~= nil)
 
-		if mm_place_theme.texturepack ~= nil then
-			local path = mm_place_theme.texturepack .. DIR_DELIM .. placedetails.id .. "_menu_" .. identifier .. extension
+		if mm_crate_theme.texturepack ~= nil then
+			local path = mm_crate_theme.texturepack .. DIR_DELIM .. placedetails.id .. "_menu_" .. identifier .. extension
 			if core.set_background(identifier, path) then
 				return true
 			end
@@ -167,18 +167,18 @@ function mm_place_theme.set_place_single(identifier, placedetails)
 end
 
 --------------------------------------------------------------------------------
-function mm_place_theme.stop_music()
-	if mm_place_theme.music_handle ~= nil then
-		core.sound_stop(mm_place_theme.music_handle)
+function mm_crate_theme.stop_music()
+	if mm_crate_theme.music_handle ~= nil then
+		core.sound_stop(mm_crate_theme.music_handle)
 	end
 end
 
 --------------------------------------------------------------------------------
-function mm_place_theme.set_music(placedetails)
-	mm_place_theme.stop_music()
+function mm_crate_theme.set_music(placedetails)
+	mm_crate_theme.stop_music()
 
 	assert(placedetails ~= nil)
 
 	local music_path = placedetails.path .. DIR_DELIM .. "menu" .. DIR_DELIM .. "theme"
-	mm_place_theme.music_handle = core.sound_play(music_path, true)
+	mm_crate_theme.music_handle = core.sound_play(music_path, true)
 end

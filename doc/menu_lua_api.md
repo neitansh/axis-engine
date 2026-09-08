@@ -406,11 +406,11 @@ Worlds
         [1] = {
             path   = <full path to world>,
             name   = <name of world>,
-            placeid = <placeid of world>,
+            crateid = <crateid of world>,
         },
     }
     ```
-* `core.create_world(worldname, placeid, init_settings)`
+* `core.create_world(worldname, crateid, init_settings)`
 * `core.delete_world(index)`
 
 

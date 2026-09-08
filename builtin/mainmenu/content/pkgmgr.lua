@@ -177,7 +177,7 @@ function pkgmgr.get_folder_type(path)
 		return { type = "modpack", path = path }
 	end
 
-	testfile = io.open(path .. DIR_DELIM .. "place.conf","r")
+	testfile = io.open(path .. DIR_DELIM .. "crate.conf","r")
 	if testfile ~= nil then
 		testfile:close()
 		return { type = "place", path = path }
@@ -493,7 +493,7 @@ function pkgmgr.get_worldconfig(worldpath)
 	worldconfig.place_mods = {}
 
 	for key,value in pairs(worldfile:to_table()) do
-		if key == "placeid" then
+		if key == "crateid" then
 			worldconfig.id = value
 		elseif key:sub(0, 9) == "load_mod_" then
 			-- Compatibility: Check against "nil" which was erroneously used
@@ -506,8 +506,8 @@ function pkgmgr.get_worldconfig(worldpath)
 	end
 
 	--read placemods
-	local placespec = pkgmgr.find_by_placeid(worldconfig.id)
-	pkgmgr.get_place_mods(placespec, worldconfig.place_mods)
+	local cratespec = pkgmgr.find_by_crateid(worldconfig.id)
+	pkgmgr.get_place_mods(cratespec, worldconfig.place_mods)
 
 	return worldconfig
 end
@@ -616,16 +616,16 @@ function pkgmgr.preparemodlist(data)
 
 	-- read place mods
 	local place_mods = {}
-	local placespec = pkgmgr.find_by_placeid(data.placeid)
-	pkgmgr.get_place_mods(placespec, place_mods)
+	local cratespec = pkgmgr.find_by_crateid(data.crateid)
+	pkgmgr.get_place_mods(cratespec, place_mods)
 
 	if #place_mods > 0 then
 		-- Add title
 		retval[#retval + 1] = {
 			type = "place",
 			always_on = true,
-			name = fgettext("$1 mods", placespec.title),
-			path = placespec.path
+			name = fgettext("$1 mods", cratespec.title),
+			path = cratespec.path
 		}
 
 		for _, mod in ipairs(place_mods) do
@@ -747,22 +747,22 @@ end
 
 --------------------------------------------------------------------------------
 -- Keep in sync with the filter function of menudata.worldlist (in init_globals())
-function pkgmgr.find_by_placeid(placeid)
-	if not placeid then
+function pkgmgr.find_by_crateid(crateid)
+	if not crateid then
 		return nil, nil
 	end
-	placeid = pkgmgr.normalize_place_id(placeid)
+	crateid = pkgmgr.normalize_place_id(crateid)
 	for i, place in ipairs(pkgmgr.places) do
-		if place.id == placeid then
+		if place.id == crateid then
 			return place, i
 		end
 	end
 	local ret, val
 	for i, place in ipairs(pkgmgr.places) do
-		if place.aliases[placeid] then
+		if place.aliases[crateid] then
 			if ret then
 				core.log("warning",
-					"Found two places using alias " .. placeid .. ": " ..
+					"Found two places using alias " .. crateid .. ": " ..
 					place.id .. " and " .. ret.id
 				)
 			end
@@ -773,11 +773,11 @@ function pkgmgr.find_by_placeid(placeid)
 end
 
 --------------------------------------------------------------------------------
-function pkgmgr.get_place_mods(placespec, retval)
-	if placespec ~= nil and
-		placespec.placemods_path ~= nil and
-		placespec.placemods_path ~= "" then
-		pkgmgr.get_mods(placespec.placemods_path, ("places/%s/mods"):format(placespec.id), retval)
+function pkgmgr.get_place_mods(cratespec, retval)
+	if cratespec ~= nil and
+		cratespec.cratemods_path ~= nil and
+		cratespec.cratemods_path ~= "" then
+		pkgmgr.get_mods(cratespec.cratemods_path, ("depot/%s/mods"):format(cratespec.id), retval)
 	end
 end
 
@@ -851,7 +851,7 @@ function pkgmgr.get_contentdb_id(content)
 
 	-- Until version 5.8.0, Minetest Game was bundled with the engine.
 	-- Unfortunately, the bundled MTG was not versioned (missing "release"
-	-- field in place.conf).
+	-- field in crate.conf).
 	-- Therefore, we consider any installation of MTG that is not versioned,
 	-- has not been cloned from Git, and is not system-wide to be updatable.
 	if content.type == "place" and content.id == "minetest" and content.release == 0 and

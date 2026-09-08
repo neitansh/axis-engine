@@ -13,7 +13,7 @@ public:
 	TestEventManager() { TestManager::registerTestModule(this); }
 	const char *getName() override { return "TestEventManager"; }
 
-	void runTests(IPlaceDef *placedef) override;
+	void runTests(ICrateDef *cratedef) override;
 
 	void testRegister();
 	void testDeregister();
@@ -42,7 +42,7 @@ private:
 
 static TestEventManager g_test_instance;
 
-void TestEventManager::runTests(IPlaceDef *placedef)
+void TestEventManager::runTests(ICrateDef *cratedef)
 {
 	TEST(testRegister);
 	TEST(testDeregister);

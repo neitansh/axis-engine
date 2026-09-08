@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-class IPlaceDef;
+class ICrateDef;
 class NodeDefManager;
 
 #define OBJDEF_INVALID_INDEX ((u32)(-1))
@@ -56,7 +56,7 @@ protected:
 // TODO: const correctness for getter methods
 class ObjDefManager {
 public:
-	ObjDefManager(IPlaceDef *placedef, ObjDefType type);
+	ObjDefManager(ICrateDef *cratedef, ObjDefType type);
 	virtual ~ObjDefManager();
 	DISABLE_CLASS_COPY(ObjDefManager);
 

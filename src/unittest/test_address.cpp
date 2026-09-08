@@ -17,7 +17,7 @@ public:
 
 	const char *getName() { return "TestAddress"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testBasic();
 	void testIsLocalhost();
@@ -27,7 +27,7 @@ public:
 
 static TestAddress g_test_instance;
 
-void TestAddress::runTests(IPlaceDef *placedef)
+void TestAddress::runTests(ICrateDef *cratedef)
 {
 	TEST(testBasic);
 	TEST(testIsLocalhost);

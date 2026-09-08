@@ -14,7 +14,7 @@ public:
 	TestMeshCompare() { TestManager::registerTestModule(this); }
 	const char *getName() override { return "TestMeshCompare"; }
 
-	void runTests(IPlaceDef *placedef) override {
+	void runTests(ICrateDef *cratedef) override {
 		TEST(testTriangle);
 		TEST(testQuad);
 	}

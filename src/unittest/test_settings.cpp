@@ -14,7 +14,7 @@ public:
 	TestSettings() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestSettings"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testAllSettings();
 	void testDefaults();
@@ -26,7 +26,7 @@ public:
 
 static TestSettings g_test_instance;
 
-void TestSettings::runTests(IPlaceDef *placedef)
+void TestSettings::runTests(ICrateDef *cratedef)
 {
 	TEST(testAllSettings);
 	TEST(testDefaults);

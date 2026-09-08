@@ -4,18 +4,18 @@
 
 #include "catch.h"
 #include "voxelalgorithms.h"
-#include "dummyplacedef.h"
+#include "dummycratedef.h"
 #include "dummymap.h"
 
 TEST_CASE("benchmark_lighting")
 {
-	DummyPlaceDef placedef;
-	NodeDefManager *ndef = placedef.getWritableNodeDefManager();
+	DummyCrateDef cratedef;
+	NodeDefManager *ndef = cratedef.getWritableNodeDefManager();
 
 	v3s16 pmin(-16, -16, -16);
 	v3s16 pmax(15, 15, 15);
 	v3s16 bpmin = getNodeBlockPos(pmin), bpmax = getNodeBlockPos(pmax);
-	DummyMap map(&placedef, bpmin, bpmax);
+	DummyMap map(&cratedef, bpmin, bpmax);
 
 	content_t content_wall;
 	{

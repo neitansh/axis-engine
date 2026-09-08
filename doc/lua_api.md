@@ -140,14 +140,14 @@ Games
 
 Games are looked up from:
 
-* `$path_share/places/<placeid>/`
-* `$path_user/places/<placeid>/`
+* `$path_share/places/<crateid>/`
+* `$path_user/places/<crateid>/`
 
-Where `<placeid>` is unique to each game.
+Where `<crateid>` is unique to each game.
 
 The game directory can contain the following files:
 
-* `place.conf`, with the following keys:
+* `crate.conf`, with the following keys:
     * `title`: Required, a human-readable title to address the game, e.g. `title = Minetest Game`.
     * `name`: (Deprecated) same as title.
     * `description`: Short description to be shown in the content tab.
@@ -187,11 +187,11 @@ The game directory can contain the following files:
                  an internal ID used to track versions.
     * `textdomain`: Textdomain used to translate description. Defaults to game id.
       See [Translating content meta](#translating-content-meta).
-    * `aliases = <comma-separated placeid aliases>`
+    * `aliases = <comma-separated crateid aliases>`
       e.g. `aliases = foo, bar` (where "foo" and "bar" are the legacy names)
-      This allows automatic loading of worlds using a placeid from this list.
+      This allows automatic loading of worlds using a crateid from this list.
       This is intended to allow a full rename of a game, including its id.
-* `place_defaults.conf` (`minetest.conf` is still read for compatibility):
+* `crate_defaults.conf` (`minetest.conf` is still read for compatibility):
   Used to set default settings when running this game.
 * `screenshot.{png,jpg,jpeg}`:
   Preview image, shown in the main menu.
@@ -242,7 +242,7 @@ Mod load path
 
 Paths are relative to the directories listed in the [Paths](#paths) section above.
 
-* `places/<placeid>/mods/`
+* `places/<crateid>/mods/`
 * `mods/`
 * `worlds/<worldname>/worldmods/`
 
@@ -5005,7 +5005,7 @@ This is the short description=Voici la description succincte
 
 For games and modpacks, Luanti will look for the textdomain in all mods.
 
-Say you have a game called `mygame` with the following place.conf:
+Say you have a game called `mygame` with the following crate.conf:
 
 ```
 description = This is the game's short description
@@ -6144,7 +6144,7 @@ Utilities
         * `false`: Sorted alphabetically.
 * `core.get_place_info()`: returns a table containing information about the
   current game. Note that other meta information (e.g. version/release number)
-  can be manually read from `place.conf` in the game's root directory.
+  can be manually read from `crate.conf` in the game's root directory.
 
   ```lua
   {
@@ -9539,7 +9539,7 @@ You **must not** mix names and track numbers to refer to the same animation.
           is used for the specific old sneak behavior (default: `true`)
     * Note: All numeric fields above modify a corresponding `movement_*` setting.
     * For games, we recommend for simpler code to first modify the `movement_*`
-      settings (e.g. via the game's `place_defaults.conf`) to set a global base value
+      settings (e.g. via the game's `crate_defaults.conf`) to set a global base value
       for all players and only use `set_physics_override` when you need to change
       from the base value on a per-player basis
     * Note: Some of the fields don't exist in old API versions, see feature

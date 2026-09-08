@@ -8,7 +8,7 @@
 #include "mapgen.h"
 #include "voxel.h"
 #include "noise.h"
-#include "placedef.h"
+#include "cratedef.h"
 #include "mg_biome.h"
 #include "mapnode.h"
 #include "map.h"

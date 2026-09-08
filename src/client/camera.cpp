@@ -753,7 +753,7 @@ static bool hasLineOfSight(ClientEnvironment &env, v3f from, v3f to)
 	if (length < 0.001f)
 		return true;
 
-	const NodeDefManager *ndef = env.getPlaceDef()->ndef();
+	const NodeDefManager *ndef = env.getCrateDef()->ndef();
 	ClientMap &map = env.getClientMap();
 
 	const int steps = std::min(256, std::max(1, (int)std::ceil(length / (BS * 0.5f))));

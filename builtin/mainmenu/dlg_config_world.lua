@@ -11,7 +11,7 @@ local function modname_valid(name)
 end
 
 local function init_data(data)
-	-- Note: `pkgmgr.global_mods` is similar, but without the world + placeid filter.
+	-- Note: `pkgmgr.global_mods` is similar, but without the world + crateid filter.
 
 	data.list = filterlist.create(
 		pkgmgr.preparemodlist,
@@ -24,7 +24,7 @@ local function init_data(data)
 		nil,
 		{
 			worldpath = data.worldspec.path,
-			placeid = data.worldspec.placeid
+			crateid = data.worldspec.crateid
 		}
 	)
 

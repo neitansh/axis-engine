@@ -17,8 +17,8 @@ int ModApiChannels::l_mod_channel_join(lua_State *L)
 	if (channel.empty())
 		return 0;
 
-	getPlaceDef(L)->joinModChannel(channel);
-	assert(getPlaceDef(L)->getModChannel(channel) != nullptr);
+	getCrateDef(L)->joinModChannel(channel);
+	assert(getCrateDef(L)->getModChannel(channel) != nullptr);
 	ModChannelRef::create(L, channel);
 
 	int object = lua_gettop(L);
@@ -43,7 +43,7 @@ ModChannelRef::ModChannelRef(const std::string &modchannel) :
 int ModChannelRef::l_leave(lua_State *L)
 {
 	ModChannelRef *ref = checkObject<ModChannelRef>(L, 1);
-	getPlaceDef(L)->leaveModChannel(ref->m_modchannel_name);
+	getCrateDef(L)->leaveModChannel(ref->m_modchannel_name);
 	return 0;
 }
 
@@ -57,7 +57,7 @@ int ModChannelRef::l_send_all(lua_State *L)
 	// @TODO serialize message
 	std::string message = luaL_checkstring(L, 2);
 
-	getPlaceDef(L)->sendModChannelMessage(channel->getName(), message);
+	getCrateDef(L)->sendModChannelMessage(channel->getName(), message);
 	return 0;
 }
 
@@ -97,7 +97,7 @@ int ModChannelRef::gc_object(lua_State *L)
 
 ModChannel *ModChannelRef::getobject(lua_State *L, ModChannelRef *ref)
 {
-	return getPlaceDef(L)->getModChannel(ref->m_modchannel_name);
+	return getCrateDef(L)->getModChannel(ref->m_modchannel_name);
 }
 
 const char ModChannelRef::className[] = "ModChannelRef";

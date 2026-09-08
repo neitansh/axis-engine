@@ -6,7 +6,7 @@
 
 #include "util/numeric.h"
 #include "exceptions.h"
-#include "placedef.h"
+#include "cratedef.h"
 #include "nodedef.h"
 
 #include <algorithm>
@@ -17,7 +17,7 @@ public:
 	TestNodeResolver() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestNodeResolver"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testNodeResolving(NodeDefManager *ndef);
 	void testPendingResolveCancellation(NodeDefManager *ndef);
@@ -27,10 +27,10 @@ public:
 
 static TestNodeResolver g_test_instance;
 
-void TestNodeResolver::runTests(IPlaceDef *placedef)
+void TestNodeResolver::runTests(ICrateDef *cratedef)
 {
 	NodeDefManager *ndef =
-		(NodeDefManager *)placedef->getNodeDefManager();
+		(NodeDefManager *)cratedef->getNodeDefManager();
 
 	ndef->resetNodeResolveState();
 	TEST(testNodeResolving, ndef);

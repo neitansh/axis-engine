@@ -27,7 +27,7 @@ static inline auto read_pv(lua_State *L, int idx)
 
 int ModApiIPC::l_ipc_get(lua_State *L)
 {
-	auto *store = getPlaceDef(L)->getModIPCStore();
+	auto *store = getCrateDef(L)->getModIPCStore();
 
 	auto key = readParam<std::string>(L, 1);
 
@@ -44,7 +44,7 @@ int ModApiIPC::l_ipc_get(lua_State *L)
 
 int ModApiIPC::l_ipc_set(lua_State *L)
 {
-	auto *store = getPlaceDef(L)->getModIPCStore();
+	auto *store = getCrateDef(L)->getModIPCStore();
 
 	auto key = readParam<std::string>(L, 1);
 
@@ -64,7 +64,7 @@ int ModApiIPC::l_ipc_set(lua_State *L)
 
 int ModApiIPC::l_ipc_cas(lua_State *L)
 {
-	auto *store = getPlaceDef(L)->getModIPCStore();
+	auto *store = getCrateDef(L)->getModIPCStore();
 
 	auto key = readParam<std::string>(L, 1);
 
@@ -103,7 +103,7 @@ int ModApiIPC::l_ipc_cas(lua_State *L)
 
 int ModApiIPC::l_ipc_poll(lua_State *L)
 {
-	auto *store = getPlaceDef(L)->getModIPCStore();
+	auto *store = getCrateDef(L)->getModIPCStore();
 
 	auto key = readParam<std::string>(L, 1);
 
@@ -135,7 +135,7 @@ int ModApiIPC::l_ipc_poll(lua_State *L)
 
 void ModApiIPC::Initialize(lua_State *L, int top)
 {
-	FATAL_ERROR_IF(!getPlaceDef(L)->getModIPCStore(), "ModIPCStore missing from placedef");
+	FATAL_ERROR_IF(!getCrateDef(L)->getModIPCStore(), "ModIPCStore missing from cratedef");
 
 	API_FCT(ipc_get);
 	API_FCT(ipc_set);

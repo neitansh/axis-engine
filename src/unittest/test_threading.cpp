@@ -14,7 +14,7 @@ class TestThreading : public TestBase {
 public:
 	TestThreading() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestThreading"; }
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testStartStopWait();
 	void testAtomicSemaphoreThread();
@@ -23,7 +23,7 @@ public:
 
 static TestThreading g_test_instance;
 
-void TestThreading::runTests(IPlaceDef *placedef)
+void TestThreading::runTests(ICrateDef *cratedef)
 {
 	TEST(testStartStopWait);
 	TEST(testAtomicSemaphoreThread);

@@ -12,14 +12,14 @@ public:
 	TestActiveObject() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestActiveObject"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testAOAttributes();
 };
 
 static TestActiveObject g_test_instance;
 
-void TestActiveObject::runTests(IPlaceDef *placedef)
+void TestActiveObject::runTests(ICrateDef *cratedef)
 {
 	TEST(testAOAttributes);
 }

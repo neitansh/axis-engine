@@ -75,7 +75,7 @@ bool TouchControls::buttonsHandlePress(std::vector<button_info> &buttons, size_t
 	for (button_info &btn : buttons) {
 		if (btn.gui_button.get() == element) {
 			// Allow moving the camera with the same finger that holds dig/place.
-			bool absorb = btn.id != dig_id && btn.id != place_id;
+			bool absorb = btn.id != dig_id && btn.id != crate_id;
 
 			assert(std::find(btn.pointer_ids.begin(), btn.pointer_ids.end(), pointer_id) == btn.pointer_ids.end());
 			btn.pointer_ids.push_back(pointer_id);
@@ -99,7 +99,7 @@ bool TouchControls::buttonsHandleRelease(std::vector<button_info> &buttons, size
 		auto it = std::find(btn.pointer_ids.begin(), btn.pointer_ids.end(), pointer_id);
 		if (it != btn.pointer_ids.end()) {
 			// Don't absorb since we didn't absorb the press event either.
-			bool absorb = btn.id != dig_id && btn.id != place_id;
+			bool absorb = btn.id != dig_id && btn.id != crate_id;
 
 			btn.pointer_ids.erase(it);
 
@@ -119,7 +119,7 @@ bool TouchControls::buttonsStep(std::vector<button_info> &buttons, float dtime)
 	bool has_pointers = false;
 
 	for (button_info &btn : buttons) {
-		if (btn.id == dig_id || btn.id == place_id)
+		if (btn.id == dig_id || btn.id == crate_id)
 			continue; // key repeats would cause glitches here
 		if (btn.pointer_ids.empty())
 			continue;
@@ -145,7 +145,7 @@ static GameKeyType id_to_action(touch_gui_button_id id)
 			return KeyType::ESC;
 		case dig_id:
 			return KeyType::DIG;
-		case place_id:
+		case crate_id:
 			return KeyType::PLACE;
 		case jump_id:
 			return KeyType::JUMP;
@@ -729,7 +729,7 @@ void TouchControls::releaseAll()
 		m_dig_pressed = false;
 	}
 	if (m_place_pressed) {
-		emitGameKeyEvent(id_to_action(place_id), false);
+		emitGameKeyEvent(id_to_action(crate_id), false);
 		m_place_pressed = false;
 	}
 }
@@ -822,11 +822,11 @@ void TouchControls::applyContextControls(const TouchInteractionMode &mode)
 	}
 
 	if (target_place_pressed && !m_place_pressed) {
-		emitGameKeyEvent(id_to_action(place_id), true);
+		emitGameKeyEvent(id_to_action(crate_id), true);
 		m_place_pressed = true;
 
 	} else if (!target_place_pressed && m_place_pressed) {
-		emitGameKeyEvent(id_to_action(place_id), false);
+		emitGameKeyEvent(id_to_action(crate_id), false);
 		m_place_pressed = false;
 	}
 }

@@ -28,13 +28,13 @@ local valid_disabled_settings = {
 
 -- Currently chosen place in placebar for theming and filtering
 function current_place()
-	local placeid = core.settings:get("menu_last_place")
-	local place = placeid and pkgmgr.find_by_placeid(placeid)
+	local crateid = core.settings:get("menu_last_crate")
+	local place = crateid and pkgmgr.find_by_crateid(crateid)
 	-- Fall back to first place installed if one exists.
 	if not place and #pkgmgr.places > 0 then
 		place = pkgmgr.places[1]
-		placeid = place.id
-		core.settings:set("menu_last_place", placeid)
+		crateid = place.id
+		core.settings:set("menu_last_crate", crateid)
 	end
 
 	return place
@@ -42,10 +42,10 @@ end
 
 -- Apply menu changes from given place
 function apply_place(place)
-	core.settings:set("menu_last_place", place.id)
+	core.settings:set("menu_last_crate", place.id)
 	menudata.worldlist:set_filtercriteria(place.id)
 
-	mm_place_theme.set_place(place)
+	mm_crate_theme.set_place(place)
 
 	local index = filterlist.get_current_index(menudata.worldlist,
 		tonumber(core.settings:get("mainmenu_last_selected_world")))
@@ -65,7 +65,7 @@ local function get_disabled_settings(place)
 		return {}
 	end
 
-	local placeconfig = Settings(place.path .. "/place.conf")
+	local placeconfig = Settings(place.path .. "/crate.conf")
 	local disabled_settings = {}
 	if placeconfig then
 		local disabled_settings_str = (placeconfig:get("disabled_settings") or ""):split()
@@ -79,7 +79,7 @@ local function get_disabled_settings(place)
 			if valid_disabled_settings[value] then
 				disabled_settings[value] = state
 			else
-				core.log("error", "Invalid disabled setting in place.conf: "..tostring(value))
+				core.log("error", "Invalid disabled setting in crate.conf: "..tostring(value))
 			end
 		end
 	end
@@ -115,7 +115,7 @@ local function get_formspec(tabview, name, tabdata)
 	local place
 
 	if world then
-		place = pkgmgr.find_by_placeid(world.placeid)
+		place = pkgmgr.find_by_crateid(world.crateid)
 	else
 		place = current_place()
 	end
@@ -248,8 +248,8 @@ local function main_button_handler(this, fields, name, tabdata)
 		local world = menudata.worldlist:get_raw_element(gamedata.selected_world)
 		local place_obj
 		if world then
-			place_obj = pkgmgr.find_by_placeid(world.placeid)
-			core.settings:set("menu_last_place", place_obj.id)
+			place_obj = pkgmgr.find_by_crateid(world.crateid)
+			core.settings:set("menu_last_crate", place_obj.id)
 		end
 
 		local disabled_settings = get_disabled_settings(place_obj)
@@ -318,7 +318,7 @@ local function on_change(type)
 		if place then
 			apply_place(place)
 		else
-			mm_place_theme.set_engine()
+			mm_crate_theme.set_engine()
 		end
 
 		-- Раньше здесь поднималась панель выбора игры (place_button_bar).

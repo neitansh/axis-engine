@@ -12,14 +12,14 @@ public:
 	TestProfiler() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestProfiler"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testProfilerAverage();
 };
 
 static TestProfiler g_test_instance;
 
-void TestProfiler::runTests(IPlaceDef *placedef)
+void TestProfiler::runTests(ICrateDef *cratedef)
 {
 	TEST(testProfilerAverage);
 }

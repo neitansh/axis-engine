@@ -125,7 +125,7 @@ return {
 
 	on_change = function(type)
 		if type == "ENTER" then
-			mm_place_theme.set_engine()
+			mm_crate_theme.set_engine()
 		end
 	end,
 }

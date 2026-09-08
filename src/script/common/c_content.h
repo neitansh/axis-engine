@@ -26,7 +26,7 @@ extern "C" {
 // prior to the src/hud_element.h, which is not good on server only build
 #include "hud_element.h"
 
-class IPlaceDef;
+class ICrateDef;
 class IItemDefManager;
 class Inventory;
 class InventoryList;
@@ -113,7 +113,7 @@ void push_inventory_list(lua_State *L, const InventoryList &invlist);
 void push_inventory_lists(lua_State *L, const Inventory &inv);
 void read_inventory_list(lua_State *L, int tableindex,
 		Inventory *inv, const char *name,
-		IPlaceDef *gdef, int forcesize=-1);
+		ICrateDef *gdef, int forcesize=-1);
 
 MapNode readnode(lua_State *L, int index);
 void pushnode(lua_State *L, const MapNode &n);
@@ -141,7 +141,7 @@ u32 read_flags_table(lua_State *L, int table,
 
 void push_items(lua_State *L, const std::vector<ItemStack> &items);
 
-std::vector<ItemStack> read_items(lua_State *L, int index, IPlaceDef* gdef);
+std::vector<ItemStack> read_items(lua_State *L, int index, ICrateDef* gdef);
 
 void push_simplesoundspec(lua_State *L, const SoundSpec &spec);
 

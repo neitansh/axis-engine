@@ -7,7 +7,7 @@
 #include "common/c_types.h"
 #include "common/helper.h"
 #include "config.h"
-#include "placedef.h"
+#include "cratedef.h"
 
 extern "C" {
 #include <lua.h>
@@ -37,7 +37,7 @@ public:
 	#endif // !SERVER
 	static EmergeThread*    getEmergeThread(lua_State *L);
 
-	static IPlaceDef*        getPlaceDef(lua_State *L);
+	static ICrateDef*        getCrateDef(lua_State *L);
 
 	static Environment*     getEnv(lua_State *L);
 

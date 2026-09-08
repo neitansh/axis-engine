@@ -12,7 +12,7 @@ public:
 	TestDataStructures() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestDataStructures"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testMap1();
 	void testMap2();
@@ -23,7 +23,7 @@ public:
 
 static TestDataStructures g_test_instance;
 
-void TestDataStructures::runTests(IPlaceDef *placedef)
+void TestDataStructures::runTests(ICrateDef *cratedef)
 {
 	rawstream << "-------- ModifySafeMap" << std::endl;
 	TEST(testMap1);

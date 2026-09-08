@@ -95,7 +95,7 @@ public:
 	TestCameraFx() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestCameraFx"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testFramerateIndependence();
 	void testJitteryFrames();
@@ -109,7 +109,7 @@ public:
 
 static TestCameraFx g_test_instance;
 
-void TestCameraFx::runTests(IPlaceDef *placedef)
+void TestCameraFx::runTests(ICrateDef *cratedef)
 {
 	TEST(testFramerateIndependence);
 	TEST(testJitteryFrames);

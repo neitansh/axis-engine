@@ -149,7 +149,7 @@ static const char *buttons_crosshair = enum_to_string(es_TouchInteractionStyle, 
 
 bool ButtonLayout::isButtonAllowed(touch_gui_button_id id)
 {
-	if (id == dig_id || id == place_id)
+	if (id == dig_id || id == crate_id)
 		return g_settings->get("touch_interaction_style") == buttons_crosshair;
 	if (id == aux1_id)
 		return !g_settings->getBool("virtual_joystick_triggers_aux1");
@@ -173,7 +173,7 @@ const ButtonLayout::ButtonMap ButtonLayout::default_data {
 		v2f(1.0f, 1.0f),
 		v2f(-2.0f, -2.75f),
 	}},
-	{place_id, {
+	{crate_id, {
 		v2f(1.0f, 1.0f),
 		v2f(-2.0f, -4.25f),
 	}},
@@ -358,7 +358,7 @@ ButtonLayout::ButtonMap ButtonLayout::deserializeJson(std::istream &is)
 		// This may result in overlapping buttons (could be fixed by resolving
 		// collisions in postProcessLoaded).
 		data.emplace(dig_id, default_data.at(dig_id));
-		data.emplace(place_id, default_data.at(place_id));
+		data.emplace(crate_id, default_data.at(crate_id));
 	}
 
 	return data;

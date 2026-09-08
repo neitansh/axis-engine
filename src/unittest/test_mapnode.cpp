@@ -4,7 +4,7 @@
 
 #include "test.h"
 
-#include "placedef.h"
+#include "cratedef.h"
 #include "nodedef.h"
 #include "content_mapnode.h"
 
@@ -14,16 +14,16 @@ public:
 	TestMapNode() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestMapNode"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testNodeProperties(const NodeDefManager *nodedef);
 };
 
 static TestMapNode g_test_instance;
 
-void TestMapNode::runTests(IPlaceDef *placedef)
+void TestMapNode::runTests(ICrateDef *cratedef)
 {
-	TEST(testNodeProperties, placedef->getNodeDefManager());
+	TEST(testNodeProperties, cratedef->getNodeDefManager());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

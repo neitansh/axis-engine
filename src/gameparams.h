@@ -5,7 +5,7 @@
 #pragma once
 
 #include "irrlichttypes.h"
-#include "content/places.h"
+#include "content/crates.h"
 #include "log.h" // errorstream
 
 // Information provided from "main"
@@ -16,7 +16,7 @@ struct GameParams
 
 	u16 socket_port;
 	std::string world_path;
-	PlaceSpec place_spec;
+	CrateSpec crate_spec;
 	bool is_dedicated_server;
 };
 

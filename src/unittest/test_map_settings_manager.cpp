@@ -20,7 +20,7 @@ public:
 	void makeUserConfig();
 	std::string makeMetaFile(bool make_corrupt);
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testMapSettingsManager();
 	void testMapMetaSaveLoad();
@@ -30,7 +30,7 @@ public:
 
 static TestMapSettingsManager g_test_instance;
 
-void TestMapSettingsManager::runTests(IPlaceDef *placedef)
+void TestMapSettingsManager::runTests(ICrateDef *cratedef)
 {
 	TEST(testMapSettingsManager);
 	TEST(testMapMetaSaveLoad);

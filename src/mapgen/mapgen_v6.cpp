@@ -880,12 +880,12 @@ void MapgenV6::flowMud(s16 &mudflow_minpos, s16 &mudflow_maxpos)
 }
 
 
-void MapgenV6::moveMud(u32 remove_index, u32 place_index,
+void MapgenV6::moveMud(u32 remove_index, u32 crate_index,
 	u32 above_remove_index, v2s16 pos, v3s32 em)
 {
 	MapNode n_air(CONTENT_AIR);
 	// Copy mud from old place to new place
-	vm->m_data[place_index] = vm->m_data[remove_index];
+	vm->m_data[crate_index] = vm->m_data[remove_index];
 	// Set old place to be air
 	vm->m_data[remove_index] = n_air;
 	// Outside the mapchunk decorations may need to be removed if above removed
@@ -907,13 +907,13 @@ void MapgenV6::moveMud(u32 remove_index, u32 place_index,
 		}
 		// Mud placed may have partially-buried a stacked decoration, search
 		// above and remove.
-		VoxelArea::add_y(em, place_index, 1);
-		while (vm->m_area.contains(place_index) &&
-				vm->m_data[place_index].getContent() != CONTENT_AIR &&
-				vm->m_data[place_index].getContent() != c_water_source &&
-				vm->m_data[place_index].getContent() != CONTENT_IGNORE) {
-			vm->m_data[place_index] = n_air;
-			VoxelArea::add_y(em, place_index, 1);
+		VoxelArea::add_y(em, crate_index, 1);
+		while (vm->m_area.contains(crate_index) &&
+				vm->m_data[crate_index].getContent() != CONTENT_AIR &&
+				vm->m_data[crate_index].getContent() != c_water_source &&
+				vm->m_data[crate_index].getContent() != CONTENT_IGNORE) {
+			vm->m_data[crate_index] = n_air;
+			VoxelArea::add_y(em, crate_index, 1);
 		}
 	}
 }

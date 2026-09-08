@@ -11,8 +11,8 @@ int ModApiStorage::l_get_mod_storage(lua_State *L)
 	// Note that this is wrapped in Lua, see builtin/common/mod_storage.lua
 	std::string mod_name = readParam<std::string>(L, 1);
 
-	if (IPlaceDef *placedef = getPlaceDef(L)) {
-		StorageRef::create(L, mod_name, placedef->getModStorageDatabase());
+	if (ICrateDef *cratedef = getCrateDef(L)) {
+		StorageRef::create(L, mod_name, cratedef->getModStorageDatabase());
 	} else {
 		assert(false); // this should not happen
 		lua_pushnil(L);

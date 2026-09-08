@@ -256,7 +256,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 		// Get nose/mouth position, approximate with eye position
 		v3s16 p = floatToInt(getEyePosition(), BS);
 		MapNode n = m_env->getMap().getNode(p);
-		const ContentFeatures &c = m_env->getPlaceDef()->ndef()->get(n);
+		const ContentFeatures &c = m_env->getCrateDef()->ndef()->get(n);
 		// If node generates drown
 		if (c.drowning > 0 && m_hp > 0) {
 			if (m_breath > 0)
@@ -276,7 +276,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 		// Get nose/mouth position, approximate with eye position
 		v3s16 p = floatToInt(getEyePosition(), BS);
 		MapNode n = m_env->getMap().getNode(p);
-		const ContentFeatures &c = m_env->getPlaceDef()->ndef()->get(n);
+		const ContentFeatures &c = m_env->getCrateDef()->ndef()->get(n);
 		// If player is alive & not drowning & not in ignore & not immortal, breathe
 		if (m_breath < m_prop.breath_max && c.drowning == 0 &&
 				n.getContent() != CONTENT_IGNORE && m_hp > 0)
@@ -297,7 +297,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 			v3s16 p = floatToInt(getBasePosition() +
 				v3f(0.0f, dam_height * BS, 0.0f), BS);
 			MapNode n = m_env->getMap().getNode(p);
-			const ContentFeatures &c = m_env->getPlaceDef()->ndef()->get(n);
+			const ContentFeatures &c = m_env->getCrateDef()->ndef()->get(n);
 			if (c.damage_per_second > damage_per_second) {
 				damage_per_second = c.damage_per_second;
 				nodename = c.name;
@@ -309,7 +309,7 @@ void PlayerSAO::step(float dtime, bool send_recommended)
 		v3s16 ptop = floatToInt(getBasePosition() +
 			v3f(0.0f, dam_top * BS, 0.0f), BS);
 		MapNode ntop = m_env->getMap().getNode(ptop);
-		const ContentFeatures &c = m_env->getPlaceDef()->ndef()->get(ntop);
+		const ContentFeatures &c = m_env->getCrateDef()->ndef()->get(ntop);
 		if (c.damage_per_second > damage_per_second) {
 			damage_per_second = c.damage_per_second;
 			nodename = c.name;
@@ -957,7 +957,7 @@ u16 PlayerSAO::fallDamage() const
 	// Both are read rather than guessed, so a game that makes falls hurt more
 	// or not at all is obeyed and not overruled.
 	const v3s16 below = floatToInt(getBasePosition() + v3f(0.0f, -0.1f * BS, 0.0f), BS);
-	const ContentFeatures &ground = m_env->getPlaceDef()->ndef()->get(
+	const ContentFeatures &ground = m_env->getCrateDef()->ndef()->get(
 			m_env->getMap().getNode(below));
 
 	f32 factor = 1.0f + itemgroup_get(ground.groups, "fall_damage_add_percent") / 100.0f;
@@ -994,7 +994,7 @@ bool PlayerSAO::isSupported(bool *soft) const
 	footing.MaxEdge.Y = body.MinEdge.Y + 0.5f * BS;
 
 	Map &map = m_env->getMap();
-	const NodeDefManager *ndef = m_env->getPlaceDef()->ndef();
+	const NodeDefManager *ndef = m_env->getCrateDef()->ndef();
 
 	const v3s16 min = floatToInt(footing.MinEdge, BS);
 	const v3s16 max = floatToInt(body.MaxEdge, BS);
@@ -1142,7 +1142,7 @@ void PlayerSAO::watchFooting(float dtime)
 		if (supported) {
 			const v3s16 below = floatToInt(
 					pos + v3f(0.0f, -0.1f * BS, 0.0f), BS);
-			const ContentFeatures &ground = m_env->getPlaceDef()->ndef()->get(
+			const ContentFeatures &ground = m_env->getCrateDef()->ndef()->get(
 					m_env->getMap().getNode(below));
 			m_air_bouncy = itemgroup_get(ground.groups, "bouncy") != 0;
 		}
@@ -1218,7 +1218,7 @@ bool PlayerSAO::wentThroughSolid(const v3f &from, const v3f &to) const
 	const f32 half_length = length * 0.5f;
 
 	Map &map = m_env->getMap();
-	const NodeDefManager *ndef = m_env->getPlaceDef()->ndef();
+	const NodeDefManager *ndef = m_env->getCrateDef()->ndef();
 
 	// Whatever the player is standing in *now* is not evidence against them: a
 	// mod can drop a node onto somebody, and walking out of it is the right

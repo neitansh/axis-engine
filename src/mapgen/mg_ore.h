@@ -147,7 +147,7 @@ public:
 
 class OreManager : public ObjDefManager {
 public:
-	OreManager(IPlaceDef *placedef);
+	OreManager(ICrateDef *cratedef);
 	virtual ~OreManager() = default;
 
 	OreManager *clone() const;

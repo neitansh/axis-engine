@@ -5,7 +5,7 @@
 #include "test.h"
 
 #include "mapgen/mg_schematic.h"
-#include "placedef.h"
+#include "cratedef.h"
 #include "nodedef.h"
 
 class TestSchematic : public TestBase {
@@ -13,7 +13,7 @@ public:
 	TestSchematic() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestSchematic"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testMtsSerializeDeserialize(const NodeDefManager *ndef);
 	void testLuaTableSerialize(const NodeDefManager *ndef);
@@ -27,10 +27,10 @@ public:
 
 static TestSchematic g_test_instance;
 
-void TestSchematic::runTests(IPlaceDef *placedef)
+void TestSchematic::runTests(ICrateDef *cratedef)
 {
 	NodeDefManager *ndef =
-		(NodeDefManager *)placedef->getNodeDefManager();
+		(NodeDefManager *)cratedef->getNodeDefManager();
 
 	ndef->setNodeRegistrationStatus(true);
 

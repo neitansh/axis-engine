@@ -10,7 +10,7 @@
 #include <memory>
 
 class Map;
-class IPlaceDef;
+class ICrateDef;
 
 /*
 	This is an Y-wise stack of MapBlocks.
@@ -23,7 +23,7 @@ class MapSector
 {
 public:
 
-	MapSector(Map *parent, v2s16 pos, IPlaceDef *placedef);
+	MapSector(Map *parent, v2s16 pos, ICrateDef *cratedef);
 	virtual ~MapSector();
 
 	/// @brief Deletes all blocks (regardless of reference count).
@@ -70,7 +70,7 @@ protected:
 	// Position on parent (in MapBlock widths)
 	v2s16 m_pos;
 
-	IPlaceDef *m_placedef;
+	ICrateDef *m_cratedef;
 
 	// Last-used block is cached here for quicker access.
 	// Be sure to set this to nullptr when the cached block is deleted

@@ -10,7 +10,7 @@
 #include "inventory.h"
 
 class Map;
-class IPlaceDef;
+class ICrateDef;
 class InventoryManager;
 
 struct RollbackNode
@@ -32,7 +32,7 @@ struct RollbackNode
 
 	RollbackNode() = default;
 
-	RollbackNode(Map *map, v3s16 p, IPlaceDef *placedef);
+	RollbackNode(Map *map, v3s16 p, ICrateDef *cratedef);
 };
 
 
@@ -86,11 +86,11 @@ struct RollbackAction
 	std::string toString() const;
 
 	// Eg. flowing water level changes are not important
-	bool isImportant(IPlaceDef *placedef) const;
+	bool isImportant(ICrateDef *cratedef) const;
 
 	bool getPosition(v3s16 *dst) const;
 
-	bool applyRevert(Map *map, InventoryManager *imgr, IPlaceDef *placedef) const;
+	bool applyRevert(Map *map, InventoryManager *imgr, ICrateDef *cratedef) const;
 };
 
 

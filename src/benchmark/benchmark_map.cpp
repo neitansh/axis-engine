@@ -3,14 +3,14 @@
 // Copyright (C) 2023 Minetest Authors
 
 #include "catch.h"
-#include "dummyplacedef.h"
+#include "dummycratedef.h"
 #include "map.h"
 #include "mapsector.h"
 
 namespace {
 class TestMap : public Map {
 public:
-	TestMap(IPlaceDef *placedef) : Map(placedef) {}
+	TestMap(ICrateDef *cratedef) : Map(cratedef) {}
 
 	MapBlock * createBlockTest(v3s16 p)
 	{
@@ -19,7 +19,7 @@ public:
 
 		MapSector *sector = getSectorNoGenerate(p2d);
 		if (!sector) {
-			sector = new MapSector(this, p2d, m_placedef);
+			sector = new MapSector(this, p2d, m_cratedef);
 			m_sectors[p2d] = sector;
 		}
 
@@ -105,67 +105,67 @@ static int readNodes(Map &map, s16 n)
 
 #define BENCH1(_count) \
 	BENCHMARK_ADVANCED("create_" #_count)(Catch::Benchmark::Chronometer meter) { \
-		DummyPlaceDef placedef; \
-		TestMap map(&placedef); \
+		DummyCrateDef cratedef; \
+		TestMap map(&cratedef); \
 		meter.measure([&] { \
 			fillMap(map, _count); \
 		}); \
 	}; \
 	BENCHMARK_ADVANCED("readEmpty_" #_count)(Catch::Benchmark::Chronometer meter) { \
-		DummyPlaceDef placedef; \
-		TestMap map(&placedef); \
+		DummyCrateDef cratedef; \
+		TestMap map(&cratedef); \
 		meter.measure([&] { \
 			return readBlocks(map, _count); \
 		}); \
 	}; \
 	BENCHMARK_ADVANCED("readFilled_" #_count)(Catch::Benchmark::Chronometer meter) { \
-		DummyPlaceDef placedef; \
-		TestMap map(&placedef); \
+		DummyCrateDef cratedef; \
+		TestMap map(&cratedef); \
 		fillMap(map, _count); \
 		meter.measure([&] { \
 			return readBlocks(map, _count); \
 		}); \
 	}; \
 	BENCHMARK_ADVANCED("readEmptyYCol_" #_count)(Catch::Benchmark::Chronometer meter) { \
-		DummyPlaceDef placedef; \
-		TestMap map(&placedef); \
+		DummyCrateDef cratedef; \
+		TestMap map(&cratedef); \
 		meter.measure([&] { \
 			return readYColumn(map, _count); \
 		}); \
 	}; \
 	BENCHMARK_ADVANCED("readFilledYCol_" #_count)(Catch::Benchmark::Chronometer meter) { \
-		DummyPlaceDef placedef; \
-		TestMap map(&placedef); \
+		DummyCrateDef cratedef; \
+		TestMap map(&cratedef); \
 		fillMap(map, _count); \
 		meter.measure([&] { \
 			return readYColumn(map, _count); \
 		}); \
 	}; \
 	BENCHMARK_ADVANCED("readEmptyRandom_" #_count)(Catch::Benchmark::Chronometer meter) { \
-		DummyPlaceDef placedef; \
-		TestMap map(&placedef); \
+		DummyCrateDef cratedef; \
+		TestMap map(&cratedef); \
 		meter.measure([&] { \
 			return readRandomBlocks(map, _count); \
 		}); \
 	}; \
 	BENCHMARK_ADVANCED("readFilledRandom_" #_count)(Catch::Benchmark::Chronometer meter) { \
-		DummyPlaceDef placedef; \
-		TestMap map(&placedef); \
+		DummyCrateDef cratedef; \
+		TestMap map(&cratedef); \
 		fillMap(map, _count); \
 		meter.measure([&] { \
 			return readRandomBlocks(map, _count); \
 		}); \
 	}; \
 	BENCHMARK_ADVANCED("readEmptyNodes_" #_count)(Catch::Benchmark::Chronometer meter) { \
-		DummyPlaceDef placedef; \
-		TestMap map(&placedef); \
+		DummyCrateDef cratedef; \
+		TestMap map(&cratedef); \
 		meter.measure([&] { \
 			return readNodes(map, _count); \
 		}); \
 	}; \
 	BENCHMARK_ADVANCED("readFilledNodes_" #_count)(Catch::Benchmark::Chronometer meter) { \
-		DummyPlaceDef placedef; \
-		TestMap map(&placedef); \
+		DummyCrateDef cratedef; \
+		TestMap map(&cratedef); \
 		fillMap(map, _count); \
 		meter.measure([&] { \
 			return readNodes(map, _count); \

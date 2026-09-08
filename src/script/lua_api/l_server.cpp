@@ -534,7 +534,7 @@ int ModApiServer::l_get_modpath(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
 	std::string modname = luaL_checkstring(L, 1);
-	const ModSpec *mod = getPlaceDef(L)->getModSpec(modname);
+	const ModSpec *mod = getCrateDef(L)->getModSpec(modname);
 	if (!mod)
 		lua_pushnil(L);
 	else
@@ -551,7 +551,7 @@ int ModApiServer::l_get_modnames(lua_State *L)
 
 	// Get a list of mods
 	std::vector<std::string> modlist;
-	for (auto &it : getPlaceDef(L)->getMods())
+	for (auto &it : getCrateDef(L)->getMods())
 		modlist.emplace_back(it.name);
 
 	if (!use_load_order) {
@@ -573,13 +573,13 @@ int ModApiServer::l_get_modnames(lua_State *L)
 int ModApiServer::l_get_place_info(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
-	const PlaceSpec *place_spec = getPlaceDef(L)->getGameSpec();
-	assert(place_spec);
+	const CrateSpec *crate_spec = getCrateDef(L)->getGameSpec();
+	assert(crate_spec);
 	lua_newtable(L);
-	setstringfield(L, -1, "id", place_spec->id);
-	setstringfield(L, -1, "title", place_spec->title);
-	setstringfield(L, -1, "author", place_spec->author);
-	setstringfield(L, -1, "path", place_spec->path);
+	setstringfield(L, -1, "id", crate_spec->id);
+	setstringfield(L, -1, "title", crate_spec->title);
+	setstringfield(L, -1, "author", crate_spec->author);
+	setstringfield(L, -1, "path", crate_spec->path);
 	return 1;
 }
 

@@ -14,7 +14,7 @@ ContentType getContentType(const std::string &path)
 	if (fs::IsFile(path + DIR_DELIM "init.lua"))
 		return ContentType::MOD;
 
-	if (fs::IsFile(path + DIR_DELIM "place.conf"))
+	if (fs::IsFile(path + DIR_DELIM "crate.conf"))
 		return ContentType::GAME;
 
 	if (fs::IsFile(path + DIR_DELIM "texture_pack.conf"))
@@ -38,7 +38,7 @@ void parseContentInfo(ContentSpec &spec)
 		break;
 	case ContentType::GAME:
 		spec.type = "place";
-		conf_path = spec.path + DIR_DELIM "place.conf";
+		conf_path = spec.path + DIR_DELIM "crate.conf";
 		break;
 	case ContentType::TXP:
 		spec.type = "txp";

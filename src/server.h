@@ -7,8 +7,8 @@
 #include "irr_v3d.h"
 #include "map.h"
 #include "hud_element.h" // HudElementStat
-#include "placedef.h"
-#include "content/places.h"
+#include "cratedef.h"
+#include "content/crates.h"
 #include "network/peerhandler.h"
 #include "util/thread.h"
 #include "util/basic_macros.h"
@@ -177,7 +177,7 @@ struct ModIPCStore {
 };
 
 class Server : public con::PeerHandler, public MapEventReceiver,
-		public IPlaceDef
+		public ICrateDef
 {
 public:
 	/*
@@ -186,7 +186,7 @@ public:
 
 	Server(
 		const std::string &path_world,
-		const PlaceSpec &placespec,
+		const CrateSpec &cratespec,
 		bool simple_singleplayer_mode,
 		Address bind_addr,
 		bool dedicated,
@@ -331,7 +331,7 @@ public:
 	bool rollbackRevertActions(const std::list<RollbackAction> &actions,
 			std::list<std::string> *log);
 
-	// IPlaceDef interface
+	// ICrateDef interface
 	bool isClient() override { return false; }
 	// Under envlock
 	IItemDefManager* getItemDefManager() override;
@@ -349,7 +349,7 @@ public:
 	// Not under envlock
 	const std::vector<ModSpec> &getMods() const override;
 	const ModSpec* getModSpec(const std::string &modname) const override;
-	const PlaceSpec* getGameSpec() const override { return &m_gamespec; }
+	const CrateSpec* getGameSpec() const override { return &m_gamespec; }
 	static std::string getBuiltinLuaPath();
 	std::string getWorldPath() const override { return m_path_world; }
 	std::string getModDataPath() const override { return m_path_mod_data; }
@@ -704,7 +704,7 @@ private:
 	std::string m_path_world;
 	std::string m_path_mod_data;
 	// Place specification
-	PlaceSpec m_gamespec;
+	CrateSpec m_gamespec;
 	// If true, do not allow multiple players and hide some multiplayer
 	// functionality
 	bool m_simple_singleplayer_mode;

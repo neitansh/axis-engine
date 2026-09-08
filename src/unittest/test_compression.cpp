@@ -16,7 +16,7 @@ public:
 	TestCompression() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestCompression"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testRLECompression();
 	void testZlibCompression();
@@ -29,7 +29,7 @@ public:
 
 static TestCompression g_test_instance;
 
-void TestCompression::runTests(IPlaceDef *placedef)
+void TestCompression::runTests(ICrateDef *cratedef)
 {
 	TEST(testRLECompression);
 	TEST(testZlibCompression);

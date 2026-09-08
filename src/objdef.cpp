@@ -5,15 +5,15 @@
 #include "objdef.h"
 #include "util/numeric.h"
 #include "log.h"
-#include "placedef.h"
+#include "cratedef.h"
 #include "porting.h" // strcasecmp
 
 #include <cassert>
 
-ObjDefManager::ObjDefManager(IPlaceDef *placedef, ObjDefType type)
+ObjDefManager::ObjDefManager(ICrateDef *cratedef, ObjDefType type)
 {
 	m_objtype = type;
-	m_ndef = placedef ? placedef->getNodeDefManager() : NULL;
+	m_ndef = cratedef ? cratedef->getNodeDefManager() : NULL;
 }
 
 

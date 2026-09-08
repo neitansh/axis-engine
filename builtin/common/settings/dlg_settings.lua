@@ -1060,7 +1060,7 @@ end
 local function eventhandler(event)
 	if event == "DialogShow" then
 		-- Don't show the header image behind the dialog.
-		mm_place_theme.set_engine(true)
+		mm_crate_theme.set_engine(true)
 		return true
 	end
 	if event == "FullscreenChange" then

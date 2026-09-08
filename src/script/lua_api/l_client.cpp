@@ -222,7 +222,7 @@ int ModApiClient::l_get_server_info(lua_State *L)
 // get_item_def(itemstring)
 int ModApiClient::l_get_item_def(lua_State *L)
 {
-	IPlaceDef *gdef = getPlaceDef(L);
+	ICrateDef *gdef = getCrateDef(L);
 	assert(gdef);
 
 	IItemDefManager *idef = gdef->idef();
@@ -247,7 +247,7 @@ int ModApiClient::l_get_item_def(lua_State *L)
 // get_node_def(nodename)
 int ModApiClient::l_get_node_def(lua_State *L)
 {
-	IPlaceDef *gdef = getPlaceDef(L);
+	ICrateDef *gdef = getCrateDef(L);
 	assert(gdef);
 
 	const NodeDefManager *ndef = gdef->ndef();

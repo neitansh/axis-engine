@@ -3,7 +3,7 @@
 // Copyright (C) 2013 celeron55, Perttu Ahola <celeron55@gmail.com>
 
 #include <common/c_internal.h>
-#include "content/places.h"
+#include "content/crates.h"
 #include "constants.h"
 #include "porting.h"
 #include "filesys.h"
@@ -17,18 +17,18 @@
 // The maximum number of identical world names allowed
 #define MAX_WORLD_NAMES 100
 
-// placeid to assume for worlds that are missing world.mt
+// crateid to assume for worlds that are missing world.mt
 #define LEGACY_GAMEID "minetest"
 
 namespace
 {
 
-bool getPlaceConfig(const std::string &place_path, Settings &conf)
+bool getPlaceConfig(const std::string &crate_path, Settings &conf)
 {
 	// Настройки, которые плейс хочет поверх умолчаний движка. Рядом читался
 	// ещё и "minetest.conf" — так годами возили свои настройки чужие игры;
 	// наши плейсы свои, и второго имени у файла нет.
-	const std::string conf_path = place_path + DIR_DELIM + "place_defaults.conf";
+	const std::string conf_path = crate_path + DIR_DELIM + "crate_defaults.conf";
 	return conf.readConfigFile(conf_path.c_str());
 }
 
@@ -84,7 +84,7 @@ std::string getWorldPathEnv()
 
 }
 
-void PlaceSpec::checkAndLog() const
+void CrateSpec::checkAndLog() const
 {
 	// Log deprecation messages
 	auto handling_mode = get_deprecated_handling_mode();
@@ -123,8 +123,8 @@ static GamePathMap getAvailableGamePaths()
 {
 	GamePathMap gamepaths;
 	std::vector<GameFindPath> game_search_paths{
-		{porting::path_share + DIR_DELIM + "places", false},
-		{porting::path_user + DIR_DELIM + "places", true}
+		{porting::path_share + DIR_DELIM + "depot", false},
+		{porting::path_user + DIR_DELIM + "depot", true}
 	};
 
 	Strfnd search_paths(getPlacePathEnv());
@@ -140,26 +140,26 @@ static GamePathMap getAvailableGamePaths()
 
 			// If configuration file is not found or broken, ignore game
 			Settings conf;
-			const std::string place_path = search_path.path + DIR_DELIM + dln.name;
-			if (!conf.readConfigFile((place_path + DIR_DELIM "place.conf").c_str()))
+			const std::string crate_path = search_path.path + DIR_DELIM + dln.name;
+			if (!conf.readConfigFile((crate_path + DIR_DELIM "crate.conf").c_str()))
 				continue;
 
 			// Add it to result
 			gamepaths.try_emplace(normalizePlaceId(dln.name),
-				place_path, search_path.user_specific, getAliasesFromSettings(conf)
+				crate_path, search_path.user_specific, getAliasesFromSettings(conf)
 			);
 		}
 	}
 	return gamepaths;
 }
 
-static PlaceSpec getPlaceSpec(const std::string &place_id,
-		const std::string &place_path,
+static CrateSpec getPlaceSpec(const std::string &crate_id,
+		const std::string &crate_path,
 		const std::unordered_map<std::string, std::string> &mods_paths)
 {
-	const auto placemods_path = place_path + DIR_DELIM + "mods";
+	const auto cratemods_path = crate_path + DIR_DELIM + "mods";
 	// Get meta
-	const std::string conf_path = place_path + DIR_DELIM + "place.conf";
+	const std::string conf_path = crate_path + DIR_DELIM + "crate.conf";
 	Settings conf;
 	conf.readConfigFile(conf_path.c_str());
 
@@ -169,7 +169,7 @@ static PlaceSpec getPlaceSpec(const std::string &place_id,
 	else if (conf.exists("name"))
 		game_title = conf.get("name");
 	else
-		game_title = place_id;
+		game_title = crate_id;
 
 	std::string game_author;
 	if (conf.exists("author"))
@@ -189,11 +189,11 @@ static PlaceSpec getPlaceSpec(const std::string &place_id,
 
 	auto aliases = getAliasesFromSettings(conf);
 
-	PlaceSpec spec(place_id, place_path, placemods_path, mods_paths, game_title,
+	CrateSpec spec(crate_id, crate_path, cratemods_path, mods_paths, game_title,
 			game_author, game_release, first_mod, last_mod, aliases);
 
 	if (conf.exists("name") && !conf.exists("title"))
-		spec.deprecation_msgs.push_back("\"name\" setting in place.conf is deprecated, please use \"title\" instead");
+		spec.deprecation_msgs.push_back("\"name\" setting in crate.conf is deprecated, please use \"title\" instead");
 
 	return spec;
 }
@@ -207,21 +207,21 @@ std::set<std::string> getAvailablePlaceIds()
 	return gameids;
 }
 
-std::vector<PlaceSpec> getAvailablePlaces()
+std::vector<CrateSpec> getAvailablePlaces()
 {
-	std::vector<PlaceSpec> specs;
+	std::vector<CrateSpec> specs;
 	std::set<std::string> gameids = getAvailablePlaceIds();
 	specs.reserve(gameids.size());
-	for (const auto &placeid : gameids)
-		specs.push_back(findPlace(placeid));
+	for (const auto &crateid : gameids)
+		specs.push_back(findPlace(crateid));
 	// TODO: Optimize such that `getAvailableGamePaths()` is not run N times.
 	return specs;
 }
 
-PlaceSpec findPlace(const std::string &id)
+CrateSpec findPlace(const std::string &id)
 {
 	if (id.empty())
-		return PlaceSpec();
+		return CrateSpec();
 
 	std::string idv = normalizePlaceId(id);
 
@@ -237,11 +237,11 @@ PlaceSpec findPlace(const std::string &id)
 	}
 
 	if (found == gamepaths.end()) // Failed to find the game taking aliases into account
-		return PlaceSpec();
+		return CrateSpec();
 
 	// Found the game, proceed
 	const GameFindPath &data = found->second;
-	const std::string &place_path = data.path;
+	const std::string &crate_path = data.path;
 	bool user_game = data.user_specific;
 
 
@@ -257,16 +257,16 @@ PlaceSpec findPlace(const std::string &id)
 		mods_paths[fs::AbsolutePath(mod_path)] = mod_path;
 	}
 
-	return getPlaceSpec(found->first, place_path, mods_paths);
+	return getPlaceSpec(found->first, crate_path, mods_paths);
 }
 
-PlaceSpec findWorldPlace(const std::string &world_path)
+CrateSpec findWorldPlace(const std::string &world_path)
 {
 	std::string world_gameid = getWorldPlaceId(world_path, true);
 	// See if world contains an embedded game; if so, use it.
-	std::string world_placepath = world_path + DIR_DELIM + "place";
-	if (fs::PathExists(world_placepath))
-		return getPlaceSpec(world_gameid, world_placepath, {});
+	std::string world_cratepath = world_path + DIR_DELIM + "place";
+	if (fs::PathExists(world_cratepath))
+		return getPlaceSpec(world_gameid, world_cratepath, {});
 	return findPlace(world_gameid);
 }
 
@@ -307,9 +307,9 @@ std::string getWorldPlaceId(const std::string &world_path, bool can_be_legacy)
 		}
 		return "";
 	}
-	if (!conf.exists("placeid"))
+	if (!conf.exists("crateid"))
 		return "";
-	return conf.get("placeid");
+	return conf.get("crateid");
 }
 
 std::vector<WorldSpec> getAvailableWorlds()
@@ -332,10 +332,10 @@ std::vector<WorldSpec> getAvailableWorlds()
 				continue;
 			std::string fullpath = worldspath + DIR_DELIM + dln.name;
 			std::string name = getWorldName(fullpath, dln.name);
-			// Just allow filling in the placeid always for now
+			// Just allow filling in the crateid always for now
 			bool can_be_legacy = true;
-			std::string placeid = getWorldPlaceId(fullpath, can_be_legacy);
-			WorldSpec spec(fullpath, name, placeid);
+			std::string crateid = getWorldPlaceId(fullpath, can_be_legacy);
+			WorldSpec spec(fullpath, name, crateid);
 			if (!spec.isValid()) {
 				infostream << "(invalid: " << name << ") ";
 			} else {
@@ -351,8 +351,8 @@ std::vector<WorldSpec> getAvailableWorlds()
 		if (!fs::PathExists(fullpath))
 			break;
 		std::string name = "Old World";
-		std::string placeid = getWorldPlaceId(fullpath, true);
-		WorldSpec spec(fullpath, name, placeid);
+		std::string crateid = getWorldPlaceId(fullpath, true);
+		WorldSpec spec(fullpath, name, crateid);
 		infostream << "Old world found." << std::endl;
 		worlds.push_back(spec);
 	} while (false);
@@ -361,7 +361,7 @@ std::vector<WorldSpec> getAvailableWorlds()
 }
 
 void loadPlaceConfAndInitWorld(const std::string &path, const std::string &name,
-		const PlaceSpec &placespec, bool create_world)
+		const CrateSpec &cratespec, bool create_world)
 {
 	std::string final_path = path;
 
@@ -386,7 +386,7 @@ void loadPlaceConfAndInitWorld(const std::string &path, const std::string &name,
 		game_settings = Settings::createLayer(SL_GAME);
 	}
 
-	getPlaceConfig(placespec.path, *game_settings);
+	getPlaceConfig(cratespec.path, *game_settings);
 	game_settings->removeSecureSettings();
 
 	infostream << "Initializing world at " << final_path << std::endl;
@@ -397,13 +397,13 @@ void loadPlaceConfAndInitWorld(const std::string &path, const std::string &name,
 	std::string worldmt_path = final_path + DIR_DELIM "world.mt";
 	if (!fs::PathExists(worldmt_path)) {
 		Settings gameconf;
-		std::string gameconf_path = placespec.path + DIR_DELIM "place.conf";
+		std::string gameconf_path = cratespec.path + DIR_DELIM "crate.conf";
 		gameconf.readConfigFile(gameconf_path.c_str());
 
 		Settings conf; // for world.mt
 
 		conf.set("world_name", name);
-		conf.set("placeid", placespec.id);
+		conf.set("crateid", cratespec.id);
 
 		std::string backend = "sqlite3";
 		if (gameconf.exists("map_persistent") && !gameconf.getBool("map_persistent")) {

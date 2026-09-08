@@ -13,7 +13,7 @@ public:
 	TestNoise() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestNoise"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testNoise2dAtOriginWithZeroSeed();
 	void testNoise2dWithMaxSeed();
@@ -33,7 +33,7 @@ public:
 
 static TestNoise g_test_instance;
 
-void TestNoise::runTests(IPlaceDef *placedef)
+void TestNoise::runTests(ICrateDef *cratedef)
 {
 	TEST(testNoise2dAtOriginWithZeroSeed);
 	TEST(testNoise2dWithMaxSeed);

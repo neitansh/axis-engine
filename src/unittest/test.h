@@ -71,15 +71,15 @@ public:
 	UTEST(exception_thrown, "Exception %s not thrown", #EType); \
 }
 
-class IPlaceDef;
+class ICrateDef;
 
 class TestBase {
 public:
-	bool testModule(IPlaceDef *placedef);
+	bool testModule(ICrateDef *cratedef);
 	std::string getTestTempDirectory();
 	std::string getTestTempFile();
 
-	virtual void runTests(IPlaceDef *placedef) = 0;
+	virtual void runTests(ICrateDef *cratedef) = 0;
 	virtual const char *getName() = 0;
 
 	u32 num_tests_failed;

@@ -13,7 +13,7 @@ public:
 	TestGameUI() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestGameUI"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testInit();
 	void testInfoText();
@@ -22,7 +22,7 @@ public:
 
 static TestGameUI g_test_instance;
 
-void TestGameUI::runTests(IPlaceDef *placedef)
+void TestGameUI::runTests(ICrateDef *cratedef)
 {
 	TEST(testInit);
 	TEST(testInfoText);

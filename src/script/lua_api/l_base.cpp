@@ -42,9 +42,9 @@ Client *ModApiBase::getClient(lua_State *L)
 }
 #endif
 
-IPlaceDef *ModApiBase::getPlaceDef(lua_State *L)
+ICrateDef *ModApiBase::getCrateDef(lua_State *L)
 {
-	return getScriptApiBase(L)->getPlaceDef();
+	return getScriptApiBase(L)->getCrateDef();
 }
 
 Environment *ModApiBase::getEnv(lua_State *L)
@@ -75,7 +75,7 @@ std::string ModApiBase::getCurrentModPath(lua_State *L)
 	if (current_mod_name.empty())
 		return ".";
 
-	const ModSpec *mod = getPlaceDef(L)->getModSpec(current_mod_name);
+	const ModSpec *mod = getCrateDef(L)->getModSpec(current_mod_name);
 	if (!mod)
 		return ".";
 

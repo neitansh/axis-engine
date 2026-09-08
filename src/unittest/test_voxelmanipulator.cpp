@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#include "placedef.h"
+#include "cratedef.h"
 #include "log.h"
 #include "voxel.h"
 #include "dummymap.h"
@@ -17,22 +17,22 @@ public:
 	TestVoxelManipulator() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestVoxelManipulator"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testBasic(const NodeDefManager *nodedef);
-	void testEmerge(IPlaceDef *placedef);
-	void testBlitBack(IPlaceDef *placedef);
-	void testBlitBack2(IPlaceDef *placedef);
+	void testEmerge(ICrateDef *cratedef);
+	void testBlitBack(ICrateDef *cratedef);
+	void testBlitBack2(ICrateDef *cratedef);
 };
 
 static TestVoxelManipulator g_test_instance;
 
-void TestVoxelManipulator::runTests(IPlaceDef *placedef)
+void TestVoxelManipulator::runTests(ICrateDef *cratedef)
 {
-	TEST(testBasic, placedef->ndef());
-	TEST(testEmerge, placedef);
-	TEST(testBlitBack, placedef);
-	TEST(testBlitBack2, placedef);
+	TEST(testBasic, cratedef->ndef());
+	TEST(testEmerge, cratedef);
+	TEST(testBlitBack, cratedef);
+	TEST(testBlitBack2, cratedef);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -65,11 +65,11 @@ void TestVoxelManipulator::testBasic(const NodeDefManager *nodedef)
 	EXCEPTION_CHECK(InvalidPositionException, v.getNode(v3s16(0,1,1)));
 }
 
-void TestVoxelManipulator::testEmerge(IPlaceDef *placedef)
+void TestVoxelManipulator::testEmerge(ICrateDef *cratedef)
 {
 	constexpr int bs = MAP_BLOCKSIZE;
 
-	DummyMap map(placedef, {0,0,0}, {1,1,1});
+	DummyMap map(cratedef, {0,0,0}, {1,1,1});
 	map.fill({0,0,0}, {1,1,1}, CONTENT_AIR);
 
 	MMVManip vm(&map);
@@ -103,9 +103,9 @@ void TestVoxelManipulator::testEmerge(IPlaceDef *placedef)
 	UASSERT(vm.m_area.hasEmptyExtent());
 }
 
-void TestVoxelManipulator::testBlitBack(IPlaceDef *placedef)
+void TestVoxelManipulator::testBlitBack(ICrateDef *cratedef)
 {
-	DummyMap map(placedef, {-1,-1,-1}, {1,1,1});
+	DummyMap map(cratedef, {-1,-1,-1}, {1,1,1});
 	map.fill({0,0,0}, {0,0,0}, CONTENT_AIR);
 
 	std::unique_ptr<MMVManip> vm2;
@@ -136,11 +136,11 @@ void TestVoxelManipulator::testBlitBack(IPlaceDef *placedef)
 	UASSERTEQ(auto, map.getNode({2,2,2}).getContent(), CONTENT_AIR);
 }
 
-void TestVoxelManipulator::testBlitBack2(IPlaceDef *placedef)
+void TestVoxelManipulator::testBlitBack2(ICrateDef *cratedef)
 {
 	constexpr int bs = MAP_BLOCKSIZE;
 
-	DummyMap map(placedef, {0,0,0}, {1,1,1});
+	DummyMap map(cratedef, {0,0,0}, {1,1,1});
 	map.fill({0,0,0}, {1,1,1}, CONTENT_AIR);
 
 	// Create a vmanip "manually" without using initialEmerge

@@ -28,7 +28,7 @@ struct MapNode;
 struct ContentFeatures;
 class LocalPlayer;
 class ITextureSource;
-class IPlaceDef;
+class ICrateDef;
 class Client;
 
 struct ClientParticleTexture

@@ -16,7 +16,7 @@
 #include "porting.h"
 #include "filesys.h"
 #include "content/content.h"
-#include "content/places.h"
+#include "content/crates.h"
 #include "mapgen/mapgen.h"
 #include "settings.h"
 #include "clientdynamicinfo.h"
@@ -315,8 +315,8 @@ int ModApiMainMenu::l_get_worlds(lua_State *L)
 		lua_pushstring(L, world.name.c_str());
 		lua_settable(L, top_lvl2);
 
-		lua_pushstring(L,"placeid");
-		lua_pushstring(L, world.placeid.c_str());
+		lua_pushstring(L,"crateid");
+		lua_pushstring(L, world.crateid.c_str());
 		lua_settable(L, top_lvl2);
 
 		lua_settable(L, top);
@@ -328,13 +328,13 @@ int ModApiMainMenu::l_get_worlds(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_get_places(lua_State *L)
 {
-	std::vector<PlaceSpec> games = getAvailablePlaces();
+	std::vector<CrateSpec> games = getAvailablePlaces();
 
 	lua_newtable(L);
 	int top = lua_gettop(L);
 	unsigned int index = 1;
 
-	for (const PlaceSpec &game : games) {
+	for (const CrateSpec &game : games) {
 		lua_pushnumber(L, index);
 		lua_newtable(L);
 		int top_lvl2 = lua_gettop(L);
@@ -351,8 +351,8 @@ int ModApiMainMenu::l_get_places(lua_State *L)
 		lua_pushstring(L,  "place");
 		lua_settable(L,    top_lvl2);
 
-		lua_pushstring(L,  "placemods_path");
-		lua_pushstring(L,  game.placemods_path.c_str());
+		lua_pushstring(L,  "cratemods_path");
+		lua_pushstring(L,  game.cratemods_path.c_str());
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "name");
@@ -519,8 +519,8 @@ int ModApiMainMenu::l_check_mod_configuration(lua_State *L)
 	ModConfiguration modmgr;
 
 	// Add all game mods
-	PlaceSpec placespec = findWorldPlace(worldpath);
-	modmgr.addGameMods(placespec);
+	CrateSpec cratespec = findWorldPlace(worldpath);
+	modmgr.addGameMods(cratespec);
 	modmgr.addModsInPath(worldpath + DIR_DELIM + "worldmods", "worldmods");
 
 	// Add user-configured mods
@@ -641,7 +641,7 @@ int ModApiMainMenu::l_show_touchscreen_layout(lua_State *L)
 int ModApiMainMenu::l_create_world(lua_State *L)
 {
 	const char *name   = luaL_checkstring(L, 1);
-	const char *placeid = luaL_checkstring(L, 2);
+	const char *crateid = luaL_checkstring(L, 2);
 
 	StringMap use_settings;
 	luaL_checktype(L, 3, LUA_TTABLE);
@@ -657,9 +657,9 @@ int ModApiMainMenu::l_create_world(lua_State *L)
 			"worlds" + DIR_DELIM
 			+ sanitizeDirName(name, "world_");
 
-	std::vector<PlaceSpec> games = getAvailablePlaces();
-	auto game_it = std::find_if(games.begin(), games.end(), [placeid] (const PlaceSpec &spec) {
-		return spec.id == placeid;
+	std::vector<CrateSpec> games = getAvailablePlaces();
+	auto game_it = std::find_if(games.begin(), games.end(), [crateid] (const CrateSpec &spec) {
+		return spec.id == crateid;
 	});
 	if (game_it == games.end()) {
 		lua_pushstring(L, "Game ID not found");
@@ -796,7 +796,7 @@ int ModApiMainMenu::l_get_clientmodpath(lua_State *L)
 int ModApiMainMenu::l_get_placepath(lua_State *L)
 {
 	std::string gamepath = fs::RemoveRelativePathComponents(
-		porting::path_user + DIR_DELIM + "places" + DIR_DELIM);
+		porting::path_user + DIR_DELIM + "depot" + DIR_DELIM);
 	lua_pushstring(L, gamepath.c_str());
 	return 1;
 }

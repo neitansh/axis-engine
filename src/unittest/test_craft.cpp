@@ -14,41 +14,41 @@ public:
 	TestCraft() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestCraft"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
-	static std::string getDumpedCraftResult(CraftInput input, IPlaceDef *placedef);
+	static std::string getDumpedCraftResult(CraftInput input, ICrateDef *cratedef);
 	static void registerItemWithGroups(const std::string &itemname,
-			const std::vector<std::string> &groups, IPlaceDef *placedef);
+			const std::vector<std::string> &groups, ICrateDef *cratedef);
 
-	void testShapeless(IPlaceDef *placedef);
+	void testShapeless(ICrateDef *cratedef);
 };
 
 static TestCraft g_test_instance;
 
-void TestCraft::runTests(IPlaceDef *placedef)
+void TestCraft::runTests(ICrateDef *cratedef)
 {
-	TEST(testShapeless, placedef);
+	TEST(testShapeless, cratedef);
 }
 
-std::string TestCraft::getDumpedCraftResult(CraftInput input, IPlaceDef *placedef)
+std::string TestCraft::getDumpedCraftResult(CraftInput input, ICrateDef *cratedef)
 {
 	// (input is passed by value, because getCraftResult needs a non-const ref
 	// for decrementing input)
 
-	IWritableCraftDefManager *cdef = (IWritableCraftDefManager *)placedef->getCraftDefManager();
+	IWritableCraftDefManager *cdef = (IWritableCraftDefManager *)cratedef->getCraftDefManager();
 
 	CraftOutput output{};
 	std::vector<ItemStack> output_replacements;
 
-	cdef->getCraftResult(input, output, output_replacements, false, placedef);
+	cdef->getCraftResult(input, output, output_replacements, false, cratedef);
 
 	return output.dump();
 }
 
 void TestCraft::registerItemWithGroups(const std::string &itemname,
-		const std::vector<std::string> &groups, IPlaceDef *placedef)
+		const std::vector<std::string> &groups, ICrateDef *cratedef)
 {
-	IWritableItemDefManager *idef = (IWritableItemDefManager *)placedef->getItemDefManager();
+	IWritableItemDefManager *idef = (IWritableItemDefManager *)cratedef->getItemDefManager();
 
 	if (idef->isKnown(itemname)) {
 		// already registered. check that the groups match
@@ -74,10 +74,10 @@ void TestCraft::registerItemWithGroups(const std::string &itemname,
 	}
 }
 
-void TestCraft::testShapeless(IPlaceDef *placedef)
+void TestCraft::testShapeless(ICrateDef *cratedef)
 {
-	IWritableItemDefManager *idef = (IWritableItemDefManager *)placedef->getItemDefManager();
-	IWritableCraftDefManager *cdef = (IWritableCraftDefManager *)placedef->getCraftDefManager();
+	IWritableItemDefManager *idef = (IWritableItemDefManager *)cratedef->getItemDefManager();
+	IWritableCraftDefManager *cdef = (IWritableCraftDefManager *)cratedef->getCraftDefManager();
 
 	auto to_item = [&](const std::string &itemstring) -> ItemStack {
 		ItemStack item;
@@ -88,11 +88,11 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 	cdef->clear();
 
 	idef->registerAlias("crafttest:a1", "crafttest:i1");
-	registerItemWithGroups("crafttest:i1", {}, placedef);
-	registerItemWithGroups("crafttest:i2", {}, placedef);
-	registerItemWithGroups("crafttest:i3", {}, placedef);
-	registerItemWithGroups("crafttest:i4", {}, placedef);
-	registerItemWithGroups("crafttest:g1g2", {"crafttest_g1", "crafttest_g2"}, placedef);
+	registerItemWithGroups("crafttest:i1", {}, cratedef);
+	registerItemWithGroups("crafttest:i2", {}, cratedef);
+	registerItemWithGroups("crafttest:i3", {}, cratedef);
+	registerItemWithGroups("crafttest:i4", {}, cratedef);
+	registerItemWithGroups("crafttest:g1g2", {"crafttest_g1", "crafttest_g2"}, cratedef);
 
 	cdef->registerCraft(new CraftDefinitionShapeless(
 				"crafttest:i1",
@@ -101,7 +101,7 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 					"crafttest:a1",
 				},
 				CraftReplacements{}
-			), placedef);
+			), cratedef);
 
 	cdef->registerCraft(new CraftDefinitionShapeless(
 				"crafttest:i2",
@@ -120,7 +120,7 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 					"crafttest:i1",
 				},
 				CraftReplacements{}
-			), placedef);
+			), cratedef);
 
 	cdef->registerCraft(new CraftDefinitionShapeless(
 				"crafttest:i3",
@@ -131,7 +131,7 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 					"group:crafttest_g1",
 				},
 				CraftReplacements{}
-			), placedef);
+			), cratedef);
 
 	cdef->registerCraft(new CraftDefinitionShapeless(
 				"crafttest:i4",
@@ -154,22 +154,22 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 					"group:crafttest_g1",
 				},
 				CraftReplacements{}
-			), placedef);
+			), cratedef);
 
 	UASSERTEQ(std::string, getDumpedCraftResult(CraftInput(CRAFT_METHOD_NORMAL, 3,
 			{
 				to_item("crafttest:i1"),
 				to_item("crafttest:i1"),
-			}), placedef),
+			}), cratedef),
 			"(item=\"crafttest:i1\", time=0)");
 
-	cdef->initHashes(placedef);
+	cdef->initHashes(cratedef);
 
 	UASSERTEQ(std::string, getDumpedCraftResult(CraftInput(CRAFT_METHOD_NORMAL, 3,
 			{
 				to_item("crafttest:i1"),
 				to_item("crafttest:i1"),
-			}), placedef),
+			}), cratedef),
 			"(item=\"crafttest:i1\", time=0)");
 
 	UASSERTEQ(std::string, getDumpedCraftResult(CraftInput(CRAFT_METHOD_NORMAL, 3,
@@ -177,14 +177,14 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 				to_item("crafttest:i1"),
 				to_item(""),
 				to_item("crafttest:i1"),
-			}), placedef),
+			}), cratedef),
 			"(item=\"crafttest:i1\", time=0)");
 
 	UASSERTEQ(std::string, getDumpedCraftResult(CraftInput(CRAFT_METHOD_NORMAL, 4,
 			{
 				to_item("crafttest:i1"),
 				to_item("crafttest:i1"),
-			}), placedef),
+			}), cratedef),
 			"(item=\"crafttest:i1\", time=0)");
 
 	UASSERTEQ(std::string, getDumpedCraftResult(CraftInput(CRAFT_METHOD_NORMAL, 3,
@@ -201,7 +201,7 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 				to_item("crafttest:i1"),
 				to_item("crafttest:i2"),
 				to_item("crafttest:i1"),
-			}), placedef),
+			}), cratedef),
 			"(item=\"crafttest:i2\", time=0)");
 
 	UASSERTEQ(std::string, getDumpedCraftResult(CraftInput(CRAFT_METHOD_NORMAL, 4,
@@ -218,7 +218,7 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 				to_item("crafttest:i1"),
 				to_item("crafttest:i2"),
 				to_item("crafttest:i1"),
-			}), placedef),
+			}), cratedef),
 			"(item=\"crafttest:i2\", time=0)");
 
 	UASSERTEQ(std::string, getDumpedCraftResult(CraftInput(CRAFT_METHOD_NORMAL, 3,
@@ -227,7 +227,7 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 				to_item("crafttest:i1"),
 				to_item("crafttest:i2"),
 				to_item("crafttest:g1g2"),
-			}), placedef),
+			}), cratedef),
 			"(item=\"crafttest:i3\", time=0)");
 
 	UASSERTEQ(std::string, getDumpedCraftResult(CraftInput(CRAFT_METHOD_NORMAL, 3,
@@ -236,7 +236,7 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 				to_item("crafttest:i1"),
 				to_item("crafttest:i2"),
 				to_item("crafttest:i2"),
-			}), placedef),
+			}), cratedef),
 			"(item=\"crafttest:i3\", time=0)");
 
 	UASSERTEQ(std::string, getDumpedCraftResult(CraftInput(CRAFT_METHOD_NORMAL, 3,
@@ -257,6 +257,6 @@ void TestCraft::testShapeless(IPlaceDef *placedef)
 				to_item("crafttest:g1g2"),
 				to_item("crafttest:g1g2"),
 				to_item("crafttest:g1g2"),
-			}), placedef),
+			}), cratedef),
 			"(item=\"crafttest:i4\", time=0)");
 }

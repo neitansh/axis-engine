@@ -17,7 +17,7 @@ public:
 	TestConfigManager() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestConfigManager"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testDomainLookup();
 	void testLayoutOnLoad();
@@ -34,7 +34,7 @@ public:
 
 static TestConfigManager g_test_instance;
 
-void TestConfigManager::runTests(IPlaceDef *placedef)
+void TestConfigManager::runTests(ICrateDef *cratedef)
 {
 	TEST(testDomainLookup);
 	TEST(testLayoutOnLoad);

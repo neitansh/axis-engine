@@ -2678,7 +2678,7 @@ void Client::pushToEventQueue(ClientEvent *event)
 	m_client_event_queue.push(event);
 }
 
-// IPlaceDef interface
+// ICrateDef interface
 // Under envlock
 IItemDefManager *Client::getItemDefManager()
 {

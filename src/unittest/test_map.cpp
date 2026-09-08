@@ -29,22 +29,22 @@ public:
 	TestMap() { TestManager::registerTestModule(this); }
 	const char *getName() { return "TestMap"; }
 
-	void runTests(IPlaceDef *placedef);
+	void runTests(ICrateDef *cratedef);
 
 	void testMaxMapgenLimit();
-	void testForEachNodeInArea(IPlaceDef *placedef);
-	void testForEachNodeInAreaBlank(IPlaceDef *placedef);
-	void testForEachNodeInAreaEmpty(IPlaceDef *placedef);
+	void testForEachNodeInArea(ICrateDef *cratedef);
+	void testForEachNodeInAreaBlank(ICrateDef *cratedef);
+	void testForEachNodeInAreaEmpty(ICrateDef *cratedef);
 };
 
 static TestMap g_test_instance;
 
-void TestMap::runTests(IPlaceDef *placedef)
+void TestMap::runTests(ICrateDef *cratedef)
 {
 	TEST(testMaxMapgenLimit);
-	TEST(testForEachNodeInArea, placedef);
-	TEST(testForEachNodeInAreaBlank, placedef);
-	TEST(testForEachNodeInAreaEmpty, placedef);
+	TEST(testForEachNodeInArea, cratedef);
+	TEST(testForEachNodeInAreaBlank, cratedef);
+	TEST(testForEachNodeInAreaEmpty, cratedef);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ void TestMap::testMaxMapgenLimit()
 	UASSERT(blockpos_over_max_limit(v3s16(-limit_block-1)) == true);
 }
 
-void TestMap::testForEachNodeInArea(IPlaceDef *placedef)
+void TestMap::testForEachNodeInArea(ICrateDef *cratedef)
 {
 	v3s16 minp_visit(-10, -10, -10);
 	v3s16 maxp_visit(20, 20, 10);
@@ -84,7 +84,7 @@ void TestMap::testForEachNodeInArea(IPlaceDef *placedef)
 
 	v3s16 minp = minp_visit - v3s16(1, 1, 1);
 	v3s16 maxp = maxp_visit + v3s16(1, 1, 1);
-	DummyMap map(placedef, getNodeBlockPos(minp), getNodeBlockPos(maxp));
+	DummyMap map(cratedef, getNodeBlockPos(minp), getNodeBlockPos(maxp));
 
 	v3s16 p1(0, 10, 5);
 	MapNode n1(t_CONTENT_STONE);
@@ -143,9 +143,9 @@ void TestMap::testForEachNodeInArea(IPlaceDef *placedef)
 	UASSERTEQ(content_t, found[p4].getContent(), n4.getContent());
 }
 
-void TestMap::testForEachNodeInAreaBlank(IPlaceDef *placedef)
+void TestMap::testForEachNodeInAreaBlank(ICrateDef *cratedef)
 {
-	DummyMap map(placedef, v3s16(0, 0, 0), v3s16(-1, -1, -1));
+	DummyMap map(cratedef, v3s16(0, 0, 0), v3s16(-1, -1, -1));
 
 	v3s16 invalid_p(0, 0, 0);
 	bool visited = false;
@@ -160,9 +160,9 @@ void TestMap::testForEachNodeInAreaBlank(IPlaceDef *placedef)
 	UASSERT(visited);
 }
 
-void TestMap::testForEachNodeInAreaEmpty(IPlaceDef *placedef)
+void TestMap::testForEachNodeInAreaEmpty(ICrateDef *cratedef)
 {
-	DummyMap map(placedef, v3s16(), v3s16());
+	DummyMap map(cratedef, v3s16(), v3s16());
 	map.forEachNodeInArea(v3s16(0, 0, 0), v3s16(-1, -1, -1), [&](v3s16 p, MapNode n) -> bool {
 		UASSERT(false); // Should be unreachable
 		return true;

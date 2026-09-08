@@ -4,9 +4,9 @@
 
 #include "test.h"
 
-#include "placedef.h"
+#include "cratedef.h"
 #include "inventory.h" // ItemStack
-#include "dummyplacedef.h"
+#include "dummycratedef.h"
 #include "client/content_mapblock.h"
 #include "client/mapblock_mesh.h"
 #include "client/meshgen/collector.h"
@@ -16,7 +16,7 @@
 
 namespace {
 
-class MockGameDef : public DummyPlaceDef {
+class MockGameDef : public DummyCrateDef {
 public:
 	IWritableItemDefManager *item_mgr() noexcept {
 		return static_cast<IWritableItemDefManager *>(m_itemdef);
@@ -157,7 +157,7 @@ public:
 	TestMapblockMeshGenerator() { TestManager::registerTestModule(this); }
 	const char *getName() override { return "TestMapblockMeshGenerator"; }
 
-	void runTests(IPlaceDef *placedef) override;
+	void runTests(ICrateDef *cratedef) override;
 	void testSimpleNode();
 	void testSurroundedNode();
 	void testInterliquidSame();
@@ -166,7 +166,7 @@ public:
 
 static TestMapblockMeshGenerator g_test_instance;
 
-void TestMapblockMeshGenerator::runTests(IPlaceDef *placedef)
+void TestMapblockMeshGenerator::runTests(ICrateDef *cratedef)
 {
 	set_light_decode_table();
 	TEST(testSimpleNode);
@@ -187,11 +187,11 @@ namespace quad {
 
 void TestMapblockMeshGenerator::testSimpleNode()
 {
-	MockGameDef placedef;
-	content_t stone = placedef.addSimpleNode("stone", 42);
-	placedef.finalize();
+	MockGameDef cratedef;
+	content_t stone = cratedef.addSimpleNode("stone", 42);
+	cratedef.finalize();
 
-	MeshMakeData data = placedef.makeSingleNodeMMD();
+	MeshMakeData data = cratedef.makeSingleNodeMMD();
 	data.m_vmanip.setNode({0, 0, 0}, {stone, 0, 0});
 
 	MeshCollector col{{}};
@@ -207,12 +207,12 @@ void TestMapblockMeshGenerator::testSimpleNode()
 
 void TestMapblockMeshGenerator::testSurroundedNode()
 {
-	MockGameDef placedef;
-	content_t stone = placedef.addSimpleNode("stone", 42);
-	content_t wood = placedef.addSimpleNode("wood", 13);
-	placedef.finalize();
+	MockGameDef cratedef;
+	content_t stone = cratedef.addSimpleNode("stone", 42);
+	content_t wood = cratedef.addSimpleNode("wood", 13);
+	cratedef.finalize();
 
-	MeshMakeData data = placedef.makeSingleNodeMMD();
+	MeshMakeData data = cratedef.makeSingleNodeMMD();
 	data.m_vmanip.setNode({0, 0, 0}, {stone, 0, 0});
 	data.m_vmanip.setNode({1, 0, 0}, {wood, 0, 0});
 
@@ -229,11 +229,11 @@ void TestMapblockMeshGenerator::testSurroundedNode()
 
 void TestMapblockMeshGenerator::testInterliquidSame()
 {
-	MockGameDef placedef;
-	auto water = placedef.addLiquidSource("water", 42);
-	placedef.finalize();
+	MockGameDef cratedef;
+	auto water = cratedef.addLiquidSource("water", 42);
+	cratedef.finalize();
 
-	MeshMakeData data = placedef.makeSingleNodeMMD();
+	MeshMakeData data = cratedef.makeSingleNodeMMD();
 	data.m_vmanip.setNode({0, 0, 0}, {water, 0, 0});
 	data.m_vmanip.setNode({1, 0, 0}, {water, 0, 0});
 
@@ -250,12 +250,12 @@ void TestMapblockMeshGenerator::testInterliquidSame()
 
 void TestMapblockMeshGenerator::testInterliquidDifferent()
 {
-	MockGameDef placedef;
-	auto water = placedef.addLiquidSource("water", 42);
-	auto lava = placedef.addLiquidSource("lava", 13);
-	placedef.finalize();
+	MockGameDef cratedef;
+	auto water = cratedef.addLiquidSource("water", 42);
+	auto lava = cratedef.addLiquidSource("lava", 13);
+	cratedef.finalize();
 
-	MeshMakeData data = placedef.makeSingleNodeMMD();
+	MeshMakeData data = cratedef.makeSingleNodeMMD();
 	data.m_vmanip.setNode({0, 0, 0}, {water, 0, 0});
 	data.m_vmanip.setNode({0, 0, 1}, {lava, 0, 0});
 
