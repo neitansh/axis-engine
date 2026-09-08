@@ -51,7 +51,7 @@ enum SettingsParseEvent {
 // Describes the global setting layers, SL_GLOBAL is where settings are read from
 enum SettingsLayer {
 	SL_DEFAULTS,
-	SL_GAME,
+	SL_CRATE,
 	SL_GLOBAL,
 	SL_TOTAL_COUNT
 };

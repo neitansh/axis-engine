@@ -17,7 +17,7 @@
 # If not specified, the value is inherited from the context value of the containing
 # category instead.
 # For the builtin/settingtypes.txt file, every setting needs to have a context defined,
-# either via a category containing it or via the setting itself. In game/mod-provided
+# either via a category containing it or via the setting itself. In crate/mod-provided
 # settingtypes.txt files, context annotations are invalid.
 # Note: For context annotations, it's irrelevant whether changes to a setting
 # after startup/game-join will be read. A separate mechanism for declaring that
@@ -184,11 +184,11 @@ keymap_sneak (Sneak) key SYSTEM_SCANCODE_225|GAMEPAD_BUTTON_1
 keymap_sprint (Sprint key) key SYSTEM_SCANCODE_224
 
 #    Key for digging, punching or using something.
-#    (Note: The actual meaning might vary on a per-game basis.)
+#    (Note: The actual meaning might vary on a per-crate basis.)
 keymap_dig (Dig/punch/use) key KEY_LBUTTON|GAMEPAD_AXIS_PLUS_5
 
 #    Key for placing an item/block or for using something.
-#    (Note: The actual meaning might vary on a per-game basis.)
+#    (Note: The actual meaning might vary on a per-crate basis.)
 keymap_place (Place/use) key KEY_RBUTTON|GAMEPAD_AXIS_PLUS_4
 
 keymap_inventory (Open inventory) key SYSTEM_SCANCODE_8|GAMEPAD_BUTTON_3
@@ -199,7 +199,7 @@ keymap_pause (Open pause menu) key GAMEPAD_BUTTON_6
 
 #    Key for moving fast in fast mode.
 #    Key for using something: leaving a vehicle, opening a hatch, and
-#    whatever else the game hangs on it.
+#    whatever else the crate hangs on it.
 keymap_aux1 (Use) key SYSTEM_SCANCODE_21|GAMEPAD_BUTTON_2
 
 keymap_chat (Open chat) key SYSTEM_SCANCODE_23
@@ -397,7 +397,7 @@ touch_controls (Touchscreen controls) enum auto auto,true,false
 touch_interaction_style (Interaction style) enum tap tap,tap_crosshair,buttons_crosshair
 
 #    The gesture for punching players/entities.
-#    This can be overridden by games and mods.
+#    This can be overridden by crates and mods.
 #
 #    * Short tap
 #      Easy to use and well-known from other games that shall not be named.
@@ -778,7 +778,7 @@ shadow_map_texture_32bit (Shadow map texture in 32 bits) bool true
 shadow_map_color (Colored shadows) bool false
 
 #    Set the default tilt of Sun/Moon orbit in degrees.
-#    Games may change orbit tilt via API.
+#    Crates may change orbit tilt via API.
 #    Value of 0 means no tilt / vertical orbit.
 #
 #    Requires: enable_dynamic_shadows, shadows_support
@@ -1012,7 +1012,7 @@ show_nametag_backgrounds (Show name tag backgrounds by default) bool true
 
 #    How many name tags may be shown at once. The ones nearest to the crosshair
 #    win; the rest are not drawn at all. Zero means no limit.
-#    A place may narrow this further through its own rules, but not widen it.
+#    A crate may narrow this further through its own rules, but not widen it.
 nametag_max_visible (Name tags shown at once) int 5 0 50
 
 #    Whether to show the client debug info (has the same effect as hitting F5).

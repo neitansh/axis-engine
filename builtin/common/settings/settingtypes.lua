@@ -452,7 +452,7 @@ end
 --- Returns table of setting types
 --
 -- @param read_all Whether to ignore certain setting types for GUI or not
--- @parse_mods Whether to parse settingtypes.txt in mods and places
+-- @parse_mods Whether to parse settingtypes.txt in mods and crates
 function settingtypes.parse_config_file(read_all, parse_mods)
 	local settings = {}
 
@@ -469,25 +469,25 @@ function settingtypes.parse_config_file(read_all, parse_mods)
 		file:close()
 	end
 
-	-- TODO: Support place/mod settings in the pause menu too
+	-- TODO: Support crate/mod settings in the pause menu too
 	-- Note that this will need to work different from how it's done in the
 	-- mainmenu:
-	-- * Only show settings for the active place and mods
+	-- * Only show settings for the active crate and mods
 	--   (add API function to get them, can return nil if on a remote server)
 	--   (names are probably not enough, will need paths for uniqueness)
 	-- This means just making "pkgmgr.lua" work won't get you very far.
 
 	if INIT == "mainmenu" and parse_mods then
-		-- Parse places
+		-- Parse crates
 		local crates_category_initialized = false
-		for _, place in ipairs(pkgmgr.crates) do
-			local path = place.path .. DIR_DELIM .. FILENAME
+		for _, crate in ipairs(pkgmgr.crates) do
+			local path = crate.path .. DIR_DELIM .. FILENAME
 			local file = io.open(path, "r")
 			if file then
 				if not crates_category_initialized then
-					fgettext_ne("Content: Places") -- not used, but needed for xgettext
+					fgettext_ne("Content: Crates") -- not used, but needed for xgettext
 					table.insert(settings, {
-						name = "Content: Places",
+						name = "Content: Crates",
 						level = 0,
 						type = "category",
 					})
@@ -495,8 +495,8 @@ function settingtypes.parse_config_file(read_all, parse_mods)
 				end
 
 				table.insert(settings, {
-					name = place.path,
-					readable_name = place.title,
+					name = crate.path,
+					readable_name = crate.title,
 					level = 1,
 					type = "category",
 				})

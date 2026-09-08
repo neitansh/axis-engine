@@ -42,7 +42,7 @@ ServerScripting::ServerScripting(Server* server):
 		ScriptApiBase(ScriptingType::Server),
 		ScriptApiAsync(server)
 {
-	setGameDef(server);
+	setCrateDef(server);
 
 	// setEnv(env) is called by ScriptApiEnv::initializeEnvironment()
 	// once the environment has been created

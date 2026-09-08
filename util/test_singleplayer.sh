@@ -2,7 +2,7 @@
 # Runs a singleplayer session with software-rendering.
 
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-gameid=${gameid:-mineclonia}
+crateid=${crateid:-mineclonia}
 executable=$dir/../bin/axis
 testspath=$dir/../tests
 # The engine reads a directory of config files; a test only needs one of them.
@@ -12,10 +12,10 @@ worldpath=$testspath/world
 
 [ -e "$executable" ] || { echo "executable $executable missing"; exit 1; }
 
-# The scripts need a game to run. It is not part of this repository, so say
+# The scripts need a crate to run. It is not part of this repository, so say
 # what is missing instead of failing halfway through.
-if [ ! -d "$dir/../games/$gameid" ]; then
-	echo "Game '$gameid' is not installed, skipping."
+if [ ! -d "$dir/../depot/$crateid" ]; then
+	echo "Crate '$crateid' is not installed, skipping."
 	exit 0
 fi
 
@@ -39,7 +39,7 @@ ln -s "$dir/helper_mod" "$worldpath/worldmods/"
 export ALSOFT_DRIVERS=null
 export LIBGL_ALWAYS_SOFTWARE=true
 export MESA_DEBUG=1
-timeout 25 "$executable" --config-dir "$conf_dir" --go --world "$worldpath" --gameid "$gameid" --info
+timeout 25 "$executable" --config-dir "$conf_dir" --go --world "$worldpath" --crateid "$crateid" --info
 r=$?
 echo "Exit status: $r"
 [ $r -eq 124 ] && echo "(timed out)"

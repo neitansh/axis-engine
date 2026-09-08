@@ -147,7 +147,7 @@ local function get_formspec(tabview, name, tabdata)
 		"field[0.35,0.25;6.8,0.75;te_search;;" .. core.formspec_escape(tabdata.search_for) .. "]" ..
 		"tooltip[te_search;" .. core.formspec_escape(table.concat({
 				fgettext("Possible filters"),
-				"place:<name>",
+				"crate:<name>",
 				"mod:<name>",
 				"player:<name>",
 				"sort:[-](name|relevance|players|mods|uptime|ping|lag)",
@@ -224,7 +224,7 @@ local function get_formspec(tabview, name, tabdata)
 		if mods and #mods > 0 then
 			local tooltip = ""
 			if selected_server.crateid then
-				tooltip = fgettext("Place: $1", selected_server.crateid) .. "\n"
+				tooltip = fgettext("Crate: $1", selected_server.crateid) .. "\n"
 			end
 			tooltip = tooltip .. fgettext("Number of mods: $1", #mods)
 
@@ -386,11 +386,11 @@ local function parse_search_input(input)
 		table.insert(query.mods, mod)
 		local player = word:match("^player:(.*)")
 		table.insert(query.players, player)
-		local place = word:match("^place:(.*)")
-		query.place = query.place or place
+		local crate = word:match("^crate:(.*)")
+		query.crate = query.crate or crate
 		local sort = word:match("^sort:(.*)")
 		query.sort = query.sort or sort
-		if not (mod or player or place or sort) then
+		if not (mod or player or crate or sort) then
 			table.insert(query.keywords, word)
 		end
 	end
@@ -437,8 +437,8 @@ local function matches_query(server, query)
 		end
 	end
 
-	-- Check if place matches
-	if query.place and query.place ~= server.crateid then
+	-- Check if crate matches
+	if query.crate and query.crate ~= server.crateid then
 		return false
 	end
 

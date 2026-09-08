@@ -1,6 +1,6 @@
 #!/bin/bash
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-gameid=${gameid:-mineclonia}
+crateid=${crateid:-mineclonia}
 executable=$dir/../bin/axis
 testspath=$dir/../tests
 # The engine reads a directory of config files; a test only needs one of them.
@@ -18,10 +18,10 @@ run () {
 
 [ -e "$executable" ] || { echo "executable $executable missing"; exit 1; }
 
-# The scripts need a game to run. It is not part of this repository, so say
+# The scripts need a crate to run. It is not part of this repository, so say
 # what is missing instead of failing halfway through.
-if [ ! -d "$dir/../games/$gameid" ]; then
-	echo "Game '$gameid' is not installed, skipping."
+if [ ! -d "$dir/../depot/$crateid" ]; then
+	echo "Crate '$crateid' is not installed, skipping."
 	exit 0
 fi
 
@@ -35,6 +35,6 @@ printf '%s\n' "${settings[@]}" >"$conf_server" \
 
 ln -s "$dir/helper_mod" "$worldpath/worldmods/"
 
-args=(--config-dir "$conf_dir" --world "$worldpath" --gameid $gameid)
+args=(--config-dir "$conf_dir" --world "$worldpath" --crateid $crateid)
 [ -n "$PROFILER" ] && args+=(--verbose)
 run "$executable" --server "${args[@]}"

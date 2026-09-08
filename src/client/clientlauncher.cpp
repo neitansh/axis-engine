@@ -573,9 +573,9 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 		bool world_exists = getWorldExists(worldspec.path);
 		if (world_exists)
 		{
-			auto world_game = findWorldCrate(worldspec.path);
-			if (world_game.isValid())
-				start_data.crate_spec = world_game;
+			auto world_crate = findWorldCrate(worldspec.path);
+			if (world_crate.isValid())
+				start_data.crate_spec = world_crate;
 		}
 
 		if (!start_data.crate_spec.isValid())

@@ -1107,17 +1107,17 @@ static bool configure_crate(GameParams *game_params, const Settings &cmd_args)
 
 static bool get_game_from_cmdline(GameParams *game_params, const Settings &cmd_args)
 {
-	CrateSpec commanded_gamespec;
+	CrateSpec commanded_cratespec;
 
 	if (cmd_args.exists("crateid")) {
 		std::string crateid = cmd_args.get("crateid");
-		commanded_gamespec = findCrate(crateid);
-		if (!commanded_gamespec.isValid()) {
-			errorstream << "Game \"" << crateid << "\" not found" << std::endl;
+		commanded_cratespec = findCrate(crateid);
+		if (!commanded_cratespec.isValid()) {
+			errorstream << "Crate \"" << crateid << "\" not found" << std::endl;
 			return false;
 		}
-		infostream << "Using commanded crateid [" << commanded_gamespec.id << "]" << std::endl;
-		game_params->crate_spec = commanded_gamespec;
+		infostream << "Using commanded crateid [" << commanded_cratespec.id << "]" << std::endl;
+		game_params->crate_spec = commanded_cratespec;
 		return true;
 	}
 
@@ -1148,11 +1148,11 @@ static bool determine_crate(GameParams *game_params)
 				// Else, force the user to choose
 				auto &url = g_settings->get("contentdb_url");
 
-				errorstream << "To run a " PROJECT_NAME_C " server, you need to select a game using the '--crateid' argument." << std::endl;
+				errorstream << "To run a " PROJECT_NAME_C " server, you need to select a crate using the '--crateid' argument." << std::endl;
 				if (games.empty())
 					errorstream << "Check out " << url << " for a selection of games to pick from and download." << std::endl;
 				else
-					errorstream << "Use '--crateid list' to print a list of all installed games." << std::endl;
+					errorstream << "Use '--crateid list' to print a list of all installed crates." << std::endl;
 				return false;
 			}
 		}

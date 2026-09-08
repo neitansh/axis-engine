@@ -65,7 +65,7 @@ DOMAIN_FILES = {
     "ServerWorldgen": ("server/worldgen.conf",
             "Map generation. Applied to worlds at creation time."),
     "ServerCustom": ("server/custom.conf",
-            "Server settings of games and mods, unknown to the engine."),
+            "Server settings of crates and mods, unknown to the engine."),
 }
 
 CATEGORY_RE = re.compile(r"^\[(\**)([^\]]+)\](?:\s+\[(\w+)\])?\s*$")
@@ -347,7 +347,7 @@ def render_example(domain, settings):
         ]
     else:
         lines += [
-            "# The engine writes nothing here on its own. Settings of games and",
+            "# The engine writes nothing here on its own. Settings of crates and",
             "# mods end up in this file.",
             "",
         ]

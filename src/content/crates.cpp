@@ -18,16 +18,16 @@
 #define MAX_WORLD_NAMES 100
 
 // crateid to assume for worlds that are missing world.mt
-#define LEGACY_GAMEID "minetest"
+#define LEGACY_CRATEID "minetest"
 
 namespace
 {
 
-bool getPlaceConfig(const std::string &crate_path, Settings &conf)
+bool getCrateConfig(const std::string &crate_path, Settings &conf)
 {
-	// Настройки, которые плейс хочет поверх умолчаний движка. Рядом читался
+	// Настройки, которые крейт хочет поверх умолчаний движка. Рядом читался
 	// ещё и "minetest.conf" — так годами возили свои настройки чужие игры;
-	// наши плейсы свои, и второго имени у файла нет.
+	// наши крейты свои, и второго имени у файла нет.
 	const std::string conf_path = crate_path + DIR_DELIM + "crate_defaults.conf";
 	return conf.readConfigFile(conf_path.c_str());
 }
@@ -35,6 +35,8 @@ bool getPlaceConfig(const std::string &crate_path, Settings &conf)
 // Keep in sync with pkgmgr.lua, `pkgmgr.normalize_crate_id()`.
 std::string normalizeCrateId(std::string_view id)
 {
+	// "_game" — суффикс ContentDB, а не наш: там крейт зовётся игрой, и
+	// пакет "mycrate_game" приходит оттуда именно с ним.
 	static const char *ends[] = {"_game", nullptr};
 	auto shorter = removeStringEnd(id, ends);
 	return std::string(shorter.empty() ? id : shorter);
@@ -52,12 +54,11 @@ std::unordered_set<std::string> getAliasesFromSettings(const Settings &conf)
 	return aliases;
 }
 
-// Где ещё искать плейсы, кроме дома игрока и каталога рядом с движком.
+// Где ещё искать крейты, кроме дома игрока и каталога рядом с движком.
 //
-// Раньше здесь стояла лестница из LUANTI_GAME_PATH, MINETEST_GAME_PATH и
-// MINETEST_SUBGAME_PATH: два последних — с предупреждением об устаревании.
-// Движок наш, плейсы наши, и трёх имён одной переменной здесь незачем.
-std::string getPlacePathEnv()
+// Имя у переменной одно: движок наш, крейты наши, и трёх имён одной и той же
+// переменной, как было у Luanti, здесь незачем.
+std::string getCratePathEnv()
 {
 	if (const char *path = getenv("AXIS_CRATE_PATH"))
 		return std::string(path);
@@ -90,7 +91,7 @@ void CrateSpec::checkAndLog() const
 	auto handling_mode = get_deprecated_handling_mode();
 	if (!deprecation_msgs.empty() && handling_mode != DeprecatedHandlingMode::Ignore) {
 		std::ostringstream os;
-		os << "Game " << title << " at " << path << ":" << std::endl;
+		os << "Crate " << title << " at " << path << ":" << std::endl;
 		for (auto msg : deprecation_msgs)
 			os << "\t" << msg << std::endl;
 
@@ -101,56 +102,56 @@ void CrateSpec::checkAndLog() const
 	}
 }
 
-struct GameFindPath
+struct CrateFindPath
 {
 	std::string path;
-	bool user_specific; // If true, game is in path_user
+	bool user_specific; // If true, crate is in path_user
 	std::unordered_set<std::string> aliases;
 
-	GameFindPath(const std::string &path, bool user_specific) :
+	CrateFindPath(const std::string &path, bool user_specific) :
 			path(path), user_specific(user_specific)
 	{
 	}
-	GameFindPath(const std::string &path, bool user_specific, std::unordered_set<std::string>&& aliases) :
+	CrateFindPath(const std::string &path, bool user_specific, std::unordered_set<std::string>&& aliases) :
 			path(path), user_specific(user_specific), aliases(aliases)
 	{
 	}
 };
 
-using GamePathMap = std::unordered_map<std::string, GameFindPath>;
+using CratePathMap = std::unordered_map<std::string, CrateFindPath>;
 
-static GamePathMap getAvailableGamePaths()
+static CratePathMap getAvailableCratePaths()
 {
-	GamePathMap gamepaths;
-	std::vector<GameFindPath> game_search_paths{
+	CratePathMap cratepaths;
+	std::vector<CrateFindPath> crate_search_paths{
 		{porting::path_share + DIR_DELIM + "depot", false},
 		{porting::path_user + DIR_DELIM + "depot", true}
 	};
 
-	Strfnd search_paths(getPlacePathEnv());
+	Strfnd search_paths(getCratePathEnv());
 
 	while (!search_paths.at_end())
-		game_search_paths.emplace_back(search_paths.next(PATH_DELIM), false);
+		crate_search_paths.emplace_back(search_paths.next(PATH_DELIM), false);
 
-	for (const GameFindPath &search_path : game_search_paths) {
+	for (const CrateFindPath &search_path : crate_search_paths) {
 		auto dirlist = fs::GetDirListing(search_path.path);
 		for (const fs::DirListNode &dln : dirlist) {
 			if (!dln.dir)
 				continue;
 
-			// If configuration file is not found or broken, ignore game
+			// If configuration file is not found or broken, ignore crate
 			Settings conf;
 			const std::string crate_path = search_path.path + DIR_DELIM + dln.name;
 			if (!conf.readConfigFile((crate_path + DIR_DELIM "crate.conf").c_str()))
 				continue;
 
 			// Add it to result
-			gamepaths.try_emplace(normalizeCrateId(dln.name),
+			cratepaths.try_emplace(normalizeCrateId(dln.name),
 				crate_path, search_path.user_specific, getAliasesFromSettings(conf)
 			);
 		}
 	}
-	return gamepaths;
+	return cratepaths;
 }
 
 static CrateSpec getCrateSpec(const std::string &crate_id,
@@ -163,21 +164,21 @@ static CrateSpec getCrateSpec(const std::string &crate_id,
 	Settings conf;
 	conf.readConfigFile(conf_path.c_str());
 
-	std::string game_title;
+	std::string crate_title;
 	if (conf.exists("title"))
-		game_title = conf.get("title");
+		crate_title = conf.get("title");
 	else if (conf.exists("name"))
-		game_title = conf.get("name");
+		crate_title = conf.get("name");
 	else
-		game_title = crate_id;
+		crate_title = crate_id;
 
-	std::string game_author;
+	std::string crate_author;
 	if (conf.exists("author"))
-		game_author = conf.get("author");
+		crate_author = conf.get("author");
 
-	int game_release = 0;
+	int crate_release = 0;
 	if (conf.exists("release"))
-		game_release = conf.getS32("release");
+		crate_release = conf.getS32("release");
 
 	std::string first_mod;
 	if (conf.exists("first_mod"))
@@ -189,8 +190,8 @@ static CrateSpec getCrateSpec(const std::string &crate_id,
 
 	auto aliases = getAliasesFromSettings(conf);
 
-	CrateSpec spec(crate_id, crate_path, cratemods_path, mods_paths, game_title,
-			game_author, game_release, first_mod, last_mod, aliases);
+	CrateSpec spec(crate_id, crate_path, cratemods_path, mods_paths, crate_title,
+			crate_author, crate_release, first_mod, last_mod, aliases);
 
 	if (conf.exists("name") && !conf.exists("title"))
 		spec.deprecation_msgs.push_back("\"name\" setting in crate.conf is deprecated, please use \"title\" instead");
@@ -200,9 +201,9 @@ static CrateSpec getCrateSpec(const std::string &crate_id,
 
 std::set<std::string> getAvailableCrateIds()
 {
-	GamePathMap gamepaths = getAvailableGamePaths();
+	CratePathMap cratepaths = getAvailableCratePaths();
 	std::set<std::string> crateids;
-	for (auto &&p : gamepaths)
+	for (auto &&p : cratepaths)
 		crateids.insert(std::move(p.first));
 	return crateids;
 }
@@ -214,7 +215,7 @@ std::vector<CrateSpec> getAvailableCrates()
 	specs.reserve(crateids.size());
 	for (const auto &crateid : crateids)
 		specs.push_back(findCrate(crateid));
-	// TODO: Optimize such that `getAvailableGamePaths()` is not run N times.
+	// TODO: Optimize such that `getAvailableCratePaths()` is not run N times.
 	return specs;
 }
 
@@ -225,10 +226,10 @@ CrateSpec findCrate(const std::string &id)
 
 	std::string idv = normalizeCrateId(id);
 
-	GamePathMap gamepaths = getAvailableGamePaths();
-	auto found = gamepaths.find(idv);
-	if (found == gamepaths.end()) { // Failed to find the game, try to find aliased game
-		for (auto it = gamepaths.begin(); it != gamepaths.end(); ++it) {
+	CratePathMap cratepaths = getAvailableCratePaths();
+	auto found = cratepaths.find(idv);
+	if (found == cratepaths.end()) { // Failed to find the crate, try to find aliased crate
+		for (auto it = cratepaths.begin(); it != cratepaths.end(); ++it) {
 			if (it->second.aliases.find(idv) != it->second.aliases.end()) {
 				found = it;
 				break;
@@ -236,13 +237,13 @@ CrateSpec findCrate(const std::string &id)
 		}
 	}
 
-	if (found == gamepaths.end()) // Failed to find the game taking aliases into account
+	if (found == cratepaths.end()) // Failed to find the crate taking aliases into account
 		return CrateSpec();
 
-	// Found the game, proceed
-	const GameFindPath &data = found->second;
+	// Found the crate, proceed
+	const CrateFindPath &data = found->second;
 	const std::string &crate_path = data.path;
-	bool user_game = data.user_specific;
+	bool user_crate = data.user_specific;
 
 
 	// Find mod directories
@@ -250,7 +251,7 @@ CrateSpec findCrate(const std::string &id)
 	const std::string &user = porting::path_user;
 	std::unordered_map<std::string, std::string> mods_paths;
 	mods_paths["mods"] = user + DIR_DELIM + "mods";
-	if (!user_game && user != share)
+	if (!user_crate && user != share)
 		mods_paths["share"] = share + DIR_DELIM + "mods";
 
 	for (const std::string &mod_path : getEnvModPaths()) {
@@ -263,7 +264,7 @@ CrateSpec findCrate(const std::string &id)
 CrateSpec findWorldCrate(const std::string &world_path)
 {
 	std::string world_crateid = getWorldCrateId(world_path, true);
-	// See if world contains an embedded game; if so, use it.
+	// See if world contains an embedded crate; if so, use it.
 	std::string world_cratepath = world_path + DIR_DELIM + "crate";
 	if (fs::PathExists(world_cratepath))
 		return getCrateSpec(world_crateid, world_cratepath, {});
@@ -303,7 +304,7 @@ std::string getWorldCrateId(const std::string &world_path, bool can_be_legacy)
 		if (can_be_legacy) {
 			// If map_meta.txt exists, it is probably a very old world
 			if (fs::PathExists(world_path + DIR_DELIM + "map_meta.txt"))
-				return LEGACY_GAMEID;
+				return LEGACY_CRATEID;
 		}
 		return "";
 	}
@@ -378,16 +379,16 @@ void loadCrateConfAndInitWorld(const std::string &path, const std::string &name,
 		}
 	}
 
-	Settings *game_settings = Settings::getLayer(SL_GAME);
-	const bool new_game_settings = (game_settings == nullptr);
-	if (new_game_settings) {
+	Settings *crate_settings = Settings::getLayer(SL_CRATE);
+	const bool new_crate_settings = (crate_settings == nullptr);
+	if (new_crate_settings) {
 		// Called by main-menu without a Server instance running
 		// -> create and free manually
-		game_settings = Settings::createLayer(SL_GAME);
+		crate_settings = Settings::createLayer(SL_CRATE);
 	}
 
-	getPlaceConfig(cratespec.path, *game_settings);
-	game_settings->removeSecureSettings();
+	getCrateConfig(cratespec.path, *crate_settings);
+	crate_settings->removeSecureSettings();
 
 	infostream << "Initializing world at " << final_path << std::endl;
 
@@ -396,9 +397,9 @@ void loadCrateConfAndInitWorld(const std::string &path, const std::string &name,
 	// Create world.mt if does not already exist
 	std::string worldmt_path = final_path + DIR_DELIM "world.mt";
 	if (!fs::PathExists(worldmt_path)) {
-		Settings gameconf;
-		std::string gameconf_path = cratespec.path + DIR_DELIM "crate.conf";
-		gameconf.readConfigFile(gameconf_path.c_str());
+		Settings crateconf;
+		std::string crateconf_path = cratespec.path + DIR_DELIM "crate.conf";
+		crateconf.readConfigFile(crateconf_path.c_str());
 
 		Settings conf; // for world.mt
 
@@ -406,7 +407,7 @@ void loadCrateConfAndInitWorld(const std::string &path, const std::string &name,
 		conf.set("crateid", cratespec.id);
 
 		std::string backend = "sqlite3";
-		if (gameconf.exists("map_persistent") && !gameconf.getBool("map_persistent")) {
+		if (crateconf.exists("map_persistent") && !crateconf.getBool("map_persistent")) {
 			backend = "dummy";
 		}
 		conf.set("backend", backend);
@@ -436,8 +437,8 @@ void loadCrateConfAndInitWorld(const std::string &path, const std::string &name,
 	}
 
 	// The Settings object is no longer needed for created worlds
-	if (new_game_settings)
-		delete game_settings;
+	if (new_crate_settings)
+		delete crate_settings;
 }
 
 std::vector<std::string> getEnvModPaths()

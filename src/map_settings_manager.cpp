@@ -99,7 +99,7 @@ bool MapSettingsManager::saveMapMeta()
 		return false;
 	}
 
-	// Paths set up by places.cpp, but not in unittests
+	// Paths set up by crates.cpp, but not in unittests
 	if (!fs::CreateAllDirs(fs::RemoveLastPathComponent(m_map_meta_path))) {
 		errorstream << "saveMapMeta: could not create dirs to "
 			<< m_map_meta_path;

@@ -311,7 +311,7 @@ AsyncWorkerThread::AsyncWorkerThread(AsyncEngine* jobDispatcher,
 	lua_State *L = getStack();
 
 	if (jobDispatcher->server) {
-		setGameDef(jobDispatcher->server);
+		setCrateDef(jobDispatcher->server);
 
 		if (g_settings->getBool("secure.enable_security"))
 			initializeSecurity();

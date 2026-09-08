@@ -143,7 +143,7 @@ local PAGES = {
 	},
 	{
 		id = "multiplayer",
-		title = "Place and network",
+		title = "Game and network",
 		sources = {
 			"Client and Server|Client", "Client and Server|Server",
 			"Client and Server|Server Security", "Client and Server|Server Gameplay",

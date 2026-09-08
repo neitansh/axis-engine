@@ -91,13 +91,13 @@ server-side impairment layer for reproducing bad links on purpose.
 
 ## What this repository does not contain
 
-Axis is the engine. The games that run on it, the matchmaking service and the
+Axis is the engine. The crates that run on it, the matchmaking service and the
 servers behind it are developed separately and are not part of this repository.
 A clone of this repository builds a working engine, not a playable product —
 the same way Luanti builds without a game.
 
 That split is deliberate and it is not about licensing: LGPL-2.1 covers the
-engine and does not reach the games loaded into it.
+engine and does not reach the crates loaded into it.
 
 ## Building
 
@@ -175,7 +175,7 @@ Worlds are separate folders in `user/worlds/`.
   belongs in them. `config.example/` documents every setting with its default.
 - A specific directory can be specified on the command line:
     `--config-dir <path-to-directory>`
-- Settings of games and mods, which the engine does not know, go to
+- Settings of crates and mods, which the engine does not know, go to
   `custom.conf` of the running side.
 - Details, and how to add a setting: [doc/configuration.md](doc/configuration.md)
 
@@ -211,7 +211,7 @@ Some can be changed in the key config dialog in the settings tab.
 | K                             | Enable/disable fly mode (needs fly privilege)                  |
 | J                             | Enable/disable fast mode (needs fast privilege)                |
 | H                             | Enable/disable noclip mode (needs noclip privilege)            |
-| E                             | Aux1 (Move fast in fast mode. Games may add special features)  |
+| E                             | Aux1 (Move fast in fast mode. Crates may add special features) |
 | C                             | Cycle through camera modes                                     |
 | V                             | Cycle through minimap modes                                    |
 | Shift + V                     | Change minimap orientation                                     |

@@ -147,8 +147,8 @@ function pkgmgr.get_all()
 	for _, mod in pairs(pkgmgr.global_mods:get_list()) do
 		result[#result + 1] = mod
 	end
-	for _, place in pairs(pkgmgr.crates) do
-		result[#result + 1] = place
+	for _, crate in pairs(pkgmgr.crates) do
+		result[#result + 1] = crate
 	end
 	for _, txp in pairs(pkgmgr.texture_packs) do
 		result[#result + 1] = txp
@@ -327,7 +327,7 @@ function pkgmgr.render_packagelist(render_list, use_technical_names, with_icon)
 		end
 
 		retval[#retval + 1] = color
-		-- `v.modpack_depth` is `nil` for the selected place (treated as level 0)
+		-- `v.modpack_depth` is `nil` for the selected crate (treated as level 0)
 		retval[#retval + 1] = (v.modpack_depth or 0) +
 				((v.loc == "crate" or v.loc == "worldmods") and 1 or 0)
 
@@ -421,7 +421,7 @@ function pkgmgr.enable_mod(this, toset)
 	-- Enable mods' depends after activation
 
 	-- Make a list of mod ids indexed by their names. Among mods with the
-	-- same name, enabled mods take precedence, after which place mods take
+	-- same name, enabled mods take precedence, after which crate mods take
 	-- precedence, being last in the mod list.
 	local mod_ids = {}
 	for id, mod2 in pairs(list) do
@@ -505,7 +505,7 @@ function pkgmgr.get_worldconfig(worldpath)
 		end
 	end
 
-	--read placemods
+	--read crate mods
 	local cratespec = pkgmgr.find_by_crateid(worldconfig.id)
 	pkgmgr.get_crate_mods(cratespec, worldconfig.crate_mods)
 
@@ -614,7 +614,7 @@ function pkgmgr.preparemodlist(data)
 		retval[#retval + 1] = mod
 	end
 
-	-- read place mods
+	-- read crate mods
 	local crate_mods = {}
 	local cratespec = pkgmgr.find_by_crateid(data.crateid)
 	pkgmgr.get_crate_mods(cratespec, crate_mods)
@@ -752,21 +752,21 @@ function pkgmgr.find_by_crateid(crateid)
 		return nil, nil
 	end
 	crateid = pkgmgr.normalize_crate_id(crateid)
-	for i, place in ipairs(pkgmgr.crates) do
-		if place.id == crateid then
-			return place, i
+	for i, crate in ipairs(pkgmgr.crates) do
+		if crate.id == crateid then
+			return crate, i
 		end
 	end
 	local ret, val
-	for i, place in ipairs(pkgmgr.crates) do
-		if place.aliases[crateid] then
+	for i, crate in ipairs(pkgmgr.crates) do
+		if crate.aliases[crateid] then
 			if ret then
 				core.log("warning",
-					"Found two places using alias " .. crateid .. ": " ..
-					place.id .. " and " .. ret.id
+					"Found two crates using alias " .. crateid .. ": " ..
+					crate.id .. " and " .. ret.id
 				)
 			end
-			ret, val = place, i
+			ret, val = crate, i
 		end
 	end
 	return ret, val
@@ -863,9 +863,9 @@ function pkgmgr.get_contentdb_id(content)
 end
 
 --------------------------------------------------------------------------------
--- Normalizes ID of a place. Keep in sync with places.cpp, `normalizeCrateId`.
+-- Normalizes ID of a crate. Keep in sync with crates.cpp, `normalizeCrateId`.
 function pkgmgr.normalize_crate_id(name)
-	return name:match("(.*)_place$") or name
+	return name:match("(.*)_game$") or name
 end
 
 

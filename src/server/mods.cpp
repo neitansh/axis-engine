@@ -18,7 +18,7 @@
 ServerModManager::ServerModManager(const std::string &worldpath, CrateSpec cratespec)
 {
 	// Add all game mods and all world mods
-	configuration.addGameMods(cratespec);
+	configuration.addCrateMods(cratespec);
 	configuration.addModsInPath(worldpath + DIR_DELIM + "worldmods", "worldmods");
 
 	// Load normal mods

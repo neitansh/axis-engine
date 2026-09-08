@@ -257,17 +257,17 @@ void TestSettings::testAllSettings()
 
 void TestSettings::testDefaults()
 {
-	Settings *game = Settings::createLayer(SL_GAME);
+	Settings *crate = Settings::createLayer(SL_CRATE);
 	Settings *def = Settings::getLayer(SL_DEFAULTS);
 
 	def->set("name", "FooBar");
 	UASSERT(def->get("name") == "FooBar");
-	UASSERT(game->get("name") == "FooBar");
+	UASSERT(crate->get("name") == "FooBar");
 
-	game->set("name", "Baz");
-	UASSERT(game->get("name") == "Baz");
+	crate->set("name", "Baz");
+	UASSERT(crate->get("name") == "Baz");
 
-	delete game;
+	delete crate;
 
 	// Restore default settings
 	delete Settings::getLayer(SL_DEFAULTS);
@@ -276,7 +276,7 @@ void TestSettings::testDefaults()
 
 void TestSettings::testFlagDesc()
 {
-	Settings &s = *Settings::createLayer(SL_GAME);
+	Settings &s = *Settings::createLayer(SL_CRATE);
 	FlagDesc flagdesc[] = {
 		{ "biomes",  0x01 },
 		{ "trees",   0x02 },

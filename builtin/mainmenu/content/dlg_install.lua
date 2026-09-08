@@ -33,9 +33,9 @@ local function get_formspec(data)
 		selected_crate = pkgmgr.crates[1]
 	end
 
-	local place_list = {}
-	for i, place in ipairs(pkgmgr.crates) do
-		place_list[i] = core.formspec_escape(place.title)
+	local crate_list = {}
+	for i, crate in ipairs(pkgmgr.crates) do
+		crate_list[i] = core.formspec_escape(crate.title)
 	end
 
 	if not data.deps_ready[selected_crate_idx] and
@@ -95,7 +95,7 @@ local function get_formspec(data)
 	end
 	if deps_not_found > 0 then
 		message = fgettext("$1 required dependencies could not be found.", deps_not_found) ..
-				" " .. fgettext("Please check that the base place is correct.", deps_not_found) ..
+				" " .. fgettext("Please check that the base crate is correct.", deps_not_found) ..
 				"\n" .. message
 		message_bg = mt_color_orange
 	end
@@ -118,9 +118,9 @@ local function get_formspec(data)
 
 		"container[0.375,1]",
 
-		"label[0,0.4;", fgettext("Base Place:"), "]",
+		"label[0,0.4;", fgettext("Base Crate:"), "]",
 		"dropdown[", padded_w - dropdown_w, ",0;", dropdown_w, ",0.8;selected_crate;",
-				table.concat(place_list, ","), ";", selected_crate_idx, "]",
+				table.concat(crate_list, ","), ";", selected_crate_idx, "]",
 
 		"label[0,1.1;", fgettext("Dependencies:"), "]",
 
@@ -174,9 +174,9 @@ local function handle_submit(this, fields)
 	end
 
 	if fields.selected_crate then
-		for _, place in pairs(pkgmgr.crates) do
-			if place.title == fields.selected_crate then
-				core.settings:set("menu_last_crate", place.id)
+		for _, crate in pairs(pkgmgr.crates) do
+			if crate.title == fields.selected_crate then
+				core.settings:set("menu_last_crate", crate.id)
 				break
 			end
 		end
@@ -262,8 +262,8 @@ function install_or_update_package(parent, package)
 	end
 
 	if package.type == "mod" and #pkgmgr.crates == 0 then
-		local dlg = messagebox("install_place",
-				fgettext("You need to install a place before you can install a mod"))
+		local dlg = messagebox("install_crate",
+				fgettext("You need to install a crate before you can install a mod"))
 		dlg:set_parent(parent)
 		parent:hide()
 		dlg:show()

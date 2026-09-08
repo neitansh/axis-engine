@@ -153,7 +153,7 @@ protected:
 	// Dumps stack contents for debugging
 	void stackDump(std::ostream &o);
 
-	void setGameDef(ICrateDef* cratedef) { m_cratedef = cratedef; }
+	void setCrateDef(ICrateDef* cratedef) { m_cratedef = cratedef; }
 
 	Environment* getEnv() { return m_environment; }
 	void setEnv(Environment* env) { m_environment = env; }

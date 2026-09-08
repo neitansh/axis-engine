@@ -703,7 +703,7 @@ private:
 	// World directory
 	std::string m_path_world;
 	std::string m_path_mod_data;
-	// Place specification
+	// Crate specification
 	CrateSpec m_cratespec;
 	// If true, do not allow multiple players and hide some multiplayer
 	// functionality
@@ -713,7 +713,7 @@ private:
 	bool m_dedicated;
 
 	// Game settings layer
-	Settings *m_game_settings = nullptr;
+	Settings *m_crate_settings = nullptr;
 
 	// Thread can set; step() will throw as ServerError
 	MutexedVariable<std::string> m_async_fatal_error;

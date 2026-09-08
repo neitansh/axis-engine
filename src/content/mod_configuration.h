@@ -56,7 +56,7 @@ public:
 	/**
 	 * Adds game mods
 	 */
-	void addGameMods(const CrateSpec &cratespec);
+	void addCrateMods(const CrateSpec &cratespec);
 
 	/**
 	 * Adds mods specified by a world.mt config

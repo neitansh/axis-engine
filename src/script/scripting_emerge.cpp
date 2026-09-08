@@ -29,7 +29,7 @@ extern "C" {
 EmergeScripting::EmergeScripting(EmergeThread *parent):
 		ScriptApiBase(ScriptingType::Emerge)
 {
-	setGameDef(parent->m_server);
+	setCrateDef(parent->m_server);
 	setEmergeThread(parent);
 
 	SCRIPTAPI_PRECHECKHEADER

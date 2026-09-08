@@ -486,7 +486,7 @@ Server::~Server()
 	}
 
 	// Delete the rest in the reverse order of creation
-	delete m_game_settings;
+	delete m_crate_settings;
 	delete m_banmanager;
 	delete m_mod_storage_database;
 	delete m_rollback;
@@ -511,7 +511,7 @@ void Server::init()
 		infostream << std::endl;
 	infostream << "- world:  " << m_path_world << std::endl;
 
-	m_game_settings = Settings::createLayer(SL_GAME);
+	m_crate_settings = Settings::createLayer(SL_CRATE);
 
 	// Create world if it doesn't exist
 	try

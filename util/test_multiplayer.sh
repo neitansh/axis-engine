@@ -3,7 +3,7 @@
 # provides are executed if it has any.
 
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-gameid=${gameid:-mineclonia}
+crateid=${crateid:-mineclonia}
 executable=$dir/../bin/axis
 testspath=$dir/../tests
 # The engine reads a directory of config files; a test only needs one of them.
@@ -27,10 +27,10 @@ waitfor () {
 
 [ -e "$executable" ] || { echo "executable $executable missing"; exit 1; }
 
-# The scripts need a game to run. It is not part of this repository, so say
+# The scripts need a crate to run. It is not part of this repository, so say
 # what is missing instead of failing halfway through.
-if [ ! -d "$dir/../games/$gameid" ]; then
-	echo "Game '$gameid' is not installed, skipping."
+if [ ! -d "$dir/../depot/$crateid" ]; then
+	echo "Crate '$crateid' is not installed, skipping."
 	exit 0
 fi
 
@@ -52,7 +52,7 @@ printf '%s\n' >"$conf_server" \
 ln -s "$dir/helper_mod" "$worldpath/worldmods/"
 
 echo "Starting server"
-"$executable" --debugger --server --config-dir "$conf_dir_server" --world "$worldpath" --gameid $gameid 2>&1 \
+"$executable" --debugger --server --config-dir "$conf_dir_server" --world "$worldpath" --crateid $crateid 2>&1 \
 	| sed -u 's/^/(server) /' | tee -a "$testspath/log.txt" &
 waitfor "$worldpath/startup"
 

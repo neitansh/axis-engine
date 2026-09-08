@@ -51,12 +51,12 @@ fake_function() {
 	gettext("Sneak");
 	gettext("Also used for climbing down and descending in water if aux1_descends is disabled.");
 	gettext("Dig/punch/use");
-	gettext("Key for digging, punching or using something.\n(Note: The actual meaning might vary on a per-game basis.)");
+	gettext("Key for digging, punching or using something.\n(Note: The actual meaning might vary on a per-crate basis.)");
 	gettext("Place/use");
-	gettext("Key for placing an item/block or for using something.\n(Note: The actual meaning might vary on a per-game basis.)");
+	gettext("Key for placing an item/block or for using something.\n(Note: The actual meaning might vary on a per-crate basis.)");
 	gettext("Open inventory");
 	gettext("Use");
-	gettext("Key for using something: leaving a vehicle, opening a hatch, and\nwhatever else the game hangs on it.");
+	gettext("Key for using something: leaving a vehicle, opening a hatch, and\nwhatever else the crate hangs on it.");
 	gettext("Show controls");
 	gettext("Key for moving fast in fast mode.");
 	gettext("Open chat");
@@ -136,7 +136,7 @@ fake_function() {
 	gettext("Interaction style");
 	gettext("The kind of digging/placing controls used.\n\n* Tap\nLong/short tap anywhere on the screen to interact.\nInteraction happens at finger position.\n\n* Tap with crosshair\nLong/short tap anywhere on the screen to interact.\nInteraction happens at crosshair position.\n\n* Buttons with crosshair\nUse dedicated dig/place buttons to interact.\nInteraction happens at crosshair position.");
 	gettext("Punch gesture");
-	gettext("The gesture for punching players/entities.\nThis can be overridden by games and mods.\n\n* Short tap\nEasy to use and well-known from other games that shall not be named.\n\n* Long tap\nKnown from the classic Luanti mobile controls.\nCombat is more or less impossible.");
+	gettext("The gesture for punching players/entities.\nThis can be overridden by crates and mods.\n\n* Short tap\nEasy to use and well-known from other games that shall not be named.\n\n* Long tap\nKnown from the classic Luanti mobile controls.\nCombat is more or less impossible.");
 	gettext("Touchscreen sensitivity");
 	gettext("Touchscreen sensitivity multiplier.");
 	gettext("Movement threshold");
@@ -286,7 +286,7 @@ fake_function() {
 	gettext("Soft shadow radius");
 	gettext("Set the soft shadow radius size.\nLower values mean sharper shadows, bigger values mean softer shadows.\nMinimum value: 1.0; maximum value: 15.0");
 	gettext("Sky Body Orbit Tilt");
-	gettext("Set the default tilt of Sun/Moon orbit in degrees.\nGames may change orbit tilt via API.\nValue of 0 means no tilt / vertical orbit.");
+	gettext("Set the default tilt of Sun/Moon orbit in degrees.\nCrates may change orbit tilt via API.\nValue of 0 means no tilt / vertical orbit.");
 	gettext("Post Processing");
 	gettext("Enable Post Processing");
 	gettext("Enables the post processing pipeline.");

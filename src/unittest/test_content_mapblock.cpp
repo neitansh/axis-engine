@@ -16,7 +16,7 @@
 
 namespace {
 
-class MockGameDef : public DummyCrateDef {
+class MockCrateDef : public DummyCrateDef {
 public:
 	IWritableItemDefManager *item_mgr() noexcept {
 		return static_cast<IWritableItemDefManager *>(m_itemdef);
@@ -187,7 +187,7 @@ namespace quad {
 
 void TestMapblockMeshGenerator::testSimpleNode()
 {
-	MockGameDef cratedef;
+	MockCrateDef cratedef;
 	content_t stone = cratedef.addSimpleNode("stone", 42);
 	cratedef.finalize();
 
@@ -207,7 +207,7 @@ void TestMapblockMeshGenerator::testSimpleNode()
 
 void TestMapblockMeshGenerator::testSurroundedNode()
 {
-	MockGameDef cratedef;
+	MockCrateDef cratedef;
 	content_t stone = cratedef.addSimpleNode("stone", 42);
 	content_t wood = cratedef.addSimpleNode("wood", 13);
 	cratedef.finalize();
@@ -229,7 +229,7 @@ void TestMapblockMeshGenerator::testSurroundedNode()
 
 void TestMapblockMeshGenerator::testInterliquidSame()
 {
-	MockGameDef cratedef;
+	MockCrateDef cratedef;
 	auto water = cratedef.addLiquidSource("water", 42);
 	cratedef.finalize();
 
@@ -250,7 +250,7 @@ void TestMapblockMeshGenerator::testInterliquidSame()
 
 void TestMapblockMeshGenerator::testInterliquidDifferent()
 {
-	MockGameDef cratedef;
+	MockCrateDef cratedef;
 	auto water = cratedef.addLiquidSource("water", 42);
 	auto lava = cratedef.addLiquidSource("lava", 13);
 	cratedef.finalize();

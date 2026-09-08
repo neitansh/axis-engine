@@ -29,8 +29,8 @@ struct CrateSpec
 
 	/**
 	 * All worlds are marked with a specific crateid. To allow inheriting worlds
-	 * by a game with different crateid after deprecation or renaming, this set
-	 * contains the crateid values that used to refer to the game and may be used
+	 * by a crate with different crateid after deprecation or renaming, this set
+	 * contains the crateid values that used to refer to the crate and may be used
 	 * to automatically find the best matching crateid.
 	 */
 	std::unordered_set<std::string> aliases;
@@ -95,7 +95,7 @@ struct WorldSpec
 
 std::vector<WorldSpec> getAvailableWorlds();
 
-// loads the place's config and creates world directory
+// loads the crate's config and creates world directory
 // and world.mt if they don't exist
 void loadCrateConfAndInitWorld(const std::string &path, const std::string &name,
 		const CrateSpec &cratespec, bool create_world);

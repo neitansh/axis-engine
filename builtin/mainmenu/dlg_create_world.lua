@@ -85,16 +85,16 @@ local function create_world_formspec(dialogdata)
 
 	local flags = dialogdata.flags
 
-	local place = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
-	if place == nil then
-		-- should never happen but just pick the first place
-		place = pkgmgr.crates[1]
-		core.settings:set("menu_last_crate", place.id)
+	local crate = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
+	if crate == nil then
+		-- should never happen but just pick the first crate
+		crate = pkgmgr.crates[1]
+		core.settings:set("menu_last_crate", crate.id)
 	end
 
 	local disallowed_mapgen_settings = {}
-	if place ~= nil then
-		local crateconfig = Settings(place.path.."/crate.conf")
+	if crate ~= nil then
+		local crateconfig = Settings(crate.path.."/crate.conf")
 
 		current_mg = current_mg or crateconfig:get("default_mapgen") or core.settings:get("mg_name")
 
@@ -325,11 +325,11 @@ local function create_world_buttonhandler(this, fields)
 		end
 
 		local worldname = fields["te_world_name"]
-		local place, _ = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
+		local crate, _ = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
 
 		local message
-		if place == nil then
-			message = fgettext_ne("No place selected")
+		if crate == nil then
+			message = fgettext_ne("No crate selected")
 		end
 
 		if message == nil then
@@ -369,12 +369,12 @@ local function create_world_buttonhandler(this, fields)
 				mgvalleys_spflags = table_to_flags(this.data.flags.valleys),
 				mgflat_spflags = table_to_flags(this.data.flags.flat),
 			}
-			message = core.create_world(worldname, place.id, settings)
+			message = core.create_world(worldname, crate.id, settings)
 		end
 
 		if message == nil then
-			core.settings:set("menu_last_crate", place.id)
-			menudata.worldlist:set_filtercriteria(place.id)
+			core.settings:set("menu_last_crate", crate.id)
+			menudata.worldlist:set_filtercriteria(crate.id)
 			menudata.worldlist:refresh()
 			core.settings:set("mainmenu_last_selected_world",
 					menudata.worldlist:raw_index_by_uid(worldname))

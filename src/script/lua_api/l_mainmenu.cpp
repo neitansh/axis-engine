@@ -520,7 +520,7 @@ int ModApiMainMenu::l_check_mod_configuration(lua_State *L)
 
 	// Add all game mods
 	CrateSpec cratespec = findWorldCrate(worldpath);
-	modmgr.addGameMods(cratespec);
+	modmgr.addCrateMods(cratespec);
 	modmgr.addModsInPath(worldpath + DIR_DELIM + "worldmods", "worldmods");
 
 	// Add user-configured mods
@@ -795,27 +795,27 @@ int ModApiMainMenu::l_get_clientmodpath(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_get_cratepath(lua_State *L)
 {
-	std::string gamepath = fs::RemoveRelativePathComponents(
+	std::string cratepath = fs::RemoveRelativePathComponents(
 		porting::path_user + DIR_DELIM + "depot" + DIR_DELIM);
-	lua_pushstring(L, gamepath.c_str());
+	lua_pushstring(L, cratepath.c_str());
 	return 1;
 }
 
 /******************************************************************************/
 int ModApiMainMenu::l_get_texturepath(lua_State *L)
 {
-	std::string gamepath = fs::RemoveRelativePathComponents(
+	std::string path = fs::RemoveRelativePathComponents(
 		porting::path_user + DIR_DELIM + "textures");
-	lua_pushstring(L, gamepath.c_str());
+	lua_pushstring(L, path.c_str());
 	return 1;
 }
 
 /******************************************************************************/
 int ModApiMainMenu::l_get_texturepath_share(lua_State *L)
 {
-	std::string gamepath = fs::RemoveRelativePathComponents(
+	std::string path = fs::RemoveRelativePathComponents(
 		porting::path_share + DIR_DELIM + "textures");
-	lua_pushstring(L, gamepath.c_str());
+	lua_pushstring(L, path.c_str());
 	return 1;
 }
 

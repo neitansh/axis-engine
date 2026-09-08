@@ -284,7 +284,7 @@ local function enter(body)
 		return true
 	end
 	gamedata.mode = "join"
-	-- Чем это кончилось, покажет лаунчер: матч и обычное место выглядят в
+	-- Чем это кончилось, покажет лаунчер: матч и обычный сервер выглядят в
 	-- профиле по-разному, а отличить их по адресу нельзя — он один и тот же.
 	gamedata.match = body.title or body.mode or ""
 	-- На какой сервер идём. Адрес у матча свой и живёт полчаса, а билет
@@ -488,7 +488,7 @@ local function follow_invite()
 			state.entering = false
 			if not ticket then
 				state.status = trouble == "no_launcher"
-						and fgettext("Start the place through the launcher to play online")
+						and fgettext("Start the game through the launcher to play online")
 					or fgettext("Matchmaking is unavailable")
 				core.event_handler("Refresh")
 				return
@@ -524,7 +524,7 @@ local function join(mode)
 	ticket_for_join(server_id(), function(ticket, trouble)
 		if not ticket then
 			state.status = trouble == "no_launcher"
-					and fgettext("Start the place through the launcher to play online")
+					and fgettext("Start the game through the launcher to play online")
 				or fgettext("Matchmaking is unavailable")
 			core.event_handler("Refresh")
 			return

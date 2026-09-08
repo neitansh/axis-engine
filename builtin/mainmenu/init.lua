@@ -45,7 +45,7 @@ dofile(menupath .. DIR_DELIM .. "dlg_start.lua")
 local tabs = {
 	content = dofile(menupath .. DIR_DELIM .. "tab_content.lua"),
 	about = dofile(menupath .. DIR_DELIM .. "tab_about.lua"),
-	local_place = dofile(menupath .. DIR_DELIM .. "tab_local.lua"),
+	local_crate = dofile(menupath .. DIR_DELIM .. "tab_local.lua"),
 	play_online = dofile(menupath .. DIR_DELIM .. "tab_online.lua"),
 }
 
@@ -138,7 +138,7 @@ local function init_globals()
 	-- за ней игрок и пришёл. Стартовая страница выделяет первую вкладку сама
 	-- (см. dlg_start), так что порядок здесь — он же и акцент.
 	tv_main:add(tabs.play_online)
-	tv_main:add(tabs.local_place)
+	tv_main:add(tabs.local_crate)
 	tv_main:add(tabs.content)
 
 	tabs.about.sidebar = false
@@ -294,14 +294,14 @@ local function ask_for_ticket(url, key, server_id, done)
 	}, done)
 end
 
--- Имя места из списка. Не нашлось — пусто: лучше общее «на сервере», чем адрес
--- в чужом профиле.
-local function crate_name()
+-- Имя сервера из списка. Не нашлось — пусто: лучше общее «на сервере», чем
+-- адрес в чужом профиле.
+local function server_name()
 	for _, server in ipairs(serverlistmgr.servers or {}) do
 		local same = gamedata.server_id and gamedata.server_id ~= "" and
 			server.id == gamedata.server_id
 		if same or (server.address == gamedata.address and server.port == gamedata.port) then
-			return server.crate or ""
+			return server.server_name or ""
 		end
 	end
 	return ""
@@ -311,21 +311,21 @@ end
 --
 -- Здесь, а не в каждой вкладке: дорог в игру три, и рассказывать о себе они
 -- должны одинаково. Отсюда же видно, чем они отличаются, — по адресу матч от
--- обычного места не отличишь, он один и тот же.
+-- обычного сервера не отличишь, он один и тот же.
 --
--- Адрес наружу не уходит никогда: место называется своим именем из реестра, а
--- не найденное там — просто «на сервере». Введённый руками адрес чужого
+-- Адрес наружу не уходит никогда: сервер называется своим именем из реестра, а
+-- не найденный там — просто «на сервере». Введённый руками адрес чужого
 -- сервера — не то, что стоит показывать всем друзьям игрока.
 local function tell_where_we_are_going()
 	local match = gamedata.match
 	-- Таблица между заходами не чистится, и пометка прошлого матча иначе
-	-- сделала бы матчем следующее обычное место.
+	-- сделала бы матчем следующий обычный заход.
 	gamedata.match = nil
 
 	if match then
-		presence.playing({ where = "match", crate = crate_name(), mode = match })
+		presence.playing({ where = "match", crate = server_name(), mode = match })
 	elseif gamedata.mode == "join" then
-		presence.playing({ where = "server", name = crate_name() })
+		presence.playing({ where = "server", name = server_name() })
 	else
 		presence.playing({ where = "solo" })
 	end

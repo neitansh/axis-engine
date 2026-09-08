@@ -55,30 +55,30 @@ function mm_crate_theme.set_engine(hide_decorations)
 end
 
 --------------------------------------------------------------------------------
-function mm_crate_theme.set_place(placedetails)
-	assert(placedetails ~= nil)
+function mm_crate_theme.set_crate(cratedetails)
+	assert(cratedetails ~= nil)
 
-	if mm_crate_theme.crateid == placedetails.id then
+	if mm_crate_theme.crateid == cratedetails.id then
 		return
 	end
-	mm_crate_theme.crateid = placedetails.id
-	mm_crate_theme.set_music(placedetails)
+	mm_crate_theme.crateid = cratedetails.id
+	mm_crate_theme.set_music(cratedetails)
 
-	core.set_topleft_text(placedetails.name)
+	core.set_topleft_text(cratedetails.name)
 
 	local have_bg = false
-	local have_overlay = mm_crate_theme.set_crate_single("overlay", placedetails)
+	local have_overlay = mm_crate_theme.set_crate_single("overlay", cratedetails)
 
 	if not have_overlay then
-		have_bg = mm_crate_theme.set_crate_single("background", placedetails)
+		have_bg = mm_crate_theme.set_crate_single("background", cratedetails)
 	end
 
 	mm_crate_theme.clear_single("header")
 	mm_crate_theme.clear_single("footer")
 	core.set_clouds(false)
 
-	mm_crate_theme.set_crate_single("header", placedetails)
-	mm_crate_theme.set_crate_single("footer", placedetails)
+	mm_crate_theme.set_crate_single("header", cratedetails)
+	mm_crate_theme.set_crate_single("footer", cratedetails)
 
 	local c = COLORS[core.settings:get("menu_theme")]
 	if not c then
@@ -125,23 +125,23 @@ function mm_crate_theme.set_engine_single(identifier)
 end
 
 --------------------------------------------------------------------------------
-function mm_crate_theme.set_crate_single(identifier, placedetails)
+function mm_crate_theme.set_crate_single(identifier, cratedetails)
 	local extensions_randomised = table.copy(valid_image_extensions)
 	table.shuffle(extensions_randomised)
 	for _, extension in pairs(extensions_randomised) do
-		assert(placedetails ~= nil)
+		assert(cratedetails ~= nil)
 
 		if mm_crate_theme.texturepack ~= nil then
-			local path = mm_crate_theme.texturepack .. DIR_DELIM .. placedetails.id .. "_menu_" .. identifier .. extension
+			local path = mm_crate_theme.texturepack .. DIR_DELIM .. cratedetails.id .. "_menu_" .. identifier .. extension
 			if core.set_background(identifier, path) then
 				return true
 			end
 		end
 
-		-- Find out how many randomized textures the place provides
+		-- Find out how many randomized textures the crate provides
 		local n = 0
 		local filename
-		local menu_files = core.get_dir_list(placedetails.path .. DIR_DELIM .. "menu", false)
+		local menu_files = core.get_dir_list(cratedetails.path .. DIR_DELIM .. "menu", false)
 		for i = 1, #menu_files do
 			filename = identifier .. "." .. i .. extension
 			if table.indexof(menu_files, filename) == -1 then
@@ -157,7 +157,7 @@ function mm_crate_theme.set_crate_single(identifier, placedetails)
 			filename = identifier .. "." .. n .. extension
 		end
 
-		local path = placedetails.path .. DIR_DELIM .. "menu" .. DIR_DELIM .. filename
+		local path = cratedetails.path .. DIR_DELIM .. "menu" .. DIR_DELIM .. filename
 		if core.set_background(identifier, path) then
 			return true
 		end
@@ -174,11 +174,11 @@ function mm_crate_theme.stop_music()
 end
 
 --------------------------------------------------------------------------------
-function mm_crate_theme.set_music(placedetails)
+function mm_crate_theme.set_music(cratedetails)
 	mm_crate_theme.stop_music()
 
-	assert(placedetails ~= nil)
+	assert(cratedetails ~= nil)
 
-	local music_path = placedetails.path .. DIR_DELIM .. "menu" .. DIR_DELIM .. "theme"
+	local music_path = cratedetails.path .. DIR_DELIM .. "menu" .. DIR_DELIM .. "theme"
 	mm_crate_theme.music_handle = core.sound_play(music_path, true)
 end

@@ -350,14 +350,14 @@ local function resolve_dependencies_2_co(raw_deps, installed_mods, out, resumer)
 end
 
 
-local function resolve_dependencies_co(package, place, resumer)
-	assert(place)
+local function resolve_dependencies_co(package, crate, resumer)
+	assert(crate)
 
 	local raw_deps = get_raw_dependencies_co(package, resumer)
 	local installed_mods = {}
 
 	local mods = {}
-	pkgmgr.get_crate_mods(place, mods)
+	pkgmgr.get_crate_mods(crate, mods)
 	for _, mod in pairs(mods) do
 		installed_mods[mod.name] = true
 	end
@@ -385,9 +385,9 @@ end
 
 
 -- Resolve dependencies for a package, calls the recursive version.
-function contentdb.resolve_dependencies(package, place, callback)
+function contentdb.resolve_dependencies(package, crate, callback)
 	local resumer = make_callback_coroutine(resolve_dependencies_co, callback)
-	resumer(package, place, resumer)
+	resumer(package, crate, resumer)
 end
 
 
@@ -484,11 +484,11 @@ function contentdb.update_paths()
 		end
 	end
 
-	local place_hash = {}
-	for _, place in pairs(pkgmgr.crates) do
-		local cdb_id = pkgmgr.get_contentdb_id(place)
+	local crate_hash = {}
+	for _, crate in pairs(pkgmgr.crates) do
+		local cdb_id = pkgmgr.get_contentdb_id(crate)
 		if cdb_id then
-			place_hash[contentdb.aliases[cdb_id] or cdb_id] = place
+			crate_hash[contentdb.aliases[cdb_id] or cdb_id] = crate
 		end
 	end
 
@@ -505,7 +505,7 @@ function contentdb.update_paths()
 		if package.type == "mod" then
 			content = mod_hash[package.id]
 		elseif package.type == "crate" then
-			content = place_hash[package.id]
+			content = crate_hash[package.id]
 		elseif package.type == "txp" then
 			content = txp_hash[package.id]
 		end

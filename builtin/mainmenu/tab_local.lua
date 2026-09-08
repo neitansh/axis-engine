@@ -26,26 +26,26 @@ local valid_disabled_settings = {
 -- отдельно и заводится в реестре; когда это смогут делать игроки, вкладка
 -- вернётся вместе с записью.
 
--- Currently chosen place in placebar for theming and filtering
+-- Currently chosen crate for theming and filtering
 function current_crate()
 	local crateid = core.settings:get("menu_last_crate")
-	local place = crateid and pkgmgr.find_by_crateid(crateid)
-	-- Fall back to first place installed if one exists.
-	if not place and #pkgmgr.crates > 0 then
-		place = pkgmgr.crates[1]
-		crateid = place.id
+	local crate = crateid and pkgmgr.find_by_crateid(crateid)
+	-- Fall back to first crate installed if one exists.
+	if not crate and #pkgmgr.crates > 0 then
+		crate = pkgmgr.crates[1]
+		crateid = crate.id
 		core.settings:set("menu_last_crate", crateid)
 	end
 
-	return place
+	return crate
 end
 
--- Apply menu changes from given place
-function apply_place(place)
-	core.settings:set("menu_last_crate", place.id)
-	menudata.worldlist:set_filtercriteria(place.id)
+-- Apply menu changes from given crate
+function apply_crate(crate)
+	core.settings:set("menu_last_crate", crate.id)
+	menudata.worldlist:set_filtercriteria(crate.id)
 
-	mm_crate_theme.set_place(place)
+	mm_crate_theme.set_crate(crate)
 
 	local index = filterlist.get_current_index(menudata.worldlist,
 		tonumber(core.settings:get("mainmenu_last_selected_world")))
@@ -60,12 +60,12 @@ function apply_place(place)
 	menu_worldmt_legacy(index)
 end
 
-local function get_disabled_settings(place)
-	if not place then
+local function get_disabled_settings(crate)
+	if not crate then
 		return {}
 	end
 
-	local crateconfig = Settings(place.path .. "/crate.conf")
+	local crateconfig = Settings(crate.path .. "/crate.conf")
 	local disabled_settings = {}
 	if crateconfig then
 		local disabled_settings_str = (crateconfig:get("disabled_settings") or ""):split()
@@ -88,19 +88,19 @@ end
 
 local function get_formspec(tabview, name, tabdata)
 
-	-- Point the player to ContentDB when no places are found
+	-- Point the player to ContentDB when no crates are found
 	if #pkgmgr.crates == 0 then
 		local W = tabview.width
 		local H = tabview.height
 
 		local hypertext = "<global valign=middle halign=center size=18>" ..
-				fgettext_ne("Axis is a place engine: it runs places, and does not come with one.") .. "\n" ..
-				fgettext_ne("You need to install a place before you can create a world.")
+				fgettext_ne("Axis is a crate engine: it runs crates, and does not come with one.") .. "\n" ..
+				fgettext_ne("You need to install a crate before you can create a world.")
 
 		local button_y = H * 2/3 - 0.6
 		return table.concat({
 			"hypertext[0.375,0;", W - 2*0.375, ",", button_y, ";ht;", core.formspec_escape(hypertext), "]",
-			"button[5.25,", button_y, ";5,1.2;place_open_cdb;", fgettext("Install a crate"), "]"})
+			"button[5.25,", button_y, ";5,1.2;crate_open_cdb;", fgettext("Install a crate"), "]"})
 	end
 
 	local retval = ""
@@ -112,18 +112,18 @@ local function get_formspec(tabview, name, tabdata)
 	-- When changing tabs to a world list with fewer entries, the last index is selected (visually).
 	-- However, the formspec fields lag behind, thus 'index > #list' can be a valid choice.
 	local world = list and list[math.min(index, #list)]
-	local place
+	local crate
 
 	if world then
-		place = pkgmgr.find_by_crateid(world.crateid)
+		crate = pkgmgr.find_by_crateid(world.crateid)
 	else
-		place = current_crate()
+		crate = current_crate()
 	end
-	local disabled_settings = get_disabled_settings(place)
+	local disabled_settings = get_disabled_settings(crate)
 
 	local creative, damage = "", ""
 
-	-- Y offsets for place settings checkboxes
+	-- Y offsets for crate settings checkboxes
 	local y = 0.2
 	local yo = 0.5625
 
@@ -144,7 +144,7 @@ local function get_formspec(tabview, name, tabdata)
 	retval = retval ..
 			menu_style.surface(0.375, 0.375, 4.5, tabview.height - 0.75) ..
 			menu_style.surface(5.25, 0.375, 9.875, 4.5) ..
-			menu_style.heading(0.75, 0.55, 3.9, 0.6, fgettext("Place")) ..
+			menu_style.heading(0.75, 0.55, 3.9, 0.6, fgettext("Crate")) ..
 			"container[5.25,4.875]"
 	if world then
 		retval = retval ..
@@ -168,7 +168,7 @@ local function get_formspec(tabview, name, tabdata)
 	if world then
 		retval = retval ..
 				menu_style.accent("play") ..
-				"button[10.1875,5.925;4.9375,0.8;play;" .. fgettext("Play Place") .. "]"
+				"button[10.1875,5.925;4.9375,0.8;play;" .. fgettext("Play Crate") .. "]"
 	end
 
 	return retval
@@ -178,7 +178,7 @@ local function main_button_handler(this, fields, name, tabdata)
 
 	assert(name == "local")
 
-	if fields.place_open_cdb then
+	if fields.crate_open_cdb then
 		local maintab = ui.find_by_name("maintab")
 		local dlg = create_contentdb_dlg("crate")
 		dlg:set_parent(maintab)
@@ -244,7 +244,7 @@ local function main_button_handler(this, fields, name, tabdata)
 			return true
 		end
 
-		-- Update last place
+		-- Update last crate
 		local world = menudata.worldlist:get_raw_element(gamedata.selected_world)
 		local crate_obj
 		if world then
@@ -314,18 +314,12 @@ end
 
 local function on_change(type)
 	if type == "ENTER" then
-		local place = current_crate()
-		if place then
-			apply_place(place)
+		local crate = current_crate()
+		if crate then
+			apply_crate(crate)
 		else
 			mm_crate_theme.set_engine()
 		end
-
-		-- Раньше здесь поднималась панель выбора игры (place_button_bar).
-		-- Панель убрана вместе с функцией singleplayer_refresh_placebar,
-		-- которая её собирала: строить её незачем, пока игра в репозитории
-		-- одна. Если панель понадобится обратно, код лежит в истории —
-		-- искать в builtin/mainmenu/tab_local.lua до этого коммита.
 	elseif type == "LEAVE" then
 		menudata.worldlist:set_filtercriteria(nil)
 	end

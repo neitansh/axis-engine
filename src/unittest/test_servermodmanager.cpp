@@ -78,7 +78,7 @@ void TestServerModManager::runTests(ICrateDef *cratedef)
 	// where the second overrides media of the first.
 	const auto crates = getTestTempDirectory().append(DIR_DELIM "test_crates");
 	const auto crate = crates + (DIR_DELIM CRATE_ID);
-	const auto gamemods = crate + (DIR_DELIM "mods" DIR_DELIM);
+	const auto cratemods = crate + (DIR_DELIM "mods" DIR_DELIM);
 
 	fs::CreateAllDirs(crate);
 	writeFile(crate + (DIR_DELIM "crate.conf"),
@@ -86,10 +86,10 @@ void TestServerModManager::runTests(ICrateDef *cratedef)
 			"first_mod = first_mod\n"
 			"last_mod = last_mod\n");
 
-	makeMod(gamemods + "first_mod", "first_mod");
-	makeMod(gamemods + "base_mod", "base_mod");
-	makeMod(gamemods + "dependent_mod", "dependent_mod", "base_mod");
-	makeMod(gamemods + "last_mod", "last_mod");
+	makeMod(cratemods + "first_mod", "first_mod");
+	makeMod(cratemods + "base_mod", "base_mod");
+	makeMod(cratemods + "dependent_mod", "dependent_mod", "base_mod");
+	makeMod(cratemods + "last_mod", "last_mod");
 
 	setenv("AXIS_CRATE_PATH", crates.c_str(), 1);
 

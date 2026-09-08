@@ -15,7 +15,7 @@
 PauseMenuScripting::PauseMenuScripting(Client *client):
 		ScriptApiBase(ScriptingType::PauseMenu)
 {
-	setGameDef(client);
+	setCrateDef(client);
 
 	SCRIPTAPI_PRECHECKHEADER
 

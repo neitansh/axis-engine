@@ -98,7 +98,7 @@ return {
 			fs = fs .. "button[0.5,5.1;4.5,0.8;share_debug;" .. fgettext("Share debug log") .. "]"
 		else
 			fs = fs .. "tooltip[userdata;" ..
-					fgettext("Opens the directory that contains user-provided worlds, places, mods,\n" ..
+					fgettext("Opens the directory that contains user-provided worlds, crates, mods,\n" ..
 							"and texture packs in a file manager / explorer.") .. "]"
 			fs = fs .. "button[0.5,5.1;4.5,0.8;userdata;" .. fgettext("Open User Data Directory") .. "]"
 		end

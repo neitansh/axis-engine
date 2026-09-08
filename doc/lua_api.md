@@ -140,8 +140,8 @@ Games
 
 Games are looked up from:
 
-* `$path_share/places/<crateid>/`
-* `$path_user/places/<crateid>/`
+* `$path_share/depot/<crateid>/`
+* `$path_user/depot/<crateid>/`
 
 Where `<crateid>` is unique to each crate.
 
@@ -242,7 +242,7 @@ Mod load path
 
 Paths are relative to the directories listed in the [Paths](#paths) section above.
 
-* `places/<crateid>/mods/`
+* `depot/<crateid>/mods/`
 * `mods/`
 * `worlds/<worldname>/worldmods/`
 
@@ -7554,7 +7554,7 @@ Item handling
     * Returns list of itemstrings that are dropped by `node` when dug with the
       item `toolname` (not limited to tools). The default implementation doesn't
       use `tool`, `digger`, and `pos`, but these are provided by `core.node_dig`
-      since 5.12.0 for places/mods implementing customized drops.
+      since 5.12.0 for crates/mods implementing customized drops.
     * `node`: node as table or node name
     * `toolname`: name of the item used to dig (can be `nil`)
     * `tool`: `ItemStack` used to dig (can be `nil`)
@@ -11751,7 +11751,7 @@ to decide, if they choose to use cooking at all.
 
 The engine does not implement anything specific to cooking recipes, but
 the recipes can be retrieved later using `core.get_craft_result` to
-have a consistent interface across different places/mods.
+have a consistent interface across different crates/mods.
 
 Parameters:
 

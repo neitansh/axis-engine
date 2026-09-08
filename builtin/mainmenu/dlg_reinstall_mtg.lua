@@ -22,9 +22,9 @@ function check_reinstall_mtg(parent)
 		return parent
 	end
 
-	local places = core.get_crates()
-	for _, place in ipairs(places) do
-		if place.id == "minetest" then
+	local crates = core.get_crates()
+	for _, crate in ipairs(crates) do
+		if crate.id == "minetest" then
 			cache_settings:set_bool(SETTING_NAME, true)
 			return parent
 		end
@@ -55,8 +55,8 @@ end
 local function get_formspec(dialogdata)
 	local markup = table.concat({
 		"<big>", hgettext("Minetest Game is no longer installed by default"), "</big>\n",
-		hgettext("For a long time, Luanti shipped with a default place called \"Minetest Game\". " ..
-				"Since version 5.8.0, Luanti ships without a default place."), "\n",
+		hgettext("For a long time, Luanti shipped with a default crate called \"Minetest Game\". " ..
+				"Since version 5.8.0, Luanti ships without a default crate."), "\n",
 		hgettext("If you want to continue playing in your Minetest Game worlds, you need to reinstall Minetest Game."),
 	})
 

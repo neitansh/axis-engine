@@ -129,8 +129,8 @@ describe("install_dir", function()
 		})
 	end)
 
-	it("updates place (alias)", function()
-		local old_place_path = depot_dir .. "/mycrate"
+	it("updates crate (alias)", function()
+		local old_crate_path = depot_dir .. "/mycrate"
 		local env = reset()
 		-- Temporary download directory of the content
 		local DL_DIR = "/tmp/123"
@@ -138,7 +138,7 @@ describe("install_dir", function()
 			return { type = "crate", path = DL_DIR }
 		end
 
-		local path, message = env.pkgmgr.install_dir("crate", DL_DIR, "mynewcrate", old_place_path)
+		local path, message = env.pkgmgr.install_dir("crate", DL_DIR, "mynewcrate", old_crate_path)
 		assert.is.equal(depot_dir .. "/mynewcrate", path)
 		assert.is._nil(message)
 		env.assert_calls({

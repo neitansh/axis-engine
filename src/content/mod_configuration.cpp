@@ -105,7 +105,7 @@ void ModConfiguration::addMods(const std::vector<ModSpec> &new_mods)
 	}
 }
 
-void ModConfiguration::addGameMods(const CrateSpec &cratespec)
+void ModConfiguration::addCrateMods(const CrateSpec &cratespec)
 {
 	std::string crate_virtual_path;
 	crate_virtual_path.append("depot/").append(cratespec.id).append("/mods");
