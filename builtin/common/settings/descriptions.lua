@@ -105,7 +105,7 @@ return {
 	["emergequeue_limit_generate"] = { text = S("How many of them may be created from scratch at a time."), load = "medium" },
 	["emergequeue_limit_total"] = { text = S("How many pieces of the world may wait in line to be loaded or created.") },
 	["enable_3d_clouds"] = { text = S("Make clouds solid instead of a flat sheet. They look much better from below and while flying."), load = "low" },
-	["enable_all_mods"] = { text = S("Turn on every mod of the place, ignoring what the world has enabled.") },
+	["enable_all_mods"] = { text = S("Turn on every mod of the crate, ignoring what the world has enabled.") },
 	["enable_auto_exposure"] = { text = S("Let your eyes adjust: step out of a cave and the light slowly settles down, just like in life."), load = "low" },
 	["enable_bloom"] = { text = S("Let bright things glow softly around themselves, like the sun through leaves."), load = "medium" },
 	["enable_bloom_debug"] = { text = S("Show the glow effect split into its parts. For those tuning it.") },

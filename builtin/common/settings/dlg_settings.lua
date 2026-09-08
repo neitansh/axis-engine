@@ -318,21 +318,21 @@ local function load()
 		local setting_info = get_setting_info("enable_auto_exposure")
 		--[[ TRANSLATORS: "automatic exposure" refers to light. This note
 		will be displayed for the graphics setting 'enable_auto_exposure' ]]
-		local note = component_funcs.note(fgettext_ne("(The place will need to enable automatic exposure as well)"))
+		local note = component_funcs.note(fgettext_ne("(The crate will need to enable automatic exposure as well)"))
 		note.requires = setting_info.requires
 		note.context = setting_info.context
 		table.insert(content, idx, note)
 
 		idx = table.indexof(content, "enable_bloom") + 1
 		setting_info = get_setting_info("enable_bloom")
-		note = component_funcs.note(fgettext_ne("(The place will need to enable bloom as well)"))
+		note = component_funcs.note(fgettext_ne("(The crate will need to enable bloom as well)"))
 		note.requires = setting_info.requires
 		note.context = setting_info.context
 		table.insert(content, idx, note)
 
 		idx = table.indexof(content, "enable_volumetric_lighting") + 1
 		setting_info = get_setting_info("enable_volumetric_lighting")
-		note = component_funcs.note(fgettext_ne("(The place will need to enable volumetric lighting as well)"))
+		note = component_funcs.note(fgettext_ne("(The crate will need to enable volumetric lighting as well)"))
 		note.requires = setting_info.requires
 		note.context = setting_info.context
 		table.insert(content, idx, note)
