@@ -323,9 +323,9 @@ local function tell_where_we_are_going()
 	gamedata.match = nil
 
 	if match then
-		presence.playing({ where = "match", crate = server_name(), mode = match })
+		presence.playing({ where = "match", server = server_name(), mode = match })
 	elseif gamedata.mode == "join" then
-		presence.playing({ where = "server", name = server_name() })
+		presence.playing({ where = "server", server = server_name() })
 	else
 		presence.playing({ where = "solo" })
 	end

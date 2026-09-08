@@ -75,12 +75,12 @@ end
 
 --- Очередь: где, во что, сколько ждёт и сколько нужно.
 ---
---- Крейт называется вместе с ареной: матчи бывают не только в «Залпе», и по
+--- Сервер называется вместе с ареной: матчи бывают не только в «Залпе», и по
 --- одному названию арены со стороны не понять, во что игрок играет.
-function presence.in_queue(crate, mode, room, waiting, needed)
+function presence.in_queue(server, mode, room, waiting, needed)
 	send({
 		where = "queue",
-		crate = crate or "",
+		server = server or "",
 		mode = mode or "",
 		room = room or "",
 		waiting = waiting or 0,
