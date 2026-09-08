@@ -782,7 +782,7 @@ function pkgmgr.get_crate_mods(cratespec, retval)
 end
 
 --------------------------------------------------------------------------------
-function pkgmgr.reload_places()
+function pkgmgr.reload_crates()
 	pkgmgr.crates = core.get_crates()
 	table.sort(pkgmgr.crates, function(a, b)
 		return a.title:lower() < b.title:lower()
@@ -793,7 +793,7 @@ end
 --------------------------------------------------------------------------------
 function pkgmgr.reload_by_type(type)
 	if type == "crate" then
-		pkgmgr.reload_places()
+		pkgmgr.reload_crates()
 	elseif type == "txp" then
 		pkgmgr.reload_texture_packs()
 	elseif type == "mod" or type == "modpack" then
@@ -809,7 +809,7 @@ function pkgmgr.load_all()
 		pkgmgr.reload_global_mods()
 	end
 	if not pkgmgr.crates then
-		pkgmgr.reload_places()
+		pkgmgr.reload_crates()
 	end
 	if not pkgmgr.texture_packs then
 		pkgmgr.reload_texture_packs()
@@ -872,4 +872,4 @@ end
 --------------------------------------------------------------------------------
 -- read initial data
 --------------------------------------------------------------------------------
-pkgmgr.reload_places()
+pkgmgr.reload_crates()

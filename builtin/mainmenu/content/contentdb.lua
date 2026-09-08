@@ -119,14 +119,14 @@ local function start_install(package, reason)
 					conf:set("author",     package.author)
 					conf:set("release",    package.release)
 					if package.aliases then
-						local placeid_aliases = {}
+						local crateid_aliases = {}
 						for _, alias in ipairs(package.aliases) do
 							local alias_cut = alias:match("[^/]+$")
 							if alias_cut ~= package.name then
-								placeid_aliases[#placeid_aliases + 1] = alias_cut
+								crateid_aliases[#crateid_aliases + 1] = alias_cut
 							end
 						end
-						conf:set("aliases", table.concat(placeid_aliases, ","))
+						conf:set("aliases", table.concat(crateid_aliases, ","))
 					end
 					conf:write()
 				end

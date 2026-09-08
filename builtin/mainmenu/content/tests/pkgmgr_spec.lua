@@ -138,13 +138,13 @@ describe("install_dir", function()
 			return { type = "crate", path = DL_DIR }
 		end
 
-		local path, message = env.pkgmgr.install_dir("crate", DL_DIR, "mynewplace", old_place_path)
-		assert.is.equal(depot_dir .. "/mynewplace", path)
+		local path, message = env.pkgmgr.install_dir("crate", DL_DIR, "mynewcrate", old_place_path)
+		assert.is.equal(depot_dir .. "/mynewcrate", path)
 		assert.is._nil(message)
 		env.assert_calls({
 			{ "delete_dir", depot_dir .. "/mycrate" },
-			{ "delete_dir", depot_dir .. "/mynewplace" },
-			{ "copy_dir", DL_DIR, depot_dir .. "/mynewplace", false },
+			{ "delete_dir", depot_dir .. "/mynewcrate" },
+			{ "copy_dir", DL_DIR, depot_dir .. "/mynewcrate", false },
 		})
 	end)
 

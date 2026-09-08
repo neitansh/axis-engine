@@ -3,7 +3,7 @@
 -- SPDX-License-Identifier: LGPL-2.1-or-later
 
 
-local current_place
+local current_crate
 local valid_disabled_settings = {
 	["enable_damage"]=true,
 	["creative_mode"]=true,
@@ -27,7 +27,7 @@ local valid_disabled_settings = {
 -- вернётся вместе с записью.
 
 -- Currently chosen place in placebar for theming and filtering
-function current_place()
+function current_crate()
 	local crateid = core.settings:get("menu_last_crate")
 	local place = crateid and pkgmgr.find_by_crateid(crateid)
 	-- Fall back to first place installed if one exists.
@@ -117,7 +117,7 @@ local function get_formspec(tabview, name, tabdata)
 	if world then
 		place = pkgmgr.find_by_crateid(world.crateid)
 	else
-		place = current_place()
+		place = current_crate()
 	end
 	local disabled_settings = get_disabled_settings(place)
 
@@ -246,13 +246,13 @@ local function main_button_handler(this, fields, name, tabdata)
 
 		-- Update last place
 		local world = menudata.worldlist:get_raw_element(gamedata.selected_world)
-		local place_obj
+		local crate_obj
 		if world then
-			place_obj = pkgmgr.find_by_crateid(world.crateid)
-			core.settings:set("menu_last_crate", place_obj.id)
+			crate_obj = pkgmgr.find_by_crateid(world.crateid)
+			core.settings:set("menu_last_crate", crate_obj.id)
 		end
 
-		local disabled_settings = get_disabled_settings(place_obj)
+		local disabled_settings = get_disabled_settings(crate_obj)
 		for k, _ in pairs(valid_disabled_settings) do
 			local v = disabled_settings[k]
 			if v ~= nil then
@@ -314,7 +314,7 @@ end
 
 local function on_change(type)
 	if type == "ENTER" then
-		local place = current_place()
+		local place = current_crate()
 		if place then
 			apply_place(place)
 		else

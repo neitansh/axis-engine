@@ -95,7 +95,7 @@ static void print_worldspecs(const std::vector<WorldSpec> &worldspecs,
 	std::ostream &os, bool print_name = true, bool print_path = true);
 static void print_modified_quicktune_values();
 
-static void list_place_ids();
+static void list_crate_ids();
 static void list_worlds(bool print_name, bool print_path);
 static bool setup_log_params(const Settings &cmd_args);
 static bool create_userdata_path();
@@ -116,9 +116,9 @@ static bool get_world_from_config(GameParams *game_params, const Settings &cmd_a
 static bool auto_select_world(GameParams *game_params);
 static std::string get_clean_world_path(const std::string &path);
 
-static bool configure_place(GameParams *game_params, const Settings &cmd_args);
+static bool configure_crate(GameParams *game_params, const Settings &cmd_args);
 static bool get_game_from_cmdline(GameParams *game_params, const Settings &cmd_args);
-static bool determine_place(GameParams *game_params);
+static bool determine_crate(GameParams *game_params);
 
 static bool run_dedicated_server(const GameParams &game_params, const Settings &cmd_args);
 static bool migrate_map_database(const GameParams &game_params, const Settings &cmd_args);
@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
 
 	// List gameids if requested
 	if (cmd_args.exists("crateid") && cmd_args.get("crateid") == "list") {
-		list_place_ids();
+		list_crate_ids();
 		return 0;
 	}
 
@@ -537,7 +537,7 @@ static void print_version(std::ostream &os)
 	os << g_build_info << std::endl;
 }
 
-static void list_place_ids()
+static void list_crate_ids()
 {
 	std::set<std::string> gameids = getAvailableCrateIds();
 	for (const std::string &crateid : gameids)
@@ -945,7 +945,7 @@ static bool game_configure(GameParams *game_params, const Settings &cmd_args)
 		return false;
 	}
 
-	return configure_place(game_params, cmd_args);
+	return configure_crate(game_params, cmd_args);
 }
 
 static void game_configure_port(GameParams *game_params, const Settings &cmd_args)
@@ -1094,13 +1094,13 @@ static std::string get_clean_world_path(const std::string &path)
 }
 
 
-static bool configure_place(GameParams *game_params, const Settings &cmd_args)
+static bool configure_crate(GameParams *game_params, const Settings &cmd_args)
 {
 	bool success;
 
 	success = get_game_from_cmdline(game_params, cmd_args);
 	if (!success)
-		success = determine_place(game_params);
+		success = determine_crate(game_params);
 
 	return success;
 }
@@ -1124,7 +1124,7 @@ static bool get_game_from_cmdline(GameParams *game_params, const Settings &cmd_a
 	return false;
 }
 
-static bool determine_place(GameParams *game_params)
+static bool determine_crate(GameParams *game_params)
 {
 	if (!game_params->is_dedicated_server) {
 		// ClientLauncher has its own logic to choose a game

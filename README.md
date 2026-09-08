@@ -21,14 +21,14 @@ engine is written in C++ with a Lua modding API, and runs on GNU/Linux,
 Windows, macOS and Android.
 
 This repository is the engine. Around it there is a platform of the same name —
-accounts, matchmaking, a launcher and the places people play in — and that part
-is a separate, closed service; only the engine is open. The first place on it is
+accounts, matchmaking, a launcher and the crates people play in — and that part
+is a separate, closed service; only the engine is open. The first crate on it is
 Salvo, a tactical shooter played in matches.
 
-Third-party places are the goal, not the current state: today the places are
+Third-party crates are the goal, not the current state: today the crates are
 ours, and the engine is developed together with them rather than as a
 general-purpose host for arbitrary content. What changes when that opens up is
-who writes a place, not how the engine is built.
+who writes a crate, not how the engine is built.
 
 ## Relationship with Luanti
 
