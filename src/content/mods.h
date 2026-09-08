@@ -50,7 +50,7 @@ struct ModSpec
 	 * - mods/mymod (1)
 	 *     (^ this would have name=mymod in mod.conf)
 	 * - mods/modpack1/mymod
-	 * - games/mygame/mods/mymod
+	 * - depot/mycrate/mods/mymod
 	 * - worldmods/mymod
 	 */
 	std::string virtual_path;

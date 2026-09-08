@@ -47,7 +47,7 @@ const std::vector<ConfigDomainSpec> DOMAIN_SPECS = {
 	{ConfigDomain::ServerWorldgen, ConfigSection::Server, "server/worldgen.conf",
 			"Map generation. Applied to worlds at creation time."},
 	{ConfigDomain::ServerCustom, ConfigSection::Server, "server/custom.conf",
-			"Server settings of games and mods, unknown to the engine."},
+			"Server settings of crates and mods, unknown to the engine."},
 };
 
 } // namespace

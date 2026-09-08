@@ -313,7 +313,7 @@ Server::Server(
 	ChatInterface *iface,
 	std::string *shutdown_errmsg) : m_bind_addr(bind_addr),
 									m_path_world(path_world),
-									m_gamespec(cratespec),
+									m_cratespec(cratespec),
 									m_simple_singleplayer_mode(simple_singleplayer_mode),
 									m_dedicated(dedicated),
 									m_con(con::createMTP(CONNECTION_TIMEOUT, m_bind_addr.isIPv6(), this)),
@@ -518,7 +518,7 @@ void Server::init()
 	{
 		loadCrateConfAndInitWorld(m_path_world,
 								 fs::GetFilenameFromPath(m_path_world.c_str()),
-								 m_gamespec, false);
+								 m_cratespec, false);
 	}
 	catch (const BaseException &e)
 	{
@@ -536,7 +536,7 @@ void Server::init()
 	m_mod_storage_database = openModStorageDatabase(m_path_world);
 	m_mod_storage_database->beginSave();
 
-	m_modmgr = std::make_unique<ServerModManager>(m_path_world, m_gamespec);
+	m_modmgr = std::make_unique<ServerModManager>(m_path_world, m_cratespec);
 
 	// complain about mods with unsatisfied dependencies
 	if (!m_modmgr->isConsistent())
@@ -573,7 +573,7 @@ void Server::init()
 
 	m_script->loadBuiltin();
 
-	m_gamespec.checkAndLog();
+	m_cratespec.checkAndLog();
 	m_modmgr->loadMods(*m_script);
 
 	m_script->saveGlobals();
@@ -587,7 +587,7 @@ void Server::init()
 	// Apply texture overrides from texturepack/override.txt
 	std::vector<std::string> paths;
 	fs::GetRecursiveDirs(paths, g_settings->get("texture_path"));
-	fs::GetRecursiveDirs(paths, m_gamespec.path + DIR_DELIM + "textures");
+	fs::GetRecursiveDirs(paths, m_cratespec.path + DIR_DELIM + "textures");
 	for (const std::string &path : paths)
 	{
 		TextureOverrideSource override_source(path + DIR_DELIM + "override.txt");
@@ -925,7 +925,7 @@ void Server::AsyncRunStep(float dtime, bool initial_step)
 									 m_uptime_counter->get(),
 									 m_env->getGameTime(),
 									 m_lag_gauge->get(),
-									 m_gamespec.id,
+									 m_cratespec.id,
 									 Mapgen::getMapgenName(m_emerge->mgparams->mgtype),
 									 m_modmgr->getMods(),
 									 m_dedicated);
@@ -3037,7 +3037,7 @@ void Server::fillMediaCache()
 	// assets together instead of scattering them across the mods that use them.
 	// The game comes before the mods here, which lets it override their media.
 	for (const char *dir : {"textures", "sounds", "media", "models", "fonts", "locale"})
-		fs::GetRecursiveDirs(paths, m_gamespec.path + DIR_DELIM + dir);
+		fs::GetRecursiveDirs(paths, m_cratespec.path + DIR_DELIM + dir);
 	m_modmgr->getModsMediaPaths(paths);
 
 	// Collect media file information from paths into cache
@@ -3195,7 +3195,7 @@ void Server::sendRequestedMedia(session_t peer_id,
 	file_bunches.emplace_back();
 
 	// Note that applying a "real" bin packing algorithm here is not necessarily
-	// an improvement (might even perform worse) since games usually have lots
+	// an improvement (might even perform worse) since crates usually have lots
 	// of files larger than 5KB and the current algorithm already minimizes
 	// the amount of bunches quite well (at the expense of overshooting).
 

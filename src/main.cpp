@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	// List gameids if requested
+	// List crateids if requested
 	if (cmd_args.exists("crateid") && cmd_args.get("crateid") == "list") {
 		list_crate_ids();
 		return 0;
@@ -539,8 +539,8 @@ static void print_version(std::ostream &os)
 
 static void list_crate_ids()
 {
-	std::set<std::string> gameids = getAvailableCrateIds();
-	for (const std::string &crateid : gameids)
+	std::set<std::string> crateids = getAvailableCrateIds();
+	for (const std::string &crateid : crateids)
 		rawstream << crateid <<std::endl;
 }
 

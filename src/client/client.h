@@ -424,7 +424,7 @@ public:
 	 * new session.
 	 *
 	 * A server that merely restarted hands out the same content IDs as before,
-	 * because the same games and mods register the same nodes in the same
+	 * because the same crates and mods register the same nodes in the same
 	 * order. The map then still means what it says and is kept, so the player
 	 * never sees the world go away. Only when the IDs actually differ - a
 	 * changed set of mods, a different game - is the map dropped.

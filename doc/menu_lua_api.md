@@ -317,7 +317,7 @@ Package - content which is downloadable from the content db, may or may not be i
     * returns path to global gamepath
 * `core.get_texturepath()` (possible in async calls)
     * returns path to default textures
-* `core.get_crates()` -> table of all games (possible in async calls)
+* `core.get_crates()` -> table of all crates (possible in async calls)
     * `name` in return value is deprecated, use `title` instead.
     * returns a table (ipairs) with values:
       ```lua

@@ -48,7 +48,7 @@ void make_tree(MMVManip &vmanip, v3s16 p0, bool is_apple_tree,
 {
 	/*
 		NOTE: Tree-placing code is currently duplicated in the engine
-		and in games that have saplings; both are deprecated but not
+		and in crates that have saplings; both are deprecated but not
 		replaced yet
 	*/
 	MapNode treenode(ndef->getId("mapgen_tree"));
@@ -647,7 +647,7 @@ void make_jungletree(MMVManip &vmanip, v3s16 p0, const NodeDefManager *ndef,
 {
 	/*
 		NOTE: Tree-placing code is currently duplicated in the engine
-		and in games that have saplings; both are deprecated but not
+		and in crates that have saplings; both are deprecated but not
 		replaced yet
 	*/
 	content_t c_tree   = ndef->getId("mapgen_jungletree");
@@ -750,7 +750,7 @@ void make_pine_tree(MMVManip &vmanip, v3s16 p0, const NodeDefManager *ndef,
 {
 	/*
 		NOTE: Tree-placing code is currently duplicated in the engine
-		and in games that have saplings; both are deprecated but not
+		and in crates that have saplings; both are deprecated but not
 		replaced yet
 	*/
 	content_t c_tree   = ndef->getId("mapgen_pine_tree");

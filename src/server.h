@@ -349,7 +349,7 @@ public:
 	// Not under envlock
 	const std::vector<ModSpec> &getMods() const override;
 	const ModSpec* getModSpec(const std::string &modname) const override;
-	const CrateSpec* getCrateSpec() const override { return &m_gamespec; }
+	const CrateSpec* getCrateSpec() const override { return &m_cratespec; }
 	static std::string getBuiltinLuaPath();
 	std::string getWorldPath() const override { return m_path_world; }
 	std::string getModDataPath() const override { return m_path_mod_data; }
@@ -704,7 +704,7 @@ private:
 	std::string m_path_world;
 	std::string m_path_mod_data;
 	// Place specification
-	CrateSpec m_gamespec;
+	CrateSpec m_cratespec;
 	// If true, do not allow multiple players and hide some multiplayer
 	// functionality
 	bool m_simple_singleplayer_mode;

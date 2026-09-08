@@ -95,7 +95,7 @@ const std::vector<ConfigDomainSpec> &getConfigDomainSpecs();
  *
  * @param name Setting name
  * @return The domain, or ConfigDomain::Count if the setting is unknown to the
- *         engine, which is the case for settings of games and mods.
+ *         engine, which is the case for settings of crates and mods.
  */
 ConfigDomain findSettingDomain(const std::string &name);
 

@@ -152,7 +152,7 @@ not documented here; see the documentation for the game or mod that owns them.
 Custom keys should be namespaced to avoid conflicts with Luanti and other
 content. The convention is `<modname>.<setting>`.
 
-    crateid = mesetint             - name of the game
+    crateid = mesetint             - name of the crate
     world_name = Sol III          - name of the world (if not set, the world folder name will be used)
                                     shown in the main menu and used as a technical identifier
     enable_damage = true          - whether damage is enabled or not

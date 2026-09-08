@@ -26,13 +26,13 @@ content_t t_CONTENT_BRICK;
 ////////////////////////////////////////////////////////////////////////////////
 
 ////
-//// TestGameDef
+//// TestCrateDef
 ////
 
-class TestGameDef : public DummyCrateDef {
+class TestCrateDef : public DummyCrateDef {
 public:
-	TestGameDef();
-	~TestGameDef() = default;
+	TestCrateDef();
+	~TestCrateDef() = default;
 
 	void defineSomeNodes();
 
@@ -49,7 +49,7 @@ private:
 };
 
 
-TestGameDef::TestGameDef() :
+TestCrateDef::TestCrateDef() :
 	DummyCrateDef(),
 	m_modchannel_mgr(new ModChannelMgr())
 {
@@ -57,7 +57,7 @@ TestGameDef::TestGameDef() :
 }
 
 
-void TestGameDef::defineSomeNodes()
+void TestCrateDef::defineSomeNodes()
 {
 	IWritableItemDefManager *idef = (IWritableItemDefManager *)m_itemdef;
 	NodeDefManager *ndef = (NodeDefManager *)m_nodedef;
@@ -181,17 +181,17 @@ void TestGameDef::defineSomeNodes()
 	t_CONTENT_BRICK = ndef->set(f.name, f);
 }
 
-bool TestGameDef::joinModChannel(const std::string &channel)
+bool TestCrateDef::joinModChannel(const std::string &channel)
 {
 	return m_modchannel_mgr->joinChannel(channel, PEER_ID_SERVER);
 }
 
-bool TestGameDef::leaveModChannel(const std::string &channel)
+bool TestCrateDef::leaveModChannel(const std::string &channel)
 {
 	return m_modchannel_mgr->leaveChannel(channel, PEER_ID_SERVER);
 }
 
-bool TestGameDef::sendModChannelMessage(const std::string &channel,
+bool TestCrateDef::sendModChannelMessage(const std::string &channel,
 	const std::string &message)
 {
 	if (!m_modchannel_mgr->channelRegistered(channel))
@@ -207,7 +207,7 @@ bool TestGameDef::sendModChannelMessage(const std::string &channel,
 bool run_tests()
 {
 	u64 t1 = porting::getTimeMs();
-	TestGameDef cratedef;
+	TestCrateDef cratedef;
 
 	u32 num_modules_failed     = 0;
 	u32 num_total_tests_failed = 0;
@@ -265,7 +265,7 @@ static TestBase *findTestModule(const std::string &module_name) {
 
 bool run_tests(const std::string &module_name)
 {
-	TestGameDef cratedef;
+	TestCrateDef cratedef;
 
 	auto testmod = findTestModule(module_name);
 	if (!testmod) {

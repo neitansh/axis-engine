@@ -29,7 +29,7 @@ class Settings;
  * file of its own domain. Neither side can therefore leak its settings into
  * the files of the other.
  *
- * Settings the engine does not know - those of games and mods - are remembered
+ * Settings the engine does not know - those of crates and mods - are remembered
  * with the file they came from and written back there. New ones end up in the
  * "custom" file of the running side.
  */

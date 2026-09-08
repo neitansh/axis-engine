@@ -328,50 +328,50 @@ int ModApiMainMenu::l_get_worlds(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_get_crates(lua_State *L)
 {
-	std::vector<CrateSpec> games = getAvailableCrates();
+	std::vector<CrateSpec> crates = getAvailableCrates();
 
 	lua_newtable(L);
 	int top = lua_gettop(L);
 	unsigned int index = 1;
 
-	for (const CrateSpec &game : games) {
+	for (const CrateSpec &crate : crates) {
 		lua_pushnumber(L, index);
 		lua_newtable(L);
 		int top_lvl2 = lua_gettop(L);
 
 		lua_pushstring(L,  "id");
-		lua_pushstring(L,  game.id.c_str());
+		lua_pushstring(L,  crate.id.c_str());
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "path");
-		lua_pushstring(L,  game.path.c_str());
+		lua_pushstring(L,  crate.path.c_str());
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "type");
-		lua_pushstring(L,  "place");
+		lua_pushstring(L,  "crate");
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "cratemods_path");
-		lua_pushstring(L,  game.cratemods_path.c_str());
+		lua_pushstring(L,  crate.cratemods_path.c_str());
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "name");
-		lua_pushstring(L,  game.title.c_str());
+		lua_pushstring(L,  crate.title.c_str());
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "title");
-		lua_pushstring(L,  game.title.c_str());
+		lua_pushstring(L,  crate.title.c_str());
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "author");
-		lua_pushstring(L,  game.author.c_str());
+		lua_pushstring(L,  crate.author.c_str());
 		lua_settable(L,    top_lvl2);
 
 		lua_pushstring(L,  "release");
-		lua_pushinteger(L, game.release);
+		lua_pushinteger(L, crate.release);
 		lua_settable(L,    top_lvl2);
 
-		auto menuicon = getImagePath(game.path + DIR_DELIM "menu" DIR_DELIM "icon.png");
+		auto menuicon = getImagePath(crate.path + DIR_DELIM "menu" DIR_DELIM "icon.png");
 		lua_pushstring(L,  "menuicon_path");
 		lua_pushstring(L,  menuicon.c_str());
 		lua_settable(L,    top_lvl2);
@@ -379,7 +379,7 @@ int ModApiMainMenu::l_get_crates(lua_State *L)
 		lua_pushstring(L, "aliases");
 		lua_newtable(L);
 		int table_aliases = lua_gettop(L);
-		for (const auto &alias : game.aliases) {
+		for (const auto &alias : crate.aliases) {
 			lua_pushstring(L, alias.c_str());
 			lua_pushboolean(L, true);
 			lua_settable(L, table_aliases);
@@ -390,7 +390,7 @@ int ModApiMainMenu::l_get_crates(lua_State *L)
 		lua_newtable(L);
 		int table2 = lua_gettop(L);
 		int internal_index = 1;
-		for (const auto &addon_mods_path : game.addon_mods_paths) {
+		for (const auto &addon_mods_path : crate.addon_mods_paths) {
 			lua_pushnumber(L, internal_index);
 			lua_pushstring(L, addon_mods_path.second.c_str());
 			lua_settable(L,   table2);
@@ -657,11 +657,11 @@ int ModApiMainMenu::l_create_world(lua_State *L)
 			"worlds" + DIR_DELIM
 			+ sanitizeDirName(name, "world_");
 
-	std::vector<CrateSpec> games = getAvailableCrates();
-	auto game_it = std::find_if(games.begin(), games.end(), [crateid] (const CrateSpec &spec) {
+	std::vector<CrateSpec> crates = getAvailableCrates();
+	auto crate_it = std::find_if(crates.begin(), crates.end(), [crateid] (const CrateSpec &spec) {
 		return spec.id == crateid;
 	});
-	if (game_it == games.end()) {
+	if (crate_it == crates.end()) {
 		lua_pushstring(L, "Game ID not found");
 		return 1;
 	}
@@ -677,7 +677,7 @@ int ModApiMainMenu::l_create_world(lua_State *L)
 
 	// Create world if it doesn't exist
 	try {
-		loadCrateConfAndInitWorld(path, name, *game_it, true);
+		loadCrateConfAndInitWorld(path, name, *crate_it, true);
 		lua_pushnil(L);
 	} catch (const BaseException &e) {
 		auto err = std::string("Failed to initialize world: ") + e.what();

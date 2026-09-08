@@ -143,7 +143,7 @@ Games are looked up from:
 * `$path_share/places/<crateid>/`
 * `$path_user/places/<crateid>/`
 
-Where `<crateid>` is unique to each game.
+Where `<crateid>` is unique to each crate.
 
 The game directory can contain the following files:
 
@@ -5005,7 +5005,7 @@ This is the short description=Voici la description succincte
 
 For games and modpacks, Luanti will look for the textdomain in all mods.
 
-Say you have a game called `mygame` with the following crate.conf:
+Say you have a crate called `mycrate` with the following crate.conf:
 
 ```
 description = This is the game's short description
@@ -6144,7 +6144,7 @@ Utilities
         * `false`: Sorted alphabetically.
 * `core.get_crate_info()`: returns a table containing information about the
   current game. Note that other meta information (e.g. version/release number)
-  can be manually read from `crate.conf` in the game's root directory.
+  can be manually read from `crate.conf` in the crate's root directory.
 
   ```lua
   {
@@ -9539,7 +9539,7 @@ You **must not** mix names and track numbers to refer to the same animation.
           is used for the specific old sneak behavior (default: `true`)
     * Note: All numeric fields above modify a corresponding `movement_*` setting.
     * For games, we recommend for simpler code to first modify the `movement_*`
-      settings (e.g. via the game's `crate_defaults.conf`) to set a global base value
+      settings (e.g. via the crate's `crate_defaults.conf`) to set a global base value
       for all players and only use `set_physics_override` when you need to change
       from the base value on a per-player basis
     * Note: Some of the fields don't exist in old API versions, see feature

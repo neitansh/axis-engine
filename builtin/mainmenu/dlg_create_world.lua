@@ -388,9 +388,9 @@ local function create_world_buttonhandler(this, fields)
 	this.data.worldname = fields["te_world_name"]
 	this.data.seed = fields["te_seed"] or ""
 
-	if fields["games"] then
-		local placeindex = core.get_textlist_index("games")
-		core.settings:set("menu_last_crate", pkgmgr.crates[placeindex].id)
+	if fields["crates"] then
+		local crateindex = core.get_textlist_index("crates")
+		core.settings:set("menu_last_crate", pkgmgr.crates[crateindex].id)
 		return true
 	end
 

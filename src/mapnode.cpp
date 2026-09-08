@@ -449,7 +449,7 @@ void MapNode::getSelectionBoxes(const NodeDefManager *nodemgr,
 u8 MapNode::getMaxLevel(const NodeDefManager *nodemgr) const
 {
 	const ContentFeatures &f = nodemgr->get(*this);
-	// todo: after update in all games leave only if (f.param_type_2 ==
+	// todo: after update in all crates leave only if (f.param_type_2 ==
 	if( f.liquid_type == LIQUID_FLOWING || f.param_type_2 == CPT2_FLOWINGLIQUID)
 		return LIQUID_LEVEL_MAX;
 	if(f.leveled || f.param_type_2 == CPT2_LEVELED)
@@ -460,7 +460,7 @@ u8 MapNode::getMaxLevel(const NodeDefManager *nodemgr) const
 u8 MapNode::getLevel(const NodeDefManager *nodemgr) const
 {
 	const ContentFeatures &f = nodemgr->get(*this);
-	// todo: after update in all games leave only if (f.param_type_2 ==
+	// todo: after update in all crates leave only if (f.param_type_2 ==
 	if(f.liquid_type == LIQUID_SOURCE)
 		return LIQUID_LEVEL_SOURCE;
 	if (f.param_type_2 == CPT2_FLOWINGLIQUID)

@@ -59,7 +59,7 @@ std::unordered_set<std::string> getAliasesFromSettings(const Settings &conf)
 // Движок наш, плейсы наши, и трёх имён одной переменной здесь незачем.
 std::string getPlacePathEnv()
 {
-	if (const char *path = getenv("AXIS_PLACE_PATH"))
+	if (const char *path = getenv("AXIS_CRATE_PATH"))
 		return std::string(path);
 	return "";
 }
@@ -201,18 +201,18 @@ static CrateSpec getCrateSpec(const std::string &crate_id,
 std::set<std::string> getAvailableCrateIds()
 {
 	GamePathMap gamepaths = getAvailableGamePaths();
-	std::set<std::string> gameids;
+	std::set<std::string> crateids;
 	for (auto &&p : gamepaths)
-		gameids.insert(std::move(p.first));
-	return gameids;
+		crateids.insert(std::move(p.first));
+	return crateids;
 }
 
 std::vector<CrateSpec> getAvailableCrates()
 {
 	std::vector<CrateSpec> specs;
-	std::set<std::string> gameids = getAvailableCrateIds();
-	specs.reserve(gameids.size());
-	for (const auto &crateid : gameids)
+	std::set<std::string> crateids = getAvailableCrateIds();
+	specs.reserve(crateids.size());
+	for (const auto &crateid : crateids)
 		specs.push_back(findCrate(crateid));
 	// TODO: Optimize such that `getAvailableGamePaths()` is not run N times.
 	return specs;

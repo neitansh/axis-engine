@@ -40,7 +40,7 @@ public:
 	std::string getUnsatisfiedModsError() const;
 
 	/**
-	 * Adds all mods in the given path. used for games, modpacks
+	 * Adds all mods in the given path. used for crates, modpacks
 	 * and world-specific mods (worldmods-folders)
 	 *
 	 * @param path To search, should be absolute

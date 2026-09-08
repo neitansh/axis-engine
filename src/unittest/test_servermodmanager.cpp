@@ -10,10 +10,10 @@
 #include "server/mods.h"
 #include "settings.h"
 
-// The game and the mods this module runs against are built in the temporary
+// The crate and the mods this module runs against are built in the temporary
 // directory, so the test states what it expects instead of depending on the
-// content of some game that happens to be installed.
-#define PLACE_ID "testgame"
+// content of some crate that happens to be installed.
+#define CRATE_ID "testcrate"
 
 class TestServerModManager : public TestBase
 {
@@ -74,14 +74,14 @@ void TestServerModManager::makeMod(const std::string &path,
 
 void TestServerModManager::runTests(ICrateDef *cratedef)
 {
-	// A game of four mods: one forced first, one forced last, and a pair
+	// A crate of four mods: one forced first, one forced last, and a pair
 	// where the second overrides media of the first.
-	const auto games = getTestTempDirectory().append(DIR_DELIM "test_games");
-	const auto game = games + (DIR_DELIM PLACE_ID);
-	const auto gamemods = game + (DIR_DELIM "mods" DIR_DELIM);
+	const auto crates = getTestTempDirectory().append(DIR_DELIM "test_crates");
+	const auto crate = crates + (DIR_DELIM CRATE_ID);
+	const auto gamemods = crate + (DIR_DELIM "mods" DIR_DELIM);
 
-	fs::CreateAllDirs(game);
-	writeFile(game + (DIR_DELIM "crate.conf"),
+	fs::CreateAllDirs(crate);
+	writeFile(crate + (DIR_DELIM "crate.conf"),
 			"title = Test Game\n"
 			"first_mod = first_mod\n"
 			"last_mod = last_mod\n");
@@ -91,9 +91,9 @@ void TestServerModManager::runTests(ICrateDef *cratedef)
 	makeMod(gamemods + "dependent_mod", "dependent_mod", "base_mod");
 	makeMod(gamemods + "last_mod", "last_mod");
 
-	setenv("AXIS_PLACE_PATH", games.c_str(), 1);
+	setenv("AXIS_CRATE_PATH", crates.c_str(), 1);
 
-	// A mod outside of the game, as a player would install it
+	// A mod outside of the crate, as a player would install it
 	const auto test_mods = getTestTempDirectory().append(DIR_DELIM "test_mods");
 	makeMod(test_mods + (DIR_DELIM "test_mod"), "test_mod");
 
@@ -122,14 +122,14 @@ void TestServerModManager::runTests(ICrateDef *cratedef)
 
 	g_settings->setBool("enable_all_mods", enable_all_mods);
 	unsetenv("LUANTI_MOD_PATH");
-	unsetenv("AXIS_PLACE_PATH");
+	unsetenv("AXIS_CRATE_PATH");
 }
 
 void TestServerModManager::testCreation()
 {
 	std::string path = m_worlddir + DIR_DELIM + "world.mt";
 	Settings world_config;
-	world_config.set("crateid", PLACE_ID);
+	world_config.set("crateid", CRATE_ID);
 	world_config.set("load_mod_test_mod", "true");
 	UASSERTEQ(bool, world_config.updateConfigFile(path.c_str()), true);
 
@@ -159,7 +159,7 @@ void TestServerModManager::testGetMods()
 {
 	auto sm = makeManager(m_worlddir);
 	const auto &mods = sm.getMods();
-	// The four mods of the game plus the one from LUANTI_MOD_PATH
+	// The four mods of the crate plus the one from LUANTI_MOD_PATH
 	UASSERTEQ(std::size_t, mods.size(), 4 + 1);
 
 	bool game_mod_found = false;
@@ -177,7 +177,7 @@ void TestServerModManager::testGetMods()
 	UASSERTEQ(bool, game_mod_found, true);
 	UASSERTEQ(bool, test_mod_found, true);
 
-	// The game decides what runs before and after everything else
+	// The crate decides what runs before and after everything else
 	UASSERT(mods.front().name == "first_mod");
 	UASSERT(mods.back().name == "last_mod");
 
@@ -198,7 +198,7 @@ void TestServerModManager::testLoadsInstalledMods()
 
 	std::string path = m_worlddir + DIR_DELIM + "world.mt";
 	Settings world_config;
-	world_config.set("crateid", PLACE_ID);
+	world_config.set("crateid", CRATE_ID);
 	UASSERTEQ(bool, world_config.updateConfigFile(path.c_str()), true);
 
 	{
