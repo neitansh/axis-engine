@@ -539,7 +539,7 @@ static void print_version(std::ostream &os)
 
 static void list_place_ids()
 {
-	std::set<std::string> gameids = getAvailablePlaceIds();
+	std::set<std::string> gameids = getAvailableCrateIds();
 	for (const std::string &crateid : gameids)
 		rawstream << crateid <<std::endl;
 }
@@ -1111,7 +1111,7 @@ static bool get_game_from_cmdline(GameParams *game_params, const Settings &cmd_a
 
 	if (cmd_args.exists("crateid")) {
 		std::string crateid = cmd_args.get("crateid");
-		commanded_gamespec = findPlace(crateid);
+		commanded_gamespec = findCrate(crateid);
 		if (!commanded_gamespec.isValid()) {
 			errorstream << "Game \"" << crateid << "\" not found" << std::endl;
 			return false;
@@ -1139,10 +1139,10 @@ static bool determine_place(GameParams *game_params)
 		if (game_params->crate_spec.isValid()) {
 			cratespec = game_params->crate_spec;
 		} else {
-			auto games = getAvailablePlaceIds();
+			auto games = getAvailableCrateIds();
 			// If there's exactly one obvious choice then do the right thing
 			if (games.size() == 1) {
-				cratespec = findPlace(*games.begin());
+				cratespec = findCrate(*games.begin());
 				infostream << "Automatically selecting crateid [" << cratespec.id << "]" << std::endl;
 			} else {
 				// Else, force the user to choose
@@ -1157,17 +1157,17 @@ static bool determine_place(GameParams *game_params)
 			}
 		}
 	} else { // World exists
-		std::string world_gameid = getWorldPlaceId(game_params->world_path, false);
+		std::string world_crateid = getWorldCrateId(game_params->world_path, false);
 		// If commanded to use a crateid, do so
 		if (game_params->crate_spec.isValid()) {
 			cratespec = game_params->crate_spec;
-			if (game_params->crate_spec.id != world_gameid) {
+			if (game_params->crate_spec.id != world_crateid) {
 				warningstream << "Using commanded crateid ["
 				            << cratespec.id << "]" << " instead of world crateid ["
-				            << world_gameid << "]" << std::endl;
+				            << world_crateid << "]" << std::endl;
 			}
 		} else {
-			cratespec = findWorldPlace(game_params->world_path);
+			cratespec = findWorldCrate(game_params->world_path);
 			infostream << "Using world crateid [" << cratespec.id << "]" << std::endl;
 		}
 	}

@@ -61,18 +61,18 @@ struct CrateSpec
 	void checkAndLog() const;
 };
 
-CrateSpec findPlace(const std::string &id);
-CrateSpec findWorldPlace(const std::string &world_path);
+CrateSpec findCrate(const std::string &id);
+CrateSpec findWorldCrate(const std::string &world_path);
 
-std::set<std::string> getAvailablePlaceIds();
-std::vector<CrateSpec> getAvailablePlaces();
+std::set<std::string> getAvailableCrateIds();
+std::vector<CrateSpec> getAvailableCrates();
 // Get the list of paths to mods in the environment variable LUANTI_MOD_PATH
 std::vector<std::string> getEnvModPaths();
 
 bool getWorldExists(const std::string &world_path);
 //! Try to get the displayed name of a world
 std::string getWorldName(const std::string &world_path, const std::string &default_name);
-std::string getWorldPlaceId(const std::string &world_path, bool can_be_legacy = false);
+std::string getWorldCrateId(const std::string &world_path, bool can_be_legacy = false);
 
 struct WorldSpec
 {
@@ -97,5 +97,5 @@ std::vector<WorldSpec> getAvailableWorlds();
 
 // loads the place's config and creates world directory
 // and world.mt if they don't exist
-void loadPlaceConfAndInitWorld(const std::string &path, const std::string &name,
+void loadCrateConfAndInitWorld(const std::string &path, const std::string &name,
 		const CrateSpec &cratespec, bool create_world);

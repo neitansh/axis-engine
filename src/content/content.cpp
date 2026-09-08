@@ -37,7 +37,7 @@ void parseContentInfo(ContentSpec &spec)
 		conf_path = spec.path + DIR_DELIM "modpack.conf";
 		break;
 	case ContentType::GAME:
-		spec.type = "place";
+		spec.type = "crate";
 		conf_path = spec.path + DIR_DELIM "crate.conf";
 		break;
 	case ContentType::TXP:
@@ -53,16 +53,16 @@ void parseContentInfo(ContentSpec &spec)
 	if (!conf_path.empty() && conf.readConfigFile(conf_path.c_str())) {
 		if (conf.exists("title"))
 			spec.title = conf.get("title");
-		else if (spec.type == "place" && conf.exists("name"))
+		else if (spec.type == "crate" && conf.exists("name"))
 			spec.title = conf.get("name");
 
-		if (spec.type != "place" && conf.exists("name"))
+		if (spec.type != "crate" && conf.exists("name"))
 			spec.name = conf.get("name");
 
 		if (conf.exists("title"))
 			spec.title = conf.get("title");
 
-		if (spec.type == "place") {
+		if (spec.type == "crate") {
 			if (spec.title.empty())
 				spec.title = spec.name;
 			spec.name = "";

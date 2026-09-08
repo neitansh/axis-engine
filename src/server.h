@@ -349,7 +349,7 @@ public:
 	// Not under envlock
 	const std::vector<ModSpec> &getMods() const override;
 	const ModSpec* getModSpec(const std::string &modname) const override;
-	const CrateSpec* getGameSpec() const override { return &m_gamespec; }
+	const CrateSpec* getCrateSpec() const override { return &m_gamespec; }
 	static std::string getBuiltinLuaPath();
 	std::string getWorldPath() const override { return m_path_world; }
 	std::string getModDataPath() const override { return m_path_mod_data; }

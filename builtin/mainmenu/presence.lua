@@ -77,10 +77,10 @@ end
 ---
 --- Место называется вместе с ареной: матчи бывают не только в «Залпе», и по
 --- одному названию арены со стороны не понять, во что игрок играет.
-function presence.in_queue(place, mode, room, waiting, needed)
+function presence.in_queue(crate, mode, room, waiting, needed)
 	send({
 		where = "queue",
-		place = place or "",
+		crate = crate or "",
 		mode = mode or "",
 		room = room or "",
 		waiting = waiting or 0,

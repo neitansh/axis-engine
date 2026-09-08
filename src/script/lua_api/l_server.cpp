@@ -573,7 +573,7 @@ int ModApiServer::l_get_modnames(lua_State *L)
 int ModApiServer::l_get_crate_info(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
-	const CrateSpec *crate_spec = getCrateDef(L)->getGameSpec();
+	const CrateSpec *crate_spec = getCrateDef(L)->getCrateSpec();
 	assert(crate_spec);
 	lua_newtable(L);
 	setstringfield(L, -1, "id", crate_spec->id);

@@ -479,19 +479,19 @@ function settingtypes.parse_config_file(read_all, parse_mods)
 
 	if INIT == "mainmenu" and parse_mods then
 		-- Parse places
-		local places_category_initialized = false
-		for _, place in ipairs(pkgmgr.places) do
+		local crates_category_initialized = false
+		for _, place in ipairs(pkgmgr.crates) do
 			local path = place.path .. DIR_DELIM .. FILENAME
 			local file = io.open(path, "r")
 			if file then
-				if not places_category_initialized then
+				if not crates_category_initialized then
 					fgettext_ne("Content: Places") -- not used, but needed for xgettext
 					table.insert(settings, {
 						name = "Content: Places",
 						level = 0,
 						type = "category",
 					})
-					places_category_initialized = true
+					crates_category_initialized = true
 				end
 
 				table.insert(settings, {

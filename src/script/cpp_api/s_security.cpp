@@ -838,7 +838,7 @@ bool ScriptApiSecurity::checkPathWithCratedef(lua_State *L,
 
 	// Allow read-only access to game directory
 	if (!write_required) {
-		const CrateSpec *crate_spec = cratedef->getGameSpec();
+		const CrateSpec *crate_spec = cratedef->getCrateSpec();
 		if (crate_spec && !crate_spec->path.empty()) {
 			str = fs::AbsolutePath(crate_spec->path);
 			if (!str.empty() && fs::PathStartsWith(abs_path, str))

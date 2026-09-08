@@ -147,7 +147,7 @@ function pkgmgr.get_all()
 	for _, mod in pairs(pkgmgr.global_mods:get_list()) do
 		result[#result + 1] = mod
 	end
-	for _, place in pairs(pkgmgr.places) do
+	for _, place in pairs(pkgmgr.crates) do
 		result[#result + 1] = place
 	end
 	for _, txp in pairs(pkgmgr.texture_packs) do
@@ -180,7 +180,7 @@ function pkgmgr.get_folder_type(path)
 	testfile = io.open(path .. DIR_DELIM .. "crate.conf","r")
 	if testfile ~= nil then
 		testfile:close()
-		return { type = "place", path = path }
+		return { type = "crate", path = path }
 	end
 
 	testfile = io.open(path .. DIR_DELIM .. "texture_pack.conf","r")
@@ -299,7 +299,7 @@ function pkgmgr.render_packagelist(render_list, use_technical_names, with_icon)
 			color = mt_color_blue
 
 			-- Parent icon depends on contained mods
-			if v.type == "place" or v.type == "worldmods" then
+			if v.type == "crate" or v.type == "worldmods" then
 				local rawlist = render_list:get_raw_list()
 				for _, mod in ipairs(rawlist) do
 					if v.type == mod.loc then
@@ -329,7 +329,7 @@ function pkgmgr.render_packagelist(render_list, use_technical_names, with_icon)
 		retval[#retval + 1] = color
 		-- `v.modpack_depth` is `nil` for the selected place (treated as level 0)
 		retval[#retval + 1] = (v.modpack_depth or 0) +
-				((v.loc == "place" or v.loc == "worldmods") and 1 or 0)
+				((v.loc == "crate" or v.loc == "worldmods") and 1 or 0)
 
 		if with_icon then
 			retval[#retval + 1] = icon
@@ -490,7 +490,7 @@ function pkgmgr.get_worldconfig(worldpath)
 
 	local worldconfig = {}
 	worldconfig.global_mods = {}
-	worldconfig.place_mods = {}
+	worldconfig.crate_mods = {}
 
 	for key,value in pairs(worldfile:to_table()) do
 		if key == "crateid" then
@@ -507,7 +507,7 @@ function pkgmgr.get_worldconfig(worldpath)
 
 	--read placemods
 	local cratespec = pkgmgr.find_by_crateid(worldconfig.id)
-	pkgmgr.get_place_mods(cratespec, worldconfig.place_mods)
+	pkgmgr.get_crate_mods(cratespec, worldconfig.crate_mods)
 
 	return worldconfig
 end
@@ -521,11 +521,11 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 	assert(targetpath == nil or type(targetpath) == "string")
 
 	local delete_old_dir
-	if expected_type == "place" and targetpath then
+	if expected_type == "crate" and targetpath then
 		-- Extract top folder name from path
-		local name = pkgmgr.normalize_place_id(targetpath:match("[^/\\]+[/\\]?$"))
+		local name = pkgmgr.normalize_crate_id(targetpath:match("[^/\\]+[/\\]?$"))
 		-- Relevant when updating: prepare to remove the old directory if the names differ
-		if name ~= pkgmgr.normalize_place_id(basename) then
+		if name ~= pkgmgr.normalize_crate_id(basename) then
 			delete_old_dir = targetpath
 			targetpath = core.get_cratepath() .. DIR_DELIM .. basename
 		end
@@ -553,7 +553,7 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 		return targetpath, nil
 
 	elseif not basefolder then
-		return nil, fgettext_ne("Unable to find a valid mod, modpack, or place")
+		return nil, fgettext_ne("Unable to find a valid mod, modpack, or crate")
 	end
 
 	-- Check type
@@ -569,7 +569,7 @@ function pkgmgr.install_dir(expected_type, path, basename, targetpath)
 				basename = get_last_folder(cleanup_path(basefolder.path))
 			end
 			content_path = core.get_modpath()
-		elseif basefolder.type == "place" then
+		elseif basefolder.type == "crate" then
 			content_path = core.get_cratepath()
 		else
 			error("Unknown content type")
@@ -615,22 +615,22 @@ function pkgmgr.preparemodlist(data)
 	end
 
 	-- read place mods
-	local place_mods = {}
+	local crate_mods = {}
 	local cratespec = pkgmgr.find_by_crateid(data.crateid)
-	pkgmgr.get_place_mods(cratespec, place_mods)
+	pkgmgr.get_crate_mods(cratespec, crate_mods)
 
-	if #place_mods > 0 then
+	if #crate_mods > 0 then
 		-- Add title
 		retval[#retval + 1] = {
-			type = "place",
+			type = "crate",
 			always_on = true,
 			name = fgettext("$1 mods", cratespec.title),
 			path = cratespec.path
 		}
 
-		for _, mod in ipairs(place_mods) do
+		for _, mod in ipairs(crate_mods) do
 			mod.type = "mod"
-			mod.loc = "place"
+			mod.loc = "crate"
 			mod.always_on = true
 			retval[#retval + 1] = mod
 		end
@@ -751,14 +751,14 @@ function pkgmgr.find_by_crateid(crateid)
 	if not crateid then
 		return nil, nil
 	end
-	crateid = pkgmgr.normalize_place_id(crateid)
-	for i, place in ipairs(pkgmgr.places) do
+	crateid = pkgmgr.normalize_crate_id(crateid)
+	for i, place in ipairs(pkgmgr.crates) do
 		if place.id == crateid then
 			return place, i
 		end
 	end
 	local ret, val
-	for i, place in ipairs(pkgmgr.places) do
+	for i, place in ipairs(pkgmgr.crates) do
 		if place.aliases[crateid] then
 			if ret then
 				core.log("warning",
@@ -773,7 +773,7 @@ function pkgmgr.find_by_crateid(crateid)
 end
 
 --------------------------------------------------------------------------------
-function pkgmgr.get_place_mods(cratespec, retval)
+function pkgmgr.get_crate_mods(cratespec, retval)
 	if cratespec ~= nil and
 		cratespec.cratemods_path ~= nil and
 		cratespec.cratemods_path ~= "" then
@@ -783,16 +783,16 @@ end
 
 --------------------------------------------------------------------------------
 function pkgmgr.reload_places()
-	pkgmgr.places = core.get_crates()
-	table.sort(pkgmgr.places, function(a, b)
+	pkgmgr.crates = core.get_crates()
+	table.sort(pkgmgr.crates, function(a, b)
 		return a.title:lower() < b.title:lower()
 	end)
-	pkgmgr.update_translations(pkgmgr.places)
+	pkgmgr.update_translations(pkgmgr.crates)
 end
 
 --------------------------------------------------------------------------------
 function pkgmgr.reload_by_type(type)
-	if type == "place" then
+	if type == "crate" then
 		pkgmgr.reload_places()
 	elseif type == "txp" then
 		pkgmgr.reload_texture_packs()
@@ -808,7 +808,7 @@ function pkgmgr.load_all()
 	if not pkgmgr.global_mods then
 		pkgmgr.reload_global_mods()
 	end
-	if not pkgmgr.places then
+	if not pkgmgr.crates then
 		pkgmgr.reload_places()
 	end
 	if not pkgmgr.texture_packs then
@@ -843,7 +843,7 @@ end
 function pkgmgr.get_contentdb_id(content)
 	-- core.get_crates() will return "" instead of nil if there is no "author" field.
 	if content.author and content.author ~= "" and content.release > 0 then
-		if content.type == "place" then
+		if content.type == "crate" then
 			return content.author:lower() .. "/" .. content.id
 		end
 		return content.author:lower() .. "/" .. content.name
@@ -854,7 +854,7 @@ function pkgmgr.get_contentdb_id(content)
 	-- field in crate.conf).
 	-- Therefore, we consider any installation of MTG that is not versioned,
 	-- has not been cloned from Git, and is not system-wide to be updatable.
-	if content.type == "place" and content.id == "minetest" and content.release == 0 and
+	if content.type == "crate" and content.id == "minetest" and content.release == 0 and
 			not core.is_dir(content.path .. "/.git") and core.may_modify_path(content.path) then
 		return "minetest/minetest"
 	end
@@ -863,8 +863,8 @@ function pkgmgr.get_contentdb_id(content)
 end
 
 --------------------------------------------------------------------------------
--- Normalizes ID of a place. Keep in sync with places.cpp, `normalizePlaceId`.
-function pkgmgr.normalize_place_id(name)
+-- Normalizes ID of a place. Keep in sync with places.cpp, `normalizeCrateId`.
+function pkgmgr.normalize_crate_id(name)
 	return name:match("(.*)_place$") or name
 end
 

@@ -88,22 +88,22 @@ local function create_world_formspec(dialogdata)
 	local place = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
 	if place == nil then
 		-- should never happen but just pick the first place
-		place = pkgmgr.places[1]
+		place = pkgmgr.crates[1]
 		core.settings:set("menu_last_crate", place.id)
 	end
 
 	local disallowed_mapgen_settings = {}
 	if place ~= nil then
-		local placeconfig = Settings(place.path.."/crate.conf")
+		local crateconfig = Settings(place.path.."/crate.conf")
 
-		current_mg = current_mg or placeconfig:get("default_mapgen") or core.settings:get("mg_name")
+		current_mg = current_mg or crateconfig:get("default_mapgen") or core.settings:get("mg_name")
 
-		local allowed_mapgens = (placeconfig:get("allowed_mapgens") or ""):split()
+		local allowed_mapgens = (crateconfig:get("allowed_mapgens") or ""):split()
 		for key, value in pairs(allowed_mapgens) do
 			allowed_mapgens[key] = value:trim()
 		end
 
-		local disallowed_mapgens = (placeconfig:get("disallowed_mapgens") or ""):split()
+		local disallowed_mapgens = (crateconfig:get("disallowed_mapgens") or ""):split()
 		for key, value in pairs(disallowed_mapgens) do
 			disallowed_mapgens[key] = value:trim()
 		end
@@ -124,7 +124,7 @@ local function create_world_formspec(dialogdata)
 			end
 		end
 
-		local ds = (placeconfig:get("disallowed_mapgen_settings") or ""):split()
+		local ds = (crateconfig:get("disallowed_mapgen_settings") or ""):split()
 		for _, value in pairs(ds) do
 			disallowed_mapgen_settings[value:trim()] = true
 		end
@@ -390,7 +390,7 @@ local function create_world_buttonhandler(this, fields)
 
 	if fields["games"] then
 		local placeindex = core.get_textlist_index("games")
-		core.settings:set("menu_last_crate", pkgmgr.places[placeindex].id)
+		core.settings:set("menu_last_crate", pkgmgr.crates[placeindex].id)
 		return true
 	end
 

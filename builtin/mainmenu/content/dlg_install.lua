@@ -27,14 +27,14 @@ local function get_formspec(data)
 		return get_loading_formspec()
 	end
 
-	local selected_place, selected_crate_idx = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
+	local selected_crate, selected_crate_idx = pkgmgr.find_by_crateid(core.settings:get("menu_last_crate"))
 	if not selected_crate_idx then
 		selected_crate_idx = 1
-		selected_place = pkgmgr.places[1]
+		selected_crate = pkgmgr.crates[1]
 	end
 
 	local place_list = {}
-	for i, place in ipairs(pkgmgr.places) do
+	for i, place in ipairs(pkgmgr.crates) do
 		place_list[i] = core.formspec_escape(place.title)
 	end
 
@@ -42,7 +42,7 @@ local function get_formspec(data)
 			not data.deps_loading[selected_crate_idx] then
 		data.deps_loading[selected_crate_idx] = true
 
-		contentdb.resolve_dependencies(data.package, selected_place, function(deps)
+		contentdb.resolve_dependencies(data.package, selected_crate, function(deps)
 			if not is_still_visible(data.dlg) then
 				return
 			end
@@ -119,7 +119,7 @@ local function get_formspec(data)
 		"container[0.375,1]",
 
 		"label[0,0.4;", fgettext("Base Place:"), "]",
-		"dropdown[", padded_w - dropdown_w, ",0;", dropdown_w, ",0.8;selected_place;",
+		"dropdown[", padded_w - dropdown_w, ",0;", dropdown_w, ",0.8;selected_crate;",
 				table.concat(place_list, ","), ";", selected_crate_idx, "]",
 
 		"label[0,1.1;", fgettext("Dependencies:"), "]",
@@ -173,9 +173,9 @@ local function handle_submit(this, fields)
 		return true
 	end
 
-	if fields.selected_place then
-		for _, place in pairs(pkgmgr.places) do
-			if place.title == fields.selected_place then
+	if fields.selected_crate then
+		for _, place in pairs(pkgmgr.crates) do
+			if place.title == fields.selected_crate then
 				core.settings:set("menu_last_crate", place.id)
 				break
 			end
@@ -240,7 +240,7 @@ function install_or_update_package(parent, package)
 	local install_parent
 	if package.type == "mod" then
 		install_parent = core.get_modpath()
-	elseif package.type == "place" then
+	elseif package.type == "crate" then
 		install_parent = core.get_cratepath()
 	elseif package.type == "txp" then
 		install_parent = core.get_texturepath()
@@ -261,7 +261,7 @@ function install_or_update_package(parent, package)
 		dlg:load_deps()
 	end
 
-	if package.type == "mod" and #pkgmgr.places == 0 then
+	if package.type == "mod" and #pkgmgr.crates == 0 then
 		local dlg = messagebox("install_place",
 				fgettext("You need to install a place before you can install a mod"))
 		dlg:set_parent(parent)

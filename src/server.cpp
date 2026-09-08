@@ -516,7 +516,7 @@ void Server::init()
 	// Create world if it doesn't exist
 	try
 	{
-		loadPlaceConfAndInitWorld(m_path_world,
+		loadCrateConfAndInitWorld(m_path_world,
 								 fs::GetFilenameFromPath(m_path_world.c_str()),
 								 m_gamespec, false);
 	}

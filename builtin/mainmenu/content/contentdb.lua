@@ -98,7 +98,7 @@ local function start_install(package, reason)
 					else
 						conf_path = path .. DIR_DELIM .. "mod.conf"
 					end
-				elseif package.type == "place" then
+				elseif package.type == "crate" then
 					conf_path = path .. DIR_DELIM .. "crate.conf"
 					name_is_title = true
 				elseif package.type == "txp" then
@@ -179,16 +179,16 @@ function contentdb.get_package_by_id(id)
 end
 
 
-local function strip_place_suffix(type, name)
-	if type == nil or type == "place" then
-		return pkgmgr.normalize_place_id(name)
+local function strip_crate_suffix(type, name)
+	if type == nil or type == "crate" then
+		return pkgmgr.normalize_crate_id(name)
 	else
 		return name
 	end
 end
 
 function contentdb.calculate_package_id(type, author, name)
-	return author:lower() .. "/" .. strip_place_suffix(type, name)
+	return author:lower() .. "/" .. strip_crate_suffix(type, name)
 end
 
 
@@ -302,7 +302,7 @@ local function resolve_dependencies_2_co(raw_deps, installed_mods, out, resumer)
 		-- Find exact name matches
 		local fallback
 		for _, package in pairs(dep.packages) do
-			if package.type ~= "place" then
+			if package.type ~= "crate" then
 				if package.name == dep.name then
 					return {
 						is_optional = dep.is_optional,
@@ -357,7 +357,7 @@ local function resolve_dependencies_co(package, place, resumer)
 	local installed_mods = {}
 
 	local mods = {}
-	pkgmgr.get_place_mods(place, mods)
+	pkgmgr.get_crate_mods(place, mods)
 	for _, mod in pairs(mods) do
 		installed_mods[mod.name] = true
 	end
@@ -428,11 +428,11 @@ function contentdb.set_packages_from_api(packages)
 	contentdb.aliases = {}
 
 	for _, package in pairs(packages) do
-		-- ContentDB зовёт плейсы играми, и переучить её мы не можем. Чужое
+		-- ContentDB зовёт крейты играми, и переучить её мы не можем. Чужое
 		-- слово переводится здесь, на самой границе: дальше по коду тип
 		-- называется так же, как везде в движке.
-		if package.type == "place" then
-			package.type = "place"
+		if package.type == "game" then
+			package.type = "crate"
 		end
 
 		package.id = contentdb.calculate_package_id(package.type, package.author, package.name)
@@ -444,8 +444,8 @@ function contentdb.set_packages_from_api(packages)
 			local suffix = "/" .. package.name
 			for _, alias in ipairs(package.aliases) do
 				-- We currently only support crateid and author changing
-				if package.type == "place" or alias:sub(-#suffix) == suffix then
-					contentdb.aliases[strip_place_suffix(packages.type, alias:lower())] = package.id
+				if package.type == "crate" or alias:sub(-#suffix) == suffix then
+					contentdb.aliases[strip_crate_suffix(packages.type, alias:lower())] = package.id
 				end
 			end
 		end
@@ -485,7 +485,7 @@ function contentdb.update_paths()
 	end
 
 	local place_hash = {}
-	for _, place in pairs(pkgmgr.places) do
+	for _, place in pairs(pkgmgr.crates) do
 		local cdb_id = pkgmgr.get_contentdb_id(place)
 		if cdb_id then
 			place_hash[contentdb.aliases[cdb_id] or cdb_id] = place
@@ -504,7 +504,7 @@ function contentdb.update_paths()
 		local content
 		if package.type == "mod" then
 			content = mod_hash[package.id]
-		elseif package.type == "place" then
+		elseif package.type == "crate" then
 			content = place_hash[package.id]
 		elseif package.type == "txp" then
 			content = txp_hash[package.id]

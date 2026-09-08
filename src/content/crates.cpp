@@ -32,8 +32,8 @@ bool getPlaceConfig(const std::string &crate_path, Settings &conf)
 	return conf.readConfigFile(conf_path.c_str());
 }
 
-// Keep in sync with pkgmgr.lua, `pkgmgr.normalize_place_id()`.
-std::string normalizePlaceId(std::string_view id)
+// Keep in sync with pkgmgr.lua, `pkgmgr.normalize_crate_id()`.
+std::string normalizeCrateId(std::string_view id)
 {
 	static const char *ends[] = {"_game", nullptr};
 	auto shorter = removeStringEnd(id, ends);
@@ -48,7 +48,7 @@ std::unordered_set<std::string> getAliasesFromSettings(const Settings &conf)
 
 	std::vector<std::string> aliases_raw = str_split(conf.get("aliases"), ',');
 	for (const std::string &alias : aliases_raw)
-		aliases.insert(normalizePlaceId(trim(alias)));
+		aliases.insert(normalizeCrateId(trim(alias)));
 	return aliases;
 }
 
@@ -145,7 +145,7 @@ static GamePathMap getAvailableGamePaths()
 				continue;
 
 			// Add it to result
-			gamepaths.try_emplace(normalizePlaceId(dln.name),
+			gamepaths.try_emplace(normalizeCrateId(dln.name),
 				crate_path, search_path.user_specific, getAliasesFromSettings(conf)
 			);
 		}
@@ -153,7 +153,7 @@ static GamePathMap getAvailableGamePaths()
 	return gamepaths;
 }
 
-static CrateSpec getPlaceSpec(const std::string &crate_id,
+static CrateSpec getCrateSpec(const std::string &crate_id,
 		const std::string &crate_path,
 		const std::unordered_map<std::string, std::string> &mods_paths)
 {
@@ -198,7 +198,7 @@ static CrateSpec getPlaceSpec(const std::string &crate_id,
 	return spec;
 }
 
-std::set<std::string> getAvailablePlaceIds()
+std::set<std::string> getAvailableCrateIds()
 {
 	GamePathMap gamepaths = getAvailableGamePaths();
 	std::set<std::string> gameids;
@@ -207,23 +207,23 @@ std::set<std::string> getAvailablePlaceIds()
 	return gameids;
 }
 
-std::vector<CrateSpec> getAvailablePlaces()
+std::vector<CrateSpec> getAvailableCrates()
 {
 	std::vector<CrateSpec> specs;
-	std::set<std::string> gameids = getAvailablePlaceIds();
+	std::set<std::string> gameids = getAvailableCrateIds();
 	specs.reserve(gameids.size());
 	for (const auto &crateid : gameids)
-		specs.push_back(findPlace(crateid));
+		specs.push_back(findCrate(crateid));
 	// TODO: Optimize such that `getAvailableGamePaths()` is not run N times.
 	return specs;
 }
 
-CrateSpec findPlace(const std::string &id)
+CrateSpec findCrate(const std::string &id)
 {
 	if (id.empty())
 		return CrateSpec();
 
-	std::string idv = normalizePlaceId(id);
+	std::string idv = normalizeCrateId(id);
 
 	GamePathMap gamepaths = getAvailableGamePaths();
 	auto found = gamepaths.find(idv);
@@ -257,17 +257,17 @@ CrateSpec findPlace(const std::string &id)
 		mods_paths[fs::AbsolutePath(mod_path)] = mod_path;
 	}
 
-	return getPlaceSpec(found->first, crate_path, mods_paths);
+	return getCrateSpec(found->first, crate_path, mods_paths);
 }
 
-CrateSpec findWorldPlace(const std::string &world_path)
+CrateSpec findWorldCrate(const std::string &world_path)
 {
-	std::string world_gameid = getWorldPlaceId(world_path, true);
+	std::string world_crateid = getWorldCrateId(world_path, true);
 	// See if world contains an embedded game; if so, use it.
-	std::string world_cratepath = world_path + DIR_DELIM + "place";
+	std::string world_cratepath = world_path + DIR_DELIM + "crate";
 	if (fs::PathExists(world_cratepath))
-		return getPlaceSpec(world_gameid, world_cratepath, {});
-	return findPlace(world_gameid);
+		return getCrateSpec(world_crateid, world_cratepath, {});
+	return findCrate(world_crateid);
 }
 
 bool getWorldExists(const std::string &world_path)
@@ -294,7 +294,7 @@ std::string getWorldName(const std::string &world_path, const std::string &defau
 	return conf.get("world_name");
 }
 
-std::string getWorldPlaceId(const std::string &world_path, bool can_be_legacy)
+std::string getWorldCrateId(const std::string &world_path, bool can_be_legacy)
 {
 	std::string conf_path = world_path + DIR_DELIM + "world.mt";
 	Settings conf;
@@ -334,7 +334,7 @@ std::vector<WorldSpec> getAvailableWorlds()
 			std::string name = getWorldName(fullpath, dln.name);
 			// Just allow filling in the crateid always for now
 			bool can_be_legacy = true;
-			std::string crateid = getWorldPlaceId(fullpath, can_be_legacy);
+			std::string crateid = getWorldCrateId(fullpath, can_be_legacy);
 			WorldSpec spec(fullpath, name, crateid);
 			if (!spec.isValid()) {
 				infostream << "(invalid: " << name << ") ";
@@ -351,7 +351,7 @@ std::vector<WorldSpec> getAvailableWorlds()
 		if (!fs::PathExists(fullpath))
 			break;
 		std::string name = "Old World";
-		std::string crateid = getWorldPlaceId(fullpath, true);
+		std::string crateid = getWorldCrateId(fullpath, true);
 		WorldSpec spec(fullpath, name, crateid);
 		infostream << "Old world found." << std::endl;
 		worlds.push_back(spec);
@@ -360,7 +360,7 @@ std::vector<WorldSpec> getAvailableWorlds()
 	return worlds;
 }
 
-void loadPlaceConfAndInitWorld(const std::string &path, const std::string &name,
+void loadCrateConfAndInitWorld(const std::string &path, const std::string &name,
 		const CrateSpec &cratespec, bool create_world)
 {
 	std::string final_path = path;

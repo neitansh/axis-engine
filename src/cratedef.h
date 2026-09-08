@@ -51,7 +51,7 @@ public:
 
 	virtual const std::vector<ModSpec> &getMods() const = 0;
 	virtual const ModSpec* getModSpec(const std::string &modname) const = 0;
-	virtual const CrateSpec* getGameSpec() const { return nullptr; }
+	virtual const CrateSpec* getCrateSpec() const { return nullptr; }
 	virtual std::string getWorldPath() const { return ""; }
 	virtual std::string getModDataPath() const { return ""; }
 	virtual ModStorageDatabase *getModStorageDatabase() = 0;

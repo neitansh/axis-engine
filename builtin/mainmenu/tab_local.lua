@@ -31,8 +31,8 @@ function current_place()
 	local crateid = core.settings:get("menu_last_crate")
 	local place = crateid and pkgmgr.find_by_crateid(crateid)
 	-- Fall back to first place installed if one exists.
-	if not place and #pkgmgr.places > 0 then
-		place = pkgmgr.places[1]
+	if not place and #pkgmgr.crates > 0 then
+		place = pkgmgr.crates[1]
 		crateid = place.id
 		core.settings:set("menu_last_crate", crateid)
 	end
@@ -65,10 +65,10 @@ local function get_disabled_settings(place)
 		return {}
 	end
 
-	local placeconfig = Settings(place.path .. "/crate.conf")
+	local crateconfig = Settings(place.path .. "/crate.conf")
 	local disabled_settings = {}
-	if placeconfig then
-		local disabled_settings_str = (placeconfig:get("disabled_settings") or ""):split()
+	if crateconfig then
+		local disabled_settings_str = (crateconfig:get("disabled_settings") or ""):split()
 		for _, value in pairs(disabled_settings_str) do
 			local state = false
 			value = value:trim()
@@ -89,7 +89,7 @@ end
 local function get_formspec(tabview, name, tabdata)
 
 	-- Point the player to ContentDB when no places are found
-	if #pkgmgr.places == 0 then
+	if #pkgmgr.crates == 0 then
 		local W = tabview.width
 		local H = tabview.height
 
@@ -100,7 +100,7 @@ local function get_formspec(tabview, name, tabdata)
 		local button_y = H * 2/3 - 0.6
 		return table.concat({
 			"hypertext[0.375,0;", W - 2*0.375, ",", button_y, ";ht;", core.formspec_escape(hypertext), "]",
-			"button[5.25,", button_y, ";5,1.2;place_open_cdb;", fgettext("Install a place"), "]"})
+			"button[5.25,", button_y, ";5,1.2;place_open_cdb;", fgettext("Install a crate"), "]"})
 	end
 
 	local retval = ""
@@ -180,7 +180,7 @@ local function main_button_handler(this, fields, name, tabdata)
 
 	if fields.place_open_cdb then
 		local maintab = ui.find_by_name("maintab")
-		local dlg = create_contentdb_dlg("place")
+		local dlg = create_contentdb_dlg("crate")
 		dlg:set_parent(maintab)
 		maintab:hide()
 		dlg:show()

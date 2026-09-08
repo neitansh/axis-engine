@@ -114,35 +114,35 @@ describe("install_dir", function()
 		})
 	end)
 
-	it("installs place", function()
+	it("installs crate", function()
 		local env = reset()
 		env.pkgmgr.get_base_folder = function()
-			return { type = "place", path = "/tmp/123" }
+			return { type = "crate", path = "/tmp/123" }
 		end
 
-		local path, message = env.pkgmgr.install_dir("place", "/tmp/123", "myplace", nil)
-		assert.is.equal(depot_dir .. "/myplace", path)
+		local path, message = env.pkgmgr.install_dir("crate", "/tmp/123", "mycrate", nil)
+		assert.is.equal(depot_dir .. "/mycrate", path)
 		assert.is._nil(message)
 		env.assert_calls({
-			{ "delete_dir", depot_dir .. "/myplace" },
-			{ "copy_dir", "/tmp/123", depot_dir .. "/myplace", false },
+			{ "delete_dir", depot_dir .. "/mycrate" },
+			{ "copy_dir", "/tmp/123", depot_dir .. "/mycrate", false },
 		})
 	end)
 
 	it("updates place (alias)", function()
-		local old_place_path = depot_dir .. "/myplace"
+		local old_place_path = depot_dir .. "/mycrate"
 		local env = reset()
 		-- Temporary download directory of the content
 		local DL_DIR = "/tmp/123"
 		env.pkgmgr.get_base_folder = function()
-			return { type = "place", path = DL_DIR }
+			return { type = "crate", path = DL_DIR }
 		end
 
-		local path, message = env.pkgmgr.install_dir("place", DL_DIR, "mynewplace", old_place_path)
+		local path, message = env.pkgmgr.install_dir("crate", DL_DIR, "mynewplace", old_place_path)
 		assert.is.equal(depot_dir .. "/mynewplace", path)
 		assert.is._nil(message)
 		env.assert_calls({
-			{ "delete_dir", depot_dir .. "/myplace" },
+			{ "delete_dir", depot_dir .. "/mycrate" },
 			{ "delete_dir", depot_dir .. "/mynewplace" },
 			{ "copy_dir", DL_DIR, depot_dir .. "/mynewplace", false },
 		})
@@ -200,7 +200,7 @@ describe("install_dir", function()
 		assert.is._not._nil(path)
 		assert.is._nil(message)
 
-		path, message = env.pkgmgr.install_dir("place", "/tmp/123", "name", nil)
+		path, message = env.pkgmgr.install_dir("crate", "/tmp/123", "name", nil)
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a $2", message)
 
@@ -208,13 +208,13 @@ describe("install_dir", function()
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a texture pack", message)
 
-		actual_type = "place"
+		actual_type = "crate"
 
 		path, message = env.pkgmgr.install_dir("mod", "/tmp/123", "name", nil)
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a $2", message)
 
-		path, message = env.pkgmgr.install_dir("place", "/tmp/123", "name", nil)
+		path, message = env.pkgmgr.install_dir("crate", "/tmp/123", "name", nil)
 		assert.is._not._nil(path)
 		assert.is._nil(message)
 
@@ -228,7 +228,7 @@ describe("install_dir", function()
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a $2", message)
 
-		path, message = env.pkgmgr.install_dir("place", "/tmp/123", "name", nil)
+		path, message = env.pkgmgr.install_dir("crate", "/tmp/123", "name", nil)
 		assert.is._nil(path)
 		assert.is.equal("Unable to install a $1 as a $2", message)
 

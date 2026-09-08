@@ -85,12 +85,12 @@ local function init_globals()
 		-- Filter function
 		function(element, crateid)
 			-- Keep in sync with the logic in pkgmgr.find_by_crateid
-			local el_placeid = pkgmgr.normalize_place_id(element.crateid)
-			if el_placeid == crateid then
+			local el_crateid = pkgmgr.normalize_crate_id(element.crateid)
+			if el_crateid == crateid then
 				return true
 			end
-			local place = pkgmgr.find_by_crateid(el_placeid)
-			if (not place or place.id ~= el_placeid) and pkgmgr.find_by_crateid(crateid).aliases[el_placeid] then
+			local crate = pkgmgr.find_by_crateid(el_crateid)
+			if (not crate or crate.id ~= el_crateid) and pkgmgr.find_by_crateid(crateid).aliases[el_crateid] then
 				return true
 			end
 			return false
@@ -296,12 +296,12 @@ end
 
 -- Имя места из списка. Не нашлось — пусто: лучше общее «на сервере», чем адрес
 -- в чужом профиле.
-local function place_name()
+local function crate_name()
 	for _, server in ipairs(serverlistmgr.servers or {}) do
 		local same = gamedata.server_id and gamedata.server_id ~= "" and
 			server.id == gamedata.server_id
 		if same or (server.address == gamedata.address and server.port == gamedata.port) then
-			return server.place or ""
+			return server.crate or ""
 		end
 	end
 	return ""
@@ -323,9 +323,9 @@ local function tell_where_we_are_going()
 	gamedata.match = nil
 
 	if match then
-		presence.playing({ where = "match", place = place_name(), mode = match })
+		presence.playing({ where = "match", crate = crate_name(), mode = match })
 	elseif gamedata.mode == "join" then
-		presence.playing({ where = "place", name = place_name() })
+		presence.playing({ where = "server", name = crate_name() })
 	else
 		presence.playing({ where = "solo" })
 	end
@@ -354,10 +354,10 @@ end
 -- чистится, — поэтому старый выбрасывается здесь же. Иначе второй вход за
 -- запуск предъявлял бы погашенный билет и получал отказ, а выглядело бы это
 -- поломкой входа.
-local start_place = core.start
+local start_crate = core.start
 function core.start()
 	if not gamedata then
-		return start_place()
+		return start_crate()
 	end
 	gamedata.ticket = nil
 	tell_where_we_are_going()
@@ -374,7 +374,7 @@ function core.start()
 		gamedata.ticket = ""
 		gamedata.address = ""
 		gamedata.server_id = nil
-		return start_place()
+		return start_crate()
 	end
 
 	local url = core.settings:get("axis_ticket_url") or ""
@@ -384,7 +384,7 @@ function core.start()
 		-- сервер, который его спрашивает, откажет и скажет почему. Своя игра и
 		-- свой сервер при этом работают как работали.
 		gamedata.ticket = ""
-		return start_place()
+		return start_crate()
 	end
 
 	if not gamedata.server_id or gamedata.server_id == "" then
@@ -431,7 +431,7 @@ function core.start()
 		end
 
 		gamedata.ticket = answer.ticket
-		start_place()
+		start_crate()
 	end)
 end
 

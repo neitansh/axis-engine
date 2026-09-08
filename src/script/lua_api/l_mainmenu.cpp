@@ -328,7 +328,7 @@ int ModApiMainMenu::l_get_worlds(lua_State *L)
 /******************************************************************************/
 int ModApiMainMenu::l_get_crates(lua_State *L)
 {
-	std::vector<CrateSpec> games = getAvailablePlaces();
+	std::vector<CrateSpec> games = getAvailableCrates();
 
 	lua_newtable(L);
 	int top = lua_gettop(L);
@@ -519,7 +519,7 @@ int ModApiMainMenu::l_check_mod_configuration(lua_State *L)
 	ModConfiguration modmgr;
 
 	// Add all game mods
-	CrateSpec cratespec = findWorldPlace(worldpath);
+	CrateSpec cratespec = findWorldCrate(worldpath);
 	modmgr.addGameMods(cratespec);
 	modmgr.addModsInPath(worldpath + DIR_DELIM + "worldmods", "worldmods");
 
@@ -657,7 +657,7 @@ int ModApiMainMenu::l_create_world(lua_State *L)
 			"worlds" + DIR_DELIM
 			+ sanitizeDirName(name, "world_");
 
-	std::vector<CrateSpec> games = getAvailablePlaces();
+	std::vector<CrateSpec> games = getAvailableCrates();
 	auto game_it = std::find_if(games.begin(), games.end(), [crateid] (const CrateSpec &spec) {
 		return spec.id == crateid;
 	});
@@ -677,7 +677,7 @@ int ModApiMainMenu::l_create_world(lua_State *L)
 
 	// Create world if it doesn't exist
 	try {
-		loadPlaceConfAndInitWorld(path, name, *game_it, true);
+		loadCrateConfAndInitWorld(path, name, *game_it, true);
 		lua_pushnil(L);
 	} catch (const BaseException &e) {
 		auto err = std::string("Failed to initialize world: ") + e.what();

@@ -19,7 +19,7 @@ local function update_packages()
 	pkgmgr.load_all()
 
 	packages_raw = {}
-	table.insert_all(packages_raw, pkgmgr.places)
+	table.insert_all(packages_raw, pkgmgr.crates)
 	table.insert_all(packages_raw, pkgmgr.texture_packs)
 	table.insert_all(packages_raw, pkgmgr.global_mods:get_list())
 
@@ -28,7 +28,7 @@ local function update_packages()
 	end
 
 	local function is_equal(element, uid) --uid match
-		return (element.type == "place" and element.id == uid) or
+		return (element.type == "crate" and element.id == uid) or
 				element.name == uid
 	end
 
@@ -116,7 +116,7 @@ local function get_formspec(tabview, name, tabdata)
 		local info = core.get_content_info(selected_pkg.path)
 
 		local title_and_name
-		if selected_pkg.type == "place" then
+		if selected_pkg.type == "crate" then
 			title_and_name = selected_pkg.title or selected_pkg.name
 		else
 			title_and_name = (selected_pkg.title or selected_pkg.name) .. "\n" ..

@@ -26,7 +26,7 @@ public:
 	std::string m_worlddir;
 
 	static ServerModManager makeManager(const std::string &worldpath) {
-		return ServerModManager(worldpath, findWorldPlace(worldpath));
+		return ServerModManager(worldpath, findWorldCrate(worldpath));
 	}
 
 	void testCreation();

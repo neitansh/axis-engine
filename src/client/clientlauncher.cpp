@@ -325,7 +325,7 @@ void ClientLauncher::init_args(GameStartData &start_data, const Settings &cmd_ar
 		auto &spec = start_data.world_spec;
 
 		spec.path = start_data.world_path;
-		spec.crateid = getWorldPlaceId(spec.path, true);
+		spec.crateid = getWorldCrateId(spec.path, true);
 		spec.name = _("[--world parameter]");
 	}
 
@@ -573,7 +573,7 @@ bool ClientLauncher::launch_game(GameErrorData &errordata, GameStartData &start_
 		bool world_exists = getWorldExists(worldspec.path);
 		if (world_exists)
 		{
-			auto world_game = findWorldPlace(worldspec.path);
+			auto world_game = findWorldCrate(worldspec.path);
 			if (world_game.isValid())
 				start_data.crate_spec = world_game;
 		}

@@ -67,18 +67,18 @@ function mm_crate_theme.set_place(placedetails)
 	core.set_topleft_text(placedetails.name)
 
 	local have_bg = false
-	local have_overlay = mm_crate_theme.set_place_single("overlay", placedetails)
+	local have_overlay = mm_crate_theme.set_crate_single("overlay", placedetails)
 
 	if not have_overlay then
-		have_bg = mm_crate_theme.set_place_single("background", placedetails)
+		have_bg = mm_crate_theme.set_crate_single("background", placedetails)
 	end
 
 	mm_crate_theme.clear_single("header")
 	mm_crate_theme.clear_single("footer")
 	core.set_clouds(false)
 
-	mm_crate_theme.set_place_single("header", placedetails)
-	mm_crate_theme.set_place_single("footer", placedetails)
+	mm_crate_theme.set_crate_single("header", placedetails)
+	mm_crate_theme.set_crate_single("footer", placedetails)
 
 	local c = COLORS[core.settings:get("menu_theme")]
 	if not c then
@@ -125,7 +125,7 @@ function mm_crate_theme.set_engine_single(identifier)
 end
 
 --------------------------------------------------------------------------------
-function mm_crate_theme.set_place_single(identifier, placedetails)
+function mm_crate_theme.set_crate_single(identifier, placedetails)
 	local extensions_randomised = table.copy(valid_image_extensions)
 	table.shuffle(extensions_randomised)
 	for _, extension in pairs(extensions_randomised) do
