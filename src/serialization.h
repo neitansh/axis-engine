@@ -78,6 +78,9 @@ inline bool ser_ver_supported_write(s32 v)
 */
 
 void compressZlib(const u8 *data, size_t data_size, std::ostream &os, int level = -1, bool raw = false);
+// Same deflate, but wrapped in a gzip container: what lands on disk opens with
+// any archiver the player already has.
+void compressGzip(std::string_view data, std::ostream &os, int level = -1);
 inline void compressZlib(std::string_view data, std::ostream &os, int level = -1, bool raw = false)
 {
 	compressZlib(reinterpret_cast<const u8*>(data.data()), data.size(), os, level, raw);

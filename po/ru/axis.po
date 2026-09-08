@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 23:59+0300\n"
+"POT-Creation-Date: 2026-09-09 01:44+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -621,13 +621,15 @@ msgstr ""
 "мелковат."
 
 #: builtin/common/settings/descriptions.lua
-msgid "How big the cloud shapes are."
-msgstr "Насколько крупные облачные формы."
+msgid ""
+"How big one log may grow before it is put into the archive and a fresh one "
+"started, in megabytes. Every run gets its own file anyway — this matters to "
+"a server that runs for weeks without a restart."
+msgstr "До скольких мегабайт журнал растёт, прежде чем уехать в архив и начаться заново. Свой файл и так получает каждый запуск — это про сервер, который работает неделями без перезапуска."
 
 #: builtin/common/settings/descriptions.lua
-msgid "How big the log may grow before it starts over, in kilobytes."
-msgstr ""
-"До какого размера растёт журнал, прежде чем начаться заново, — в килобайтах."
+msgid "How big the cloud shapes are."
+msgstr "Насколько крупные облачные формы."
 
 #: builtin/common/settings/descriptions.lua
 msgid "How big the on-screen indicators are: health, hotbar, and the rest."
@@ -3587,7 +3589,9 @@ msgstr "Пропустить"
 msgid ""
 "For a long time, Luanti shipped with a default crate called \"Minetest "
 "Game\". Since version 5.8.0, Luanti ships without a default crate."
-msgstr "Долгое время Luanti поставлялся с крейтом по умолчанию — «Minetest Game». С версии 5.8.0 крейта по умолчанию в нём нет."
+msgstr ""
+"Долгое время Luanti поставлялся с крейтом по умолчанию — «Minetest Game». С "
+"версии 5.8.0 крейта по умолчанию в нём нет."
 
 #: builtin/mainmenu/dlg_reinstall_mtg.lua
 msgid ""
@@ -3747,7 +3751,9 @@ msgstr "Папка данных пользователя"
 msgid ""
 "Opens the directory that contains user-provided worlds, crates, mods,\n"
 "and texture packs in a file manager / explorer."
-msgstr "Открывает в проводнике папку, где лежат ваши миры, крейты, моды\nи наборы текстур."
+msgstr ""
+"Открывает в проводнике папку, где лежат ваши миры, крейты, моды\n"
+"и наборы текстур."
 
 #: builtin/mainmenu/tab_about.lua
 msgid "Previous Contributors"
@@ -4033,10 +4039,8 @@ msgstr "Не удалось найти подходящий шрифт"
 #: src/server.cpp
 msgid ""
 "\n"
-"Check debug.txt for details."
-msgstr ""
-"\n"
-"Подробности в debug.txt."
+"Check logs/latest.log for details."
+msgstr "\nПодробности в logs/latest.log."
 
 #: src/client/game.cpp
 msgid "# Arrived."
@@ -6576,6 +6580,15 @@ msgid "Dynamic shadows"
 msgstr "Динамические тени"
 
 #: src/settings_translation_file.cpp
+msgid ""
+"Each run writes logs/latest.log, and the run before it is archived next to\n"
+"it as logs/YYYY-MM-DD-N.log.gz; the last 30 archives are kept.\n"
+"A run longer than this many megabytes is archived without waiting for its\n"
+"end. Zero means no limit, which suits a server that never restarts less\n"
+"than it sounds."
+msgstr "Каждый запуск пишет logs/latest.log, а прошлый уезжает рядом архивом\nlogs/ГГГГ-ММ-ДД-N.log.gz; хранятся последние тридцать.\nЗапуск, переваливший за столько мегабайт, уезжает в архив, не дожидаясь\nсвоего конца. Ноль — без предела; серверу, который не перезапускается,\nэто подходит меньше, чем кажется."
+
+#: src/settings_translation_file.cpp
 msgid "Effects"
 msgstr "Эффекты"
 
@@ -7606,18 +7619,6 @@ msgstr ""
 "секундах, информация о времени добавляется в сообщение"
 
 #: src/settings_translation_file.cpp
-msgid ""
-"If the file size of debug.txt exceeds the number of megabytes specified in\n"
-"this setting when it is opened, the file is moved to debug.txt.1,\n"
-"deleting an older debug.txt.1 if it exists.\n"
-"debug.txt is only moved if this setting is positive."
-msgstr ""
-"Если размер файла debug.txt превысит указанное количество мегабайт,\n"
-"файл будет перемещён в debug.txt.1,\n"
-"а старый debug.txt.1 будет удалён.\n"
-"debug.txt перемещается только тогда, когда это значение положительное."
-
-#: src/settings_translation_file.cpp
 msgid "If this is set, players will always (re)spawn at the given position."
 msgstr "Если установлено, то игроки будут возрождаться в указанном месте."
 
@@ -7838,7 +7839,9 @@ msgstr "Клавиша для уменьшения выбранного знач
 msgid ""
 "Key for digging, punching or using something.\n"
 "(Note: The actual meaning might vary on a per-crate basis.)"
-msgstr "Клавиша для копания, удара или использования чего-либо.\n(Примечание: фактическое значение может меняться от крейта к крейту.)"
+msgstr ""
+"Клавиша для копания, удара или использования чего-либо.\n"
+"(Примечание: фактическое значение может меняться от крейта к крейту.)"
 
 #: src/settings_translation_file.cpp
 msgid "Key for incrementing the selected value in Quicktune."
@@ -7860,7 +7863,9 @@ msgstr "Клавиша открытия окна чата для ввода ло
 msgid ""
 "Key for placing an item/block or for using something.\n"
 "(Note: The actual meaning might vary on a per-crate basis.)"
-msgstr "Клавиша для размещения предмета/блока или для использования чего-либо.\n(Примечание: фактическое значение может меняться от крейта к крейту.)"
+msgstr ""
+"Клавиша для размещения предмета/блока или для использования чего-либо.\n"
+"(Примечание: фактическое значение может меняться от крейта к крейту.)"
 
 #: src/settings_translation_file.cpp
 msgid "Key for switching to the next entry in Quicktune."
@@ -7890,7 +7895,9 @@ msgstr ""
 msgid ""
 "Key for using something: leaving a vehicle, opening a hatch, and\n"
 "whatever else the crate hangs on it."
-msgstr "Клавиша, чтобы чем-то воспользоваться: выйти из транспорта, открыть люк\nи всё прочее, что на неё повесит крейт."
+msgstr ""
+"Клавиша, чтобы чем-то воспользоваться: выйти из транспорта, открыть люк\n"
+"и всё прочее, что на неё повесит крейт."
 
 #: src/settings_translation_file.cpp
 msgid "Keybindings"
@@ -7995,7 +8002,7 @@ msgstr "Длина промежутка между циклами управле
 
 #: src/settings_translation_file.cpp
 msgid ""
-"Level of logging to be written to debug.txt:\n"
+"Level of logging to be written to logs/latest.log:\n"
 "-    <nothing> (no logging)\n"
 "-    none (messages with no level)\n"
 "-    error\n"
@@ -8004,16 +8011,7 @@ msgid ""
 "-    info\n"
 "-    verbose\n"
 "-    trace"
-msgstr ""
-"Уровень журналирования для записи в debug.txt:\n"
-"-    <ничего> (без отчётов)\n"
-"-    none (сообщения без уровня)\n"
-"-    error (ошибки)\n"
-"-    warning (предупреждения)\n"
-"-    action (действия)\n"
-"-    info (сведения)\n"
-"-    verbose (подробности)\n"
-"-    trace (трассировка)"
+msgstr "Уровень журналирования для записи в logs/latest.log:\n-    <ничего> (без отчётов)\n-    none (сообщения без уровня)\n-    error (ошибки)\n-    warning (предупреждения)\n-    action (действия)\n-    info (сведения)\n-    verbose (подробности)\n-    trace (трассировка)"
 
 #: src/settings_translation_file.cpp
 msgid "Light curve boost"
@@ -9357,7 +9355,10 @@ msgid ""
 "Set the default tilt of Sun/Moon orbit in degrees.\n"
 "Crates may change orbit tilt via API.\n"
 "Value of 0 means no tilt / vertical orbit."
-msgstr "Устанавливает по умолчанию наклон орбит Солнца/Луны в градусах.\nКрейты могут менять наклон орбит через API.\nЗначение 0 означает отсутствие наклона / вертикальную орбиту."
+msgstr ""
+"Устанавливает по умолчанию наклон орбит Солнца/Луны в градусах.\n"
+"Крейты могут менять наклон орбит через API.\n"
+"Значение 0 означает отсутствие наклона / вертикальную орбиту."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -9860,7 +9861,17 @@ msgid ""
 "* Long tap\n"
 "Known from the classic Luanti mobile controls.\n"
 "Combat is more or less impossible."
-msgstr "Жест для удара по игрокам/объектам.\nОн может быть перезаписан крейтами и модами.\n\n* Короткое касание\nПросто в использовании и хорошо известно по другим играм, чьи названия не упоминают.\n\n* Длинное касание\nИзвестно по классическому мобильному управлению Luanti.\nСражаться будет почти невозможно."
+msgstr ""
+"Жест для удара по игрокам/объектам.\n"
+"Он может быть перезаписан крейтами и модами.\n"
+"\n"
+"* Короткое касание\n"
+"Просто в использовании и хорошо известно по другим играм, чьи названия не "
+"упоминают.\n"
+"\n"
+"* Длинное касание\n"
+"Известно по классическому мобильному управлению Luanti.\n"
+"Сражаться будет почти невозможно."
 
 #: src/settings_translation_file.cpp
 msgid "The identifier of the joystick to use"
@@ -10648,11 +10659,8 @@ msgstr "Окно развёрнуто"
 msgid ""
 "Windows systems only: Start Luanti with the command line window in the "
 "background.\n"
-"Contains the same information as the file debug.txt (default name)."
-msgstr ""
-"Только для систем Windows: Запустите Luanti с помощью окна командной строки "
-"в фоновом режиме.\n"
-"Содержит ту же информацию, что и файл debug.txt (имя по умолчанию)."
+"Contains the same information as the file logs/latest.log."
+msgstr "Только для систем Windows: запускать Axis с окном командной строки в фоне.\nВ нём то же, что и в файле logs/latest.log."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -10765,3 +10773,20 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
+
+#~ msgid "How big the log may grow before it starts over, in kilobytes."
+#~ msgstr ""
+#~ "До какого размера растёт журнал, прежде чем начаться заново, — в "
+#~ "килобайтах."
+
+#~ msgid ""
+#~ "If the file size of debug.txt exceeds the number of megabytes specified "
+#~ "in\n"
+#~ "this setting when it is opened, the file is moved to debug.txt.1,\n"
+#~ "deleting an older debug.txt.1 if it exists.\n"
+#~ "debug.txt is only moved if this setting is positive."
+#~ msgstr ""
+#~ "Если размер файла debug.txt превысит указанное количество мегабайт,\n"
+#~ "файл будет перемещён в debug.txt.1,\n"
+#~ "а старый debug.txt.1 будет удалён.\n"
+#~ "debug.txt перемещается только тогда, когда это значение положительное."

@@ -4559,7 +4559,7 @@ void Server::addShutdownError(const ModError &e)
 {
 	// DO NOT TRANSLATE the `ModError`, it's used by `ui.lua`
 	std::string msg = fmtgettext("%s while shutting down: ", "ModError") +
-					  e.what() + strgettext("\nCheck debug.txt for details.");
+					  e.what() + strgettext("\nCheck logs/latest.log for details.");
 	errorstream << msg << std::endl;
 
 	if (m_shutdown_errmsg)

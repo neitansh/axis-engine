@@ -51,7 +51,10 @@ private:
 	z_stream *ptr_;
 };
 
-void compressZlib(const u8 *data, size_t data_size, std::ostream &os, int level, bool raw)
+// Both compressors differ in one number: the window bits tell zlib which
+// container to put the same deflate stream into.
+static void deflateTo(const u8 *data, size_t data_size, std::ostream &os,
+	int level, int window_bits, const char *who)
 {
 	z_stream z;
 	const s32 bufsize = 16384;
@@ -63,11 +66,9 @@ void compressZlib(const u8 *data, size_t data_size, std::ostream &os, int level,
 	z.zfree = Z_NULL;
 	z.opaque = Z_NULL;
 
-	ret = deflateInit2(&z, level, Z_DEFLATED,
-		raw ? -DEFAULT_WBITS : DEFAULT_WBITS,
-		8, Z_DEFAULT_STRATEGY);
+	ret = deflateInit2(&z, level, Z_DEFLATED, window_bits, 8, Z_DEFAULT_STRATEGY);
 	if(ret != Z_OK)
-		throw SerializationError("compressZlib: deflateInit failed");
+		throw SerializationError(std::string(who) + ": deflateInit failed");
 
 	ZlibAutoDeleter<deflateEnd> deleter(&z);
 
@@ -85,7 +86,7 @@ void compressZlib(const u8 *data, size_t data_size, std::ostream &os, int level,
 				|| status == Z_MEM_ERROR)
 		{
 			zerr(status);
-			throw SerializationError("compressZlib: deflate failed");
+			throw SerializationError(std::string(who) + ": deflate failed");
 		}
 		int count = bufsize - z.avail_out;
 		if(count)
@@ -94,6 +95,20 @@ void compressZlib(const u8 *data, size_t data_size, std::ostream &os, int level,
 		if(status == Z_STREAM_END)
 			break;
 	}
+}
+
+void compressZlib(const u8 *data, size_t data_size, std::ostream &os, int level, bool raw)
+{
+	deflateTo(data, data_size, os, level, raw ? -DEFAULT_WBITS : DEFAULT_WBITS,
+		"compressZlib");
+}
+
+void compressGzip(std::string_view data, std::ostream &os, int level)
+{
+	// +16 to the window bits is how zlib is told to write a gzip header and
+	// trailer around the same stream.
+	deflateTo(reinterpret_cast<const u8 *>(data.data()), data.size(), os, level,
+		DEFAULT_WBITS + 16, "compressGzip");
 }
 
 void decompressZlib(std::istream &is, std::ostream &os, size_t limit, bool raw)

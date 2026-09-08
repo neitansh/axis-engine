@@ -716,9 +716,9 @@ fake_function() {
 	gettext("Comma-separated list of mods that are allowed to access HTTP APIs, which\nallow them to upload and download data to/from the internet.");
 	gettext("Debugging");
 	gettext("Debug log level");
-	gettext("Level of logging to be written to debug.txt:\n-    <nothing> (no logging)\n-    none (messages with no level)\n-    error\n-    warning\n-    action\n-    info\n-    verbose\n-    trace");
+	gettext("Level of logging to be written to logs/latest.log:\n-    <nothing> (no logging)\n-    none (messages with no level)\n-    error\n-    warning\n-    action\n-    info\n-    verbose\n-    trace");
 	gettext("Debug log file size threshold");
-	gettext("If the file size of debug.txt exceeds the number of megabytes specified in\nthis setting when it is opened, the file is moved to debug.txt.1,\ndeleting an older debug.txt.1 if it exists.\ndebug.txt is only moved if this setting is positive.");
+	gettext("Each run writes logs/latest.log, and the run before it is archived next to\nit as logs/YYYY-MM-DD-N.log.gz; the last 30 archives are kept.\nA run longer than this many megabytes is archived without waiting for its\nend. Zero means no limit, which suits a server that never restarts less\nthan it sounds.");
 	gettext("Chat log level");
 	gettext("Minimal level of logging to be written to chat.");
 	gettext("Deprecated Lua API handling");
@@ -946,7 +946,7 @@ fake_function() {
 	gettext("Display Density Scaling Factor");
 	gettext("Adjust the detected display density, used for scaling UI elements.");
 	gettext("Enable console window");
-	gettext("Windows systems only: Start Luanti with the command line window in the background.\nContains the same information as the file debug.txt (default name).");
+	gettext("Windows systems only: Start Luanti with the command line window in the background.\nContains the same information as the file logs/latest.log.");
 	gettext("Max. clearobjects extra blocks");
 	gettext("Number of extra blocks that can be loaded by /clearobjects at once.\nThis is a trade-off between SQLite transaction overhead and\nmemory consumption (4096=100MB, as a rule of thumb).");
 	gettext("Map directory");

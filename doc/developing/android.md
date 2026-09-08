@@ -23,7 +23,7 @@ adb install -r -d ./app-arm64-v8a-release-unsigned.apk
 
 ## How to get debug output from Luanti on Android
 
-In case debug.txt isn't enough (e.g. when debugging a crash), you can get debug
+In case logs/latest.log isn't enough (e.g. when debugging a crash), you can get debug
 output using logcat:
 
 `adb logcat -s Luanti '*:F'`

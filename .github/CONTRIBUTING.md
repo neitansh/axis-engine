@@ -69,7 +69,7 @@ compatibility where compatibility is required.
    narrow the cause immediately.
 3. [Open an issue](https://github.com/neitansh/axis-engine/issues/new) and
    include what you can:
-    - the tail of `debug.txt`,
+    - the tail of `logs/latest.log`,
     - screenshots, if it is visible,
     - what you already tried,
     - the Axis version or commit, and the game and mods you were running,

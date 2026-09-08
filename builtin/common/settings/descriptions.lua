@@ -90,7 +90,7 @@ return {
 	["curl_timeout"] = { text = N_("How long a download may take before it is called failed.") },
 	["debanding"] = { text = N_("Remove the ugly stripes that show up on smooth gradients, like the evening sky."), load = "low" },
 	["debug_log_level"] = { text = N_("How much detail goes into the log file. More detail helps find problems and makes the file grow fast."), load = "low" },
-	["debug_log_size_max"] = { text = N_("How big the log may grow before it starts over, in kilobytes.") },
+	["debug_log_size_max"] = { text = N_("How big one log may grow before it is put into the archive and a fresh one started, in megabytes. Every run gets its own file anyway — this matters to a server that runs for weeks without a restart.") },
 	["dedicated_server_step"] = { text = N_("How often the server sends changes to players. Smaller means smoother play and more work for the server."), load = "high" },
 	["default_password"] = { text = N_("The password new accounts get. Empty means anyone may join without one.") },
 	["default_privs"] = { text = N_("What a new player is allowed to do.") },

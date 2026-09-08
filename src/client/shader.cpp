@@ -882,7 +882,7 @@ void ShaderSource::generateShader(ShaderInfo &shaderinfo)
 			dumpShaderProgram(warningstream, "geometry", geometry_shader);
 		throw ShaderException(
 			fmtgettext("Failed to compile the \"%s\" shader.", log_name.c_str()) +
-			strgettext("\nCheck debug.txt for details."));
+			strgettext("\nCheck logs/latest.log for details."));
 	}
 
 	// Apply the newly created material type

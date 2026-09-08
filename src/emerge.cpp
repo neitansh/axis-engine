@@ -778,7 +778,7 @@ void *EmergeThread::run()
 		err << "World data version mismatch in MapBlock " << pos << std::endl
 			<< "----" << std::endl
 			<< "\"" << e.what() << "\"" << std::endl
-			<< "See debug.txt." << std::endl
+			<< "See logs/latest.log." << std::endl
 			<< "World probably saved by a newer version of " PROJECT_NAME_C "."
 			<< std::endl;
 		m_server->setAsyncFatalError(err.str());
@@ -787,7 +787,7 @@ void *EmergeThread::run()
 		err << "Invalid data in MapBlock " << pos << std::endl
 			<< "----" << std::endl
 			<< "\"" << e.what() << "\"" << std::endl
-			<< "See debug.txt." << std::endl
+			<< "See logs/latest.log." << std::endl
 			<< "This can be ignored using the `ignore_world_load_errors` setting. "
 			<< "But it will also destroy stuff in the affected MapBlocks, do not use."
 			<< std::endl;

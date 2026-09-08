@@ -28,6 +28,7 @@
 #include <shlwapi.h>
 #include <io.h>
 #include <direct.h>
+#include <sys/stat.h>
 #else
 #include <sys/types.h>
 #include <dirent.h>
@@ -464,6 +465,20 @@ namespace {
 	};
 
 	typedef std::unique_ptr<FILE, FileDeleter> FileUniquePtr;
+}
+
+std::time_t ModifiedAt(const std::string &path)
+{
+#ifdef _WIN32
+	struct _stat64 about;
+	if (_stat64(path.c_str(), &about) != 0)
+		return 0;
+#else
+	struct stat about;
+	if (stat(path.c_str(), &about) != 0)
+		return 0;
+#endif
+	return static_cast<std::time_t>(about.st_mtime);
 }
 
 bool CopyFileContents(const std::string &source, const std::string &target)

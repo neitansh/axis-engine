@@ -182,10 +182,6 @@ jobs:
           # this repository, so the package only provides the room for them.
           mkdir -p axis_linux/depot axis_linux/mods
 
-          # The engine writes its own config/ next to the executable on first
-          # run; this is the documented copy players read and copy lines from.
-          cp -r config.example axis_linux/
-
           if [ -d locale ]; then
             cp -r locale axis_linux/
           else
@@ -214,15 +210,14 @@ jobs:
             exit 1
           fi
 
-          # The template must survive packaging, or a player has no
-          # documentation of the settings at hand.
-          for f in shared/engine.conf client/graphics.conf client/keybindings.conf \
-                   server/server.conf server/worldgen.conf; do
-            if [ ! -f "axis_linux/config.example/$f" ]; then
-              echo "::error::config.example/$f is missing from the package."
-              exit 1
-            fi
-          done
+          # config.example/ documents every setting for those who edit files by
+          # hand. A player does not: settings have a menu, and the reference
+          # lives on the site. In the package it is dead weight, and half of it
+          # describes a server the package does not even carry.
+          if [ -e axis_linux/config.example ]; then
+            echo "::error::config.example is not for players; keep it out of the package."
+            exit 1
+          fi
 
           if [ -e axis_linux/minetest.conf ] || [ -e axis_linux/minetest.conf.example ]; then
             echo "::error::A stale minetest.conf found its way into the package."
@@ -457,8 +452,6 @@ jobs:
           # this repository, so the package only provides the room for them.
           mkdir -p axis_windows/depot axis_windows/mods
 
-          cp -r config.example axis_windows/
-
           if [ -d locale ]; then
             cp -r locale axis_windows/
           else
@@ -503,15 +496,8 @@ jobs:
             throw 'The package must ship no .cmd wrapper: the launcher starts the client.'
           }
 
-          $expected = @(
-            'shared\engine.conf', 'client\graphics.conf', 'client\keybindings.conf',
-            'server\server.conf', 'server\worldgen.conf'
-          )
-          foreach ($rel in $expected) {
-            $path = Join-Path $root (Join-Path 'config.example' $rel)
-            if (-not (Test-Path $path)) {
-              throw "config.example\$rel is missing from the package."
-            }
+          if (Test-Path (Join-Path $root 'config.example')) {
+            throw 'config.example is not for players; keep it out of the package.'
           }
 
           if (Test-Path (Join-Path $root 'minetest.conf.example')) {

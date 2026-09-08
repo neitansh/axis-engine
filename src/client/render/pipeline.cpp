@@ -100,7 +100,7 @@ void TextureBuffer::reset(PipelineContext &context)
 			throw ShaderException(
 				fmtgettext("Failed to create the texture \"%s\" for the rendering pipeline.",
 					m_definitions[i].name.c_str()) +
-				strgettext("\nCheck debug.txt for details."));
+				strgettext("\nCheck logs/latest.log for details."));
 		}
 		m_definitions[i].dirty = false;
 	}

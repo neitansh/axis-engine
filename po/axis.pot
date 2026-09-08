@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 23:59+0300\n"
+"POT-Creation-Date: 2026-09-09 01:44+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -572,7 +572,10 @@ msgid ""
 msgstr ""
 
 #: builtin/common/settings/descriptions.lua
-msgid "How big the log may grow before it starts over, in kilobytes."
+msgid ""
+"How big one log may grow before it is put into the archive and a fresh one "
+"started, in megabytes. Every run gets its own file anyway — this matters to "
+"a server that runs for weeks without a restart."
 msgstr ""
 
 #: builtin/common/settings/descriptions.lua
@@ -4134,7 +4137,7 @@ msgstr ""
 #: src/server.cpp
 msgid ""
 "\n"
-"Check debug.txt for details."
+"Check logs/latest.log for details."
 msgstr ""
 
 #: src/client/game.cpp
@@ -8259,7 +8262,7 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid ""
-"Level of logging to be written to debug.txt:\n"
+"Level of logging to be written to logs/latest.log:\n"
 "-    <nothing> (no logging)\n"
 "-    none (messages with no level)\n"
 "-    error\n"
@@ -8276,10 +8279,11 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid ""
-"If the file size of debug.txt exceeds the number of megabytes specified in\n"
-"this setting when it is opened, the file is moved to debug.txt.1,\n"
-"deleting an older debug.txt.1 if it exists.\n"
-"debug.txt is only moved if this setting is positive."
+"Each run writes logs/latest.log, and the run before it is archived next to\n"
+"it as logs/YYYY-MM-DD-N.log.gz; the last 30 archives are kept.\n"
+"A run longer than this many megabytes is archived without waiting for its\n"
+"end. Zero means no limit, which suits a server that never restarts less\n"
+"than it sounds."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -9439,7 +9443,7 @@ msgstr ""
 msgid ""
 "Windows systems only: Start Luanti with the command line window in the "
 "background.\n"
-"Contains the same information as the file debug.txt (default name)."
+"Contains the same information as the file logs/latest.log."
 msgstr ""
 
 #: src/settings_translation_file.cpp

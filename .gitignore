@@ -84,8 +84,7 @@ AppDir
 # The committed template lives in config.example/.
 /config/
 minetest.conf
-debug.txt
-debug.txt.1
+logs/
 # Сводка счётчиков производительности, пишется при profiler_print_interval > 0
 profile.txt
 

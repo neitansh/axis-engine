@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include <string_view>
+#include <deque>
 #include <fstream>
 #include <thread>
 #include <mutex>
@@ -116,17 +117,29 @@ private:
 	bool is_tty = false;
 };
 
+/// Журнал одним файлом на запуск, прошлые — сжатыми рядом.
+///
+/// Текущий запуск всегда зовётся одинаково (`latest.log`): игрока просят
+/// прислать один и тот же файл, а не «самый свежий из тех, что там лежат».
+/// Прошлый уезжает в `ГГГГ-ММ-ДД-N.log.gz` — и присылать удобно, и место не
+/// копится.
 class FileLogOutput : public ICombinedLogOutput {
 public:
 	void setFile(const std::string &filename, s64 file_size_max);
 
-	void logRaw(LogLevel lev, std::string_view line)
-	{
-		m_stream << line << std::endl;
-	}
+	void logRaw(LogLevel lev, std::string_view line);
 
 private:
+	/// Убрать нынешний файл в архив и начать пустой.
+	void roll();
+
 	std::ofstream m_stream;
+	std::string m_path;
+	s64 m_size_max = 0;
+	s64 m_written = 0;
+	/// Архивы, снятые этим запуском. Нужны затем, что перечислять каталог под
+	/// замком журнала нельзя, а счёт архивам держать надо.
+	std::deque<std::string> m_mine;
 };
 
 struct LogEntry {

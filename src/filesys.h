@@ -5,6 +5,7 @@
 #pragma once
 
 #include "config.h"
+#include <ctime>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -97,6 +98,13 @@ bool CreateAllDirs(const std::string &path);
 
 // Copy a regular file
 bool CopyFileContents(const std::string &source, const std::string &target);
+
+// When the file was last written, or 0 if it cannot be told.
+//
+// The log archive is named after the day the run it holds happened, not after
+// the day it is archived: a player who last played a week ago should find that
+// week under its own date.
+std::time_t ModifiedAt(const std::string &path);
 
 // Copy directory and all subdirectories
 // Omits files and subdirectories that start with a period

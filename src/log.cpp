@@ -9,6 +9,9 @@
 #include "porting.h"
 #include "exceptions.h"
 #include "filesys.h"
+#include "serialization.h"
+#include "util/string.h"
+#include "util/numeric.h"
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -295,31 +298,157 @@ void Logger::logToOutputs(LogLevel lev, const std::string &combined,
 //// *LogOutput methods
 ////
 
+namespace {
+
+/// Сколько прошлых журналов держим. Столько же, сколько у лаунчера: две недели
+/// игры по паре запусков в день — и на диске меньше мегабайта.
+constexpr size_t LOGS_KEPT = 30;
+
+/// Всё здесь молчит нарочно.
+///
+/// Архив снимается и под замком журнала (когда файл дорос до предела), а
+/// файловые помощники движка при неудаче пишут в `errorstream` — то есть в тот
+/// же журнал, чей замок уже взят. Обычный `std::mutex` такого не прощает:
+/// игрок получил бы не сообщение об ошибке, а повисший клиент.
+
+std::string dayOf(std::time_t when)
+{
+	std::tm broken{};
+#ifdef _WIN32
+	localtime_s(&broken, &when);
+#else
+	localtime_r(&when, &broken);
+#endif
+	char day[16];
+	std::snprintf(day, sizeof(day), "%04d-%02d-%02d",
+		broken.tm_year + 1900, broken.tm_mon + 1, broken.tm_mday);
+	return day;
+}
+
+std::string folderOf(const std::string &path)
+{
+	size_t cut = path.find_last_of(DIR_DELIM_CHAR);
+	return cut == std::string::npos ? std::string(".") : path.substr(0, cut);
+}
+
+/// Прошлый запуск — в `ГГГГ-ММ-ДД-N.log.gz` рядом. Возвращает имя архива.
+///
+/// Дата берётся у самого файла, а не у сегодняшнего дня: в игру могли не
+/// заходить неделю, и та неделя должна остаться под своим числом. Номер нужен
+/// потому, что за день запусков бывает много.
+std::string archive(const std::string &path)
+{
+	std::string raw;
+	if (!fs::ReadFile(path, raw))
+		return "";
+	if (raw.empty()) {
+		fs::DeleteSingleFileOrEmptyDirectory(path);
+		return "";
+	}
+
+	const std::string folder = folderOf(path);
+	const std::string day = dayOf(fs::ModifiedAt(path));
+	std::string target;
+	for (int ordinal = 1;; ordinal++) {
+		target = folder + DIR_DELIM + day + "-" + itos(ordinal) + ".log.gz";
+		if (!fs::PathExists(target))
+			break;
+	}
+
+	std::ostringstream packed(std::ios::binary);
+	try {
+		compressGzip(raw, packed);
+	} catch (const SerializationError &) {
+		return "";
+	}
+
+	// Своим потоком, а не `fs::safeWriteToFile`: тот при неудаче пишет в журнал.
+	std::ofstream out(target, std::ios::binary | std::ios::trunc);
+	const std::string body = packed.str();
+	out.write(body.data(), body.size());
+	if (!out.good())
+		return "";
+	out.close();
+
+	fs::DeleteSingleFileOrEmptyDirectory(path);
+	return target;
+}
+
+/// Убрать всё, что осталось от прошлых запусков сверх счёта.
+///
+/// Зовётся только при заведении журнала, когда замок ещё никем не взят:
+/// перечисление каталога — единственное здесь, что при неудаче говорит вслух.
+///
+/// По времени файла, а не по имени: `…-2` и `…-10` по алфавиту идут не по
+/// порядку, и выброшено оказалось бы не то.
+void pruneArchives(const std::string &folder)
+{
+	std::vector<std::pair<std::time_t, std::string>> kept;
+	for (const fs::DirListNode &node : fs::GetDirListing(folder)) {
+		if (node.dir || !str_ends_with(node.name, std::string(".log.gz")))
+			continue;
+		const std::string path = folder + DIR_DELIM + node.name;
+		kept.emplace_back(fs::ModifiedAt(path), path);
+	}
+	if (kept.size() <= LOGS_KEPT)
+		return;
+
+	std::sort(kept.begin(), kept.end());
+	for (size_t i = 0; i + LOGS_KEPT < kept.size(); i++)
+		fs::DeleteSingleFileOrEmptyDirectory(kept[i].second);
+}
+
+}
+
 void FileLogOutput::setFile(const std::string &filename, s64 file_size_max)
 {
-	// Only move debug.txt if there is a valid maximum file size
-	bool is_too_large = false;
-	if (file_size_max > 0) {
-		std::ifstream ifile(filename, std::ios::binary | std::ios::ate);
-		if (ifile.good())
-			is_too_large = ifile.tellg() > file_size_max;
-	}
-	if (is_too_large) {
-		std::string filename_secondary = filename + ".1";
-		actionstream << "The log file grew too big; it is moved to " <<
-			filename_secondary << std::endl;
-		fs::DeleteSingleFileOrEmptyDirectory(filename_secondary);
-		fs::Rename(filename, filename_secondary);
-	}
+	m_path = filename;
+	m_size_max = file_size_max;
+	m_written = 0;
+	m_mine.clear();
+
+	fs::CreateAllDirs(folderOf(filename));
+	archive(filename);
+	pruneArchives(folderOf(filename));
 
 	// Intentionally not using open_ofstream() to keep the text mode
-	if (!fs::OpenStream(*m_stream.rdbuf(), filename.c_str(), std::ios::out | std::ios::app, true, false))
+	if (!fs::OpenStream(*m_stream.rdbuf(), filename.c_str(), std::ios::out | std::ios::trunc, true, false))
 		throw FileNotGoodException("Failed to open log file");
+}
 
-	m_stream << "\n\n"
-		"-------------\n" <<
-		"  Separator\n" <<
-		"-------------\n" << std::endl;
+void FileLogOutput::logRaw(LogLevel lev, std::string_view line)
+{
+	m_stream << line << std::endl;
+
+	// Предел нужен серверу: он не перезапускается неделями, и одного файла на
+	// запуск ему мало. Считаем написанное, а не спрашиваем размер у системы:
+	// строк за минуту тысячи, а обращений к диску это не стоит ни одного.
+	if (m_size_max <= 0)
+		return;
+	m_written += static_cast<s64>(line.size()) + 1;
+	if (m_written >= m_size_max)
+		roll();
+}
+
+void FileLogOutput::roll()
+{
+	m_stream.close();
+	const std::string packed = archive(m_path);
+	m_written = 0;
+
+	// Каталог здесь не перечисляем — он говорит вслух, а замок журнала уже
+	// взят. Считаем только своё: то, что осталось от прошлых запусков, убрано
+	// при заведении журнала.
+	if (!packed.empty()) {
+		m_mine.push_back(packed);
+		while (m_mine.size() > LOGS_KEPT) {
+			fs::DeleteSingleFileOrEmptyDirectory(m_mine.front());
+			m_mine.pop_front();
+		}
+	}
+
+	if (!fs::OpenStream(*m_stream.rdbuf(), m_path.c_str(), std::ios::out | std::ios::trunc, true, false))
+		throw FileNotGoodException("Failed to reopen log file");
 }
 
 StreamLogOutput::StreamLogOutput(std::ostream &stream) :

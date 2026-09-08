@@ -1892,7 +1892,7 @@ void Game::updateDebugState()
  * Куда ложится профиль клиента, когда profiler_print_interval больше нуля.
  *
  * Профиль печатается через infostream, а рабочий debug_log_level в этом проекте
- * - action, так что в debug.txt он не попадает вовсе. Отдельный файл заодно
+ * - action, так что в журнал он не попадает вовсе. Отдельный файл заодно
  * избавляет от необходимости выуживать цифры из журнала на десятки мегабайт.
  */
 static void writeProfileToFile(Profiler *profiler, float interval)
@@ -4979,7 +4979,7 @@ void the_game(volatile std::sig_atomic_t *kill,
 	{
 		// DO NOT TRANSLATE the `ModError`, it's used by `ui.lua`
 		error_message = std::string("ModError: ") + e.what() +
-						strgettext("\nCheck debug.txt for details.");
+						strgettext("\nCheck logs/latest.log for details.");
 		errorstream << error_message << std::endl;
 	}
 	catch (con::PeerNotFoundException &e)

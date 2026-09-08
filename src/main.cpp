@@ -69,7 +69,10 @@ extern "C" {
 
 // Directory holding the configuration files, see src/config/config_domains.h
 #define CONFIGDIR "config"
-#define DEBUGFILE "debug.txt"
+// Журнал: папкой рядом с настройками, текущий запуск всегда под одним именем.
+// Прошлые лежат там же сжатыми — см. `FileLogOutput`.
+#define LOGDIR "logs"
+#define LOGFILE "latest.log"
 #define DEFAULT_SERVER_PORT 30000
 
 #define ENV_NO_COLOR "NO_COLOR"
@@ -897,7 +900,7 @@ static bool read_config_file(const Settings &cmd_args)
 
 static void init_log_streams(const Settings &cmd_args)
 {
-	std::string log_filename = porting::path_user + DIR_DELIM + DEBUGFILE;
+	std::string log_filename = porting::path_user + DIR_DELIM LOGDIR DIR_DELIM LOGFILE;
 
 	if (cmd_args.exists("logfile"))
 		log_filename = cmd_args.get("logfile");
