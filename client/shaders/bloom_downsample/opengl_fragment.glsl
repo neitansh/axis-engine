@@ -22,7 +22,7 @@ void main(void)
 	vec3 j = texture2D(rendered, varTexCoord.st + vec2(-0.5, -0.5) * tx).rgb;
 	vec3 k = texture2D(rendered, varTexCoord.st + vec2(0.5, -0.5) * tx).rgb;
 	vec3 l = texture2D(rendered, varTexCoord.st + vec2(-0.5, 0.5) * tx).rgb;
-	vec3 m = texture2D(rendered, varTexCoord.st + vec2(-0.5, 0.5) * tx).rgb;
+	vec3 m = texture2D(rendered, varTexCoord.st + vec2(0.5, 0.5) * tx).rgb;
 
 	vec3 color =
 		(a + c + g + i) * 0.03125 +

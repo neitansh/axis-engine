@@ -63,9 +63,11 @@ highp vec3 uncharted2Tonemap(highp vec3 x)
 	return ((x * (0.22 * x + 0.03) + 0.002) / (x * (0.22 * x + 0.3) + 0.06)) - 0.03333;
 }
 
+// Принимает цвет в линейном пространстве: перевод в sRGB и обратно, стоявший
+// здесь и строкой выше по ходу кадра, взаимно отменялся, а стоил шести
+// возведений в степень на каждый пиксель экрана.
 vec4 applyToneMapping(vec4 color)
 {
-	color = vec4(pow(color.rgb, vec3(2.2)), color.a);
 	const float gamma = 1.6;
 	const float exposureBias = 5.5;
 	color.rgb = uncharted2Tonemap(exposureBias * color.rgb);
@@ -132,8 +134,10 @@ void main(void)
 
 	color.rgb = clamp(color.rgb, vec3(0.), vec3(1.));
 
+#if !ENABLE_TONE_MAPPING
 	// return to sRGB colorspace (approximate)
 	color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
+#endif
 
 #ifdef ENABLE_BLOOM_DEBUG
 	if (uv.x > 0.5 || uv.y > 0.5)

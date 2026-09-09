@@ -110,13 +110,23 @@ vec3 applyVolumetricLight(vec3 color, vec2 uv, float rawDepth)
 		sourcePosition = moonPositionScreen;
 	}
 
-	float cameraDirectionFactor = pow(clamp(dot(sourcePosition, vec3(0., 0., 1.)), 0.0, 0.7), 2.5);
-	float viewAngleFactor = pow(max(0., dot(sourcePosition, lookDirection)), 8.);
+	/*
+	 * Луча нет - и шагать по нему незачем.
+	 *
+	 * Когда ни солнца, ни луны на экране нет, brightness равен нулю, а на него
+	 * умножается всё остальное. Шестнадцать выборок глубины на пиксель при
+	 * этом всё равно делались и давали ровно ноль: половина суток и любой
+	 * взгляд в сторону от светила оплачивались впустую.
+	 */
+	if (brightness > 0.0) {
+		float cameraDirectionFactor = pow(clamp(dot(sourcePosition, vec3(0., 0., 1.)), 0.0, 0.7), 2.5);
+		float viewAngleFactor = pow(max(0., dot(sourcePosition, lookDirection)), 8.);
 
-	float lightFactor = brightness * sampleVolumetricLight(uv, sourcePosition, rawDepth) *
-			(0.05 * cameraDirectionFactor + 0.95 * viewAngleFactor);
+		float lightFactor = brightness * sampleVolumetricLight(uv, sourcePosition, rawDepth) *
+				(0.05 * cameraDirectionFactor + 0.95 * viewAngleFactor);
 
-	color = mix(color, boost * getDirectLightScatteringAtGround(v_LightDirection) * dayLight, lightFactor);
+		color = mix(color, boost * getDirectLightScatteringAtGround(v_LightDirection) * dayLight, lightFactor);
+	}
 
 	// a factor of 5 tested well
 	color *= volumetricLightStrength * 5.0;

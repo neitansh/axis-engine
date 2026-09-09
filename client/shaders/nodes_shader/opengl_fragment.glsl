@@ -529,7 +529,16 @@ const vec3 artificialLight = vec3(1.04, 1.04, 1.04);
 void applyLight(vec3 normal, vec3 surface_pos, out vec3 light, out float night_share)
 {
 	float level = dynamicLightLevel(surface_pos, normal);
-	float dynamic = level > 0.0 ? decodeLight(level) * faceShade(normal) : 0.0;
+
+	// Ни один источник сюда не достаёт, а без них эта функция слово в слово
+	// повторяет то, что вершинный шейдер уже посчитал и передал сюда готовым.
+	if (level <= 0.0) {
+		light = varColor.rgb;
+		night_share = nightRatio;
+		return;
+	}
+
+	float dynamic = decodeLight(level) * faceShade(normal);
 
 	vec3 day_part = varDayPart;
 	// Raised in brightness, unchanged in colour: grass lit by a torch stays
@@ -589,11 +598,23 @@ void main(void)
 	vec3 incoming;
 	float night_share;
 
-	// Some materials carry no normal at all; such a face is lit from any side
-	float normal_length = length(vNormal);
-	vec3 lit_normal = normal_length > 1e-3 ? vNormal / normal_length : vec3(0.0);
+	/*
+	 * Ничего постороннего в кадре не светит - и считать нечего.
+	 *
+	 * Условие одно на весь кадр, поэтому ветвление здесь бесплатное: все
+	 * пиксели идут одной дорогой. Дорога эта - готовый цвет из вершинного
+	 * шейдера, тот самый, который пересобирался бы ниже заново.
+	 */
+	if (u_dyn_light_count > 0.0) {
+		// Some materials carry no normal at all; such a face is lit from any side
+		float normal_length = length(vNormal);
+		vec3 lit_normal = normal_length > 1e-3 ? vNormal / normal_length : vec3(0.0);
 
-	applyLight(lit_normal, worldPosition, incoming, night_share);
+		applyLight(lit_normal, worldPosition, incoming, night_share);
+	} else {
+		incoming = varColor.rgb;
+		night_share = nightRatio;
+	}
 
 	vec4 col = vec4(base.rgb * incoming, 1.0);
 
