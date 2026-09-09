@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 19:32+0300\n"
+"POT-Creation-Date: 2026-09-09 19:45+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3981,50 +3981,6 @@ msgstr ""
 
 #: src/client/game.cpp
 msgid "Sound system is not supported on this build"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Fly mode enabled"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Fly mode enabled (note: no 'fly' privilege)"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Fly mode disabled"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Pitch move mode enabled"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Pitch move mode disabled"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Fast mode enabled"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Fast mode enabled (note: no 'fast' privilege)"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Fast mode disabled"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Noclip mode enabled"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Noclip mode enabled (note: no 'noclip' privilege)"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Noclip mode disabled"
 msgstr ""
 
 #: src/client/game.cpp

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 19:32+0300\n"
+"POT-Creation-Date: 2026-09-09 19:45+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -4305,33 +4305,9 @@ msgid "Error creating client: %s"
 msgstr "Создание клиента: %s"
 
 #: src/client/game.cpp
-msgid "Fast mode disabled"
-msgstr "Режим быстрого перемещения отключён"
-
-#: src/client/game.cpp
-msgid "Fast mode enabled"
-msgstr "Режим быстрого перемещения включён"
-
-#: src/client/game.cpp
-msgid "Fast mode enabled (note: no 'fast' privilege)"
-msgstr "Режим быстрого перемещения включён (но нет привилегии «fast»)"
-
-#: src/client/game.cpp
 #, c-format
 msgid "Files: %d / %d"
 msgstr "Файлов: %d / %d"
-
-#: src/client/game.cpp
-msgid "Fly mode disabled"
-msgstr "Режим полёта отключён"
-
-#: src/client/game.cpp
-msgid "Fly mode enabled"
-msgstr "Режим полёта включён"
-
-#: src/client/game.cpp
-msgid "Fly mode enabled (note: no 'fly' privilege)"
-msgstr "Режим полёта включён (но нет привилегии «fly»)"
 
 #: src/client/game.cpp
 msgid "Fog disabled"
@@ -4411,18 +4387,6 @@ msgid "Next item"
 msgstr "Следующий предмет"
 
 #: src/client/game.cpp
-msgid "Noclip mode disabled"
-msgstr "Режим прохождения сквозь стены отключён"
-
-#: src/client/game.cpp
-msgid "Noclip mode enabled"
-msgstr "Режим прохождения сквозь стены включён"
-
-#: src/client/game.cpp
-msgid "Noclip mode enabled (note: no 'noclip' privilege)"
-msgstr "Режим прохождения сквозь стены включён (но нет привилегии «noclip»)"
-
-#: src/client/game.cpp
 msgid "Node definitions..."
 msgstr "Загрузка блоков"
 
@@ -4433,14 +4397,6 @@ msgstr "Открыть инвентарь"
 #: src/client/game.cpp src/settings_translation_file.cpp
 msgid "Pick item"
 msgstr "Взять блок"
-
-#: src/client/game.cpp
-msgid "Pitch move mode disabled"
-msgstr "Режим движения по направлению взгляда отключён"
-
-#: src/client/game.cpp
-msgid "Pitch move mode enabled"
-msgstr "Режим движения по направлению взгляда включён"
 
 #: src/client/game.cpp src/gui/touchscreenlayout.cpp
 #: src/settings_translation_file.cpp
@@ -11170,3 +11126,36 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
+
+#~ msgid "Fast mode disabled"
+#~ msgstr "Режим быстрого перемещения отключён"
+
+#~ msgid "Fast mode enabled"
+#~ msgstr "Режим быстрого перемещения включён"
+
+#~ msgid "Fast mode enabled (note: no 'fast' privilege)"
+#~ msgstr "Режим быстрого перемещения включён (но нет привилегии «fast»)"
+
+#~ msgid "Fly mode disabled"
+#~ msgstr "Режим полёта отключён"
+
+#~ msgid "Fly mode enabled"
+#~ msgstr "Режим полёта включён"
+
+#~ msgid "Fly mode enabled (note: no 'fly' privilege)"
+#~ msgstr "Режим полёта включён (но нет привилегии «fly»)"
+
+#~ msgid "Noclip mode disabled"
+#~ msgstr "Режим прохождения сквозь стены отключён"
+
+#~ msgid "Noclip mode enabled"
+#~ msgstr "Режим прохождения сквозь стены включён"
+
+#~ msgid "Noclip mode enabled (note: no 'noclip' privilege)"
+#~ msgstr "Режим прохождения сквозь стены включён (но нет привилегии «noclip»)"
+
+#~ msgid "Pitch move mode disabled"
+#~ msgstr "Режим движения по направлению взгляда отключён"
+
+#~ msgid "Pitch move mode enabled"
+#~ msgstr "Режим движения по направлению взгляда включён"

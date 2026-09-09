@@ -2401,26 +2401,13 @@ void Game::handleAndroidChatInput()
 }
 #endif
 
+// Переключение режима движения молчит. Строка «Режим полёта включён» и её
+// родня всплывали на каждое нажатие клавиши, а сказать им нечего: полетел
+// человек или нет, видно из окна.
 void Game::toggleFreeMove()
 {
 	bool free_move = !g_settings->getBool("free_move");
 	g_settings->set("free_move", bool_to_cstr(free_move));
-
-	if (free_move)
-	{
-		if (client->checkPrivilege("fly"))
-		{
-			m_game_ui->showTranslatedStatusText("Fly mode enabled");
-		}
-		else
-		{
-			m_game_ui->showTranslatedStatusText("Fly mode enabled (note: no 'fly' privilege)");
-		}
-	}
-	else
-	{
-		m_game_ui->showTranslatedStatusText("Fly mode disabled");
-	}
 }
 
 void Game::toggleFreeMoveAlt()
@@ -2443,15 +2430,6 @@ void Game::togglePitchMove()
 {
 	bool pitch_move = !g_settings->getBool("pitch_move");
 	g_settings->set("pitch_move", bool_to_cstr(pitch_move));
-
-	if (pitch_move)
-	{
-		m_game_ui->showTranslatedStatusText("Pitch move mode enabled");
-	}
-	else
-	{
-		m_game_ui->showTranslatedStatusText("Pitch move mode disabled");
-	}
 }
 
 void Game::toggleFast()
@@ -2460,22 +2438,6 @@ void Game::toggleFast()
 	bool has_fast_privs = client->checkPrivilege("fast");
 	g_settings->set("fast_move", bool_to_cstr(fast_move));
 
-	if (fast_move)
-	{
-		if (has_fast_privs)
-		{
-			m_game_ui->showTranslatedStatusText("Fast mode enabled");
-		}
-		else
-		{
-			m_game_ui->showTranslatedStatusText("Fast mode enabled (note: no 'fast' privilege)");
-		}
-	}
-	else
-	{
-		m_game_ui->showTranslatedStatusText("Fast mode disabled");
-	}
-
 	m_touch_simulate_aux1 = fast_move && has_fast_privs;
 }
 
@@ -2483,22 +2445,6 @@ void Game::toggleNoClip()
 {
 	bool noclip = !g_settings->getBool("noclip");
 	g_settings->set("noclip", bool_to_cstr(noclip));
-
-	if (noclip)
-	{
-		if (client->checkPrivilege("noclip"))
-		{
-			m_game_ui->showTranslatedStatusText("Noclip mode enabled");
-		}
-		else
-		{
-			m_game_ui->showTranslatedStatusText("Noclip mode enabled (note: no 'noclip' privilege)");
-		}
-	}
-	else
-	{
-		m_game_ui->showTranslatedStatusText("Noclip mode disabled");
-	}
 }
 
 void Game::toggleCinematic()
