@@ -88,7 +88,8 @@ s32 readLimited(Settings *settings, const std::string &name, s32 def, s32 max)
 
 const char *CrosshairStyle::shapeName(Shape shape)
 {
-	if (shape < 0 || shape >= SHAPE_COUNT)
+	// Shape is unsigned, so only the upper end can be out of range
+	if (shape >= SHAPE_COUNT)
 		return SHAPE_NAMES[SHAPE_CROSS];
 	return SHAPE_NAMES[shape];
 }

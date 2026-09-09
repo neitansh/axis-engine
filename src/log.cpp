@@ -25,6 +25,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cstring>
+#include <ctime>
 
 class LevelTarget : public LogTarget {
 public:
@@ -319,9 +320,12 @@ std::string dayOf(std::time_t when)
 #else
 	localtime_r(&when, &broken);
 #endif
+	// strftime rather than snprintf: the fields are already bounded by the
+	// calendar, and printing them as plain ints makes the compiler assume the
+	// full range of int and warn about a truncated date.
 	char day[16];
-	std::snprintf(day, sizeof(day), "%04d-%02d-%02d",
-		broken.tm_year + 1900, broken.tm_mon + 1, broken.tm_mday);
+	if (std::strftime(day, sizeof(day), "%Y-%m-%d", &broken) == 0)
+		return "unknown";
 	return day;
 }
 
@@ -350,7 +354,9 @@ std::string archive(const std::string &path)
 	const std::string day = dayOf(fs::ModifiedAt(path));
 	std::string target;
 	for (int ordinal = 1;; ordinal++) {
-		target = folder + DIR_DELIM + day + "-" + itos(ordinal) + ".log.gz";
+		target = folder;
+		target.append(DIR_DELIM).append(day).append("-")
+				.append(itos(ordinal)).append(".log.gz");
 		if (!fs::PathExists(target))
 			break;
 	}
