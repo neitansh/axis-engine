@@ -76,7 +76,7 @@ end
 
 
 return {
-	query_text = "Shadows",
+	query_text = N_("Shadows"),
 	requires = {
 		shadows_support = true,
 	},

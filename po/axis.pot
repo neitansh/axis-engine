@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 19:21+0300\n"
+"POT-Creation-Date: 2026-09-09 19:32+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -189,6 +189,11 @@ msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
 msgid "Nothing"
+msgstr ""
+
+#: builtin/common/settings/crosshair_component.lua
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Crosshair"
 msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
@@ -2484,6 +2489,7 @@ msgid "Effects"
 msgstr ""
 
 #: builtin/common/settings/dlg_settings.lua
+#: builtin/common/settings/shadows_component.lua
 msgid "Shadows"
 msgstr ""
 
@@ -2505,10 +2511,6 @@ msgstr ""
 
 #: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
 msgid "General"
-msgstr ""
-
-#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
-msgid "Crosshair"
 msgstr ""
 
 #: builtin/common/settings/dlg_settings.lua

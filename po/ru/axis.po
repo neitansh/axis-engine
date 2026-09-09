@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 19:21+0300\n"
+"POT-Creation-Date: 2026-09-09 19:32+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -174,6 +174,11 @@ msgstr "Крест с точкой"
 #: builtin/common/settings/crosshair_component.lua
 msgid "Cross, no gap"
 msgstr "Крест без просвета"
+
+#: builtin/common/settings/crosshair_component.lua
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Crosshair"
+msgstr "Прицел"
 
 #: builtin/common/settings/crosshair_component.lua
 #: builtin/common/settings/shadows_component.lua
@@ -2825,10 +2830,6 @@ msgid "Controls"
 msgstr "Управление"
 
 #: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
-msgid "Crosshair"
-msgstr "Прицел"
-
-#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
 msgid "Debugging"
 msgstr "Отладка"
 
@@ -2930,6 +2931,7 @@ msgid "Settings"
 msgstr "Настройки"
 
 #: builtin/common/settings/dlg_settings.lua
+#: builtin/common/settings/shadows_component.lua
 msgid "Shadows"
 msgstr "Тени"
 

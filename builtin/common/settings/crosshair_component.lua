@@ -120,7 +120,7 @@ local function preview_boxes(x0, y0, pieces, color)
 end
 
 return {
-	query_text = "Crosshair",
+	query_text = N_("Crosshair"),
 	context = "client",
 
 	get_formspec = function(self, avail_w)
