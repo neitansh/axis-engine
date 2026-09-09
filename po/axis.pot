@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 15:12+0300\n"
+"POT-Creation-Date: 2026-09-09 19:21+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2459,6 +2459,120 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Graphics"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Window"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "World"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Quality"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Picture"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Effects"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Shadows"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Lighting"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Water and foliage"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Audio"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Interface"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "General"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Crosshair"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Hints"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua src/client/game.cpp
+#: src/gui/touchscreenlayout.cpp src/settings_translation_file.cpp
+msgid "Chat"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Debugging"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua src/client/game.cpp
+#: src/settings_translation_file.cpp
+msgid "Controls"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Mouse"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Movement"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Interaction"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Menus"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Keys"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Game and network"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Player"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Hosting"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Client"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "World generation"
+msgstr ""
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Developer"
+msgstr ""
+
 #: builtin/common/settings/dlg_settings.lua
 msgid "Touchscreen layout"
 msgstr ""
@@ -3394,6 +3508,10 @@ msgid "Try again"
 msgstr ""
 
 #: builtin/mainmenu/tab_about.lua
+msgid "About"
+msgstr ""
+
+#: builtin/mainmenu/tab_about.lua
 msgid "Axis is a fork of Luanti. The engine below was written by:"
 msgstr ""
 
@@ -3521,6 +3639,10 @@ msgstr ""
 msgid "Play Crate"
 msgstr ""
 
+#: builtin/mainmenu/tab_local.lua src/client/game.cpp
+msgid "Singleplayer"
+msgstr ""
+
 #: builtin/mainmenu/tab_online.lua
 msgid "Matches"
 msgstr ""
@@ -3614,6 +3736,10 @@ msgstr ""
 
 #: builtin/mainmenu/tab_online.lua
 msgid "Incompatible Servers"
+msgstr ""
+
+#: builtin/mainmenu/tab_online.lua
+msgid "Play"
 msgstr ""
 
 #: src/chat.cpp
@@ -3720,10 +3846,6 @@ msgstr ""
 
 #: src/client/game.cpp
 msgid "Connection failed for unknown reason"
-msgstr ""
-
-#: src/client/game.cpp
-msgid "Singleplayer"
 msgstr ""
 
 #: src/client/game.cpp
@@ -4012,11 +4134,6 @@ msgstr ""
 msgid "Zoom"
 msgstr ""
 
-#: src/client/game.cpp src/gui/touchscreenlayout.cpp
-#: src/settings_translation_file.cpp
-msgid "Chat"
-msgstr ""
-
 #: src/client/game.cpp src/settings_translation_file.cpp
 msgid "Command"
 msgstr ""
@@ -4031,10 +4148,6 @@ msgstr ""
 
 #: src/client/game.cpp
 msgid "Fullscreen"
-msgstr ""
-
-#: src/client/game.cpp src/settings_translation_file.cpp
-msgid "Controls"
 msgstr ""
 
 #: src/client/game.cpp
@@ -5029,10 +5142,6 @@ msgid "%s while shutting down: "
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "General"
-msgstr ""
-
-#: src/settings_translation_file.cpp
 msgid "Camera smoothing"
 msgstr ""
 
@@ -5648,10 +5757,6 @@ msgid "Graphics and Audio"
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "Graphics"
-msgstr ""
-
-#: src/settings_translation_file.cpp
 msgid "Screen"
 msgstr ""
 
@@ -6105,10 +6210,6 @@ msgid ""
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "Effects"
-msgstr ""
-
-#: src/settings_translation_file.cpp
 msgid "Translucent liquids"
 msgstr ""
 
@@ -6466,10 +6567,6 @@ msgid "When enabled, liquid reflections are simulated."
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "Audio"
-msgstr ""
-
-#: src/settings_translation_file.cpp
 msgid "Volume"
 msgstr ""
 
@@ -6510,10 +6607,6 @@ msgstr ""
 msgid ""
 "Set the language. By default, the system language is used.\n"
 "Applies immediately; text that came from the server changes on next join."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Crosshair"
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -6877,10 +6970,6 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Client and Server"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Client"
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -8578,10 +8667,6 @@ msgid ""
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "Debugging"
-msgstr ""
-
-#: src/settings_translation_file.cpp
 msgid "Debug log level"
 msgstr ""
 
@@ -9127,10 +9212,6 @@ msgid ""
 "Path of the fallback font. Must be a TrueType font.\n"
 "This font will be used for certain languages or if the default font is "
 "unavailable."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Lighting"
 msgstr ""
 
 #: src/settings_translation_file.cpp

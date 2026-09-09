@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 15:12+0300\n"
+"POT-Creation-Date: 2026-09-09 19:21+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -2794,6 +2794,10 @@ msgstr "(Системный язык)"
 msgid "<empty>"
 msgstr "<пусто>"
 
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Audio"
+msgstr "Звук"
+
 #. TRANSLATORS: Button text to go back
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/mainmenu/content/dlg_contentdb.lua
@@ -2801,10 +2805,88 @@ msgstr "<пусто>"
 msgid "Back"
 msgstr "Назад"
 
+#: builtin/common/settings/dlg_settings.lua src/client/game.cpp
+#: src/gui/touchscreenlayout.cpp src/settings_translation_file.cpp
+msgid "Chat"
+msgstr "Чат"
+
 #. TRANSLATORS: Tooltip of a button that clears input
 #: builtin/common/settings/dlg_settings.lua builtin/mainmenu/tab_online.lua
 msgid "Clear"
 msgstr "Очистить"
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Client"
+msgstr "Клиент"
+
+#: builtin/common/settings/dlg_settings.lua src/client/game.cpp
+#: src/settings_translation_file.cpp
+msgid "Controls"
+msgstr "Управление"
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Crosshair"
+msgstr "Прицел"
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Debugging"
+msgstr "Отладка"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Developer"
+msgstr "Для разработчика"
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Effects"
+msgstr "Эффекты"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Game and network"
+msgstr "Игра и сеть"
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "General"
+msgstr "Основной"
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Graphics"
+msgstr "Графика"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Hints"
+msgstr "Подсказки"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Hosting"
+msgstr "Свой сервер"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Interaction"
+msgstr "Взаимодействие"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Interface"
+msgstr "Интерфейс"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Keys"
+msgstr "Клавиши"
+
+#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+msgid "Lighting"
+msgstr "Освещение"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Menus"
+msgstr "Меню"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Mouse"
+msgstr "Мышь"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Movement"
+msgstr "Движение"
 
 #. TRANSLATORS: No search results
 #: builtin/common/settings/dlg_settings.lua
@@ -2816,6 +2898,18 @@ msgstr "Нет результатов"
 #: builtin/common/settings/dlg_settings.lua
 msgid "Not bound"
 msgstr "Не привязано"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Picture"
+msgstr "Изображение"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Player"
+msgstr "Игрок"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Quality"
+msgstr "Качество"
 
 #: builtin/common/settings/dlg_settings.lua
 msgid "Reset setting to default"
@@ -2834,6 +2928,10 @@ msgstr "Найти"
 #: builtin/common/settings/dlg_settings.lua src/client/game_formspec.cpp
 msgid "Settings"
 msgstr "Настройки"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Shadows"
+msgstr "Тени"
 
 #. TRANSLATORS: Checkbox that toggles displaying the technical setting names
 #: builtin/common/settings/dlg_settings.lua
@@ -2875,6 +2973,22 @@ msgstr "Расположение сенсорного экрана"
 #: builtin/common/settings/dlg_settings.lua
 msgid "Unavailable"
 msgstr "Недоступно"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Water and foliage"
+msgstr "Вода и листва"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "Window"
+msgstr "Окно"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "World"
+msgstr "Мир"
+
+#: builtin/common/settings/dlg_settings.lua
+msgid "World generation"
+msgstr "Генерация мира"
 
 #: builtin/common/settings/settingtypes.lua
 msgid "Client Mods"
@@ -3727,6 +3841,10 @@ msgid "Waiting for players"
 msgstr "Ждём игроков"
 
 #: builtin/mainmenu/tab_about.lua
+msgid "About"
+msgstr "Об Axis"
+
+#: builtin/mainmenu/tab_about.lua
 msgid "Active Contributors"
 msgstr "Активные участники"
 
@@ -3852,6 +3970,10 @@ msgstr "Выберите моды"
 msgid "Select World:"
 msgstr "Выберите мир:"
 
+#: builtin/mainmenu/tab_local.lua src/client/game.cpp
+msgid "Singleplayer"
+msgstr "Одиночная игра"
+
 #: builtin/mainmenu/tab_local.lua
 msgid "You need to install a crate before you can create a world."
 msgstr "Прежде чем создавать мир, нужно установить крейт."
@@ -3912,6 +4034,10 @@ msgstr "Открыть вебсайт сервера"
 #: builtin/mainmenu/tab_online.lua
 msgid "Ping"
 msgstr "Задержка"
+
+#: builtin/mainmenu/tab_online.lua
+msgid "Play"
+msgstr "Играть"
 
 #. TRANSLATORS: Number of players on a server
 #: builtin/mainmenu/tab_online.lua
@@ -4109,11 +4235,6 @@ msgstr "Обновление камеры включено"
 msgid "Can't show block bounds (disabled by game or mod)"
 msgstr "Нельзя показать границы мапблоков (отключено модом или игрой)"
 
-#: src/client/game.cpp src/gui/touchscreenlayout.cpp
-#: src/settings_translation_file.cpp
-msgid "Chat"
-msgstr "Чат"
-
 #: src/client/game.cpp
 msgid "Cinematic mode disabled"
 msgstr "Кинематографичный режим отключён"
@@ -4145,10 +4266,6 @@ msgstr "Ошибка соединения (время вышло?)"
 #: src/client/game.cpp
 msgid "Connection failed for unknown reason"
 msgstr "Сбой соединения по неизвестной причине"
-
-#: src/client/game.cpp src/settings_translation_file.cpp
-msgid "Controls"
-msgstr "Управление"
 
 #: src/client/game.cpp
 msgid "Could not move to the other server."
@@ -4351,10 +4468,6 @@ msgstr "Снимок экрана"
 #: src/client/game.cpp
 msgid "Shutting down..."
 msgstr "Завершение..."
-
-#: src/client/game.cpp
-msgid "Singleplayer"
-msgstr "Одиночная игра"
 
 #: src/client/game.cpp
 #, c-format
@@ -5822,10 +5935,6 @@ msgstr ""
 "Задаётся в мапблоках (16 узлов)."
 
 #: src/settings_translation_file.cpp
-msgid "Audio"
-msgstr "Звук"
-
-#: src/settings_translation_file.cpp
 msgid "Automatic jumping"
 msgstr "Автопрыжок"
 
@@ -6063,10 +6172,6 @@ msgid ""
 msgstr ""
 "Нажимаемые ссылки (средняя кнопка или Ctrl+левая кнопка) включены в консоли "
 "чата."
-
-#: src/settings_translation_file.cpp
-msgid "Client"
-msgstr "Клиент"
 
 #: src/settings_translation_file.cpp
 msgid "Client Debugging"
@@ -6323,10 +6428,6 @@ msgid "Crash message"
 msgstr "Сообщение при крахе"
 
 #: src/settings_translation_file.cpp
-msgid "Crosshair"
-msgstr "Прицел"
-
-#: src/settings_translation_file.cpp
 msgid "Crosshair alpha"
 msgstr "Прозрачность прицела"
 
@@ -6413,10 +6514,6 @@ msgstr "Порог размера файла журнала отладки"
 #: src/settings_translation_file.cpp
 msgid "Debug log level"
 msgstr "Отладочный уровень"
-
-#: src/settings_translation_file.cpp
-msgid "Debugging"
-msgstr "Отладка"
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -6701,10 +6798,6 @@ msgstr ""
 "Запуск, переваливший за столько мегабайт, уезжает в архив, не дожидаясь\n"
 "своего конца. Ноль — без предела; серверу, который не перезапускается,\n"
 "это подходит меньше, чем кажется."
-
-#: src/settings_translation_file.cpp
-msgid "Effects"
-msgstr "Эффекты"
 
 #: src/settings_translation_file.cpp
 msgid "Emulated network jitter"
@@ -7240,10 +7333,6 @@ msgid "Gap between the centre and where the strokes begin, in pixels."
 msgstr "Зазор между центром и началом штрихов, в пикселях."
 
 #: src/settings_translation_file.cpp
-msgid "General"
-msgstr "Основной"
-
-#: src/settings_translation_file.cpp
 msgid "Give up waiting after"
 msgstr "Перестать ждать через"
 
@@ -7286,10 +7375,6 @@ msgid ""
 msgstr ""
 "Градиент кривой света на минимальном уровне освещённости.\n"
 "Контролирует контрастность самых низких уровней освещенности."
-
-#: src/settings_translation_file.cpp
-msgid "Graphics"
-msgstr "Графика"
 
 #: src/settings_translation_file.cpp
 msgid "Graphics and Audio"
@@ -8214,10 +8299,6 @@ msgstr "Высокий градиент кривой света"
 #: src/settings_translation_file.cpp
 msgid "Light curve low gradient"
 msgstr "Низкий градиент кривой света"
-
-#: src/settings_translation_file.cpp
-msgid "Lighting"
-msgstr "Освещение"
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -11087,97 +11168,3 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
-
-#~ msgid ""
-#~ "Define shadow filtering quality.\n"
-#~ "This simulates the soft shadows effect by applying a PCF or Poisson disk\n"
-#~ "but also uses more resources."
-#~ msgstr ""
-#~ "Определите качество фильтрации теней.\n"
-#~ "Это имитирует эффект мягких теней, применяя PCF или диск Пуассона,\n"
-#~ "но также использует больше ресурсов."
-
-#~ msgid ""
-#~ "Enable Poisson disk filtering.\n"
-#~ "On true uses Poisson disk to make \"soft shadows\". Otherwise uses PCF "
-#~ "filtering."
-#~ msgstr ""
-#~ "Включить фильтрацию диска Пуассона.\n"
-#~ "Если включена использует диск Пуассона для создания «мягких теней». В "
-#~ "противном случае используется фильтрация PCF."
-
-#~ msgid "Enable joysticks"
-#~ msgstr "Включить контроллер"
-
-#~ msgid "Enable joysticks. Requires a restart to take effect"
-#~ msgstr "Включить поддержку контроллера. Требуется перезапуск"
-
-#~ msgid ""
-#~ "File in client/serverlist/ that contains your favorite servers displayed "
-#~ "in the\n"
-#~ "Multiplayer Tab."
-#~ msgstr ""
-#~ "Файл в папке client/serverlist/, содержащий ваши избранные сервера\n"
-#~ "из вкладки Мультиплеер."
-
-#~ msgid "Gamepads"
-#~ msgstr "Контроллеры"
-
-#~ msgid "Joystick ID"
-#~ msgstr "ID контроллера"
-
-#~ msgid "Joystick type"
-#~ msgstr "Тип джойстика"
-
-#~ msgid "Key for moving fast in fast mode."
-#~ msgstr "Клавиша для быстрого перемещения в режиме быстрого перемещения."
-
-#~ msgid "Keybindings"
-#~ msgstr "Привязки клавиш"
-
-#~ msgid "Poisson filtering"
-#~ msgstr "Фильтрация Пуассона"
-
-#~ msgid "Serverlist file"
-#~ msgstr "Файл списка серверов"
-
-#~ msgid ""
-#~ "Set the soft shadow radius size.\n"
-#~ "Lower values mean sharper shadows, bigger values mean softer shadows.\n"
-#~ "Minimum value: 1.0; maximum value: 15.0"
-#~ msgstr ""
-#~ "Устанавливает радиус мягких теней.\n"
-#~ "Меньшие значения означают более резкие тени, большие значения более "
-#~ "мягкие.\n"
-#~ "Наименьшее значение: 1.0; Наибольшее значение: 10.0"
-
-#~ msgid "Shadow filter quality"
-#~ msgstr "Качество теней"
-
-#~ msgid "Soft shadow radius"
-#~ msgstr "Радиус мягкой тени"
-
-#~ msgid "The dead zone of the joystick"
-#~ msgstr "Мёртвая зона джойстика"
-
-#~ msgid "The identifier of the joystick to use"
-#~ msgstr "Идентификатор используемого контроллера"
-
-#~ msgid "The type of joystick"
-#~ msgstr "Тип контроллера"
-
-#~ msgid ""
-#~ "URL to JSON file which provides information about the newest Luanti "
-#~ "release.\n"
-#~ "If this is empty the engine will never check for updates."
-#~ msgstr ""
-#~ "URL-адрес файла JSON, который предоставляет информацию о последней версии "
-#~ "Luanti.\n"
-#~ "Если поле не заполнено, движок никогда не будет проверять наличие "
-#~ "обновлений."
-
-#~ msgid "Update information URL"
-#~ msgstr "Адрес обновления информации"
-
-#~ msgid "View distance in nodes."
-#~ msgstr "Дальность отрисовки в нодах."
