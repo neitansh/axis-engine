@@ -364,6 +364,7 @@ ITexture *CNullDriver::addTextureCubemap(const u32 sideLen, const io::path &name
 	}
 
 	std::vector<IImage*> imageArray;
+	imageArray.reserve(6);
 	for (int i = 0; i < 6; ++i)
 		imageArray.push_back(new CImage(format, core::dimension2du(sideLen, sideLen)));
 

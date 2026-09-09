@@ -32,6 +32,12 @@
 namespace video
 {
 
+// GL wants a byte offset into the bound buffer in an argument shaped like a
+// pointer, so the cast is the API talking, not us. Named once so the five call
+// sites below read as offsets and the exception stays explained in one place.
+// NOLINTNEXTLINE(performance-no-int-to-ptr)
+static inline void *buffer_offset(std::size_t offset) { return reinterpret_cast<void *>(offset); }
+
 struct VertexAttribute
 {
 	enum Mode : u8
@@ -608,10 +614,10 @@ void COpenGL3DriverBase::drawBuffers(const scene::IVertexBuffer *vb,
 		GL.BindBuffer(GL_ARRAY_BUFFER, hw_weights->Vbo.getName());
 		const GLsizei stride = sizeof(scene::WeightBuffer::VertexWeights);
 		GL.VertexAttribPointer(EVA_WEIGHTS, 4, GL_FLOAT, GL_FALSE, stride,
-				reinterpret_cast<void *>(offsetof(scene::WeightBuffer::VertexWeights, weights)));
+				buffer_offset(offsetof(scene::WeightBuffer::VertexWeights, weights)));
 		GL.EnableVertexAttribArray(EVA_WEIGHTS);
 		GL.VertexAttribIPointer(EVA_JOINT_IDS, 4,  GL_UNSIGNED_SHORT, stride,
-				reinterpret_cast<void *>(offsetof(scene::WeightBuffer::VertexWeights, joint_ids)));
+				buffer_offset(offsetof(scene::WeightBuffer::VertexWeights, joint_ids)));
 		GL.EnableVertexAttribArray(EVA_JOINT_IDS);
 		GL.BindBuffer(GL_ARRAY_BUFFER, 0);
 	}
@@ -1065,13 +1071,13 @@ void COpenGL3DriverBase::beginDraw(const VertexType &vertexType, uintptr_t verti
 		GL.EnableVertexAttribArray(attr.Index);
 		switch (attr.mode) {
 		case VertexAttribute::Mode::Regular:
-			GL.VertexAttribPointer(attr.Index, attr.ComponentCount, attr.ComponentType, GL_FALSE, vertexType.VertexSize, reinterpret_cast<void *>(verticesBase + attr.Offset));
+			GL.VertexAttribPointer(attr.Index, attr.ComponentCount, attr.ComponentType, GL_FALSE, vertexType.VertexSize, buffer_offset(verticesBase + attr.Offset));
 			break;
 		case VertexAttribute::Mode::Normalized:
-			GL.VertexAttribPointer(attr.Index, attr.ComponentCount, attr.ComponentType, GL_TRUE, vertexType.VertexSize, reinterpret_cast<void *>(verticesBase + attr.Offset));
+			GL.VertexAttribPointer(attr.Index, attr.ComponentCount, attr.ComponentType, GL_TRUE, vertexType.VertexSize, buffer_offset(verticesBase + attr.Offset));
 			break;
 		case VertexAttribute::Mode::Integer:
-			GL.VertexAttribIPointer(attr.Index, attr.ComponentCount, attr.ComponentType, vertexType.VertexSize, reinterpret_cast<void *>(verticesBase + attr.Offset));
+			GL.VertexAttribIPointer(attr.Index, attr.ComponentCount, attr.ComponentType, vertexType.VertexSize, buffer_offset(verticesBase + attr.Offset));
 			break;
 		}
 	}

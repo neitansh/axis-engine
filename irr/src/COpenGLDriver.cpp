@@ -584,8 +584,12 @@ void COpenGLDriver::blitRenderTarget(IRenderTarget *from, IRenderTarget *to)
 }
 
 // small helper function to create vertex buffer object address offsets
+//
+// GL wants a byte offset into the bound buffer in an argument shaped like a
+// pointer: the cast is the API talking, not us.
 static inline const GLvoid *buffer_offset(const size_t offset)
 {
+	// NOLINTNEXTLINE(performance-no-int-to-ptr)
 	return (const GLvoid *)offset;
 }
 

@@ -458,6 +458,7 @@ void AnimatedMeshSceneNode::animateJoints()
 				return a.priority > b.priority;
 			});
 	std::vector<SkinnedMesh::AnimationProgress> final_progresses;
+	final_progresses.reserve(progresses.size());
 	for (const auto &p : progresses)
 		final_progresses.push_back(p.progress);
 

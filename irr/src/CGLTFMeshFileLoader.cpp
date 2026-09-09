@@ -140,7 +140,7 @@ SelfType::Accessor<T>::make(const tiniergltf::GlTF &model, std::size_t accessorI
 	if (accessor.componentType != getComponentType() || accessor.type != getType())
 		throw std::runtime_error("invalid accessor");
 
-	const auto base = Accessor<T>::base(model, accessorIdx);
+	auto base = Accessor<T>::base(model, accessorIdx);
 
 	if (accessor.sparse.has_value()) {
 		std::vector<T> vec(accessor.count);
