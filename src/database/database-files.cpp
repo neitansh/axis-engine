@@ -70,7 +70,7 @@ void PlayerDatabaseFiles::deSerialize(RemotePlayer *p, std::istream &is,
 
 			const Json::Value::Members attr_list = attr_root.getMemberNames();
 			for (const auto &it : attr_list) {
-				Json::Value attr_value = attr_root[it];
+				const Json::Value &attr_value = attr_root[it];
 				sao->getMeta().setString(it, attr_value.asString());
 			}
 			sao->getMeta().setModified(false);

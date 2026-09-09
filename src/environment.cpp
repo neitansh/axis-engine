@@ -142,7 +142,7 @@ void Environment::continueRaycast(RaycastState *state, PointedThing *result_p)
 			std::vector<PointedThing> found;
 			getSelectedActiveObjects(state->m_shootline, found, state->m_pointabilities);
 			for (auto &pointed : found)
-				state->m_found.push(std::move(pointed));
+				state->m_found.push(pointed);
 		}
 		// Set search range
 		core::aabbox3d<s16> maximal_exceed = nodedef->getSelectionBoxIntUnion();
@@ -288,7 +288,7 @@ void Environment::continueRaycast(RaycastState *state, PointedThing *result_p)
 				+ floatToInt(result.intersection_normal, 1.0f);
 
 			// Push found PointedThing
-			state->m_found.push(std::move(result));
+			state->m_found.push(result);
 			// If this is nearer than the old nearest object,
 			// the search can be shorter
 			s16 newIndex = state->m_iterator.getIndex(

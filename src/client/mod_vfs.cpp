@@ -25,7 +25,8 @@ void ModVFS::scanModSubfolder(const std::string &mod_name, const std::string &mo
 		std::replace(mod_subpath.begin(), mod_subpath.end(), DIR_DELIM_CHAR, '/');
 
 		std::string real_path = full_path + j.name;
-		std::string vfs_path = mod_name + ":" + mod_subpath + j.name;
+		std::string vfs_path = mod_name;
+		vfs_path.append(":").append(mod_subpath).append(j.name);
 		infostream << "ModVFS::scanModSubfolder(): Loading \"" << real_path
 				<< "\" as \"" << vfs_path << "\"." << std::endl;
 

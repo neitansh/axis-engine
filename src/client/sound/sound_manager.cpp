@@ -505,7 +505,7 @@ void *OpenALSoundManager::run()
 	using namespace sound_manager_messages_to_mgr;
 
 	struct MsgVisitor {
-		enum class Result { Ok, Empty, StopRequested };
+		enum class Result : u8 { Ok, Empty, StopRequested };
 
 		OpenALSoundManager &mgr;
 

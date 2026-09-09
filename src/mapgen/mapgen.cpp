@@ -976,7 +976,7 @@ bool GenerateNotifier::addEvent(GenNotifyType type, v3s16 pos)
 	GenNotifyEvent gne;
 	gne.type = type;
 	gne.pos  = pos;
-	m_notify_events.emplace_back(std::move(gne));
+	m_notify_events.emplace_back(gne);
 	return true;
 }
 
@@ -994,7 +994,7 @@ bool GenerateNotifier::addDecorationEvent(v3s16 pos, u32 id)
 	gne.type = GENNOTIFY_DECORATION;
 	gne.pos  = pos;
 	gne.id   = id;
-	m_notify_events.emplace_back(std::move(gne));
+	m_notify_events.emplace_back(gne);
 	return true;
 }
 

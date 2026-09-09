@@ -281,7 +281,7 @@ bool readBones(const Json::Value &bones_json, std::vector<Bone> &bones,
 			cube.mirror = cube_json.isMember("mirror")
 					? cube_json["mirror"].asBool() : bone.mirror;
 			readCubeUV(cube_json["uv"], cube);
-			bone.cubes.push_back(std::move(cube));
+			bone.cubes.push_back(cube);
 		}
 
 		bones.push_back(std::move(bone));

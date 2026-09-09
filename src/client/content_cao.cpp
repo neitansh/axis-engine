@@ -1802,7 +1802,9 @@ void GenericCAO::updateTextureAnim()
 	}
 }
 
-// Do not pass by reference, see header.
+// Do not pass by reference, see header: the caller hands over the very member
+// this function then overwrites, so it needs its own copy.
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 void GenericCAO::updateTextures(std::string mod)
 {
 	ITextureSource *tsrc = m_client->tsrc();

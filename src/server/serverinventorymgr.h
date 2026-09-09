@@ -36,7 +36,7 @@ public:
 	bool checkDetachedInventoryAccess(const InventoryLocation &loc, const std::string &player) const;
 
 	void sendDetachedInventories(const std::string &peer_name, bool incremental,
-			std::function<void(const std::string &, Inventory *)> apply_cb);
+			const std::function<void(const std::string &, Inventory *)> &apply_cb);
 
 protected:
 	struct DetachedInventory

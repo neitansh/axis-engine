@@ -47,6 +47,8 @@ namespace {
 	};
 
 	// note that this can't be constexpr if iconv_t is a pointer
+	// iconv marks failure with (iconv_t) -1, so the cast is the API talking
+	// NOLINTNEXTLINE(performance-no-int-to-ptr)
 	const iconv_t IconvSmartPointer::null_value = (iconv_t) -1;
 }
 
@@ -930,7 +932,7 @@ std::string sanitizeDirName(std::string_view str, std::string_view optional_pref
 
 	for (auto &disallowed_name : disallowed_dir_names) {
 		if (str_equal(safe_name, disallowed_name, true)) {
-			safe_name = utf8_to_wide(optional_prefix) + safe_name;
+			safe_name.insert(0, utf8_to_wide(optional_prefix));
 			break;
 		}
 	}

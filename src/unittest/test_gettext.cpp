@@ -39,5 +39,5 @@ void TestGettext::testFmtgettext()
 		expect.append("loooong text");
 	}
 	buf = dummyname(src.c_str(), "foo");
-	UASSERTEQ(const std::string &, buf, expect);
+	UASSERTEQ(std::string, buf, expect);
 }

@@ -318,7 +318,7 @@ void Client::loadMods()
 	{
 		std::unordered_map<std::string, std::string> paths;
 		std::string path_user = porting::path_user + DIR_DELIM + "clientmods";
-		const auto modsPath = getClientModsLuaPath();
+		const auto &modsPath = getClientModsLuaPath();
 		if (modsPath != path_user)
 		{
 			paths["share"] = modsPath;

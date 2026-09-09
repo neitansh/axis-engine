@@ -619,7 +619,7 @@ void ChatPrompt::nickCompletion(const std::set<std::string> &names)
 
 	if (completions.size() > 1 && prefix.size() == shortest.size()) {
 		std::wstring options = wstrgettext("Player names: ");
-		for (auto v : completions)
+		for (const auto &v : completions)
 			options.append(v).append(L", ");
 		options.resize(options.size() - 2); // ", "
 
@@ -1158,7 +1158,7 @@ ChatBackend::ChatBackend():
 	m_prompt.setChatBuffer(&m_console_buffer);
 }
 
-void ChatBackend::addMessage(const std::wstring &name, std::wstring text)
+void ChatBackend::addMessage(const std::wstring &name, const std::wstring &text)
 {
 	// Note: A message may consist of multiple lines, for example the MOTD.
 	EnrichedString ename(name);

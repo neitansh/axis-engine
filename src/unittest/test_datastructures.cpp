@@ -58,8 +58,8 @@ public:
 		res && (res->copied = true);
 		return *this;
 	}
-	Tracker(Tracker &&other) { *this = std::move(other); }
-	Tracker &operator=(Tracker &&other) {
+	Tracker(Tracker &&other) noexcept { *this = std::move(other); }
+	Tracker &operator=(Tracker &&other) noexcept {
 		trackDeletion();
 		res = other.res;
 		other.res = nullptr;

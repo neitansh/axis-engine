@@ -566,8 +566,8 @@ void GUIFormSpecMenu::parseListRing(parserData *data, const std::string &element
 	std::vector<std::string> parts = split(element, ';');
 
 	if (parts.size() == 2) {
-		std::string location = parts[0];
-		std::string listname = parts[1];
+		const std::string &location = parts[0];
+		const std::string &listname = parts[1];
 
 		InventoryLocation loc;
 
@@ -1635,8 +1635,8 @@ void GUIFormSpecMenu::createTextField(parserData *data, FieldSpec &spec,
 void GUIFormSpecMenu::parseSimpleField(parserData *data,
 	std::vector<std::string> &parts)
 {
-	std::string name = parts[0];
-	std::string label = parts[1];
+	const std::string &name = parts[0];
+	const std::string &label = parts[1];
 	std::string default_val = parts[2];
 
 	core::rect<s32> rect;

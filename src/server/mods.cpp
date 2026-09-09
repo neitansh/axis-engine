@@ -15,7 +15,7 @@
  * All new calls to this class must be tested in test_servermodmanager.cpp
  */
 
-ServerModManager::ServerModManager(const std::string &worldpath, CrateSpec cratespec)
+ServerModManager::ServerModManager(const std::string &worldpath, const CrateSpec &cratespec)
 {
 	// Add all game mods and all world mods
 	configuration.addCrateMods(cratespec);

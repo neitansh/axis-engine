@@ -140,7 +140,7 @@ void TestAreaStore::testSerialization()
 			(6 + 6 + 2 + 7) * 2 + // min/max edge, length, data
 			2 * 4); // Area IDs
 
-	UASSERTEQ(const std::string &, str, str_wanted);
+	UASSERTEQ(std::string, str, str_wanted);
 
 	std::istringstream is(str, std::ios_base::binary);
 	store.deserialize(is);

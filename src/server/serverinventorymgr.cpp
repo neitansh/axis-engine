@@ -166,7 +166,7 @@ bool ServerInventoryManager::checkDetachedInventoryAccess(
 
 void ServerInventoryManager::sendDetachedInventories(const std::string &peer_name,
 		bool incremental,
-		std::function<void(const std::string &, Inventory *)> apply_cb)
+		const std::function<void(const std::string &, Inventory *)> &apply_cb)
 {
 	for (const auto &detached_inventory : m_detached_inventories) {
 		const DetachedInventory &dinv = detached_inventory.second;

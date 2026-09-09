@@ -12,7 +12,7 @@
 #include "serialization.h"
 #include "irrlichttypes.h"
 
-enum {
+enum : u8 {
 	COLOR_GRAY = 0,
 	COLOR_RGB = 2,
 	COLOR_RGBA = 6,

@@ -232,7 +232,7 @@ void TestServerModManager::testLoadsInstalledMods()
 void TestServerModManager::testGetModspec()
 {
 	auto sm = makeManager(m_worlddir);
-	UASSERTEQ(const ModSpec *, sm.getModSpec("wrongmod"), NULL);
+	UASSERT(sm.getModSpec("wrongmod") == nullptr);
 	UASSERT(sm.getModSpec("base_mod") != NULL);
 }
 

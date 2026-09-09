@@ -485,7 +485,7 @@ HTTPFetchOngoing::~HTTPFetchOngoing()
 class CurlFetchThread : public Thread
 {
 protected:
-	enum RequestType {
+	enum RequestType : u8 {
 		RT_FETCH,
 		RT_CLEAR,
 		RT_WAKEUP,

@@ -65,7 +65,7 @@ public:
 		return data;
 	}
 
-	content_t addSimpleNode(std::string name, u32 texture)
+	content_t addSimpleNode(const std::string &name, u32 texture)
 	{
 		ItemDefinition itemdef;
 		itemdef.type = ITEM_NODE;
@@ -86,7 +86,7 @@ public:
 		return registerNode(itemdef, f, std::move(visuals));
 	}
 
-	content_t addLiquidSource(std::string name, u32 texture)
+	content_t addLiquidSource(const std::string &name, u32 texture)
 	{
 		ItemDefinition itemdef;
 		itemdef.type = ITEM_NODE;
@@ -114,7 +114,7 @@ public:
 		return registerNode(itemdef, f, std::move(visuals));
 	}
 
-	content_t addLiquidFlowing(std::string name, u32 texture_top, u32 texture_side)
+	content_t addLiquidFlowing(const std::string &name, u32 texture_top, u32 texture_side)
 	{
 		ItemDefinition itemdef;
 		itemdef.type = ITEM_NODE;

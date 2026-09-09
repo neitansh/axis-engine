@@ -1471,7 +1471,7 @@ void ClientMap::PrintInfo(std::ostream &out)
 }
 
 void ClientMap::renderMapShadows(video::IVideoDriver *driver,
-		ModifyMaterialCallback cb, s32 pass, int frame, int total_frames)
+		const ModifyMaterialCallback &cb, s32 pass, int frame, int total_frames)
 {
 	bool is_transparent_pass = pass != scene::ESNRP_SOLID;
 	std::string prefix;

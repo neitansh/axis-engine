@@ -590,7 +590,7 @@ const std::vector<KeyPress> &getKeySetting(const std::string &settingname)
 	if (n != g_key_setting_cache.end())
 		return n->second;
 
-	auto setting_value = g_settings->get(settingname);
+	const auto &setting_value = g_settings->get(settingname);
 	auto &ref = g_key_setting_cache[settingname];
 	for (const auto &keysym: str_split(setting_value, '|')) {
 		if (KeyPress kp = keysym) {

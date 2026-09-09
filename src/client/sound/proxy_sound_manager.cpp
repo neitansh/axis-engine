@@ -24,7 +24,7 @@ ProxySoundManager::MsgResult ProxySoundManager::handleMsg(SoundManagerMsgToProxy
 
 			return MsgResult::Ok;
 		},
-		std::move(msg));
+		msg);
 }
 
 ProxySoundManager::~ProxySoundManager()

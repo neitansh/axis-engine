@@ -73,7 +73,9 @@ std::string getTexturePath(const std::string &filename, bool *is_base_pack)
 	// Check from texture_path setting
 	for (const auto &path : getTextureDirs()) {
 		// Check all filename extensions. Returns "" if not found.
-		fullpath = getImagePath(path + DIR_DELIM + filename);
+		std::string candidate = path;
+		candidate.append(DIR_DELIM).append(filename);
+		fullpath = getImagePath(candidate);
 		if (!fullpath.empty())
 			break;
 	}

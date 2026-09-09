@@ -69,7 +69,7 @@ const std::wstring &Translations::getPluralTranslation(
 
 
 void Translations::addTranslation(
-		const std::wstring &textdomain, const std::wstring &original, const std::wstring &translated)
+		const std::wstring &textdomain, const std::wstring &original, std::wstring translated)
 {
 	std::wstring key = textdomain + L"|" + original;
 	if (!translated.empty()) {

@@ -204,7 +204,7 @@ std::set<std::string> getAvailableCrateIds()
 	CratePathMap cratepaths = getAvailableCratePaths();
 	std::set<std::string> crateids;
 	for (auto &&p : cratepaths)
-		crateids.insert(std::move(p.first));
+		crateids.insert(p.first);
 	return crateids;
 }
 

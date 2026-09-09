@@ -18,12 +18,10 @@
 
 // When to print messages when the database is being held locked by another process
 // Note: I've seen occasional delays of over 250ms while running minetestmapper.
-enum {
-	BUSY_INFO_TRESHOLD    = 100,   // Print first informational message.
-	BUSY_WARNING_TRESHOLD = 250,   // Print warning message. Significant lag.
-	BUSY_FATAL_TRESHOLD   = 3000,  // Allow SQLITE_BUSY to be returned back to the caller.
-	BUSY_ERROR_INTERVAL   = 10000, // Safety net: report again every 10 seconds
-};
+constexpr int BUSY_INFO_TRESHOLD    = 100;   // Print first informational message.
+constexpr int BUSY_WARNING_TRESHOLD = 250;   // Print warning message. Significant lag.
+constexpr int BUSY_FATAL_TRESHOLD   = 3000;  // Allow SQLITE_BUSY to be returned back to the caller.
+constexpr int BUSY_ERROR_INTERVAL   = 10000; // Safety net: report again every 10 seconds
 
 #define SQLRES(s, r, m) sqlite3_vrfy(s, m, r);
 #define SQLOK(s, m) SQLRES(s, SQLITE_OK, m)

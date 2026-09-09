@@ -337,7 +337,7 @@ public:
 	~ChatBackend() = default;
 
 	// Add chat message
-	void addMessage(const std::wstring &name, std::wstring text);
+	void addMessage(const std::wstring &name, const std::wstring &text);
 	// Parse and add unparsed chat message
 	void addUnparsedMessage(std::wstring line);
 

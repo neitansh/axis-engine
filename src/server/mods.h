@@ -24,7 +24,7 @@ public:
 	 * @param worldpath path to world
 	 * @param cratespec game used by the world
 	 */
-	ServerModManager(const std::string &worldpath, CrateSpec cratespec);
+	ServerModManager(const std::string &worldpath, const CrateSpec &cratespec);
 
 	/**
 	 * Creates an empty ServerModManager. For testing purposes.

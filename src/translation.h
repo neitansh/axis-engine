@@ -50,7 +50,7 @@ private:
 	std::unordered_map<std::wstring, std::pair<GettextPluralForm::Ptr, std::vector<std::wstring>>> m_plural_translations;
 
 	void addTranslation(const std::wstring &textdomain, const std::wstring &original,
-			const std::wstring &translated);
+			std::wstring translated);
 	void addPluralTranslation(const std::wstring &textdomain,
 			const GettextPluralForm::Ptr &plural,
 			const std::wstring &original,

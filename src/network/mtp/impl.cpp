@@ -1332,7 +1332,7 @@ Connection::~Connection()
 void Connection::putEvent(ConnectionEventPtr e)
 {
 	assert(e->type != CONNEVENT_NONE); // Pre-condition
-	m_event_queue.push_back(e);
+	m_event_queue.push_back(std::move(e));
 }
 
 void Connection::TriggerSend()
@@ -1422,7 +1422,7 @@ ConnectionEventPtr Connection::waitEvent(u32 timeout_ms)
 void Connection::putCommand(ConnectionCommandPtr c)
 {
 	if (!m_shutting_down) {
-		m_command_queue.push_back(c);
+		m_command_queue.push_back(std::move(c));
 		m_sendThread->Trigger();
 	}
 }

@@ -46,9 +46,16 @@ public:
 	}
 
 // Asserts the comparison specified by CMP is true, or fails the current unit test
+//
+// Both sides are bound by const reference rather than copied: the copy showed
+// up as a warning at every call site, and a reference keeps a temporary alive
+// exactly as long as the copy did.
+//
+// T therefore names a plain type ('auto' included), not a reference and not a
+// const one: the macro adds the const and the reference itself.
 #define UASSERTCMP(T, CMP, actual, expected) { \
-	T a = (actual); \
-	T e = (expected); \
+	const T &a = (actual); \
+	const T &e = (expected); \
 	if (!(a CMP e)) { \
 		std::ostringstream message; \
 		message << #actual " " #CMP " " #expected; \

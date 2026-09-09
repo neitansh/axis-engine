@@ -125,17 +125,22 @@ void compare_settings(const std::string &name, Settings *a, Settings *b)
 	Settings *group1, *group2;
 	std::string value1, value2;
 	for (auto &key : keys) {
+		// Where in the tree the mismatch is, built once for all three uses
+		std::string where = name;
+		where.append("->").append(key);
+
 		if (a->getGroupNoEx(key, group1)) {
 			UASSERT(b->getGroupNoEx(key, group2));
 
-			compare_settings(name + "->" + key, group1, group2);
+			compare_settings(where, group1, group2);
 			continue;
 		}
 
 		UASSERT(b->getNoEx(key, value1));
 		// For identification
-		value1 = name + "->" + key + "=" + value1;
-		value2 = name + "->" + key + "=" + a->get(key);
+		value1.insert(0, "=").insert(0, where);
+		value2 = a->get(key);
+		value2.insert(0, "=").insert(0, where);
 		UASSERTCMP(std::string, ==, value2, value1);
 	}
 }

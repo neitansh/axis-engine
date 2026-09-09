@@ -875,7 +875,9 @@ std::string AbsolutePathPartial(const std::string &path)
 	while (abs_path.empty() && !cur_path.empty()) {
 		std::string component;
 		cur_path = RemoveLastPathComponent(cur_path, &component);
-		removed = component + (removed.empty() ? "" : DIR_DELIM + removed);
+		if (!removed.empty())
+			removed.insert(0, DIR_DELIM);
+		removed.insert(0, component);
 		abs_path = AbsolutePath(cur_path);
 	}
 	// If we had a relative path that does not exist, it needs to be joined with cwd

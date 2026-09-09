@@ -309,7 +309,7 @@ int ModApiUtil::l_get_user_path(lua_State *L)
 	return 1;
 }
 
-enum LuaCompressMethod
+enum LuaCompressMethod : u8
 {
 	LUA_COMPRESS_METHOD_DEFLATE,
 	LUA_COMPRESS_METHOD_RAW_DEFLATE,

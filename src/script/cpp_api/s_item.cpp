@@ -159,6 +159,7 @@ bool ScriptApiItem::item_OnCraft(ItemStack &item, ServerActiveObject *user,
 
 	// Push inventory list
 	std::vector<ItemStack> items;
+	items.reserve(old_craft_grid->getSize());
 	for (u32 i = 0; i < old_craft_grid->getSize(); i++) {
 		items.push_back(old_craft_grid->getItem(i));
 	}
@@ -191,6 +192,7 @@ bool ScriptApiItem::item_CraftPredict(ItemStack &item, ServerActiveObject *user,
 
 	//Push inventory list
 	std::vector<ItemStack> items;
+	items.reserve(old_craft_grid->getSize());
 	for (u32 i = 0; i < old_craft_grid->getSize(); i++) {
 		items.push_back(old_craft_grid->getItem(i));
 	}

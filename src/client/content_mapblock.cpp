@@ -242,7 +242,7 @@ static std::array<video::S3DVertex, 24> setupCuboidVertices(const aabb3f &box,
 	return vertices;
 }
 
-enum class QuadDiagonal {
+enum class QuadDiagonal : u8 {
 	Diag02,
 	Diag13,
 };
@@ -464,7 +464,7 @@ void MapblockMeshGenerator::drawFringe(u8 faces)
 		return;
 
 	std::array<TileSpec, 4> raw_tiles;
-	raw_tiles[0] = std::move(first_tile);
+	raw_tiles[0] = first_tile;
 	for (int i = 1; i < 4; ++i)
 		useTile(&raw_tiles[i], i, 0, MATERIAL_FLAG_BACKFACE_CULLING, true);
 
@@ -1588,7 +1588,7 @@ namespace {
 	};
 	static const int rail_slope_angle[4] = {0, 180, 90, -90};
 
-	enum RailTile {
+	enum RailTile : u8 {
 		straight,
 		curved,
 		junction,

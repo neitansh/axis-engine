@@ -11,6 +11,7 @@
 
 #include "gettext_plural_form.h"
 #include "util/string.h"
+#include <tuple>
 #include <type_traits>
 
 static GettextPluralForm::NumT identity(GettextPluralForm::NumT n)
@@ -24,10 +25,19 @@ static GettextPluralForm::NumT ternary_op(GettextPluralForm::NumT n, const Gette
 	return cond(n) ? val(n) : alt(n);
 }
 
+// Builds n -> Func(arg1(n), arg2(n), ...): the operands are themselves functions
+// of the plural number, and the operator is applied to what they return.
+//
+// The operands are kept in a tuple because a lambda cannot capture a parameter
+// pack before C++20.
 template<template<typename> typename Func, class... Args>
 static GettextPluralForm::Function wrap_op(Args&&... args)
 {
-	return std::bind(Func<GettextPluralForm::NumT>(), std::bind(std::move(args), std::placeholders::_1)...);
+	return [operands = std::make_tuple(std::move(args)...)](GettextPluralForm::NumT n) {
+		return std::apply([n](const auto &...operand) {
+			return Func<GettextPluralForm::NumT>()(operand(n)...);
+		}, operands);
+	};
 }
 
 typedef std::pair<GettextPluralForm::Function, std::wstring_view> ParserResult;
@@ -176,8 +186,10 @@ static ParserResult parse_ternary(std::wstring_view str)
 		return ParserResult(nullptr, pres.second);
 	auto val = pres.first;
 	pres = parse_ternary(trim(pres.second.substr(1)));
-	return ParserResult(std::bind(ternary_op, std::placeholders::_1,
-				std::move(cond), std::move(val), std::move(pres.first)), pres.second);
+	return ParserResult([cond = std::move(cond), val = std::move(val),
+					alt = std::move(pres.first)](GettextPluralForm::NumT n) {
+				return ternary_op(n, cond, val, alt);
+			}, pres.second);
 }
 
 static ParserResult parse_expr(std::wstring_view str)

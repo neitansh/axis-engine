@@ -74,7 +74,7 @@ void PreLoadedTextures::printStats(std::ostream &to) const
 
 static void fillTileAttribs(TileLayer *layer, TileAttribContext context,
 		const TileSpec &tile, const TileDef &tiledef,
-		MaterialType material_type, GetShaderCallback get_shader)
+		MaterialType material_type, const GetShaderCallback &get_shader)
 {
 	auto *tsrc = context.tsrc;
 	const auto &tsettings = context.tsettings;
