@@ -467,20 +467,6 @@ namespace {
 	typedef std::unique_ptr<FILE, FileDeleter> FileUniquePtr;
 }
 
-std::time_t ModifiedAt(const std::string &path)
-{
-#ifdef _WIN32
-	struct _stat64 about;
-	if (_stat64(path.c_str(), &about) != 0)
-		return 0;
-#else
-	struct stat about;
-	if (stat(path.c_str(), &about) != 0)
-		return 0;
-#endif
-	return static_cast<std::time_t>(about.st_mtime);
-}
-
 bool CopyFileContents(const std::string &source, const std::string &target)
 {
 	FileUniquePtr sourcefile, targetfile;
@@ -566,6 +552,20 @@ bool CopyFileContents(const std::string &source, const std::string &target)
 /****************************
  * portable implementations *
  ****************************/
+
+std::time_t ModifiedAt(const std::string &path)
+{
+#ifdef _WIN32
+	struct _stat64 about;
+	if (_stat64(path.c_str(), &about) != 0)
+		return 0;
+#else
+	struct stat about;
+	if (stat(path.c_str(), &about) != 0)
+		return 0;
+#endif
+	return static_cast<std::time_t>(about.st_mtime);
+}
 
 void GetRecursiveDirs(std::vector<std::string> &dirs, const std::string &dir)
 {
