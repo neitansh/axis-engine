@@ -44,6 +44,32 @@ public:
 	//! sets transformation
 	void setTransform(E_TRANSFORMATION_STATE state, const core::matrix4 &mat) override;
 
+	/// Кусок общего хранилища: где лежит и сколько занимает, в элементах
+	struct PoolSlice {
+		u32 offset = 0;
+		u32 count = 0;
+	};
+
+	/**
+	 * Общее хранилище геометрии одного вида вершин.
+	 *
+	 * Один буфер GL, простой распределитель со списком свободных кусков и
+	 * склейкой соседей. Растёт вдвое, когда места не хватает; на месте старого
+	 * содержимого делается копия средствами видеокарты, поэтому рост стоит
+	 * одного копирования и случается несколько раз за сессию.
+	 */
+	struct GeometryPool {
+		GLuint Buffer = 0;
+		GLenum Target = GL_ARRAY_BUFFER;
+		u32 Stride = 0;        // байт на элемент
+		u32 Capacity = 0;      // элементов
+		u32 Used = 0;          // элементов в занятых кусках
+		std::vector<PoolSlice> Free;
+
+		bool allocate(u32 count, u32 &offset);
+		void release(u32 offset, u32 count);
+	};
+
 	struct SHWBufferLink_opengl : public SHWBufferLink
 	{
 		SHWBufferLink_opengl(const scene::HWBuffer *buf) : SHWBufferLink(buf), Vbo(OGLBufferObject::TARGET_VBO) {}
@@ -83,32 +109,10 @@ public:
 		u32 PoolCount = 0;
 		u32 PoolChangedID = (u32)-1;
 		bool PoolValid = false;
-	};
-
-	/// Кусок общего хранилища: где лежит и сколько занимает, в элементах
-	struct PoolSlice {
-		u32 offset = 0;
-		u32 count = 0;
-	};
-
-	/**
-	 * Общее хранилище геометрии одного вида вершин.
-	 *
-	 * Один буфер GL, простой распределитель со списком свободных кусков и
-	 * склейкой соседей. Растёт вдвое, когда места не хватает; на месте старого
-	 * содержимого делается копия средствами видеокарты, поэтому рост стоит
-	 * одного копирования и случается несколько раз за сессию.
-	 */
-	struct GeometryPool {
-		GLuint Buffer = 0;
-		GLenum Target = GL_ARRAY_BUFFER;
-		u32 Stride = 0;        // байт на элемент
-		u32 Capacity = 0;      // элементов
-		u32 Used = 0;          // элементов в занятых кусках
-		std::vector<PoolSlice> Free;
-
-		bool allocate(u32 count, u32 &offset);
-		void release(u32 offset, u32 count);
+		// В каком хранилище лежит кусок: у вершин и у индексов они разные, и
+		// отпускать кусок надо ровно в своё, иначе в чужом освободится место,
+		// занятое чужим мешем, и тот меш пропадёт с экрана.
+		const GeometryPool *PoolOwner = nullptr;
 	};
 
 	bool poolEnsure(GeometryPool &pool, u32 need);

@@ -9,6 +9,7 @@
 #include "Driver.h"
 
 #include <cstdlib>
+#include <algorithm>
 #include <chrono>
 #include "CNullDriver.h"
 #include "IContextManager.h"
@@ -698,7 +699,11 @@ bool COpenGL3DriverBase::poolEnsure(GeometryPool &pool, u32 need)
 	// памяти видеокарты полгигабайта на один вид вершин.
 	const u64 LIMIT = 768ull * 1024 * 1024;
 
-	u32 want = pool.Capacity ? pool.Capacity : 1u << 20; // миллион элементов
+	// Начальный размер — 64 мегабайта на хранилище. Меньше значит несколько
+	// удвоений подряд на первых секундах, а каждое удвоение копирует всё, что
+	// уже лежит, и видно это рывком.
+	u32 want = pool.Capacity ? pool.Capacity
+			: std::max(1u, (u32)(64u * 1024 * 1024 / pool.Stride));
 	while ((u64)want * pool.Stride < LIMIT && want < need + pool.Capacity)
 		want *= 2;
 	if ((u64)want * pool.Stride > LIMIT)
@@ -757,9 +762,10 @@ bool COpenGL3DriverBase::poolPut(GeometryPool &pool, SHWBufferLink_opengl *link,
 	if (link->PoolValid && link->PoolCount == count) {
 		if (link->PoolChangedID == changed_id)
 			return true;
-	} else if (link->PoolValid) {
+	} else if (link->PoolValid && link->PoolOwner == &pool) {
 		pool.release(link->PoolOffset, link->PoolCount);
 		link->PoolValid = false;
+		link->PoolOwner = nullptr;
 	}
 
 	if (!link->PoolValid) {
@@ -770,6 +776,7 @@ bool COpenGL3DriverBase::poolPut(GeometryPool &pool, SHWBufferLink_opengl *link,
 		}
 		link->PoolOffset = offset;
 		link->PoolCount = count;
+		link->PoolOwner = &pool;
 		link->PoolValid = true;
 	}
 
@@ -783,10 +790,11 @@ bool COpenGL3DriverBase::poolPut(GeometryPool &pool, SHWBufferLink_opengl *link,
 
 void COpenGL3DriverBase::poolDrop(GeometryPool &pool, SHWBufferLink_opengl *link)
 {
-	if (!link->PoolValid)
+	if (!link->PoolValid || link->PoolOwner != &pool)
 		return;
 	pool.release(link->PoolOffset, link->PoolCount);
 	link->PoolValid = false;
+	link->PoolOwner = nullptr;
 }
 
 
@@ -798,6 +806,9 @@ bool COpenGL3DriverBase::drawFromPool(const scene::IVertexBuffer *vb,
 	if (vb->getType() != EVT_STANDARD || ib->getType() != EIT_16BIT)
 		return false;
 	if (vb->getWeightBuffer())
+		return false;
+
+	if (!primCount || !vb->getCount() || !checkPrimitiveCount(primCount))
 		return false;
 
 	auto *lv = static_cast<SHWBufferLink_opengl *>(getBufferLink(vb));
@@ -828,9 +839,6 @@ bool COpenGL3DriverBase::drawFromPool(const scene::IVertexBuffer *vb,
 		GL.BindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexPool.Buffer);
 		CurrentVao = PoolVao;
 	}
-
-	if (!primCount || !vb->getCount() || !checkPrimitiveCount(primCount))
-		return false;
 
 	CNullDriver::drawVertexPrimitiveList(nullptr, vb->getCount(), nullptr,
 		primCount, vb->getType(), pType, ib->getType());
