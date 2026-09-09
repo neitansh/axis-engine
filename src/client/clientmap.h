@@ -228,6 +228,14 @@ private:
 	std::vector<video::E_MATERIAL_TYPE> m_sprite_materials;
 	bool m_sprite_materials_ready = false;
 
+	/*
+	 * За сколько узлов от камеры крона рисуется без нутра.
+	 *
+	 * Отдельно от травы: исчезнувшая трава на земле заметна, а убранные грани
+	 * в глубине кроны — нет, и черту им можно ставить гораздо ближе.
+	 */
+	f32 m_cache_leaves_detail_range;
+
 	/// Материалы травы по списку из nodedef; пустой список — трава не отсекается
 	const std::vector<video::E_MATERIAL_TYPE> *spriteMaterialsFarAway();
 };

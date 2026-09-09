@@ -86,7 +86,8 @@ struct TileLayer
 			material_flags == other.material_flags &&
 			has_color == other.has_color &&
 			color == other.color &&
-			need_polygon_offset == other.need_polygon_offset;
+			need_polygon_offset == other.need_polygon_offset &&
+			interior == other.interior;
 		// texture_layer_idx and scale are notably part of the vertex data
 	}
 
@@ -165,6 +166,20 @@ struct TileLayer
 
 	//! If true, the tile has its own color.
 	bool has_color = false;
+
+	/*!
+	 * Грань в глубине кроны: с той стороны стоит такая же листва.
+	 *
+	 * Снаружи такую грань видно только сквозь дырки в текстуре соседа, и
+	 * вблизи ради этого её и рисуют - иначе крона станет глухой. На дальнем
+	 * дереве, которое занимает два десятка точек экрана, разглядеть там
+	 * нечего, а половина всех вершин кадра - именно эти грани.
+	 *
+	 * На материал признак не влияет и рисуется такая грань как обычная; он
+	 * нужен лишь затем, чтобы внутренние грани легли отдельным буфером и
+	 * дальнюю крону можно было выдать без них.
+	 */
+	bool interior = false;
 };
 
 template<>

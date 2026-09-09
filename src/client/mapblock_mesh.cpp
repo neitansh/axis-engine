@@ -683,10 +683,14 @@ MapBlockMesh::MapBlockMesh(Client *client, MeshMakeData *data):
 
 		applyColorAndMerge(collector.prebuffers[layer]);
 
+		m_interior_buffers[layer].assign(collector.prebuffers[layer].size(), false);
+
 		for (size_t i = 0; i < collector.prebuffers[layer].size(); i++) {
 			PreMeshBuffer &p = collector.prebuffers[layer][i];
 			// Note that the buffer index matters, so 'continue' is forbidden here.
 			assert(!p.empty());
+
+			m_interior_buffers[layer][i] = p.layer.interior;
 
 			// Generate animation data
 			if (p.layer.material_flags & MATERIAL_FLAG_ANIMATION) {

@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <array>
+#include <vector>
+
 #include "irrlichttypes.h"
 #include "irr_ptr.h"
 #include "IMesh.h"
@@ -201,6 +204,19 @@ public:
 		return m_mesh[layer].get();
 	}
 
+	/**
+	 * Лежат ли в этом буфере грани из глубины кроны.
+	 *
+	 * Такую грань видно только сквозь дырки в текстуре соседней листвы, и на
+	 * дальнем дереве смотреть там не на что. См. TileLayer::interior.
+	 */
+	bool isInteriorBuffer(u8 layer, u32 index) const
+	{
+		assert(layer < MAX_TILE_LAYERS);
+		const auto &flags = m_interior_buffers[layer];
+		return index < flags.size() && flags[index];
+	}
+
 	std::vector<MinimapMapblock*> moveMinimapMapblocks()
 	{
 		std::vector<MinimapMapblock*> minimap_mapblocks;
@@ -278,6 +294,8 @@ private:
 	typedef std::pair<u8 /* layer index */, u32 /* buffer index */> MeshIndex;
 
 	irr_ptr<scene::IMesh> m_mesh[MAX_TILE_LAYERS];
+	// Какие буферы держат внутренние грани кроны, по слоям и номерам
+	std::array<std::vector<bool>, MAX_TILE_LAYERS> m_interior_buffers;
 	std::vector<MinimapMapblock*> m_minimap_mapblocks;
 	ITextureSource *m_tsrc;
 	IShaderSource *m_shdrsrc;

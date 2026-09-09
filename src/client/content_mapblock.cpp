@@ -1694,7 +1694,41 @@ void MapblockMeshGenerator::drawAllfacesNode()
 		getTile(nodebox_tile_dirs[face], &tiles[face]);
 	if (data->m_smooth_lighting)
 		getSmoothLightFrame();
-	drawAutoLightedCuboid(box, tiles, 6);
+
+	/*
+	 * Грани, упирающиеся в такую же ноду, кладутся отдельным буфером.
+	 *
+	 * Листва рисуется всеми шестью гранями каждой ноды, включая те, что со
+	 * всех сторон закрыты такой же листвой: сквозь дырки в текстуре их видно,
+	 * и без них крона выглядит глухой. Вершин на них уходит половина кадра,
+	 * поэтому дальней кроне их не выдают - см. TileLayer::interior.
+	 */
+	u8 interior_mask = 0;
+	const content_t self = cur_node.n.getContent();
+	for (int face = 0; face < 6; face++) {
+		const MapNode neighbor = data->m_vmanip.getNodeNoEx(
+				blockpos_nodes + cur_node.p + nodebox_tile_dirs[face]);
+		if (neighbor.getContent() == self)
+			interior_mask |= 1 << face;
+	}
+
+	if (interior_mask == 0) {
+		drawAutoLightedCuboid(box, tiles, 6);
+		return;
+	}
+
+	// Внешние грани: пропускаем внутренние
+	if (interior_mask != 0x3F)
+		drawAutoLightedCuboid(box, tiles, 6, nullptr, interior_mask);
+
+	// Внутренние: те же тайлы, но своим буфером
+	TileSpec inner[6];
+	for (int face = 0; face < 6; face++) {
+		inner[face] = tiles[face];
+		for (auto &layer : inner[face].layers)
+			layer.interior = true;
+	}
+	drawAutoLightedCuboid(box, inner, 6, nullptr, u8(~interior_mask & 0x3F));
 }
 
 void MapblockMeshGenerator::drawNodeboxNode()

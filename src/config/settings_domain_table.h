@@ -311,6 +311,7 @@ constexpr SettingDomainEntry SETTING_DOMAIN_TABLE[] = {
 	{"menu_last_crate", ConfigDomain::ClientSession},
 	{"menu_theme", ConfigDomain::ClientInterface},
 	{"foliage_range", ConfigDomain::ClientGraphics},
+	{"leaves_detail_range", ConfigDomain::ClientGraphics},
 	{"mesh_buffer_min_vertices", ConfigDomain::ClientGraphics},
 	{"mesh_generation_interval", ConfigDomain::ClientGraphics},
 	{"mesh_generation_threads", ConfigDomain::ClientGraphics},
