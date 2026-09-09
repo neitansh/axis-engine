@@ -6,11 +6,13 @@ on:
   push:
     paths:
       - 'builtin/**.lua'
+      - '.luacheckrc'
       - 'util/ci/**'
       - '.github/workflows/lua.yml'
   pull_request:
     paths:
       - 'builtin/**.lua'
+      - '.luacheckrc'
       - 'util/ci/**'
       - '.github/workflows/lua.yml'
 

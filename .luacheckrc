@@ -10,8 +10,6 @@ files["builtin/common/settings/descriptions.lua"] = {
 
 ignore = {
 	"131", -- Unused global variable
-	"431", -- Shadowing an upvalue
-	"432", -- Shadowing an upvalue argument
 }
 
 read_globals = {
