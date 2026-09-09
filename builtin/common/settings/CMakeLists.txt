@@ -7,5 +7,6 @@ set(BUILTIN_COMMON_SETTINGS_SRCS
 	common/settings/generate_from_settingtypes.lua
 	common/settings/init.lua
 	common/settings/settingtypes.lua
+	common/settings/quality_component.lua
 	common/settings/shadows_component.lua
 	PARENT_SCOPE)

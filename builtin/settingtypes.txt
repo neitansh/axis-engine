@@ -697,6 +697,19 @@ translucent_liquids (Translucent liquids) bool true
 #    -   Opaque: disable transparency
 leaves_style (Leaves style) enum fancy fancy,simple,opaque
 
+#    Beyond this distance from the camera the inside of tree crowns is not
+#    drawn: those faces sit between leaves and are only visible through the
+#    gaps in the texture of the leaf in front, which nobody can make out on a
+#    distant tree. They are, however, about half of all vertices in a frame.
+#    Stated in nodes. 0 draws every crown in full.
+leaves_detail_range (Crown detail distance) int 0 0 1000
+
+#    Beyond this distance from the camera grass, flowers and other sprite-drawn
+#    nodes are not drawn at all. A field of grass costs both vertices and
+#    overdraw: a glance along the ground passes through a dozen blades and each
+#    one is shaded in full. Stated in nodes. 0 draws all of it.
+foliage_range (Foliage distance) int 0 0 1000
+
 #    Connects glass if supported by node.
 connected_glass (Connect glass) bool false
 
