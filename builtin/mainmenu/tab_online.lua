@@ -708,7 +708,7 @@ end
 
 return {
 	name = "online",
-	caption = "Play",
+	caption = N_("Play"),
 	cbf_formspec = get_formspec,
 	cbf_button_handler = main_button_handler,
 	on_change = on_change

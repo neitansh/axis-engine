@@ -23,14 +23,20 @@ local function get_entries(tabview)
 	-- угодно, и переведённое при загрузке осталось бы на прежнем языке.
 	for i, tab in ipairs(tabview.tablist) do
 		if tab.sidebar then
+			-- Подпись-функция переводит себя сама (ей нужны доводы), строка —
+			-- заготовка с отметкой N_. Переводить и то и другое одинаково
+			-- нельзя: у переведённого второй `fgettext` ещё раз экранирует
+			-- формспек, и скобки в «Содержимое [3]» уезжают на экран как есть.
 			local caption = tab.caption
 			if type(caption) == "function" then
 				caption = caption(tabview)
+			else
+				caption = fgettext(caption)
 			end
 
 			tabs[#tabs + 1] = {
 				name = "start_tab_" .. i,
-				label = fgettext(caption),
+				label = caption,
 				tab_index = i,
 			}
 		end

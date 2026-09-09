@@ -18,7 +18,7 @@ read_globals = {
 	"PLATFORM",
 	"DIR_DELIM",
 	"dump", "dump2",
-	"fgettext", "fgettext_ne",
+	"fgettext", "fgettext_ne", "N_",
 	"vector",
 	"vector2",
 	"VoxelArea",
@@ -68,7 +68,7 @@ files["builtin/common/math.lua"] = {
 files["builtin/common/misc_helpers.lua"] = {
 	globals = {
 		"dump", "dump2", "table", "math", "string",
-		"fgettext", "fgettext_ne", "basic_dump", "game", -- ???
+		"fgettext", "fgettext_ne", "N_", "basic_dump", "game", -- ???
 		"file_exists", "get_last_folder", "cleanup_path", -- ???
 	},
 }

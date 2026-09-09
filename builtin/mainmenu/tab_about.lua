@@ -42,7 +42,7 @@ end
 
 return {
 	name = "about",
-	caption = "About",
+	caption = N_("About"),
 
 	cbf_formspec = function(tabview, name, tabdata)
 		local logofile = defaulttexturedir .. "logo.png"
