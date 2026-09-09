@@ -487,7 +487,7 @@ inline video::SColor multiplyColorValue(const video::SColor &color, float mod)
 }
 
 template <typename T>
-constexpr inline T numericAbsolute(T v)
+constexpr inline T numericAbsolute(const T &v)
 {
 	return v < 0 ? T(-v) : v;
 }

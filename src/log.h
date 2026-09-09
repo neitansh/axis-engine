@@ -130,7 +130,7 @@ public:
 
 	LogStream(LogTarget &target) :
 		m_target(target),
-		m_buffer(std::bind(&LogStream::internalFlush, this, std::placeholders::_1)),
+		m_buffer([this](std::string_view buf) { internalFlush(buf); }),
 		m_dummy_buffer(),
 		m_stream(&m_buffer),
 		m_dummy_stream(&m_dummy_buffer),

@@ -128,7 +128,7 @@ public:
 		}
 	}
 
-	std::string get(Property prop, std::string def) const
+	std::string get(Property prop, const std::string &def) const
 	{
 		const auto &val = properties[prop];
 		return val.empty() ? def : val;

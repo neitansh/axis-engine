@@ -91,7 +91,7 @@ namespace ParticleParamTypes
 		}
 
 		operator T() const { return val; }
-		T operator=(T b) { return val = b; }
+		Parameter &operator=(T b) { val = b; return *this; }
 
 	};
 
@@ -134,8 +134,8 @@ namespace ParticleParamTypes
 		f32 bias = 0;
 
 		RangedParameter() = default;
-		RangedParameter(T _min, T _max)            : min(_min),  max(_max)  {}
-		template <typename M> RangedParameter(M b) : min(b),     max(b)     {}
+		RangedParameter(const T &_min, const T &_max) : min(_min),  max(_max)  {}
+		template <typename M> RangedParameter(const M &b) : min(b), max(b)   {}
 
 		// Binary format must not be changed. Function is to be deprecated.
 		void legacySerialize(std::ostream &os) const
@@ -152,7 +152,7 @@ namespace ParticleParamTypes
 		void serialize(std::ostream &os) const;
 		void deSerialize(std::istream &is);
 
-		This interpolate(float fac, const This against) const
+		This interpolate(float fac, const This &against) const
 		{
 			This r;
 			r.min = min.interpolate(fac, against.min);
@@ -194,9 +194,9 @@ namespace ParticleParamTypes
 		T start, end;
 
 		TweenedParameter() = default;
-		TweenedParameter(T _start, T _end)          : start(_start),  end(_end) {}
+		TweenedParameter(const T &_start, const T &_end) : start(_start), end(_end) {}
 		// For initializer lists and assignment
-		template <typename M> TweenedParameter(M b) : start(b),       end(b) {}
+		template <typename M> TweenedParameter(const M &b) : start(b), end(b) {}
 
 		// Blend (or animate) the current value
 		T blend(float fac) const;

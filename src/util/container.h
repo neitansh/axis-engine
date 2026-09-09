@@ -247,7 +247,7 @@ protected:
 		auto begin() { return q->getQueue().begin(); }
 		auto end() { return q->getQueue().end(); }
 
-		auto erase(typename std::deque<T>::iterator it) {
+		auto erase(const typename std::deque<T>::iterator &it) {
 			return q->getQueue().erase(it);
 		}
 

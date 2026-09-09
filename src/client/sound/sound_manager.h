@@ -157,7 +157,7 @@ protected:
 private:
 	void send(SoundManagerMsgToProxy msg)
 	{
-		m_queue_to_proxy.push_back(std::move(msg));
+		m_queue_to_proxy.push_back(msg);
 	}
 
 	void reportRemovedSound(sound_handle_t id)

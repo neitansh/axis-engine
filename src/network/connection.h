@@ -75,6 +75,9 @@ public:
 		thread, so the callback has to be thread safe.
 	*/
 	using InfoProvider = std::function<std::string()>;
+	// По значению нарочно: настоящая реализация забирает поставщика себе
+	// (m_info_provider = std::move(provider)), а эта заглушка его не берёт вовсе.
+	// NOLINTNEXTLINE(performance-unnecessary-value-param)
 	virtual void SetInfoProvider(InfoProvider provider) {}
 };
 

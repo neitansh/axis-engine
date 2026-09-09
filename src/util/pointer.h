@@ -33,7 +33,7 @@ public:
 	Buffer(const Buffer &) = delete;
 	Buffer &operator=(const Buffer &) = delete;
 
-	Buffer(Buffer &&buffer)
+	Buffer(Buffer &&buffer) noexcept
 	{
 		m_size = buffer.m_size;
 		if (m_size != 0) {
@@ -61,7 +61,7 @@ public:
 		drop();
 	}
 
-	Buffer& operator=(Buffer &&buffer)
+	Buffer& operator=(Buffer &&buffer) noexcept
 	{
 		if (this == &buffer)
 			return *this;

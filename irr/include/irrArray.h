@@ -390,7 +390,7 @@ public:
 	/** Afterward this object will contain the content of the other object and the other
 	object will contain the content of this object.
 	\param other Swap content with this object */
-	void swap(array<T> &other)
+	void swap(array<T> &other) noexcept
 	{
 		m_data.swap(other.m_data);
 		std::swap(is_sorted, other.is_sorted);

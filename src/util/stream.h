@@ -7,11 +7,12 @@
 #include <iostream>
 #include <string_view>
 #include <functional>
+#include <utility>
 
 template<unsigned int BufferLength, typename Emitter = std::function<void(std::string_view)> >
 class StringStreamBuffer : public std::streambuf {
 public:
-	StringStreamBuffer(Emitter emitter) : m_emitter(emitter) {
+	StringStreamBuffer(Emitter emitter) : m_emitter(std::move(emitter)) {
 		buffer_index = 0;
 	}
 

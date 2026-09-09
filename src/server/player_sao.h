@@ -439,5 +439,6 @@ struct PlayerHPChangeReason
 	{
 	}
 
-	PlayerHPChangeReason(Type type, std::string node, v3s16 node_pos) : type(type), node(node), node_pos(node_pos) {}
+	PlayerHPChangeReason(Type type, std::string node, v3s16 node_pos) :
+			type(type), node(std::move(node)), node_pos(node_pos) {}
 };
