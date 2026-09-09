@@ -61,8 +61,16 @@ jobs:
         env:
           CC: gcc-14
           CXX: g++-14
-          # just to check that they compile correctly
-          CMAKE_FLAGS: '-DBUILD_BENCHMARKS=1'
+          # -Werror держит ноль предупреждений, а не даёт им копиться: пока
+          # сборка их только печатает, никто их не читает — так в main и жили
+          # усечённая дата в журнале и недостижимая проверка в прицеле.
+          #
+          # Только здесь, а не в выпуске: выпуск собирается другим компилятором
+          # на другой системе, и остановить раздачу игры из-за нового
+          # предупреждения — цена выше пользы.
+          #
+          # BUILD_BENCHMARKS — just to check that they compile correctly
+          CMAKE_FLAGS: '-DBUILD_BENCHMARKS=1 -DCMAKE_CXX_FLAGS=-Werror'
 
       - name: Test
         run: |
@@ -70,3 +78,53 @@ jobs:
           chmod a-w nowrite
           cd nowrite
           ../bin/${{ env.PROJECT_NAME }} --run-unittests
+
+  # Санитайзеры ловят то, чего не видит ни один линтер: выход за границы,
+  # чтение освобождённого, переполнение знакового — на живом прогоне тестов, а
+  # не рассуждением о коде.
+  #
+  # LuaJIT выключен нарочно: он раздаёт память сам, мимо системного
+  # распределителя, и ASan об этих кусках ничего не знает — отсюда и пропуски,
+  # и ложные срабатывания. Со встроенной Lua проверяется тот же движок.
+  sanitizers:
+    name: "ASan + UBSan + unit tests"
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install deps
+        run: |
+          source ./util/ci/common.sh
+          install_linux_deps g++-14
+
+      # cmake напрямую, а не через util/ci/build.sh: тот принимает довески
+      # одной строкой без кавычек, и набор флагов с пробелами разъехался бы по
+      # отдельным доводам cmake.
+      - name: Build
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DRUN_IN_PLACE=TRUE \
+            -DENABLE_LTO=FALSE \
+            -DENABLE_GETTEXT=TRUE \
+            -DBUILD_SERVER=TRUE \
+            -DENABLE_LUAJIT=FALSE \
+            -DCMAKE_CXX_FLAGS="$SANITIZE" \
+            -DCMAKE_C_FLAGS="$SANITIZE" \
+            -DCMAKE_EXE_LINKER_FLAGS="$SANITIZE"
+          cmake --build build --parallel $(($(nproc) + 1))
+        env:
+          CC: gcc-14
+          CXX: g++-14
+          SANITIZE: "-fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -g"
+
+      - name: Test
+        run: |
+          mkdir nowrite
+          chmod a-w nowrite
+          cd nowrite
+          ../bin/${{ env.PROJECT_NAME }} --run-unittests
+        env:
+          # Первая же находка валит прогон: санитайзер, о котором сообщают в
+          # конце и мимоходом, читается так же, как предупреждение сборки.
+          ASAN_OPTIONS: abort_on_error=1:detect_leaks=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
