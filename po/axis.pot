@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 01:44+0300\n"
+"POT-Creation-Date: 2026-09-09 15:12+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2215,7 +2215,7 @@ msgstr ""
 msgid "How big the cloud shapes are."
 msgstr ""
 
-#: builtin/common/settings/descriptions.lua
+#: builtin/common/settings/descriptions.lua src/settings_translation_file.cpp
 msgid "How fast the clouds drift."
 msgstr ""
 
@@ -3983,7 +3983,7 @@ msgstr ""
 msgid "Place/use"
 msgstr ""
 
-#: src/client/game.cpp
+#: src/client/game.cpp src/settings_translation_file.cpp
 msgid "Pick item"
 msgstr ""
 
@@ -5159,57 +5159,21 @@ msgid "Enable a confirmation dialog before closing."
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "Keyboard and Mouse"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Invert mouse"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Invert vertical mouse movement."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Mouse sensitivity"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Mouse sensitivity multiplier."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Keyboard camera speed"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Keyboard-controlled camera rotation speed, in degrees per second."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Hotbar: Enable mouse wheel for selection"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Enable mouse wheel (scroll) for item selection in hotbar."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Hotbar: Invert mouse wheel direction"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Invert mouse wheel (scroll) direction for item selection in hotbar."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Keybindings"
+msgid "Actions and Keybindings"
 msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid ""
 "Also used for climbing down and descending in water if aux1_descends is "
 "disabled."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Sprint key"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Key for sprinting (speeding up walking and flying)."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -5225,17 +5189,20 @@ msgid ""
 msgstr ""
 
 #: src/settings_translation_file.cpp
+msgid "Open pause menu"
+msgstr ""
+
+#: src/settings_translation_file.cpp
 msgid ""
+"Key for opening the pause menu in-game.\n"
+"Pressing the escape key always opens the pause menu."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Key for moving fast in fast mode.\n"
 "Key for using something: leaving a vehicle, opening a hatch, and\n"
 "whatever else the crate hangs on it."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Show controls"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Key for moving fast in fast mode."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -5291,6 +5258,12 @@ msgid "Toggle fullscreen"
 msgstr ""
 
 #: src/settings_translation_file.cpp
+msgid ""
+"Key for picking up the block you are looking at.\n"
+"See https://docs.luanti.org/for-players/controls/"
+msgstr ""
+
+#: src/settings_translation_file.cpp
 msgid "Look left"
 msgstr ""
 
@@ -5304,6 +5277,10 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Look down"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Show controls"
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -5489,6 +5466,50 @@ msgid "Hotbar slot 32"
 msgstr ""
 
 #: src/settings_translation_file.cpp
+msgid "Keyboard and Mouse"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Invert mouse"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Invert vertical mouse movement."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Mouse sensitivity"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Mouse sensitivity multiplier."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Keyboard camera speed"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Keyboard-controlled camera rotation speed, in degrees per second."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Hotbar: Enable mouse wheel for selection"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Enable mouse wheel (scroll) for item selection in hotbar."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Hotbar: Invert mouse wheel direction"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Invert mouse wheel (scroll) direction for item selection in hotbar."
+msgstr ""
+
+#: src/settings_translation_file.cpp
 msgid "Touchscreen"
 msgstr ""
 
@@ -5588,6 +5609,38 @@ msgid ""
 "Use virtual joystick to trigger \"Aux1\" button.\n"
 "If enabled, virtual joystick will also tap \"Aux1\" button when out of main "
 "circle."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Gamepads and Joysticks"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Joystick button repetition interval"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"The time in seconds it takes between repeated events\n"
+"when holding down a joystick button combination."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Joystick inner dead zone"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Joystick outer dead zone"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Joystick frustum sensitivity"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"The sensitivity of the joystick axes for moving the\n"
+"in-game view frustum around."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -5695,7 +5748,9 @@ msgid "Viewing range"
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "View distance in nodes."
+msgid ""
+"View distance in chunks (1 chunk = 16 blocks).\n"
+"Min = 2"
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -5883,26 +5938,6 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Width of the selection box lines around nodes."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Crosshair color"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid ""
-"Crosshair color (R,G,B).\n"
-"Also controls the object crosshair color"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Crosshair alpha"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid ""
-"Crosshair alpha (opaqueness, between 0 and 255).\n"
-"This also applies to the object crosshair."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -6231,17 +6266,6 @@ msgid ""
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "Shadow filter quality"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid ""
-"Define shadow filtering quality.\n"
-"This simulates the soft shadows effect by applying a PCF or Poisson disk\n"
-"but also uses more resources."
-msgstr ""
-
-#: src/settings_translation_file.cpp
 msgid "Colored shadows"
 msgstr ""
 
@@ -6249,17 +6273,6 @@ msgstr ""
 msgid ""
 "Enable colored shadows for transculent nodes.\n"
 "This is expensive."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Soft shadow radius"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid ""
-"Set the soft shadow radius size.\n"
-"Lower values mean sharper shadows, bigger values mean softer shadows.\n"
-"Minimum value: 1.0; maximum value: 15.0"
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -6354,6 +6367,85 @@ msgid "Set to true to enable volumetric lighting effect (a.k.a. \"Godrays\")."
 msgstr ""
 
 #: src/settings_translation_file.cpp
+msgid "Volumetric clouds"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Clouds you can fly into: a layer traced through by the view, instead of a\n"
+"flat sheet overhead. Replaces the flat clouds while enabled."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Cloud height"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Height of the cloud layer, in nodes."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Cloud density"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"How much of the sky the clouds cover. 0 is a few stray wisps, 1 is overcast."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Cloud speed"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Cloud distance"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Distance at which the clouds dissolve into the sky, in nodes. Clouds meet a\n"
+"lowered view far away, so this has to be considerably larger than the\n"
+"viewing range for them to reach the horizon."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Cloud size"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Size of a single cloud, in nodes. Small clouds seen from a distance blur\n"
+"into noise, so a cloud should be considerably larger than a building."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Cloud square size"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Side of the squares a cloud is built from, in nodes. Cloud size and cloud\n"
+"square size are different things: the first says how large a cloud is, the\n"
+"second how coarsely it is cut."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Cloud thickness"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Thickness of the cloud layer, in nodes."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Cloud edge roundness"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Shape of the cloud edges. 0 keeps them blocky, 0.5 makes them smooth."
+msgstr ""
+
+#: src/settings_translation_file.cpp
 msgid "Other Effects"
 msgstr ""
 
@@ -6417,7 +6509,108 @@ msgstr ""
 #: src/settings_translation_file.cpp
 msgid ""
 "Set the language. By default, the system language is used.\n"
-"A restart is required after changing this."
+"Applies immediately; text that came from the server changes on next join."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair color"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Crosshair color (R,G,B).\n"
+"Also controls the object crosshair color"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair alpha"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Crosshair alpha (opaqueness, between 0 and 255).\n"
+"This also applies to the object crosshair."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair shape"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Shape the crosshair is built from.\n"
+"Only used when no crosshair.png is provided by a texture pack."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair size"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Length of each crosshair stroke, in pixels."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair thickness"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Thickness of the crosshair lines, in pixels."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair gap"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Gap between the centre and where the strokes begin, in pixels."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair centre dot"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Size of the dot in the centre, in pixels. Zero for no dot."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Thickness of the dark outline around the crosshair, in pixels.\n"
+"Helps a white crosshair stand out against snow and sky, at the cost of\n"
+"thicker strokes. Zero for none."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline color"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline color (R,G,B)."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline alpha"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline alpha (opaqueness, between 0 and 255)."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair color on target"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair color while pointing at a player or entity (R,G,B)."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -6542,6 +6735,17 @@ msgstr ""
 msgid ""
 "Whether name tag backgrounds should be shown by default.\n"
 "Mods may still set a background."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Name tags shown at once"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"How many name tags may be shown at once. The ones nearest to the crosshair\n"
+"win; the rest are not drawn at all. Zero means no limit.\n"
+"A crate may narrow this further through its own rules, but not widen it."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -6696,6 +6900,62 @@ msgid "URL to the server list displayed in the Multiplayer Tab."
 msgstr ""
 
 #: src/settings_translation_file.cpp
+msgid "Load all installed mods"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Load every mod found in the mods folder and nothing else: a mod that is\n"
+"there runs, a mod that is gone does not. Worlds keep no mod list at all.\n"
+"Turn this off to let each world pick its mods again."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Network motion diagnostics"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Show what network motion is doing: how evenly packets arrive, how deep the\n"
+"playback buffer runs, and how much the speed of what you see changes from\n"
+"frame to frame - which is what shaking is."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Log network motion to CSV"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Also write the measurements to netsync/frames.csv and netsync/packets.csv\n"
+"in the user directory, for looking at afterwards.\n"
+"Requires \"Network motion diagnostics\"."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Wait for the server to return"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"When a server stops answering, keep the world on screen and wait for it to\n"
+"come back instead of returning to the main menu. Restarts and short\n"
+"outages are then barely noticeable.\n"
+"The world is reloaded once the server answers again."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Give up waiting after"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Give up waiting for a silent server after this many seconds and return to\n"
+"the main menu. 0 waits for as long as the player lets it.\n"
+"Requires \"Wait for the server to return\"."
+msgstr ""
+
+#: src/settings_translation_file.cpp
 msgid "Enable split login/register"
 msgstr ""
 
@@ -6707,14 +6967,44 @@ msgid ""
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "Update information URL"
+msgid "Emulated network latency"
 msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid ""
-"URL to JSON file which provides information about the newest Luanti "
-"release.\n"
-"If this is empty the engine will never check for updates."
+"Hold incoming packets back by this many milliseconds, as a distant server\n"
+"would. For measuring how motion looks on a worse connection than the one\n"
+"you have; 0 turns the whole emulation off.\n"
+"Only affects what this client receives. Nothing is done to what it sends,\n"
+"and no server is affected."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Emulated network jitter"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Vary the emulated latency by up to this many milliseconds either way,\n"
+"which is what reorders packets on a real link."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Emulated packet loss"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Throw away this percentage of incoming packets."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Emulated network seed"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Seed for the emulated network, so that two measurements meet the same\n"
+"pattern of jitter and loss and can be compared."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -6730,6 +7020,17 @@ msgid ""
 "Name of the player.\n"
 "When running a server, a client connecting with this name is admin.\n"
 "When starting from the main menu, this is overridden."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Main world name"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"World a dedicated server runs, taken from the worlds folder.\n"
+"A world of that name is created if it does not exist yet.\n"
+"The \"--worldname\" and \"--world\" arguments take precedence over this."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -6879,6 +7180,19 @@ msgid ""
 "$filename should be accessible from $remote_media$filename via cURL\n"
 "(obviously, remote_media should end with a slash).\n"
 "Files that are not present will be fetched the usual way."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Media HTTP port"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"TCP port the server hands out its own media on, next to the game port.\n"
+"Media over the game protocol crawls while the reliable window ramps up;\n"
+"over HTTP the client takes files in dozens of connections at once and the\n"
+"first join stops being a wait. Empty means the same number as the game\n"
+"port, 0 turns the whole thing off. Single player never opens it."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -8193,6 +8507,17 @@ msgid "Developer Options"
 msgstr ""
 
 #: src/settings_translation_file.cpp
+msgid "Screenshot after"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Take a screenshot this many seconds after entering a world, then quit.\n"
+"Meant for adjusting how the game looks in repeated runs, without a\n"
+"person at the keyboard. 0 disables it."
+msgstr ""
+
+#: src/settings_translation_file.cpp
 msgid "Client modding"
 msgstr ""
 
@@ -8646,17 +8971,6 @@ msgid ""
 "pipeline.\n"
 "Reducing this can improve performance, but some effects (e.g. debanding)\n"
 "require more than 8 bits to work."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Poisson filtering"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid ""
-"Enable Poisson disk filtering.\n"
-"On true uses Poisson disk to make \"soft shadows\". Otherwise uses PCF "
-"filtering."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -9238,11 +9552,10 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid ""
-"At this distance the server will perform a simpler and cheaper occlusion "
-"check.\n"
-"Smaller values potentially improve performance, at the expense of "
-"temporarily visible\n"
-"rendering glitches (missing blocks).\n"
+"At this distance the server will consider blocks as \"far away\".\n"
+"It will perform simpler and cheaper occlusion checks, update\n"
+"low priority block updates lazily, and limit the blocks sent to the\n"
+"client in one roundtrip.\n"
 "This is especially useful for very large viewing range (upwards of 500).\n"
 "Stated in MapBlocks (16 nodes)."
 msgstr ""
@@ -9497,73 +9810,6 @@ msgid ""
 "Remote servers offer a significantly faster way to download media (e.g. "
 "textures)\n"
 "when connecting to the server."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Serverlist file"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid ""
-"File in client/serverlist/ that contains your favorite servers displayed in "
-"the\n"
-"Multiplayer Tab."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Gamepads"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Enable joysticks"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Enable joysticks. Requires a restart to take effect"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Joystick ID"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "The identifier of the joystick to use"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Joystick type"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "The type of joystick"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Joystick button repetition interval"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid ""
-"The time in seconds it takes between repeated events\n"
-"when holding down a joystick button combination."
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Joystick dead zone"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "The dead zone of the joystick"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid "Joystick frustum sensitivity"
-msgstr ""
-
-#: src/settings_translation_file.cpp
-msgid ""
-"The sensitivity of the joystick axes for moving the\n"
-"in-game view frustum around."
 msgstr ""
 
 #: src/util/screenshot.cpp

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 01:44+0300\n"
+"POT-Creation-Date: 2026-09-09 15:12+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -625,7 +625,10 @@ msgid ""
 "How big one log may grow before it is put into the archive and a fresh one "
 "started, in megabytes. Every run gets its own file anyway — this matters to "
 "a server that runs for weeks without a restart."
-msgstr "До скольких мегабайт журнал растёт, прежде чем уехать в архив и начаться заново. Свой файл и так получает каждый запуск — это про сервер, который работает неделями без перезапуска."
+msgstr ""
+"До скольких мегабайт журнал растёт, прежде чем уехать в архив и начаться "
+"заново. Свой файл и так получает каждый запуск — это про сервер, который "
+"работает неделями без перезапуска."
 
 #: builtin/common/settings/descriptions.lua
 msgid "How big the cloud shapes are."
@@ -845,7 +848,7 @@ msgstr ""
 "каждый шаг дальше — это гораздо больше мира, который надо загрузить и "
 "нарисовать."
 
-#: builtin/common/settings/descriptions.lua
+#: builtin/common/settings/descriptions.lua src/settings_translation_file.cpp
 msgid "How fast the clouds drift."
 msgstr "Насколько быстро плывут облака."
 
@@ -4040,7 +4043,9 @@ msgstr "Не удалось найти подходящий шрифт"
 msgid ""
 "\n"
 "Check logs/latest.log for details."
-msgstr "\nПодробности в logs/latest.log."
+msgstr ""
+"\n"
+"Подробности в logs/latest.log."
 
 #: src/client/game.cpp
 msgid "# Arrived."
@@ -4306,7 +4311,7 @@ msgstr "Загрузка блоков"
 msgid "Open inventory"
 msgstr "Открыть инвентарь"
 
-#: src/client/game.cpp
+#: src/client/game.cpp src/settings_translation_file.cpp
 msgid "Pick item"
 msgstr "Взять блок"
 
@@ -5575,6 +5580,10 @@ msgid "Acceleration of gravity, in nodes per second per second."
 msgstr "Ускорение свободного падения в нодах/секунду²."
 
 #: src/settings_translation_file.cpp
+msgid "Actions and Keybindings"
+msgstr "Действия и клавиши"
+
+#: src/settings_translation_file.cpp
 msgid "Active Block Modifiers"
 msgstr "Модификаторы Активных Блоков"
 
@@ -5643,6 +5652,16 @@ msgid ""
 msgstr ""
 "Также используется для спуска и погружения в воду, если параметр "
 "aux1_descends отключен."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Also write the measurements to netsync/frames.csv and netsync/packets.csv\n"
+"in the user directory, for looking at afterwards.\n"
+"Requires \"Network motion diagnostics\"."
+msgstr ""
+"Писать замеры ещё и в netsync/frames.csv и netsync/packets.csv в "
+"пользовательском каталоге, чтобы разобрать их после.\n"
+"Требует «Разбора сетевого движения»."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -5789,21 +5808,18 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid ""
-"At this distance the server will perform a simpler and cheaper occlusion "
-"check.\n"
-"Smaller values potentially improve performance, at the expense of "
-"temporarily visible\n"
-"rendering glitches (missing blocks).\n"
+"At this distance the server will consider blocks as \"far away\".\n"
+"It will perform simpler and cheaper occlusion checks, update\n"
+"low priority block updates lazily, and limit the blocks sent to the\n"
+"client in one roundtrip.\n"
 "This is especially useful for very large viewing range (upwards of 500).\n"
 "Stated in MapBlocks (16 nodes)."
 msgstr ""
-"На таком расстоянии сервер выполнит более простую и дешевую проверку "
-"окклюзии.\n"
-"Меньшие значения потенциально повышают производительность за счет временно "
-"заметных\n"
-"сбоев в рендеринге (пропущенных блоков).\n"
-"Это особенно полезно при очень большой дальности обзора (более 500).\n"
-"Указано в MapBlocks (16 узлов)."
+"С этого расстояния сервер считает блоки далёкими: проверки перекрытия идут "
+"проще и дешевле, неважные обновления блоков откладываются, а число блоков, "
+"отправляемых клиенту за один обмен, ограничивается.\n"
+"Особенно полезно при очень большой дальности обзора (от 500).\n"
+"Задаётся в мапблоках (16 узлов)."
 
 #: src/settings_translation_file.cpp
 msgid "Audio"
@@ -6085,8 +6101,40 @@ msgid "Climbing speed"
 msgstr "Скорость карабкания"
 
 #: src/settings_translation_file.cpp
+msgid "Cloud density"
+msgstr "Плотность облаков"
+
+#: src/settings_translation_file.cpp
+msgid "Cloud distance"
+msgstr "Дальность облаков"
+
+#: src/settings_translation_file.cpp
+msgid "Cloud edge roundness"
+msgstr "Скруглённость краёв облаков"
+
+#: src/settings_translation_file.cpp
+msgid "Cloud height"
+msgstr "Высота облаков"
+
+#: src/settings_translation_file.cpp
 msgid "Cloud radius"
 msgstr "Радиус облаков"
+
+#: src/settings_translation_file.cpp
+msgid "Cloud size"
+msgstr "Размер облака"
+
+#: src/settings_translation_file.cpp
+msgid "Cloud speed"
+msgstr "Скорость облаков"
+
+#: src/settings_translation_file.cpp
+msgid "Cloud square size"
+msgstr "Размер клетки облака"
+
+#: src/settings_translation_file.cpp
+msgid "Cloud thickness"
+msgstr "Толщина облаков"
 
 #: src/settings_translation_file.cpp
 msgid "Clouds"
@@ -6095,6 +6143,15 @@ msgstr "Облака"
 #: src/settings_translation_file.cpp
 msgid "Clouds in menu"
 msgstr "Облака в меню"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Clouds you can fly into: a layer traced through by the view, instead of a\n"
+"flat sheet overhead. Replaces the flat clouds while enabled."
+msgstr ""
+"Облака, в которые можно влететь: слой, сквозь который проходит взгляд, а не "
+"плоская пелена над головой.\n"
+"Пока включены, заменяют плоские облака."
 
 #: src/settings_translation_file.cpp
 msgid "Color depth for post-processing texture"
@@ -6266,6 +6323,10 @@ msgid "Crash message"
 msgstr "Сообщение при крахе"
 
 #: src/settings_translation_file.cpp
+msgid "Crosshair"
+msgstr "Прицел"
+
+#: src/settings_translation_file.cpp
 msgid "Crosshair alpha"
 msgstr "Прозрачность прицела"
 
@@ -6278,6 +6339,10 @@ msgstr ""
 "Также контролирует цвет объекта прицела."
 
 #: src/settings_translation_file.cpp
+msgid "Crosshair centre dot"
+msgstr "Точка в центре прицела"
+
+#: src/settings_translation_file.cpp
 msgid "Crosshair color"
 msgstr "Цвет прицела"
 
@@ -6288,6 +6353,50 @@ msgid ""
 msgstr ""
 "Цвет прицела (R,G,B).\n"
 "Также контролирует цвет объекта прицела"
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair color on target"
+msgstr "Цвет прицела на цели"
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair color while pointing at a player or entity (R,G,B)."
+msgstr "Цвет прицела, наведённого на игрока или существо (R,G,B)."
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair gap"
+msgstr "Зазор прицела"
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline"
+msgstr "Обводка прицела"
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline alpha"
+msgstr "Прозрачность обводки прицела"
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline alpha (opaqueness, between 0 and 255)."
+msgstr "Непрозрачность обводки прицела (от 0 до 255)."
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline color"
+msgstr "Цвет обводки прицела"
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair outline color (R,G,B)."
+msgstr "Цвет обводки прицела (R,G,B)."
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair shape"
+msgstr "Форма прицела"
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair size"
+msgstr "Размер прицела"
+
+#: src/settings_translation_file.cpp
+msgid "Crosshair thickness"
+msgstr "Толщина прицела"
 
 #: src/settings_translation_file.cpp
 msgid "Damage"
@@ -6361,16 +6470,6 @@ msgstr "Формат отчёта по умолчанию"
 #: src/settings_translation_file.cpp
 msgid "Default stack size"
 msgstr "Размер стака по умолчанию"
-
-#: src/settings_translation_file.cpp
-msgid ""
-"Define shadow filtering quality.\n"
-"This simulates the soft shadows effect by applying a PCF or Poisson disk\n"
-"but also uses more resources."
-msgstr ""
-"Определите качество фильтрации теней.\n"
-"Это имитирует эффект мягких теней, применяя PCF или диск Пуассона,\n"
-"но также использует больше ресурсов."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -6524,6 +6623,16 @@ msgstr "Коэффициент масштабирования плотности
 
 #: src/settings_translation_file.cpp
 msgid ""
+"Distance at which the clouds dissolve into the sky, in nodes. Clouds meet a\n"
+"lowered view far away, so this has to be considerably larger than the\n"
+"viewing range for them to reach the horizon."
+msgstr ""
+"Расстояние, на котором облака растворяются в небе, в узлах. Вдали облака "
+"встречают опущенный обзор, поэтому значение должно быть заметно больше "
+"дальности обзора — иначе до горизонта они не дойдут."
+
+#: src/settings_translation_file.cpp
+msgid ""
 "Distance in nodes at which transparency depth sorting is enabled.\n"
 "Use this to limit the performance impact of transparency depth sorting.\n"
 "Set to 0 to disable it entirely."
@@ -6586,11 +6695,32 @@ msgid ""
 "A run longer than this many megabytes is archived without waiting for its\n"
 "end. Zero means no limit, which suits a server that never restarts less\n"
 "than it sounds."
-msgstr "Каждый запуск пишет logs/latest.log, а прошлый уезжает рядом архивом\nlogs/ГГГГ-ММ-ДД-N.log.gz; хранятся последние тридцать.\nЗапуск, переваливший за столько мегабайт, уезжает в архив, не дожидаясь\nсвоего конца. Ноль — без предела; серверу, который не перезапускается,\nэто подходит меньше, чем кажется."
+msgstr ""
+"Каждый запуск пишет logs/latest.log, а прошлый уезжает рядом архивом\n"
+"logs/ГГГГ-ММ-ДД-N.log.gz; хранятся последние тридцать.\n"
+"Запуск, переваливший за столько мегабайт, уезжает в архив, не дожидаясь\n"
+"своего конца. Ноль — без предела; серверу, который не перезапускается,\n"
+"это подходит меньше, чем кажется."
 
 #: src/settings_translation_file.cpp
 msgid "Effects"
 msgstr "Эффекты"
+
+#: src/settings_translation_file.cpp
+msgid "Emulated network jitter"
+msgstr "Разброс задержки эмулируемой сети"
+
+#: src/settings_translation_file.cpp
+msgid "Emulated network latency"
+msgstr "Задержка эмулируемой сети"
+
+#: src/settings_translation_file.cpp
+msgid "Emulated network seed"
+msgstr "Зерно эмулируемой сети"
+
+#: src/settings_translation_file.cpp
+msgid "Emulated packet loss"
+msgstr "Потери пакетов эмулируемой сети"
 
 #: src/settings_translation_file.cpp
 msgid "Enable Automatic Exposure"
@@ -6636,16 +6766,6 @@ msgstr ""
 "Эта поддержка является экспериментальной и API может измениться."
 
 #: src/settings_translation_file.cpp
-msgid ""
-"Enable Poisson disk filtering.\n"
-"On true uses Poisson disk to make \"soft shadows\". Otherwise uses PCF "
-"filtering."
-msgstr ""
-"Включить фильтрацию диска Пуассона.\n"
-"Если включена использует диск Пуассона для создания «мягких теней». В "
-"противном случае используется фильтрация PCF."
-
-#: src/settings_translation_file.cpp
 msgid "Enable Post Processing"
 msgstr "Постобработка"
 
@@ -6688,14 +6808,6 @@ msgstr "Включить окно консоли"
 #: src/settings_translation_file.cpp
 msgid "Enable dynamic shadows"
 msgstr "Динамические тени"
-
-#: src/settings_translation_file.cpp
-msgid "Enable joysticks"
-msgstr "Включить контроллер"
-
-#: src/settings_translation_file.cpp
-msgid "Enable joysticks. Requires a restart to take effect"
-msgstr "Включить поддержку контроллера. Требуется перезапуск"
 
 #: src/settings_translation_file.cpp
 msgid "Enable mod channels support."
@@ -6883,15 +6995,6 @@ msgstr "Угол обзора"
 #: src/settings_translation_file.cpp
 msgid "Field of view in degrees."
 msgstr "Угол обзора в градусах."
-
-#: src/settings_translation_file.cpp
-msgid ""
-"File in client/serverlist/ that contains your favorite servers displayed in "
-"the\n"
-"Multiplayer Tab."
-msgstr ""
-"Файл в папке client/serverlist/, содержащий ваши избранные сервера\n"
-"из вкладки Мультиплеер."
 
 #: src/settings_translation_file.cpp
 msgid "Filler depth"
@@ -7129,12 +7232,30 @@ msgid "GUI scaling filter"
 msgstr "Фильтр масштабирования интерфейса"
 
 #: src/settings_translation_file.cpp
-msgid "Gamepads"
-msgstr "Контроллеры"
+msgid "Gamepads and Joysticks"
+msgstr "Геймпады и джойстики"
+
+#: src/settings_translation_file.cpp
+msgid "Gap between the centre and where the strokes begin, in pixels."
+msgstr "Зазор между центром и началом штрихов, в пикселях."
 
 #: src/settings_translation_file.cpp
 msgid "General"
 msgstr "Основной"
+
+#: src/settings_translation_file.cpp
+msgid "Give up waiting after"
+msgstr "Перестать ждать через"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Give up waiting for a silent server after this many seconds and return to\n"
+"the main menu. 0 waits for as long as the player lets it.\n"
+"Requires \"Wait for the server to return\"."
+msgstr ""
+"Перестать ждать замолчавший сервер через столько секунд и вернуться в "
+"главное меню. 0 — ждать столько, сколько позволит игрок.\n"
+"Требует «Ждать возвращения сервера»."
 
 #: src/settings_translation_file.cpp
 msgid "Global callbacks"
@@ -7241,6 +7362,10 @@ msgid "Height noise"
 msgstr "Шум высоты"
 
 #: src/settings_translation_file.cpp
+msgid "Height of the cloud layer, in nodes."
+msgstr "Высота слоя облаков, в узлах."
+
+#: src/settings_translation_file.cpp
 msgid "Height select noise"
 msgstr "Шум выбора высоты"
 
@@ -7267,6 +7392,20 @@ msgstr "Шум холмистости 3"
 #: src/settings_translation_file.cpp
 msgid "Hilliness4 noise"
 msgstr "Шум холмистости 4"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Hold incoming packets back by this many milliseconds, as a distant server\n"
+"would. For measuring how motion looks on a worse connection than the one\n"
+"you have; 0 turns the whole emulation off.\n"
+"Only affects what this client receives. Nothing is done to what it sends,\n"
+"and no server is affected."
+msgstr ""
+"Придерживать входящие пакеты на столько миллисекунд, как это делал бы "
+"далёкий сервер. Нужно, чтобы посмотреть, как движение выглядит на связи хуже "
+"нынешней; 0 выключает эмуляцию целиком.\n"
+"Касается только того, что клиент принимает: на отправляемое и на сервер это "
+"не влияет."
 
 #: src/settings_translation_file.cpp
 msgid "Homepage of server, to be displayed in the serverlist."
@@ -7460,6 +7599,22 @@ msgid ""
 msgstr ""
 "Время ожидания сервера до выгрузки неиспользуемых мапблоков, в секундах.\n"
 "Высокие значения более плавные, но используют больше оперативной памяти."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"How many name tags may be shown at once. The ones nearest to the crosshair\n"
+"win; the rest are not drawn at all. Zero means no limit.\n"
+"A crate may narrow this further through its own rules, but not widen it."
+msgstr ""
+"Сколько имён может висеть над игроками разом. Остаются ближайшие к прицелу, "
+"остальные не рисуются вовсе. Ноль снимает предел.\n"
+"Крейт может сузить это своими правилами, но не расширить."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"How much of the sky the clouds cover. 0 is a few stray wisps, 1 is overcast."
+msgstr ""
+"Какую часть неба закрывают облака. 0 — редкие клочья, 1 — сплошная пелена."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -7742,24 +7897,20 @@ msgstr ""
 "При 20 итерациях нагрузка сравнима с мапгеном V7."
 
 #: src/settings_translation_file.cpp
-msgid "Joystick ID"
-msgstr "ID контроллера"
-
-#: src/settings_translation_file.cpp
 msgid "Joystick button repetition interval"
 msgstr "Интервал повторного клика кнопкой контроллера"
-
-#: src/settings_translation_file.cpp
-msgid "Joystick dead zone"
-msgstr "Мёртвая зона джойстика"
 
 #: src/settings_translation_file.cpp
 msgid "Joystick frustum sensitivity"
 msgstr "Чувствительность джойстика"
 
 #: src/settings_translation_file.cpp
-msgid "Joystick type"
-msgstr "Тип джойстика"
+msgid "Joystick inner dead zone"
+msgstr "Внутренняя мёртвая зона джойстика"
+
+#: src/settings_translation_file.cpp
+msgid "Joystick outer dead zone"
+msgstr "Внешняя мёртвая зона джойстика"
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -7848,8 +7999,14 @@ msgid "Key for incrementing the selected value in Quicktune."
 msgstr "Клавиша для увеличения выбранного значения в Quicktune."
 
 #: src/settings_translation_file.cpp
-msgid "Key for moving fast in fast mode."
-msgstr "Клавиша для быстрого перемещения в режиме быстрого перемещения."
+msgid ""
+"Key for moving fast in fast mode.\n"
+"Key for using something: leaving a vehicle, opening a hatch, and\n"
+"whatever else the crate hangs on it."
+msgstr ""
+"Клавиша быстрого перемещения в быстром режиме.\n"
+"Она же — чтобы чем-то воспользоваться: выйти из транспорта, открыть люк и "
+"всё прочее, что на неё повесит крейт."
 
 #: src/settings_translation_file.cpp
 msgid "Key for opening the chat window to type commands."
@@ -7861,11 +8018,31 @@ msgstr "Клавиша открытия окна чата для ввода ло
 
 #: src/settings_translation_file.cpp
 msgid ""
+"Key for opening the pause menu in-game.\n"
+"Pressing the escape key always opens the pause menu."
+msgstr ""
+"Клавиша, открывающая меню паузы в игре.\n"
+"Escape открывает его всегда."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Key for picking up the block you are looking at.\n"
+"See https://docs.luanti.org/for-players/controls/"
+msgstr ""
+"Клавиша, чтобы взять в руку блок, на который смотришь.\n"
+"См. https://docs.luanti.org/for-players/controls/"
+
+#: src/settings_translation_file.cpp
+msgid ""
 "Key for placing an item/block or for using something.\n"
 "(Note: The actual meaning might vary on a per-crate basis.)"
 msgstr ""
 "Клавиша для размещения предмета/блока или для использования чего-либо.\n"
 "(Примечание: фактическое значение может меняться от крейта к крейту.)"
+
+#: src/settings_translation_file.cpp
+msgid "Key for sprinting (speeding up walking and flying)."
+msgstr "Клавиша бега (ускоряет ходьбу и полёт)."
 
 #: src/settings_translation_file.cpp
 msgid "Key for switching to the next entry in Quicktune."
@@ -7890,18 +8067,6 @@ msgid "Key for toggling the display of the profiler. Used for development."
 msgstr ""
 "Клавиша для переключения отображения профилировщика. Используется для "
 "разработки."
-
-#: src/settings_translation_file.cpp
-msgid ""
-"Key for using something: leaving a vehicle, opening a hatch, and\n"
-"whatever else the crate hangs on it."
-msgstr ""
-"Клавиша, чтобы чем-то воспользоваться: выйти из транспорта, открыть люк\n"
-"и всё прочее, что на неё повесит крейт."
-
-#: src/settings_translation_file.cpp
-msgid "Keybindings"
-msgstr "Привязки клавиш"
 
 #: src/settings_translation_file.cpp
 msgid "Keyboard and Mouse"
@@ -7980,6 +8145,10 @@ msgstr ""
 "но часто они длиннее."
 
 #: src/settings_translation_file.cpp
+msgid "Length of each crosshair stroke, in pixels."
+msgstr "Длина каждого штриха прицела, в пикселях."
+
+#: src/settings_translation_file.cpp
 msgid "Length of liquid waves."
 msgstr "Длина волн жидкостей."
 
@@ -8011,7 +8180,16 @@ msgid ""
 "-    info\n"
 "-    verbose\n"
 "-    trace"
-msgstr "Уровень журналирования для записи в logs/latest.log:\n-    <ничего> (без отчётов)\n-    none (сообщения без уровня)\n-    error (ошибки)\n-    warning (предупреждения)\n-    action (действия)\n-    info (сведения)\n-    verbose (подробности)\n-    trace (трассировка)"
+msgstr ""
+"Уровень журналирования для записи в logs/latest.log:\n"
+"-    <ничего> (без отчётов)\n"
+"-    none (сообщения без уровня)\n"
+"-    error (ошибки)\n"
+"-    warning (предупреждения)\n"
+"-    action (действия)\n"
+"-    info (сведения)\n"
+"-    verbose (подробности)\n"
+"-    trace (трассировка)"
 
 #: src/settings_translation_file.cpp
 msgid "Light curve boost"
@@ -8099,6 +8277,20 @@ msgid "Liquid update tick"
 msgstr "Шаг обновления жидкостей"
 
 #: src/settings_translation_file.cpp
+msgid "Load all installed mods"
+msgstr "Загружать все установленные моды"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Load every mod found in the mods folder and nothing else: a mod that is\n"
+"there runs, a mod that is gone does not. Worlds keep no mod list at all.\n"
+"Turn this off to let each world pick its mods again."
+msgstr ""
+"Загружать все моды из папки mods и только их: мод лежит — работает, мода нет "
+"— не работает. Мир при этом не хранит списка модов вовсе.\n"
+"Выключить, чтобы каждый мир снова выбирал моды сам."
+
+#: src/settings_translation_file.cpp
 msgid "Load the game profiler"
 msgstr "Загружать профилировщик игры"
 
@@ -8119,6 +8311,10 @@ msgstr "Модификаторы Загружающихся Блоков"
 #: src/settings_translation_file.cpp
 msgid "Local command"
 msgstr "Локальная команда"
+
+#: src/settings_translation_file.cpp
+msgid "Log network motion to CSV"
+msgstr "Писать сетевое движение в CSV"
 
 #: src/settings_translation_file.cpp
 msgid "Look down"
@@ -8147,6 +8343,10 @@ msgstr "Нижний лимит Y для парящих островов."
 #: src/settings_translation_file.cpp
 msgid "Main menu script"
 msgstr "Скрипт главного меню"
+
+#: src/settings_translation_file.cpp
+msgid "Main world name"
+msgstr "Имя основного мира"
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -8514,6 +8714,10 @@ msgid "Measure time samples"
 msgstr "Измерять временные сэмплы"
 
 #: src/settings_translation_file.cpp
+msgid "Media HTTP port"
+msgstr "HTTP-порт раздачи файлов"
+
+#: src/settings_translation_file.cpp
 msgid "Menu theme"
 msgstr "Тема меню"
 
@@ -8666,6 +8870,14 @@ msgid ""
 msgstr "Имя сервера, отображаемое при входе и в списке серверов."
 
 #: src/settings_translation_file.cpp
+msgid "Name tags shown at once"
+msgstr "Сколько имён видно разом"
+
+#: src/settings_translation_file.cpp
+msgid "Network motion diagnostics"
+msgstr "Разбор сетевого движения"
+
+#: src/settings_translation_file.cpp
 msgid ""
 "Network port to listen (UDP).\n"
 "This value will be overridden when starting from the main menu."
@@ -8760,6 +8972,10 @@ msgid "Open chat"
 msgstr "Открыть чат"
 
 #: src/settings_translation_file.cpp
+msgid "Open pause menu"
+msgstr "Открыть меню паузы"
+
+#: src/settings_translation_file.cpp
 msgid ""
 "Open the pause menu when the window's focus is lost. Does not pause if a "
 "formspec is\n"
@@ -8851,10 +9067,6 @@ msgstr "Задержка повторной установки"
 #: src/settings_translation_file.cpp
 msgid "Player transfer distance"
 msgstr "Расстояние передачи игрока"
-
-#: src/settings_translation_file.cpp
-msgid "Poisson filtering"
-msgstr "Фильтрация Пуассона"
 
 #: src/settings_translation_file.cpp
 msgid "Post Processing"
@@ -9134,6 +9346,10 @@ msgid "Screen width"
 msgstr "Ширина экрана"
 
 #: src/settings_translation_file.cpp
+msgid "Screenshot after"
+msgstr "Снимок экрана через"
+
+#: src/settings_translation_file.cpp
 msgid "Screenshot folder"
 msgstr "Папка скриншотов"
 
@@ -9176,6 +9392,14 @@ msgstr "Второй из двух 3D-шумов, которые вместе о
 #: src/settings_translation_file.cpp
 msgid "See https://www.sqlite.org/pragma.html#pragma_synchronous"
 msgstr "См. http://www.sqlite.org/pragma.html#pragma_synchronous"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Seed for the emulated network, so that two measurements meet the same\n"
+"pattern of jitter and loss and can be compared."
+msgstr ""
+"Зерно эмулируемой сети: с одним и тем же зерном два замера встретят "
+"одинаковый рисунок дрожания и потерь, и их можно сравнить."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -9338,10 +9562,6 @@ msgid "Serverlist and MOTD"
 msgstr "Список серверов и сообщение дня"
 
 #: src/settings_translation_file.cpp
-msgid "Serverlist file"
-msgstr "Файл списка серверов"
-
-#: src/settings_translation_file.cpp
 msgid ""
 "Set proxy to use by cURL. This is an URI just like the *_proxy environment "
 "variables.\n"
@@ -9373,10 +9593,10 @@ msgstr ""
 #: src/settings_translation_file.cpp
 msgid ""
 "Set the language. By default, the system language is used.\n"
-"A restart is required after changing this."
+"Applies immediately; text that came from the server changes on next join."
 msgstr ""
-"Установит язык. По умолчанию используется язык системы.\n"
-"После изменения этого параметра требуется перезагрузка."
+"Задаёт язык. По умолчанию берётся язык системы.\n"
+"Применяется сразу; текст, пришедший от сервера, сменится при следующем входе."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -9393,16 +9613,6 @@ msgstr ""
 "Изменяет насыщенность внутриигровых динамических теней.\n"
 "Меньшее значение означает более светлые тени, большее значение означает "
 "более тёмные тени."
-
-#: src/settings_translation_file.cpp
-msgid ""
-"Set the soft shadow radius size.\n"
-"Lower values mean sharper shadows, bigger values mean softer shadows.\n"
-"Minimum value: 1.0; maximum value: 15.0"
-msgstr ""
-"Устанавливает радиус мягких теней.\n"
-"Меньшие значения означают более резкие тени, большие значения более мягкие.\n"
-"Наименьшее значение: 1.0; Наибольшее значение: 10.0"
 
 #: src/settings_translation_file.cpp
 msgid "Set to true to enable Shadow Mapping."
@@ -9461,10 +9671,6 @@ msgid "Shader path"
 msgstr "Путь к шейдерам"
 
 #: src/settings_translation_file.cpp
-msgid "Shadow filter quality"
-msgstr "Качество теней"
-
-#: src/settings_translation_file.cpp
 msgid "Shadow map render distance"
 msgstr "Дальность теней"
 
@@ -9486,6 +9692,18 @@ msgstr ""
 #: src/settings_translation_file.cpp
 msgid "Shadow strength gamma"
 msgstr "Гамма силы тени"
+
+#: src/settings_translation_file.cpp
+msgid "Shape of the cloud edges. 0 keeps them blocky, 0.5 makes them smooth."
+msgstr "Форма краёв облаков. 0 оставляет их угловатыми, 0.5 сглаживает."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Shape the crosshair is built from.\n"
+"Only used when no crosshair.png is provided by a texture pack."
+msgstr ""
+"Форма, из которой собирается прицел.\n"
+"Берётся только тогда, когда набор текстур не принёс своего crosshair.png."
 
 #: src/settings_translation_file.cpp
 msgid "Show controls"
@@ -9512,6 +9730,16 @@ msgid "Show name tag backgrounds by default"
 msgstr "Подложка под именами игроков"
 
 #: src/settings_translation_file.cpp
+msgid ""
+"Show what network motion is doing: how evenly packets arrive, how deep the\n"
+"playback buffer runs, and how much the speed of what you see changes from\n"
+"frame to frame - which is what shaking is."
+msgstr ""
+"Показывать, что делает сетевое движение: насколько ровно приходят пакеты, "
+"насколько глубоко забит буфер воспроизведения и как сильно меняется от кадра "
+"к кадру скорость того, что видно, — это и есть дрожание."
+
+#: src/settings_translation_file.cpp
 msgid "Shutdown message"
 msgstr "Сообщение о выключении"
 
@@ -9531,8 +9759,26 @@ msgstr ""
 "Системы со слабым GPU (или без GPU) получат прибавку от меньших значений."
 
 #: src/settings_translation_file.cpp
+msgid ""
+"Side of the squares a cloud is built from, in nodes. Cloud size and cloud\n"
+"square size are different things: the first says how large a cloud is, the\n"
+"second how coarsely it is cut."
+msgstr ""
+"Сторона клеток, из которых сложено облако, в узлах. Размер облака и размер "
+"клетки — разное: первое говорит, насколько облако велико, второе — насколько "
+"крупно оно нарезано."
+
+#: src/settings_translation_file.cpp
 msgid "Simulate translucency when looking at foliage in the sunlight."
 msgstr "Имитировать прозрачность при взгляде на листву в солнечном свете."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Size of a single cloud, in nodes. Small clouds seen from a distance blur\n"
+"into noise, so a cloud should be considerably larger than a building."
+msgstr ""
+"Размер одного облака, в узлах. Мелкие облака издали сливаются в рябь, "
+"поэтому облако должно быть заметно больше дома."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -9552,6 +9798,10 @@ msgstr ""
 "подземелий.\n"
 "Изменять его нужно только в особых ситуациях, рекомендуется\n"
 "оставить как есть."
+
+#: src/settings_translation_file.cpp
+msgid "Size of the dot in the centre, in pixels. Zero for no dot."
+msgstr "Размер точки в центре, в пикселях. Ноль — без точки."
 
 #: src/settings_translation_file.cpp
 msgid "Sky Body Orbit Tilt"
@@ -9619,10 +9869,6 @@ msgid "Soft clouds"
 msgstr "Мягкие облака"
 
 #: src/settings_translation_file.cpp
-msgid "Soft shadow radius"
-msgstr "Радиус мягкой тени"
-
-#: src/settings_translation_file.cpp
 msgid "Sound"
 msgstr "Звук"
 
@@ -9672,6 +9918,10 @@ msgstr ""
 "Диапазон увеличения кривой света.\n"
 "Регулирует ширину увеличиваемого диапазона.\n"
 "Стандартное отклонение усиления кривой света по Гауссу."
+
+#: src/settings_translation_file.cpp
+msgid "Sprint key"
+msgstr "Клавиша бега"
 
 #: src/settings_translation_file.cpp
 msgid "Static spawn point"
@@ -9743,6 +9993,30 @@ msgstr ""
 #: src/settings_translation_file.cpp
 msgid "Synchronous SQLite"
 msgstr "Синхронный SQLite"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"TCP port the server hands out its own media on, next to the game port.\n"
+"Media over the game protocol crawls while the reliable window ramps up;\n"
+"over HTTP the client takes files in dozens of connections at once and the\n"
+"first join stops being a wait. Empty means the same number as the game\n"
+"port, 0 turns the whole thing off. Single player never opens it."
+msgstr ""
+"TCP-порт, на котором сервер раздаёт свои файлы, рядом с игровым портом.\n"
+"По игровому протоколу файлы ползут, пока разгоняется окно надёжной доставки; "
+"по HTTP клиент забирает их десятками соединений разом, и первый вход "
+"перестаёт быть ожиданием. Пусто — тот же номер, что у игрового порта, 0 — "
+"выключить раздачу совсем. В одиночной игре порт не открывается."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Take a screenshot this many seconds after entering a world, then quit.\n"
+"Meant for adjusting how the game looks in repeated runs, without a\n"
+"person at the keyboard. 0 disables it."
+msgstr ""
+"Снять экран через столько секунд после входа в мир и выйти.\n"
+"Нужно, чтобы подбирать вид игры повторными запусками, без человека за "
+"клавиатурой. 0 выключает."
 
 #: src/settings_translation_file.cpp
 msgid "Temperature variation for biomes."
@@ -9825,10 +10099,6 @@ msgid "The URL for the content repository"
 msgstr "URL репозитория контента"
 
 #: src/settings_translation_file.cpp
-msgid "The dead zone of the joystick"
-msgstr "Мёртвая зона джойстика"
-
-#: src/settings_translation_file.cpp
 msgid ""
 "The default format in which profiles are being saved,\n"
 "when calling `/profiler save [format]` without format."
@@ -9872,10 +10142,6 @@ msgstr ""
 "* Длинное касание\n"
 "Известно по классическому мобильному управлению Luanti.\n"
 "Сражаться будет почти невозможно."
-
-#: src/settings_translation_file.cpp
-msgid "The identifier of the joystick to use"
-msgstr "Идентификатор используемого контроллера"
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -10032,10 +10298,6 @@ msgstr ""
 "при удержании клавиши размещения."
 
 #: src/settings_translation_file.cpp
-msgid "The type of joystick"
-msgstr "Тип контроллера"
-
-#: src/settings_translation_file.cpp
 msgid ""
 "The vertical distance over which heat drops by 20 if 'altitude_chill' is\n"
 "enabled. Also, the vertical distance over which humidity drops by 10 if\n"
@@ -10046,6 +10308,24 @@ msgstr ""
 "на котором влажность падает на 10, когда «altitude_dry» включён."
 
 #: src/settings_translation_file.cpp
+msgid "Thickness of the cloud layer, in nodes."
+msgstr "Толщина слоя облаков, в узлах."
+
+#: src/settings_translation_file.cpp
+msgid "Thickness of the crosshair lines, in pixels."
+msgstr "Толщина линий прицела, в пикселях."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Thickness of the dark outline around the crosshair, in pixels.\n"
+"Helps a white crosshair stand out against snow and sky, at the cost of\n"
+"thicker strokes. Zero for none."
+msgstr ""
+"Толщина тёмной обводки вокруг прицела, в пикселях.\n"
+"Помогает белому прицелу не потеряться на снегу и в небе ценой более толстых "
+"штрихов. Ноль — без обводки."
+
+#: src/settings_translation_file.cpp
 msgid "Third of 4 2D noises that together define hill/mountain range height."
 msgstr ""
 "Третий из четырёх 2D-шумов, которые вместе определяют диапазон высот холмов "
@@ -10054,6 +10334,10 @@ msgstr ""
 #: src/settings_translation_file.cpp
 msgid "Threshold for long taps"
 msgstr "Порог для длинных нажатий"
+
+#: src/settings_translation_file.cpp
+msgid "Throw away this percentage of incoming packets."
+msgstr "Выбрасывать столько процентов входящих пакетов."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -10233,16 +10517,6 @@ msgstr ""
 "производительностью."
 
 #: src/settings_translation_file.cpp
-msgid ""
-"URL to JSON file which provides information about the newest Luanti "
-"release.\n"
-"If this is empty the engine will never check for updates."
-msgstr ""
-"URL-адрес файла JSON, который предоставляет информацию о последней версии "
-"Luanti.\n"
-"Если поле не заполнено, движок никогда не будет проверять наличие обновлений."
-
-#: src/settings_translation_file.cpp
 msgid "URL to the server list displayed in the Multiplayer Tab."
 msgstr "Адрес списка серверов, отображающийся во вкладке Мультиплеер."
 
@@ -10278,10 +10552,6 @@ msgstr "Неограниченное расстояние передачи иг�
 #: src/settings_translation_file.cpp
 msgid "Unload unused server data"
 msgstr "Выгружать неиспользуемые сервером данные"
-
-#: src/settings_translation_file.cpp
-msgid "Update information URL"
-msgstr "Адрес обновления информации"
 
 #: src/settings_translation_file.cpp
 msgid "Upper Y limit of dungeons."
@@ -10414,6 +10684,14 @@ msgid "Varies steepness of cliffs."
 msgstr "Варьирует крутизну утёсов."
 
 #: src/settings_translation_file.cpp
+msgid ""
+"Vary the emulated latency by up to this many milliseconds either way,\n"
+"which is what reorders packets on a real link."
+msgstr ""
+"Разбрасывать эмулируемую задержку на столько миллисекунд в обе стороны — "
+"именно это меняет порядок пакетов на настоящей линии."
+
+#: src/settings_translation_file.cpp
 msgid "Vertical climbing speed, in nodes per second."
 msgstr "Скорость вертикального лазания в нодах в секунду."
 
@@ -10437,8 +10715,12 @@ msgid "View bobbing factor"
 msgstr "Коэффициент покачивания"
 
 #: src/settings_translation_file.cpp
-msgid "View distance in nodes."
-msgstr "Дальность отрисовки в нодах."
+msgid ""
+"View distance in chunks (1 chunk = 16 blocks).\n"
+"Min = 2"
+msgstr ""
+"Дальность обзора в чанках (1 чанк = 16 блоков).\n"
+"Минимум — 2"
 
 #: src/settings_translation_file.cpp
 msgid "Viewing range"
@@ -10469,6 +10751,10 @@ msgid "Volume when unfocused"
 msgstr "Громкость в фоне"
 
 #: src/settings_translation_file.cpp
+msgid "Volumetric clouds"
+msgstr "Объёмные облака"
+
+#: src/settings_translation_file.cpp
 msgid "Volumetric lighting"
 msgstr "Объёмный свет"
 
@@ -10485,6 +10771,10 @@ msgstr ""
 "Изменяет форму фрактала.\n"
 "Не оказывает влияния на 3D-фракталы.\n"
 "Диапазон примерно от -2 до 2."
+
+#: src/settings_translation_file.cpp
+msgid "Wait for the server to return"
+msgstr "Ждать возвращения сервера"
 
 #: src/settings_translation_file.cpp
 msgid "Walking and flying speed, in nodes per second."
@@ -10539,6 +10829,18 @@ msgstr "Покачивание растений"
 #: src/settings_translation_file.cpp
 msgid "Weblink color"
 msgstr "Цвет ссылки"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"When a server stops answering, keep the world on screen and wait for it to\n"
+"come back instead of returning to the main menu. Restarts and short\n"
+"outages are then barely noticeable.\n"
+"The world is reloaded once the server answers again."
+msgstr ""
+"Когда сервер перестаёт отвечать, держать мир на экране и ждать его "
+"возвращения, а не выходить в главное меню. Перезапуски и короткие обрывы "
+"тогда почти незаметны.\n"
+"Как только сервер ответит снова, мир перезагружается."
 
 #: src/settings_translation_file.cpp
 msgid "When enabled, liquid reflections are simulated."
@@ -10660,7 +10962,19 @@ msgid ""
 "Windows systems only: Start Luanti with the command line window in the "
 "background.\n"
 "Contains the same information as the file logs/latest.log."
-msgstr "Только для систем Windows: запускать Axis с окном командной строки в фоне.\nВ нём то же, что и в файле logs/latest.log."
+msgstr ""
+"Только для систем Windows: запускать Axis с окном командной строки в фоне.\n"
+"В нём то же, что и в файле logs/latest.log."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"World a dedicated server runs, taken from the worlds folder.\n"
+"A world of that name is created if it does not exist yet.\n"
+"The \"--worldname\" and \"--world\" arguments take precedence over this."
+msgstr ""
+"Мир, который поднимает выделенный сервер; берётся из папки worlds.\n"
+"Мир с таким именем создаётся, если его ещё нет.\n"
+"Доводы «--worldname» и «--world» важнее этой настройки."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -10774,19 +11088,96 @@ msgstr "Адрес прокси для cURL"
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
 
-#~ msgid "How big the log may grow before it starts over, in kilobytes."
+#~ msgid ""
+#~ "Define shadow filtering quality.\n"
+#~ "This simulates the soft shadows effect by applying a PCF or Poisson disk\n"
+#~ "but also uses more resources."
 #~ msgstr ""
-#~ "До какого размера растёт журнал, прежде чем начаться заново, — в "
-#~ "килобайтах."
+#~ "Определите качество фильтрации теней.\n"
+#~ "Это имитирует эффект мягких теней, применяя PCF или диск Пуассона,\n"
+#~ "но также использует больше ресурсов."
 
 #~ msgid ""
-#~ "If the file size of debug.txt exceeds the number of megabytes specified "
-#~ "in\n"
-#~ "this setting when it is opened, the file is moved to debug.txt.1,\n"
-#~ "deleting an older debug.txt.1 if it exists.\n"
-#~ "debug.txt is only moved if this setting is positive."
+#~ "Enable Poisson disk filtering.\n"
+#~ "On true uses Poisson disk to make \"soft shadows\". Otherwise uses PCF "
+#~ "filtering."
 #~ msgstr ""
-#~ "Если размер файла debug.txt превысит указанное количество мегабайт,\n"
-#~ "файл будет перемещён в debug.txt.1,\n"
-#~ "а старый debug.txt.1 будет удалён.\n"
-#~ "debug.txt перемещается только тогда, когда это значение положительное."
+#~ "Включить фильтрацию диска Пуассона.\n"
+#~ "Если включена использует диск Пуассона для создания «мягких теней». В "
+#~ "противном случае используется фильтрация PCF."
+
+#~ msgid "Enable joysticks"
+#~ msgstr "Включить контроллер"
+
+#~ msgid "Enable joysticks. Requires a restart to take effect"
+#~ msgstr "Включить поддержку контроллера. Требуется перезапуск"
+
+#~ msgid ""
+#~ "File in client/serverlist/ that contains your favorite servers displayed "
+#~ "in the\n"
+#~ "Multiplayer Tab."
+#~ msgstr ""
+#~ "Файл в папке client/serverlist/, содержащий ваши избранные сервера\n"
+#~ "из вкладки Мультиплеер."
+
+#~ msgid "Gamepads"
+#~ msgstr "Контроллеры"
+
+#~ msgid "Joystick ID"
+#~ msgstr "ID контроллера"
+
+#~ msgid "Joystick type"
+#~ msgstr "Тип джойстика"
+
+#~ msgid "Key for moving fast in fast mode."
+#~ msgstr "Клавиша для быстрого перемещения в режиме быстрого перемещения."
+
+#~ msgid "Keybindings"
+#~ msgstr "Привязки клавиш"
+
+#~ msgid "Poisson filtering"
+#~ msgstr "Фильтрация Пуассона"
+
+#~ msgid "Serverlist file"
+#~ msgstr "Файл списка серверов"
+
+#~ msgid ""
+#~ "Set the soft shadow radius size.\n"
+#~ "Lower values mean sharper shadows, bigger values mean softer shadows.\n"
+#~ "Minimum value: 1.0; maximum value: 15.0"
+#~ msgstr ""
+#~ "Устанавливает радиус мягких теней.\n"
+#~ "Меньшие значения означают более резкие тени, большие значения более "
+#~ "мягкие.\n"
+#~ "Наименьшее значение: 1.0; Наибольшее значение: 10.0"
+
+#~ msgid "Shadow filter quality"
+#~ msgstr "Качество теней"
+
+#~ msgid "Soft shadow radius"
+#~ msgstr "Радиус мягкой тени"
+
+#~ msgid "The dead zone of the joystick"
+#~ msgstr "Мёртвая зона джойстика"
+
+#~ msgid "The identifier of the joystick to use"
+#~ msgstr "Идентификатор используемого контроллера"
+
+#~ msgid "The type of joystick"
+#~ msgstr "Тип контроллера"
+
+#~ msgid ""
+#~ "URL to JSON file which provides information about the newest Luanti "
+#~ "release.\n"
+#~ "If this is empty the engine will never check for updates."
+#~ msgstr ""
+#~ "URL-адрес файла JSON, который предоставляет информацию о последней версии "
+#~ "Luanti.\n"
+#~ "Если поле не заполнено, движок никогда не будет проверять наличие "
+#~ "обновлений."
+
+#~ msgid "Update information URL"
+#~ msgstr "Адрес обновления информации"
+
+#~ msgid "View distance in nodes."
+#~ msgstr "Дальность отрисовки в нодах."
