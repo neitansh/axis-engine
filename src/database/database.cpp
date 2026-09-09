@@ -14,7 +14,11 @@
  */
 s64 MapDatabase::getBlockAsInteger(const v3s16 &pos)
 {
-	return ((s64) pos.Z << 24) + ((s64) pos.Y << 12) + pos.X;
+	// Shifted as unsigned, not signed: block coordinates are routinely
+	// negative, and shifting a negative value left is undefined behaviour
+	// before C++20. The unsigned shift is defined to wrap, and converting the
+	// result back yields the very same number this has always encoded.
+	return (s64)((u64) pos.Z << 24) + (s64)((u64) pos.Y << 12) + pos.X;
 }
 
 

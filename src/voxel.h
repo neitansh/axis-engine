@@ -266,10 +266,14 @@ public:
 	*/
 	s32 index(s16 x, s16 y, s16 z) const
 	{
-		s32 i = (s32)(z - MinEdge.Z) * m_cache_extent.Y * m_cache_extent.X
-			+ (y - MinEdge.Y) * m_cache_extent.X
-			+ (x - MinEdge.X);
-		return i;
+		// Counted unsigned, like getVolume() above: an area big enough to run
+		// past the index does not occur on a map, but the tests build one, and
+		// signed overflow is undefined behaviour rather than a wrap. Unsigned
+		// wrapping is defined and gives bit for bit the same number.
+		u32 i = (u32)(z - MinEdge.Z) * (u32)m_cache_extent.Y * (u32)m_cache_extent.X
+			+ (u32)(y - MinEdge.Y) * (u32)m_cache_extent.X
+			+ (u32)(x - MinEdge.X);
+		return (s32)i;
 	}
 	s32 index(v3s16 p) const
 	{
