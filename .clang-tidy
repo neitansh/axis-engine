@@ -1,4 +1,10 @@
-Checks: '-*,modernize-use-emplace,modernize-avoid-bind,misc-throw-by-value-catch-by-reference,misc-unconventional-assign-operator,performance-*,-performance-avoid-endl,performance-inefficient-string-concatenation'
+# performance-enum-size выключен намеренно. Он говорит не об ошибке, а о
+# размере: «перечисление уместилось бы в байт вместо четырёх». Выигрыш
+# появляется там, где перечисления лежат в памяти пачками, а у нас они
+# почти всюду доводы и возвращаемые значения, то есть регистры. У сетевых
+# же (ToClientCommand, CSMRestrictionFlags) ширина типа описывает формат на
+# проводе, и «сжать» её значило бы соврать про протокол.
+Checks: '-*,modernize-use-emplace,modernize-avoid-bind,misc-throw-by-value-catch-by-reference,misc-unconventional-assign-operator,performance-*,-performance-avoid-endl,-performance-enum-size,performance-inefficient-string-concatenation'
 WarningsAsErrors: '*'
 CheckOptions:
   - key: performance-unnecessary-value-param.AllowedTypes
