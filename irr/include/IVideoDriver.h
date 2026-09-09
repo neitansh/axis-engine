@@ -67,6 +67,12 @@ struct SFrameStats {
 	u32 SWSkinnedMeshes = 0;
 	//! Number of hardware skinned mesh scene nodes
 	u32 HWSkinnedMeshes = 0;
+	/** Наносекунды, потраченные на подготовку состояния перед вызовами
+	 * отрисовки (материал, шейдерные uniform'ы). Считается только при
+	 * AXIS_RENDER_PROBE, иначе ноль. */
+	u64 StateNs = 0;
+	/** Наносекунды в самих вызовах отрисовки GL. См. StateNs. */
+	u64 DrawNs = 0;
 };
 
 struct SDriverLimits {
@@ -824,6 +830,20 @@ public:
 	//! Collect the GPU timings that have become available.
 	/** \param out Receives (slot, nanoseconds) for every finished section. */
 	virtual void collectTimerQueries(std::vector<std::pair<u32, u64>> &out) {}
+
+	//! Умеет ли драйвер считать вызовы пиксельного шейдера
+	virtual bool supportsFragmentCounters() const { return false; }
+
+	/** Начать счёт вызовов пиксельного шейдера для участка @p slot.
+	 * За кадр может быть открыт только один такой счёт: аппаратный счётчик
+	 * один, вложенные запросы в OpenGL запрещены. */
+	virtual void beginFragmentQuery(u32 slot) {}
+
+	//! Закрыть счёт, открытый beginFragmentQuery()
+	virtual void endFragmentQuery() {}
+
+	//! Забрать готовые ответы: пары (участок, число вызовов шейдера)
+	virtual void collectFragmentQueries(std::vector<std::pair<u32, u64>> &out) {}
 
 	//! Gets name of this video driver.
 	/** \return Returns the name of the video driver, e.g. in case

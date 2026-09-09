@@ -75,6 +75,9 @@ class FogShaderUniformSetter : public IShaderUniformSetter
 	CachedPixelShaderSetting<float> m_fog_shading_parameter{"fogShadingParameter"};
 
 public:
+	// Туман задаётся на кадр, а не на порцию геометрии
+	bool isPerDraw() const override { return false; }
+
 	void onSetUniforms(video::IMaterialRendererServices *services) override
 	{
 		auto *driver = services->getVideoDriver();

@@ -15,6 +15,7 @@
 #include "node_visuals.h"
 #include "nodedef.h"
 #include "player.h" // CameraMode
+#include "porting.h"
 #include "profiler.h"
 #include "settings.h"
 #include "camera.h"
@@ -1144,7 +1145,20 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 	// Render all mesh buffers in order
 	drawcall_count += draw_order.size();
 
+	/*
+	 * Разбор выдачи геометрии по частям, для замеров.
+	 *
+	 * Секундомер вокруг каждой порции сам стоит времени, поэтому включается
+	 * переменной среды AXIS_RENDER_PROBE и в игре не работает. Нужен он затем,
+	 * что «выдача мешей» - это три разные работы: смена материала, установка
+	 * матрицы и собственно вызов отрисовки, и без разделения непонятно, какая
+	 * из них стоит дорого.
+	 */
+	static const bool probe = getenv("AXIS_RENDER_PROBE") != nullptr;
+	u64 probe_material = 0, probe_transform = 0, probe_submit = 0;
+
 	for (auto &descriptor : draw_order) {
+		const u64 probe_t0 = probe ? porting::getTimeNs() : 0;
 		if (!descriptor.m_reuse_material) {
 			auto &material = descriptor.getMaterial();
 
@@ -1178,10 +1192,27 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 			material.TextureLayers[ShadowRenderer::TEXTURE_LAYER_SHADOW].Texture = nullptr;
 		}
 
+		const u64 probe_t1 = probe ? porting::getTimeNs() : 0;
+
 		m.setTranslation(descriptor.m_pos);
 		driver->setTransform(video::ETS_WORLD, m);
 
+		const u64 probe_t2 = probe ? porting::getTimeNs() : 0;
+
 		vertex_count += descriptor.draw(driver);
+
+		if (probe) {
+			const u64 probe_t3 = porting::getTimeNs();
+			probe_material += probe_t1 - probe_t0;
+			probe_transform += probe_t2 - probe_t1;
+			probe_submit += probe_t3 - probe_t2;
+		}
+	}
+
+	if (probe) {
+		g_profiler->avg(prefix + "probe material [us]", probe_material / 1000.0f);
+		g_profiler->avg(prefix + "probe transform [us]", probe_transform / 1000.0f);
+		g_profiler->avg(prefix + "probe submit [us]", probe_submit / 1000.0f);
 	}
 
 	g_profiler->avg(prefix + "draw meshes [us]", tt_draw.stop(true));

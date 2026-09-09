@@ -6,6 +6,7 @@
 #include "plain.h"
 #include "secondstage.h"
 #include "settings.h"
+#include "profiler.h"
 #include "client/camera.h"
 #include "client/client.h"
 #include "client/clientmap.h"
@@ -49,13 +50,19 @@ void DrawHUD::run(PipelineContext &context)
 			context.hud->drawCrosshair();
 	}
 
-	context.hud->drawLuaElements(context.client->getCamera()->getOffset(), !context.show_hud);
+	{
+		ScopeProfiler sp(g_profiler, "DrawHUD: lua elements [us]", SPT_AVG, PRECISION_MICRO);
+		context.hud->drawLuaElements(context.client->getCamera()->getOffset(), !context.show_hud);
+	}
 
 	if (context.show_hud) {
 		context.client->getCamera()->drawNametags();
 	}
 
-	context.device->getGUIEnvironment()->drawAll();
+	{
+		ScopeProfiler sp(g_profiler, "DrawHUD: gui environment [us]", SPT_AVG, PRECISION_MICRO);
+		context.device->getGUIEnvironment()->drawAll();
+	}
 }
 
 

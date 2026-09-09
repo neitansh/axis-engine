@@ -7,6 +7,9 @@
 #include <cassert>
 
 #include "Driver.h"
+
+#include <cstdlib>
+#include <chrono>
 #include "CNullDriver.h"
 #include "IContextManager.h"
 
@@ -290,6 +293,24 @@ bool COpenGL3DriverBase::genericDriverInit(const core::dimension2d<u32> &screenS
 	TimerQueriesSupported = GL.QueryCounter != NULL && GL.GetQueryObjectui64v != NULL
 			&& GL.GenQueries != NULL && GL.GetQueryObjectuiv != NULL;
 
+	// Объекты массивов вершин: см. SHWBufferLink_opengl::Vao. Переменная среды
+	// нужна для сравнения замеров со старым путём и ничего больше не делает.
+	VaoEnabled = GL.GenVertexArrays != NULL && GL.BindVertexArray != NULL
+			&& GL.DeleteVertexArrays != NULL;
+	if (const char *off = getenv("AXIS_RENDER_VAO"); off && off[0] == '0')
+		VaoEnabled = false;
+
+	DrawProbe = getenv("AXIS_RENDER_PROBE") != NULL;
+
+	/*
+	 * Счётчик вызовов пиксельного шейдера. Расширение к OpenGL 4.x; без него
+	 * перерисовку померить нечем, и метрика просто не появляется в профиле.
+	 */
+	FragmentQueriesSupported = GL.BeginQuery != NULL && GL.EndQuery != NULL
+			&& GL.GenQueries != NULL && GL.GetQueryObjectuiv != NULL
+			&& GL.GetQueryObjectui64v != NULL
+			&& queryExtension("GL_ARB_pipeline_statistics_query");
+
 	// reset cache handler
 	delete CacheHandler;
 	CacheHandler = new COpenGL3CacheHandler(this);
@@ -562,6 +583,13 @@ bool COpenGL3DriverBase::updateHardwareBuffer(SHWBufferLink *HWBuffer)
 	return true;
 }
 
+/// Часы для разбора выдачи геометрии, см. COpenGL3DriverBase::DrawProbe
+static inline u64 probeClockNs()
+{
+	return (u64)std::chrono::duration_cast<std::chrono::nanoseconds>(
+			std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
 COpenGL3DriverBase::SHWBufferLink *COpenGL3DriverBase::createHardwareBuffer(const scene::HWBuffer *buf)
 {
 	if (!buf || buf->MappingHint == scene::EHM_NEVER)
@@ -584,6 +612,14 @@ void COpenGL3DriverBase::deleteHardwareBuffer(SHWBufferLink *HWBuffer)
 		return;
 
 	auto *b = static_cast<SHWBufferLink_opengl *>(HWBuffer);
+	if (b->Vao) {
+		if (CurrentVao == b->Vao) {
+			GL.BindVertexArray(0);
+			CurrentVao = 0;
+		}
+		GL.DeleteVertexArrays(1, &b->Vao);
+		b->Vao = 0;
+	}
 	b->Vbo.destroy();
 
 	CNullDriver::deleteHardwareBuffer(HWBuffer);
@@ -609,6 +645,12 @@ void COpenGL3DriverBase::drawBuffers(const scene::IVertexBuffer *vb,
 	updateHardwareBuffer(hwvert);
 	updateHardwareBuffer(hwidx);
 
+	// Всё, что идёт мимо записанной раскладки, задаёт поля вершины само и
+	// ждёт нулевого объекта: чужой, оставшийся с прошлой порции, принял бы
+	// эти поля в себя, а рисовали бы всё равно не по нему.
+	if (!(VaoEnabled && hwvert && hwidx && !hw_weights))
+		useDefaultVao();
+
 	if (hw_weights) {
 		// Bind the weight & joint ID VBOs
 		GL.BindBuffer(GL_ARRAY_BUFFER, hw_weights->Vbo.getName());
@@ -620,6 +662,56 @@ void COpenGL3DriverBase::drawBuffers(const scene::IVertexBuffer *vb,
 				buffer_offset(offsetof(scene::WeightBuffer::VertexWeights, joint_ids)));
 		GL.EnableVertexAttribArray(EVA_JOINT_IDS);
 		GL.BindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
+	/*
+	 * Обе стороны геометрии лежат в памяти видеокарты - значит раскладку полей
+	 * вершины можно не диктовать заново, а взять записанную. Всё остальное
+	 * (вершины из оперативной памяти, скиннинг) идёт прежним путём.
+	 */
+	if (VaoEnabled && hwvert && hwidx && !hw_weights) {
+		if (!PrimitiveCount || !vb->getCount() || !checkPrimitiveCount(PrimitiveCount))
+			return;
+
+		CNullDriver::drawVertexPrimitiveList(nullptr, vb->getCount(), nullptr,
+			PrimitiveCount, vb->getType(), PrimitiveType, ib->getType());
+
+		const u64 probe_t0 = DrawProbe ? probeClockNs() : 0;
+		setRenderStates3DMode();
+		const u64 probe_t1 = DrawProbe ? probeClockNs() : 0;
+
+		const GLuint vbo = hwvert->Vbo.getName();
+		const GLuint ibo = hwidx->Vbo.getName();
+		const s32 vtype = (s32)vb->getType();
+
+		if (hwvert->Vao == 0)
+			GL.GenVertexArrays(1, &hwvert->Vao);
+		if (CurrentVao != hwvert->Vao) {
+			GL.BindVertexArray(hwvert->Vao);
+			CurrentVao = hwvert->Vao;
+		}
+
+		if (hwvert->VaoVbo != vbo || hwvert->VaoVertexType != vtype) {
+			GL.BindBuffer(GL_ARRAY_BUFFER, vbo);
+			setupVertexAttributes(getVertexTypeDescription(vb->getType()), 0);
+			GL.BindBuffer(GL_ARRAY_BUFFER, 0);
+			GL.BindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+			hwvert->VaoVbo = vbo;
+			hwvert->VaoIbo = ibo;
+			hwvert->VaoVertexType = vtype;
+		} else if (hwvert->VaoIbo != ibo) {
+			GL.BindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+			hwvert->VaoIbo = ibo;
+		}
+
+		drawWithVao(PrimitiveCount, PrimitiveType, ib->getType());
+
+		if (DrawProbe) {
+			const u64 probe_t2 = probeClockNs();
+			FrameStats.StateNs += probe_t1 - probe_t0;
+			FrameStats.DrawNs += probe_t2 - probe_t1;
+		}
+		return;
 	}
 
 	const void *vertices = vb->getData();
@@ -1060,7 +1152,54 @@ void COpenGL3DriverBase::drawGeneric(const void *vertices, const void *indexList
 	endDraw(vTypeDesc);
 }
 
+void COpenGL3DriverBase::drawWithVao(u32 primitiveCount,
+		scene::E_PRIMITIVE_TYPE pType, E_INDEX_TYPE iType)
+{
+	const GLenum indexSize = (iType == EIT_32BIT) ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
+
+	switch (pType) {
+	case scene::EPT_POINTS:
+	case scene::EPT_POINT_SPRITES:
+		GL.DrawArrays(GL_POINTS, 0, primitiveCount);
+		break;
+	case scene::EPT_LINE_STRIP:
+		GL.DrawElements(GL_LINE_STRIP, primitiveCount + 1, indexSize, nullptr);
+		break;
+	case scene::EPT_LINE_LOOP:
+		GL.DrawElements(GL_LINE_LOOP, primitiveCount, indexSize, nullptr);
+		break;
+	case scene::EPT_LINES:
+		GL.DrawElements(GL_LINES, primitiveCount * 2, indexSize, nullptr);
+		break;
+	case scene::EPT_TRIANGLE_STRIP:
+		GL.DrawElements(GL_TRIANGLE_STRIP, primitiveCount + 2, indexSize, nullptr);
+		break;
+	case scene::EPT_TRIANGLE_FAN:
+		GL.DrawElements(GL_TRIANGLE_FAN, primitiveCount + 2, indexSize, nullptr);
+		break;
+	case scene::EPT_TRIANGLES:
+		GL.DrawElements(GL_TRIANGLES, primitiveCount * 3, indexSize, nullptr);
+		break;
+	default:
+		break;
+	}
+}
+
+void COpenGL3DriverBase::useDefaultVao()
+{
+	if (CurrentVao != 0) {
+		GL.BindVertexArray(0);
+		CurrentVao = 0;
+	}
+}
+
 void COpenGL3DriverBase::beginDraw(const VertexType &vertexType, uintptr_t verticesBase)
+{
+	useDefaultVao();
+	setupVertexAttributes(vertexType, verticesBase);
+}
+
+void COpenGL3DriverBase::setupVertexAttributes(const VertexType &vertexType, uintptr_t verticesBase)
 {
 	for (auto &attr : vertexType) {
 		if (attr.mode == VertexAttribute::Mode::Integer && Version.Major < 3) {
@@ -2027,6 +2166,62 @@ void COpenGL3DriverBase::endTimerQuery()
 	if (q.end == 0)
 		return;
 	GL.QueryCounter(q.end, GL.TIMESTAMP);
+}
+
+/// Число вызовов пиксельного шейдера, GL_FRAGMENT_SHADER_INVOCATIONS_ARB
+static constexpr GLenum FRAGMENT_SHADER_INVOCATIONS = 0x82F4;
+
+void COpenGL3DriverBase::beginFragmentQuery(u32 slot)
+{
+	if (!FragmentQueriesSupported || FragmentQueryOpen)
+		return;
+	if (PendingFragmentQueries.size() > 64)
+		return;
+
+	FragmentQuery q;
+	q.slot = slot;
+	if (!FreeFragmentQueries.empty()) {
+		q.id = FreeFragmentQueries.back();
+		FreeFragmentQueries.pop_back();
+	} else {
+		GL.GenQueries(1, &q.id);
+	}
+	if (q.id == 0)
+		return;
+
+	GL.BeginQuery(FRAGMENT_SHADER_INVOCATIONS, q.id);
+	FragmentQueryOpen = true;
+	PendingFragmentQueries.push_back(q);
+}
+
+void COpenGL3DriverBase::endFragmentQuery()
+{
+	if (!FragmentQueryOpen)
+		return;
+	GL.EndQuery(FRAGMENT_SHADER_INVOCATIONS);
+	FragmentQueryOpen = false;
+}
+
+void COpenGL3DriverBase::collectFragmentQueries(std::vector<std::pair<u32, u64>> &out)
+{
+	if (!FragmentQueriesSupported)
+		return;
+
+	size_t keep = 0;
+	for (size_t i = 0; i < PendingFragmentQueries.size(); i++) {
+		FragmentQuery q = PendingFragmentQueries[i];
+		GLuint ready = 0;
+		GL.GetQueryObjectuiv(q.id, GL.QUERY_RESULT_AVAILABLE, &ready);
+		if (!ready) {
+			PendingFragmentQueries[keep++] = q;
+			continue;
+		}
+		GLuint64 count = 0;
+		GL.GetQueryObjectui64v(q.id, GL.QUERY_RESULT, &count);
+		out.emplace_back(q.slot, (u64)count);
+		FreeFragmentQueries.push_back(q.id);
+	}
+	PendingFragmentQueries.resize(keep);
 }
 
 void COpenGL3DriverBase::collectTimerQueries(std::vector<std::pair<u32, u64>> &out)

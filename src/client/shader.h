@@ -63,7 +63,22 @@ public:
 	virtual void onSetUniforms(video::IMaterialRendererServices *services) = 0;
 	virtual void onSetMaterial(const video::SMaterial& material)
 	{ }
+
+	/**
+	 * Меняются ли значения этого установщика от одной порции геометрии к
+	 * другой.
+	 *
+	 * Uniform живёт в программе, а не в вызове отрисовки, поэтому значение,
+	 * одинаковое для всего кадра, достаточно отправить один раз - при первой
+	 * порции этого кадра и после каждой смены материала. Установщик, у
+	 * которого меняется хоть что-то (мировая матрица), обязан отвечать true,
+	 * иначе геометрия уедет.
+	 */
+	virtual bool isPerDraw() const { return true; }
 };
+
+/// Номер текущего кадра отрисовки, см. Game::drawScene()
+extern u64 g_render_frame_serial;
 
 class IShaderUniformSetterRC : public IReferenceCounted, public IShaderUniformSetter
 {
@@ -89,12 +104,33 @@ public:
 	multiple different shaders. But you probably don't want to anyway.
 */
 
+/*
+ * Переключатель для сравнения замеров: запоминать ли номера uniform'ов.
+ *
+ * Считывается один раз из переменной среды AXIS_RENDER_UNIFORM_ID_CACHE и
+ * нужен только для того, чтобы старый и новый путь можно было прогнать на
+ * одной и той же сборке. В игре он всегда включён.
+ */
+extern bool g_render_cache_uniform_ids;
+
 template <typename T, std::size_t count, bool cache>
 class CachedShaderSetting {
 	const char *m_name;
 	T m_sent[count];
 	bool has_been_set = false;
 	bool is_pixel;
+	/*
+	 * Номер uniform'а в программе, найденный один раз.
+	 *
+	 * Найти его по имени стоит перебора всех uniform'ов программы со
+	 * сравнением строк на каждом. Значения вроде мировой матрицы меняются к
+	 * каждому вызову отрисовки, поэтому этот перебор шёл сотни раз за кадр и
+	 * стоил заметно дороже самой отправки числа. У одного установщика
+	 * программа своя и не меняется; указатель сторожит редкий случай, когда
+	 * установщик всё же делят между программами.
+	 */
+	video::IMaterialRendererServices *m_id_owner = nullptr;
+	s32 m_id = -1;
 protected:
 	CachedShaderSetting(const char *name, bool is_pixel) :
 		m_name(name), is_pixel(is_pixel)
@@ -104,10 +140,15 @@ public:
 	{
 		if (cache && has_been_set && std::equal(m_sent, m_sent + count, value))
 			return;
+		if (m_id_owner != services || !g_render_cache_uniform_ids) {
+			m_id = is_pixel ? services->getPixelShaderConstantID(m_name)
+					: services->getVertexShaderConstantID(m_name);
+			m_id_owner = services;
+		}
 		if (is_pixel)
-			services->setPixelShaderConstant(services->getPixelShaderConstantID(m_name), value, count);
+			services->setPixelShaderConstant(m_id, value, count);
 		else
-			services->setVertexShaderConstant(services->getVertexShaderConstantID(m_name), value, count);
+			services->setVertexShaderConstant(m_id, value, count);
 
 		if (cache) {
 			std::copy(value, value + count, m_sent);
@@ -187,6 +228,9 @@ class CachedStructShaderSetting {
 	T m_sent[count];
 	bool has_been_set = false;
 	std::array<const char*, count> m_fields;
+	// См. CachedShaderSetting: имена полей склеиваются и ищутся один раз
+	video::IMaterialRendererServices *m_id_owner = nullptr;
+	std::array<s32, count> m_ids;
 public:
 	CachedStructShaderSetting(const char *name, std::array<const char*, count> &&fields) :
 		m_name(name), m_fields(std::move(fields))
@@ -197,13 +241,21 @@ public:
 		if (cache && has_been_set && std::equal(m_sent, m_sent + count, value))
 			return;
 
-		for (std::size_t i = 0; i < count; i++) {
-			std::string uniform_name = std::string(m_name) + "." + m_fields[i];
+		if (m_id_owner != services || !g_render_cache_uniform_ids) {
+			for (std::size_t i = 0; i < count; i++) {
+				std::string uniform_name = std::string(m_name) + "." + m_fields[i];
+				m_ids[i] = is_pixel
+						? services->getPixelShaderConstantID(uniform_name.c_str())
+						: services->getVertexShaderConstantID(uniform_name.c_str());
+			}
+			m_id_owner = services;
+		}
 
+		for (std::size_t i = 0; i < count; i++) {
 			if (is_pixel)
-				services->setPixelShaderConstant(services->getPixelShaderConstantID(uniform_name.c_str()), value + i, 1);
+				services->setPixelShaderConstant(m_ids[i], value + i, 1);
 			else
-				services->setVertexShaderConstant(services->getVertexShaderConstantID(uniform_name.c_str()), value + i, 1);
+				services->setVertexShaderConstant(m_ids[i], value + i, 1);
 		}
 
 		if (cache) {

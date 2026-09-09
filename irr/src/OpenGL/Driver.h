@@ -47,6 +47,24 @@ public:
 		SHWBufferLink_opengl(const scene::HWBuffer *buf) : SHWBufferLink(buf), Vbo(OGLBufferObject::TARGET_VBO) {}
 
 		OGLBufferObject Vbo;
+
+		/*
+		 * Раскладка вершин, записанная в GL один раз на буфер.
+		 *
+		 * Без неё каждый вызов отрисовки заново перечисляет драйверу поля
+		 * вершины: включить поток, сказать смещение и шаг, а после отрисовки
+		 * выключить обратно. Для обычной вершины это пятнадцать вызовов GL на
+		 * одну порцию геометрии, и на сцене в несколько сотен порций они
+		 * становятся заметной частью кадра. Объект массива вершин помнит эту
+		 * раскладку за нас: остаётся привязать его и рисовать.
+		 *
+		 * Имена буферов запоминаются рядом, потому что объект помнит именно их,
+		 * а не наши указатели: сменился буфер - раскладку надо записать заново.
+		 */
+		GLuint Vao = 0;
+		GLuint VaoVbo = 0;
+		GLuint VaoIbo = 0;
+		s32 VaoVertexType = -1;
 	};
 
 	bool _updateHardwareBuffer(SHWBufferLink_opengl *HWBuffer);
@@ -311,6 +329,35 @@ protected:
 	void beginDraw(const VertexType &vertexType, uintptr_t verticesBase);
 	void endDraw(const VertexType &vertexType);
 
+	//! Перечислить поля вершины драйверу (в текущий VAO или в нулевой)
+	void setupVertexAttributes(const VertexType &vertexType, uintptr_t verticesBase);
+
+	/**
+	 * Вернуться к нулевому объекту массива вершин.
+	 *
+	 * Пути, которые задают поля вершины сами - двумерная отрисовка, вершины из
+	 * оперативной памяти, - работают с нулевым объектом, и оставленный
+	 * привязанным чужой сбил бы их с толку.
+	 */
+	void useDefaultVao();
+
+	//! Привязанный сейчас объект массива вершин
+	GLuint CurrentVao = 0;
+
+	//! Рисует уже привязанный VAO, без перечисления полей вершины
+	void drawWithVao(u32 primitiveCount, scene::E_PRIMITIVE_TYPE pType, E_INDEX_TYPE iType);
+
+	//! Есть ли объекты массивов вершин и разрешены ли они настройкой
+	bool VaoEnabled = false;
+
+	//! Разложить выдачу геометрии на подготовку состояния и сам вызов GL
+	bool DrawProbe = false;
+
+	bool supportsFragmentCounters() const override { return FragmentQueriesSupported; }
+	void beginFragmentQuery(u32 slot) override;
+	void endFragmentQuery() override;
+	void collectFragmentQueries(std::vector<std::pair<u32, u64>> &out) override;
+
 	COpenGL3CacheHandler *CacheHandler;
 	core::stringc Name;
 	core::stringc VendorName;
@@ -391,6 +438,23 @@ private:
 	std::vector<GLuint> FreeQueries;      // отработавшие метки, готовые к переиспользованию
 	std::vector<TimerQuery> PendingQueries;
 	std::vector<u32> OpenQueries;         // индексы незакрытых замеров, для вложенности
+
+	/*
+	 * Счёт вызовов пиксельного шейдера, он же мера перерисовки.
+	 *
+	 * Аппаратный счётчик один и вложенных запросов не допускает, поэтому за
+	 * кадр меряется ровно один участок конвейера, а участки перебираются по
+	 * очереди - за десяток кадров набирается вся картина. Ответ, как и у
+	 * меток времени, забирается позже, когда он готов.
+	 */
+	struct FragmentQuery {
+		u32 slot = 0;
+		GLuint id = 0;
+	};
+	bool FragmentQueriesSupported = false;
+	bool FragmentQueryOpen = false;
+	std::vector<FragmentQuery> PendingFragmentQueries;
+	std::vector<GLuint> FreeFragmentQueries;
 
 	GLuint takeQueryObject();
 	void releaseQueryObjects();

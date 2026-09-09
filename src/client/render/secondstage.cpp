@@ -5,15 +5,19 @@
 // Copyright (C) 2020 appgurueu, Lars Mueller <appgurulars@gmx.de>
 
 #include "secondstage.h"
+
+#include <cstdlib>
 #include "client/client.h"
 #include "client/shader.h"
 #include "settings.h"
 #include "plain.h"
+#include "porting.h"
 #include "profiler.h"
 #include <ISceneManager.h>
 
-PostProcessingStep::PostProcessingStep(u32 _shader_id, const std::vector<u8> &_texture_map) :
-	shader_id(_shader_id), texture_map(_texture_map)
+PostProcessingStep::PostProcessingStep(u32 _shader_id, const std::vector<u8> &_texture_map,
+		const std::string &label) :
+	shader_id(_shader_id), m_label(label), texture_map(_texture_map)
 {
 	assert(texture_map.size() <= video::MATERIAL_MAX_TEXTURES);
 	configureMaterial();
@@ -49,8 +53,13 @@ void PostProcessingStep::reset(PipelineContext &context)
 
 void PostProcessingStep::run(PipelineContext &context)
 {
+	// Разбор шага на части, для замеров. См. AXIS_RENDER_PROBE в ClientMap.
+	static const bool probe = getenv("AXIS_RENDER_PROBE") != nullptr;
+
+	const u64 t0 = probe ? porting::getTimeNs() : 0;
 	if (target)
 		target->activate(context);
+	const u64 t1 = probe ? porting::getTimeNs() : 0;
 
 	// attach the shader
 	material.MaterialType = context.client->getShaderSource()->getShaderInfo(shader_id).material;
@@ -72,8 +81,18 @@ void PostProcessingStep::run(PipelineContext &context)
 					color, 1.0, 1.0),
 	};
 	static const u16 indices[6] = {0, 1, 2, 2, 3, 0};
+	const u64 t2 = probe ? porting::getTimeNs() : 0;
 	driver->setMaterial(material);
+	const u64 t3 = probe ? porting::getTimeNs() : 0;
 	driver->drawVertexPrimitiveList(&vertices, 4, &indices, 2);
+
+	if (probe) {
+		const u64 t4 = porting::getTimeNs();
+		g_profiler->avg("Probe: post target [us]", (t1 - t0) / 1000.0f);
+		g_profiler->avg("Probe: post textures [us]", (t2 - t1) / 1000.0f);
+		g_profiler->avg("Probe: post material [us]", (t3 - t2) / 1000.0f);
+		g_profiler->avg("Probe: post quad [us]", (t4 - t3) / 1000.0f);
+	}
 }
 
 void PostProcessingStep::setBilinearFilter(u8 index, bool value)
@@ -197,7 +216,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 
 		shader_id = client->getShaderSource()->getShaderRaw("volumetric_clouds");
 		auto clouds = pipeline->addStep<PostProcessingStep>(shader_id,
-				std::vector<u8> { TEXTURE_COLOR, TEXTURE_DEPTH });
+				std::vector<u8> { TEXTURE_COLOR, TEXTURE_DEPTH }, "volumetric_clouds");
 		clouds->setRenderSource(buffer);
 		clouds->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(
 				buffer, TEXTURE_CLOUDS));
@@ -229,11 +248,27 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 		}
 
 		if (enable_bloom) {
-			buffer->setTexture(TEXTURE_BLOOM, scale, "bloom", bloom_format);
+			/*
+			 * Яркие места выделяются в половинном разрешении.
+			 *
+			 * Эта картинка нигде не показывается: следующим шагом её всё равно
+			 * уменьшают вдвое и размывают. В полном разрешении она стоила
+			 * полноэкранной записи шестнадцати байт на точку, а давала ровно
+			 * то же самое свечение. Выборка идёт с усреднением, так что четыре
+			 * точки складываются в одну честно, а не через одну.
+			 */
+			const bool bloom_half = [] {
+				const char *v = getenv("AXIS_RENDER_BLOOM_HALF");
+				return !(v && v[0] == '0');
+			}();
+			const v2f bloom_scale = bloom_half ? scale * 0.5f : scale;
+			buffer->setTexture(TEXTURE_BLOOM, bloom_scale, "bloom", bloom_format);
 
 			// get bright spots
 			u32 shader_id = client->getShaderSource()->getShaderRaw("extract_bloom");
-			RenderStep *extract_bloom = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { source, TEXTURE_EXPOSURE_1 });
+			auto *extract_bloom = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { source, TEXTURE_EXPOSURE_1 }, "extract_bloom");
+			if (bloom_half)
+				extract_bloom->setBilinearFilter(0, true);
 			extract_bloom->setRenderSource(buffer);
 			extract_bloom->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_BLOOM));
 			source = TEXTURE_BLOOM;
@@ -253,7 +288,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 			buffer->setTexture(TEXTURE_VOLUME, scale * 0.5f, "volume", bloom_format);
 
 			shader_id = client->getShaderSource()->getShaderRaw("volumetric_light");
-			auto volume = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { source, TEXTURE_DEPTH });
+			auto volume = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { source, TEXTURE_DEPTH }, "volumetric_light");
 			// Картинка читается вдвое реже, чем в неё писали, поэтому берём
 			// среднее по четырём точкам, а не одну из них. Глубину (слой 1)
 			// сглаживать нельзя: шейдер сравнивает её с единицей, и на краях
@@ -267,7 +302,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 		// downsample
 		shader_id = client->getShaderSource()->getShaderRaw("bloom_downsample");
 		for (u8 i = 0; i < MIPMAP_LEVELS; i++) {
-			auto step = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { source });
+			auto step = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { source }, "downsample" + std::to_string(i));
 			step->setRenderSource(buffer);
 			step->setBilinearFilter(0, true);
 			step->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_SCALE_DOWN + i));
@@ -280,7 +315,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 		// upsample
 		shader_id = client->getShaderSource()->getShaderRaw("bloom_upsample");
 		for (u8 i = MIPMAP_LEVELS - 1; i > 0; i--) {
-			auto step = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { u8(TEXTURE_SCALE_DOWN + i - 1), source });
+			auto step = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { u8(TEXTURE_SCALE_DOWN + i - 1), source }, "upsample" + std::to_string(i - 1));
 			step->setRenderSource(buffer);
 			step->setBilinearFilter(0, true);
 			step->setBilinearFilter(1, true);
@@ -292,7 +327,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 	// Dynamic Exposure pt2
 	if (enable_auto_exposure) {
 		shader_id = client->getShaderSource()->getShaderRaw("update_exposure");
-		auto update_exposure = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { TEXTURE_EXPOSURE_1, u8(TEXTURE_SCALE_DOWN + MIPMAP_LEVELS - 1) });
+		auto update_exposure = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { TEXTURE_EXPOSURE_1, u8(TEXTURE_SCALE_DOWN + MIPMAP_LEVELS - 1) }, "update_exposure");
 		update_exposure->setBilinearFilter(1, true);
 		update_exposure->setRenderSource(buffer);
 		update_exposure->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_EXPOSURE_2));
@@ -306,7 +341,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 
 		buffer->setTexture(TEXTURE_FXAA, scale, "fxaa", color_format);
 		shader_id = client->getShaderSource()->getShaderRaw("fxaa");
-		PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { scene_color });
+		PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { scene_color }, "fxaa");
 		pipeline->addStep(effect);
 		effect->setBilinearFilter(0, true);
 		effect->setRenderSource(buffer);
@@ -315,7 +350,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 
 	// final merge
 	shader_id = client->getShaderSource()->getShaderRaw("second_stage");
-	PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { final_stage_source, TEXTURE_SCALE_UP, TEXTURE_EXPOSURE_2 });
+	PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { final_stage_source, TEXTURE_SCALE_UP, TEXTURE_EXPOSURE_2 }, "second_stage");
 	pipeline->addStep(effect);
 	if (enable_ssaa)
 		effect->setBilinearFilter(0, true);

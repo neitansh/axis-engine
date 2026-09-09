@@ -36,6 +36,9 @@ public:
 	ShadowUniformSetter() = default;
 	~ShadowUniformSetter() = default;
 
+	// Солнце, карта теней и их параметры за кадр не меняются
+	bool isPerDraw() const override { return false; }
+
 	virtual void onSetUniforms(video::IMaterialRendererServices *services) override;
 };
 

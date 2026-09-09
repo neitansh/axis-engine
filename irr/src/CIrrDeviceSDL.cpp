@@ -439,6 +439,18 @@ CIrrDeviceSDL::CIrrDeviceSDL(const SIrrlichtCreationParameters &param) :
 
 #if defined(SDL_HINT_APP_NAME)
 		SDL_SetHint(SDL_HINT_APP_NAME, "Axis");
+
+		/*
+		 * Окно для замеров не лезет поверх работы.
+		 *
+		 * Прогон стенда - это десятки запусков подряд, и каждый забирал у
+		 * хозяина машины фокус, а вместе с ним клавиатуру и мышь: игра в
+		 * относительном режиме мыши держит указатель у себя. С этой
+		 * переменной среды окно открывается неактивным и указатель не
+		 * захватывает; играть в таком окне нельзя, замерять - можно.
+		 */
+		if (getenv("AXIS_NO_INPUT_GRAB"))
+			SDL_SetHint(SDL_HINT_WINDOW_NO_ACTIVATION_WHEN_SHOWN, "1");
 #endif
 
 		// Set IME hints

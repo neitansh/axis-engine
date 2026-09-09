@@ -4,6 +4,8 @@
 // Copyright (C) 2013 Kahrl <kahrl@gmx.net>
 
 #include "shader.h"
+
+#include <cstdlib>
 #include "irr_ptr.h"
 #include "debug.h"
 #include "filesys.h"
@@ -149,6 +151,19 @@ private:
 };
 
 
+u64 g_render_frame_serial = 0;
+
+/// См. g_render_cache_uniform_ids: тот же переключатель, другой опыт
+static bool g_render_per_frame_uniforms = [] {
+	const char *v = getenv("AXIS_RENDER_PERFRAME_UNIFORMS");
+	return !(v && v[0] == '0');
+}();
+
+bool g_render_cache_uniform_ids = [] {
+	const char *v = getenv("AXIS_RENDER_UNIFORM_ID_CACHE");
+	return !(v && v[0] == '0');
+}();
+
 /*
 	ShaderCallback: Sets constants that can be used in shaders
 */
@@ -157,6 +172,8 @@ class ShaderCallback : public video::IShaderConstantSetCallBack
 {
 	std::vector<std::unique_ptr<IShaderUniformSetter>> m_setters;
 	irr_ptr<IShaderUniformSetterRC> m_extra_setter;
+	u64 m_frame_serial = (u64)-1;
+	bool m_material_dirty = true;
 
 public:
 	template <typename Factories>
@@ -182,14 +199,32 @@ public:
 
 	virtual void OnSetConstants(video::IMaterialRendererServices *services, s32 userData) override
 	{
-		for (auto &&setter : m_setters)
-			setter->onSetUniforms(services);
-		if (m_extra_setter)
+		/*
+		 * Значения, одинаковые для всего кадра, отправляются один раз.
+		 *
+		 * Драйвер зовёт это на каждую порцию геометрии, а установщиков у
+		 * шейдера мира больше семи десятков - при нескольких сотнях порций за
+		 * кадр перебор их всех сам по себе становится заметной частью кадра.
+		 * Uniform хранится в программе и переживает вызов отрисовки, поэтому
+		 * повторять его незачем; заново отправлять приходится только после
+		 * смены материала, потому что часть значений считана именно из него.
+		 */
+		const bool fresh = !g_render_per_frame_uniforms ||
+				m_frame_serial != g_render_frame_serial || m_material_dirty;
+		m_frame_serial = g_render_frame_serial;
+		m_material_dirty = false;
+
+		for (auto &&setter : m_setters) {
+			if (fresh || setter->isPerDraw())
+				setter->onSetUniforms(services);
+		}
+		if (m_extra_setter && (fresh || m_extra_setter->isPerDraw()))
 			m_extra_setter->onSetUniforms(services);
 	}
 
 	virtual void OnSetMaterial(const video::SMaterial& material) override
 	{
+		m_material_dirty = true;
 		for (auto &&setter : m_setters)
 			setter->onSetMaterial(material);
 		if (m_extra_setter)

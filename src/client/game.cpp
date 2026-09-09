@@ -4,6 +4,7 @@
 
 #include "game_internal.h"
 
+#include <algorithm>
 #include <cmath>
 #include <csignal>
 #include "client/gameui.h"
@@ -105,16 +106,14 @@ namespace
 
 	FrameShaderValues g_frame_values;
 
-	/// Растёт на каждый кадр, см. Game::drawScene()
-	u64 g_frame_serial = 0;
 
 	const FrameShaderValues &getFrameShaderValues(Client *client, Sky *sky)
 	{
 		FrameShaderValues &v = g_frame_values;
 
-		if (v.serial == g_frame_serial)
+		if (v.serial == g_render_frame_serial)
 			return v;
-		v.serial = g_frame_serial;
+		v.serial = g_render_frame_serial;
 
 		Camera *camera = client->getCamera();
 
@@ -467,6 +466,11 @@ public:
 		m_light_curve.set(get_light_curve_table(), services);
 		// ====================================================================
 	}
+
+	// Всё, что здесь ставится, за кадр не меняется: время суток, свет,
+	// настройки, положения светил. Меняется только материал, и его смену
+	// ShaderCallback отслеживает отдельно.
+	bool isPerDraw() const override { return false; }
 
 	void onSetMaterial(const video::SMaterial &material) override
 	{
@@ -1927,6 +1931,8 @@ void Game::updateProfilers(const RunStats &stats, const FpsControl &draw_times,
 		profiler_print_interval = 3;
 	}
 
+	m_frame_times_us.push_back((u32)draw_times.busy_time);
+
 	// Update graphs
 	g_profiler->graphAdd("Time non-rendering [us]",
 						 draw_times.busy_time - stats.drawtime);
@@ -1961,7 +1967,38 @@ void Game::updateProfilers(const RunStats &stats, const FpsControl &draw_times,
 			g_profiler->avg("GPU: кадр целиком [us]", gpu_total / 1000.0f);
 	}
 
+	/*
+	 * Перерисовка: сколько раз пиксельный шейдер отработал по сравнению с тем,
+	 * сколько на экране точек.
+	 *
+	 * Полноэкранный проход даёт единицу; мир даёт больше, если поверхности
+	 * ложатся друг на друга; проход в половинном разрешении - четверть. Больше
+	 * этого числа никакой отсев не сэкономит, зато оно сразу говорит, какой
+	 * участок кадра платит за невидимое.
+	 */
+	if (driver->supportsFragmentCounters()) {
+		m_fragment_counts.clear();
+		driver->collectFragmentQueries(m_fragment_counts);
+		const auto size = driver->getScreenSize();
+		const double pixels = std::max<u32>(1, size.Width * size.Height);
+		for (const auto &it : m_fragment_counts) {
+			const std::string &name = getGpuSlotName(it.first);
+			if (name.empty())
+				continue;
+			// Имя шага кончается на «[us]»: здесь нужен другой хвост
+			std::string base = name.substr(0, name.size() - 4);
+			g_profiler->avg("FRAG " + base + "[x screen]", it.second / pixels);
+		}
+		const u32 slots = getGpuSlotCount();
+		selectFragmentQuerySlot(slots ? (u32)(g_render_frame_serial % slots) : 0);
+	}
+
 	auto stats2 = driver->getFrameStats();
+	if (stats2.StateNs || stats2.DrawNs) {
+		// Только при AXIS_RENDER_PROBE, см. SFrameStats
+		g_profiler->avg("Probe: state before draw [us]", stats2.StateNs / 1000.0f);
+		g_profiler->avg("Probe: GL draw calls [us]", stats2.DrawNs / 1000.0f);
+	}
 	g_profiler->avg("Irr: drawcalls", stats2.Drawcalls);
 	if (stats2.Drawcalls > 0)
 		g_profiler->avg("Irr: primitives per drawcall",
@@ -1977,6 +2014,35 @@ void Game::updateProfilers(const RunStats &stats, const FpsControl &draw_times,
 
 	if (profiler_interval.step(dtime, profiler_print_interval))
 	{
+		/*
+		 * Хвосты распределения времени кадра.
+		 *
+		 * Значение кладётся ровно один раз за интервал, поэтому «среднее» у
+		 * профайлера здесь - это само значение, а не среднее по кадрам.
+		 */
+		if (m_frame_times_us.size() >= 8) {
+			auto &v = m_frame_times_us;
+			std::sort(v.begin(), v.end());
+			const auto at = [&v](double q) {
+				size_t i = (size_t)(q * (v.size() - 1) + 0.5);
+				return v[i] / 1000.0f;
+			};
+			g_profiler->avg("Frame: p50 [ms]", at(0.50));
+			g_profiler->avg("Frame: p95 [ms]", at(0.95));
+			g_profiler->avg("Frame: p99 [ms]", at(0.99));
+			g_profiler->avg("Frame: worst [ms]", v.back() / 1000.0f);
+			// Дёрганьем считаем кадр, вдвое длиннее срединного: именно такой
+			// виден глазом как рывок, даже если средняя частота высокая.
+			const u32 limit = 2 * v[v.size() / 2];
+			u32 stutters = 0;
+			for (u32 t : v)
+				if (t > limit)
+					stutters++;
+			g_profiler->avg("Frame: stutters over 2x p50 [#]", stutters);
+			g_profiler->avg("Frame: counted [#]", (float)v.size());
+		}
+		m_frame_times_us.clear();
+
 		if (print_to_log)
 		{
 			infostream << "Profiler:" << std::endl;
@@ -2757,8 +2823,11 @@ void Game::updateCameraDirection(CameraOrientation *cam, float dtime)
 	Since we have our own code to synthesize mouse events from touch events,
 	this results in duplicated input. To avoid that, we don't enable relative
 	mouse mode if we're in touchscreen mode. */
+	// См. AXIS_NO_INPUT_GRAB в CIrrDeviceSDL: окно стенда не забирает указатель
+	static const bool no_grab = getenv("AXIS_NO_INPUT_GRAB") != nullptr;
+
 	if (cur_control)
-		cur_control->setRelativeMode(!g_touchcontrols && !isMenuActive());
+		cur_control->setRelativeMode(!no_grab && !g_touchcontrols && !isMenuActive());
 
 	if ((device->isWindowActive() && device->isWindowFocused() && !isMenuActive()) || input->isRandom())
 	{
@@ -2777,8 +2846,13 @@ void Game::updateCameraDirection(CameraOrientation *cam, float dtime)
 			input->setMousePos(driver->getScreenSize().Width / 2,
 							   driver->getScreenSize().Height / 2);
 		}
-		else
+		else if (!no_grab)
 		{
+			// Указатель не пойман, значит игра видит его абсолютное
+			// положение, а не смещение: любое движение мыши по столу
+			// развернуло бы камеру в небо. Стенду поворот не нужен - камера
+			// стоит там, куда её поставила игра, и сцена от прогона к
+			// прогону одна и та же.
 			updateCameraOrientation(cam, dtime);
 		}
 	}
@@ -4661,7 +4735,7 @@ void Game::drawScene(ProfilerGraph *graph, RunStats *stats)
 
 	// Открывает новый кадр для значений, которые внутри него постоянны,
 	// см. FrameShaderValues
-	g_frame_serial++;
+	g_render_frame_serial++;
 
 	if (!client->worldIsRenderable())
 	{

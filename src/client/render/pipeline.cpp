@@ -311,6 +311,20 @@ namespace
 
 	// Насколько глубоко мы сейчас внутри конвейеров. Ноль - верхний уровень.
 	thread_local int g_pipeline_depth = 0;
+
+	// Участок, у которого в этом кадре считаются вызовы пиксельного шейдера
+	u32 g_frag_slot = 0;
+}
+
+u32 getGpuSlotCount()
+{
+	MutexAutoLock lock(g_gpu_slot_mutex);
+	return (u32)g_gpu_slot_names.size();
+}
+
+void selectFragmentQuerySlot(u32 slot)
+{
+	g_frag_slot = slot;
 }
 
 u32 RenderStep::getGpuSlot()
@@ -350,12 +364,16 @@ const std::string &RenderStep::getProfilerName()
 		int status = 0;
 		char *pretty = abi::__cxa_demangle(raw, nullptr, nullptr, &status);
 		if (status == 0 && pretty) {
-			m_profiler_name = std::string("Pipeline: ") + pretty + " [us]";
+			m_profiler_name = std::string("Pipeline: ") + pretty;
 			free(pretty);
 		}
 #endif
 		if (m_profiler_name.empty())
-			m_profiler_name = std::string("Pipeline: ") + raw + " [us]";
+			m_profiler_name = std::string("Pipeline: ") + raw;
+		const std::string label = getStepLabel();
+		if (!label.empty())
+			m_profiler_name += " " + label;
+		m_profiler_name += " [us]";
 	}
 	return m_profiler_name;
 }
@@ -369,7 +387,17 @@ void RenderPipeline::run(PipelineContext &context)
 		object->reset(context);
 
 	auto *driver = context.device->getVideoDriver();
-	const bool gpu_timing = driver->supportsTimerQueries();
+	/*
+	 * Замер сам стоит времени: две метки и два запроса на шаг конвейера.
+	 * Выключатель нужен, чтобы знать, сколько именно, и чтобы прогон, где
+	 * важна только частота кадров, не платил за разбор кадра по шагам.
+	 */
+	static const bool timing_allowed = [] {
+		const char *v = getenv("AXIS_RENDER_GPU_TIMERS");
+		return !(v && v[0] == '0');
+	}();
+	const bool gpu_timing = timing_allowed && driver->supportsTimerQueries();
+	const bool frag_counting = timing_allowed && driver->supportsFragmentCounters();
 
 	g_pipeline_depth++;
 
@@ -379,9 +407,15 @@ void RenderPipeline::run(PipelineContext &context)
 		// считают её собственную работу, и ответ приходит через кадр-другой —
 		// его подбирает Game::updateProfilers().
 		ScopeProfiler sp(g_profiler, step->getProfilerName(), SPT_AVG, PRECISION_MICRO);
+		const u32 slot = step->getGpuSlot();
+		const bool count_frags = frag_counting && slot == g_frag_slot;
 		if (gpu_timing)
-			driver->beginTimerQuery(step->getGpuSlot());
+			driver->beginTimerQuery(slot);
+		if (count_frags)
+			driver->beginFragmentQuery(slot);
 		step->run(context);
+		if (count_frags)
+			driver->endFragmentQuery();
 		if (gpu_timing)
 			driver->endTimerQuery();
 	}

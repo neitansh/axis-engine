@@ -158,6 +158,17 @@ protected:
 	// Ответы видеокарты о времени участков кадра. Живёт полем, а не местной
 	// переменной, чтобы не перевыделять память каждый кадр.
 	std::vector<std::pair<u32, u64>> m_gpu_timings;
+	std::vector<std::pair<u32, u64>> m_fragment_counts;
+
+	/*
+	 * Время каждого кадра за интервал профиля, в микросекундах.
+	 *
+	 * Среднее по интервалу скрывает главное: игра, у которой средний кадр
+	 * 5 мс, а каждый сотый - 30 мс, дёргается, и по среднему этого не увидеть.
+	 * Отсюда считаются срединный кадр и хвосты - p95, p99, худший, - и они
+	 * попадают в тот же профиль.
+	 */
+	std::vector<u32> m_frame_times_us;
 	void updateDebugState();
 	void updateStats(RunStats *stats, const FpsControl &draw_times, f32 dtime);
 	void updateProfilerGraphs(ProfilerGraph *graph);

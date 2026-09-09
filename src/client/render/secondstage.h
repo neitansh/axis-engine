@@ -5,6 +5,7 @@
 
 #pragma once
 #include "pipeline.h"
+#include <string>
 
 /**
  *  Step to apply post-processing filter to the rendered image
@@ -18,7 +19,10 @@ public:
 	 * @param shader_id ID of the shader in IShaderSource
 	 * @param texture_map Map of textures to be chosen from the render source
 	 */
-	PostProcessingStep(u32 shader_id, const std::vector<u8> &texture_map);
+	PostProcessingStep(u32 shader_id, const std::vector<u8> &texture_map,
+			const std::string &label = {});
+
+	std::string getStepLabel() const override { return m_label; }
 
 
 	void setRenderSource(RenderSource *source) override;
@@ -35,6 +39,7 @@ public:
 	void setBilinearFilter(u8 index, bool value);
 private:
 	u32 shader_id;
+	std::string m_label;
 	std::vector<u8> texture_map;
 	RenderSource *source { nullptr };
 	RenderTarget *target { nullptr };
