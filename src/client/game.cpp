@@ -1998,6 +1998,7 @@ void Game::updateProfilers(const RunStats &stats, const FpsControl &draw_times,
 		// Только при AXIS_RENDER_PROBE, см. SFrameStats
 		g_profiler->avg("Probe: state before draw [us]", stats2.StateNs / 1000.0f);
 		g_profiler->avg("Probe: GL draw calls [us]", stats2.DrawNs / 1000.0f);
+		g_profiler->avg("Probe: GL bind layout [us]", stats2.BindNs / 1000.0f);
 	}
 	g_profiler->avg("Irr: drawcalls", stats2.Drawcalls);
 	if (stats2.Drawcalls > 0)

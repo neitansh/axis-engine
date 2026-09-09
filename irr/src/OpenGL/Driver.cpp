@@ -302,6 +302,16 @@ bool COpenGL3DriverBase::genericDriverInit(const core::dimension2d<u32> &screenS
 
 	DrawProbe = getenv("AXIS_RENDER_PROBE") != NULL;
 
+	// Общее хранилище геометрии, см. GeometryPool
+	PoolEnabled = VaoEnabled && GL.DrawElementsBaseVertex != NULL
+			&& GL.CopyBufferSubData != NULL && GL.BufferSubData != NULL;
+	if (const char *off = getenv("AXIS_RENDER_POOL"); off && off[0] == '0')
+		PoolEnabled = false;
+	VertexPool.Stride = sizeof(S3DVertex);
+	VertexPool.Target = GL_ARRAY_BUFFER;
+	IndexPool.Stride = sizeof(u16);
+	IndexPool.Target = GL_ELEMENT_ARRAY_BUFFER;
+
 	/*
 	 * Счётчик вызовов пиксельного шейдера. Расширение к OpenGL 4.x; без него
 	 * перерисовку померить нечем, и метрика просто не появляется в профиле.
@@ -612,6 +622,8 @@ void COpenGL3DriverBase::deleteHardwareBuffer(SHWBufferLink *HWBuffer)
 		return;
 
 	auto *b = static_cast<SHWBufferLink_opengl *>(HWBuffer);
+	poolDrop(VertexPool, b);
+	poolDrop(IndexPool, b);
 	if (b->Vao) {
 		if (CurrentVao == b->Vao) {
 			GL.BindVertexArray(0);
@@ -625,11 +637,236 @@ void COpenGL3DriverBase::deleteHardwareBuffer(SHWBufferLink *HWBuffer)
 	CNullDriver::deleteHardwareBuffer(HWBuffer);
 }
 
+
+/*
+ * Общее хранилище геометрии.
+ *
+ * Раскладку вершин драйверу приходится диктовать на каждую порцию, потому что
+ * у каждой свой буфер: замер показал, что на это уходит вдвое больше времени,
+ * чем на сами вызовы отрисовки. Здесь все порции одного вида вершин лежат в
+ * одном буфере, раскладка привязывается один раз, а порция называется
+ * смещением в общем массиве.
+ */
+
+bool COpenGL3DriverBase::GeometryPool::allocate(u32 count, u32 &offset)
+{
+	// Первый подходящий кусок. Кусков немного, и сортировать их дороже, чем
+	// пройти список: меши мира почти все одного порядка величины.
+	for (size_t i = 0; i < Free.size(); i++) {
+		if (Free[i].count < count)
+			continue;
+		offset = Free[i].offset;
+		if (Free[i].count == count)
+			Free.erase(Free.begin() + i);
+		else {
+			Free[i].offset += count;
+			Free[i].count -= count;
+		}
+		Used += count;
+		return true;
+	}
+	return false;
+}
+
+void COpenGL3DriverBase::GeometryPool::release(u32 offset, u32 count)
+{
+	if (count == 0)
+		return;
+	Used -= count;
+
+	// Склейка с соседями: без неё хранилище дробится на куски, в которые
+	// перестаёт помещаться целый меш, и распределитель сдаётся при половине
+	// свободного места.
+	size_t at = Free.size();
+	for (size_t i = 0; i < Free.size(); i++) {
+		if (Free[i].offset > offset) { at = i; break; }
+	}
+	Free.insert(Free.begin() + at, PoolSlice{offset, count});
+	for (size_t i = 0; i + 1 < Free.size(); ) {
+		if (Free[i].offset + Free[i].count == Free[i + 1].offset) {
+			Free[i].count += Free[i + 1].count;
+			Free.erase(Free.begin() + i + 1);
+		} else {
+			i++;
+		}
+	}
+}
+
+bool COpenGL3DriverBase::poolEnsure(GeometryPool &pool, u32 need)
+{
+	// Верхний предел: дальше выгоднее рисовать по-старому, чем держать в
+	// памяти видеокарты полгигабайта на один вид вершин.
+	const u64 LIMIT = 768ull * 1024 * 1024;
+
+	u32 want = pool.Capacity ? pool.Capacity : 1u << 20; // миллион элементов
+	while ((u64)want * pool.Stride < LIMIT && want < need + pool.Capacity)
+		want *= 2;
+	if ((u64)want * pool.Stride > LIMIT)
+		return false;
+	if (want == pool.Capacity && pool.Buffer)
+		return false;
+
+	GLuint fresh = 0;
+	GL.GenBuffers(1, &fresh);
+	if (!fresh)
+		return false;
+	GL.BindBuffer(GL_ARRAY_BUFFER, fresh);
+	GL.BufferData(GL_ARRAY_BUFFER, (GLsizeiptr)want * pool.Stride, nullptr, GL_STATIC_DRAW);
+	if (GL.GetError() != GL_NO_ERROR) {
+		GL.BindBuffer(GL_ARRAY_BUFFER, 0);
+		GL.DeleteBuffers(1, &fresh);
+		return false;
+	}
+
+	if (pool.Buffer) {
+		// Переносим прежнее содержимое силами видеокарты: смещения кусков
+		// остаются прежними, поэтому переписывать ничего не нужно.
+		GL.BindBuffer(GL.COPY_READ_BUFFER, pool.Buffer);
+		GL.BindBuffer(GL.COPY_WRITE_BUFFER, fresh);
+		GL.CopyBufferSubData(GL.COPY_READ_BUFFER, GL.COPY_WRITE_BUFFER, 0, 0,
+				(GLsizeiptr)pool.Capacity * pool.Stride);
+		GL.BindBuffer(GL.COPY_READ_BUFFER, 0);
+		GL.BindBuffer(GL.COPY_WRITE_BUFFER, 0);
+		GL.DeleteBuffers(1, &pool.Buffer);
+	}
+
+	// release() считает, что кусок был занят, поэтому сначала объявляем его
+	// занятым, а потом отпускаем — так он попадает в список свободных вместе
+	// со склейкой соседей.
+	pool.Used += want - pool.Capacity;
+	pool.release(pool.Capacity, want - pool.Capacity);
+	pool.Buffer = fresh;
+	pool.Capacity = want;
+	GL.BindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Раскладку придётся записать заново: она помнит имя буфера.
+	if (PoolVao) {
+		GL.DeleteVertexArrays(1, &PoolVao);
+		PoolVao = 0;
+		if (CurrentVao != 0) {
+			GL.BindVertexArray(0);
+			CurrentVao = 0;
+		}
+	}
+	return true;
+}
+
+bool COpenGL3DriverBase::poolPut(GeometryPool &pool, SHWBufferLink_opengl *link,
+		const void *data, u32 count, u32 changed_id)
+{
+	if (link->PoolValid && link->PoolCount == count) {
+		if (link->PoolChangedID == changed_id)
+			return true;
+	} else if (link->PoolValid) {
+		pool.release(link->PoolOffset, link->PoolCount);
+		link->PoolValid = false;
+	}
+
+	if (!link->PoolValid) {
+		u32 offset = 0;
+		if (!pool.allocate(count, offset)) {
+			if (!poolEnsure(pool, count) || !pool.allocate(count, offset))
+				return false;
+		}
+		link->PoolOffset = offset;
+		link->PoolCount = count;
+		link->PoolValid = true;
+	}
+
+	GL.BindBuffer(GL_ARRAY_BUFFER, pool.Buffer);
+	GL.BufferSubData(GL_ARRAY_BUFFER, (GLintptr)link->PoolOffset * pool.Stride,
+			(GLsizeiptr)count * pool.Stride, data);
+	GL.BindBuffer(GL_ARRAY_BUFFER, 0);
+	link->PoolChangedID = changed_id;
+	return true;
+}
+
+void COpenGL3DriverBase::poolDrop(GeometryPool &pool, SHWBufferLink_opengl *link)
+{
+	if (!link->PoolValid)
+		return;
+	pool.release(link->PoolOffset, link->PoolCount);
+	link->PoolValid = false;
+}
+
+
+bool COpenGL3DriverBase::drawFromPool(const scene::IVertexBuffer *vb,
+		const scene::IIndexBuffer *ib, u32 primCount, scene::E_PRIMITIVE_TYPE pType)
+{
+	if (!PoolEnabled || pType != scene::EPT_TRIANGLES)
+		return false;
+	if (vb->getType() != EVT_STANDARD || ib->getType() != EIT_16BIT)
+		return false;
+	if (vb->getWeightBuffer())
+		return false;
+
+	auto *lv = static_cast<SHWBufferLink_opengl *>(getBufferLink(vb));
+	auto *li = static_cast<SHWBufferLink_opengl *>(getBufferLink(ib));
+	if (!lv || !li)
+		return false;
+
+	lv->UnusedCounter = 0;
+	li->UnusedCounter = 0;
+
+	if (!poolPut(VertexPool, lv, vb->getData(), vb->getCount(), lv->Buffer->getChangedID()))
+		return false;
+	if (!poolPut(IndexPool, li, ib->getData(), ib->getCount(), li->Buffer->getChangedID()))
+		return false;
+
+	// Своя копия в отдельном буфере больше не нужна: рисуем из общего.
+	lv->Vbo.destroy();
+	li->Vbo.destroy();
+
+	if (!PoolVao) {
+		GL.GenVertexArrays(1, &PoolVao);
+		if (!PoolVao)
+			return false;
+		GL.BindVertexArray(PoolVao);
+		GL.BindBuffer(GL_ARRAY_BUFFER, VertexPool.Buffer);
+		setupVertexAttributes(getVertexTypeDescription(EVT_STANDARD), 0);
+		GL.BindBuffer(GL_ARRAY_BUFFER, 0);
+		GL.BindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexPool.Buffer);
+		CurrentVao = PoolVao;
+	}
+
+	if (!primCount || !vb->getCount() || !checkPrimitiveCount(primCount))
+		return false;
+
+	CNullDriver::drawVertexPrimitiveList(nullptr, vb->getCount(), nullptr,
+		primCount, vb->getType(), pType, ib->getType());
+
+	const u64 probe_t0 = DrawProbe ? probeClockNs() : 0;
+	setRenderStates3DMode();
+	const u64 probe_t1 = DrawProbe ? probeClockNs() : 0;
+
+	if (CurrentVao != PoolVao) {
+		GL.BindVertexArray(PoolVao);
+		CurrentVao = PoolVao;
+	}
+
+	const u64 probe_t2 = DrawProbe ? probeClockNs() : 0;
+
+	GL.DrawElementsBaseVertex(GL_TRIANGLES, primCount * 3, GL_UNSIGNED_SHORT,
+			buffer_offset((uintptr_t)li->PoolOffset * sizeof(u16)),
+			(GLint)lv->PoolOffset);
+
+	if (DrawProbe) {
+		const u64 probe_t3 = probeClockNs();
+		FrameStats.StateNs += probe_t1 - probe_t0;
+		FrameStats.BindNs += probe_t2 - probe_t1;
+		FrameStats.DrawNs += probe_t3 - probe_t1;
+	}
+	return true;
+}
+
 void COpenGL3DriverBase::drawBuffers(const scene::IVertexBuffer *vb,
 	const scene::IIndexBuffer *ib, u32 PrimitiveCount,
 	scene::E_PRIMITIVE_TYPE PrimitiveType)
 {
 	if (!vb || !ib)
+		return;
+
+	if (drawFromPool(vb, ib, PrimitiveCount, PrimitiveType))
 		return;
 
 	const auto *wb = vb->getWeightBuffer();
@@ -684,12 +921,17 @@ void COpenGL3DriverBase::drawBuffers(const scene::IVertexBuffer *vb,
 		const GLuint ibo = hwidx->Vbo.getName();
 		const s32 vtype = (s32)vb->getType();
 
+		const u64 probe_tb = DrawProbe ? probeClockNs() : 0;
+
 		if (hwvert->Vao == 0)
 			GL.GenVertexArrays(1, &hwvert->Vao);
 		if (CurrentVao != hwvert->Vao) {
 			GL.BindVertexArray(hwvert->Vao);
 			CurrentVao = hwvert->Vao;
 		}
+
+		if (DrawProbe)
+			FrameStats.BindNs += probeClockNs() - probe_tb;
 
 		if (hwvert->VaoVbo != vbo || hwvert->VaoVertexType != vtype) {
 			GL.BindBuffer(GL_ARRAY_BUFFER, vbo);

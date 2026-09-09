@@ -16,6 +16,8 @@
 #include "ExtensionHandler.h"
 #include "IContextManager.h"
 
+#include <vector>
+
 namespace video
 {
 struct VertexType;
@@ -65,7 +67,61 @@ public:
 		GLuint VaoVbo = 0;
 		GLuint VaoIbo = 0;
 		s32 VaoVertexType = -1;
+
+		/*
+		 * Место этого буфера в общем хранилище геометрии.
+		 *
+		 * Своя раскладка у каждого буфера означает свою привязку на каждую
+		 * порцию геометрии, а это две трети цены команды рисования. В общем
+		 * хранилище раскладка одна на всех: привязали раз за кадр и дальше
+		 * только рисуем, указывая, с какого места читать.
+		 *
+		 * Смещения считаются в вершинах и в индексах, а не в байтах: так их
+		 * прямо и просит glDrawElementsBaseVertex.
+		 */
+		u32 PoolOffset = 0;
+		u32 PoolCount = 0;
+		u32 PoolChangedID = (u32)-1;
+		bool PoolValid = false;
 	};
+
+	/// Кусок общего хранилища: где лежит и сколько занимает, в элементах
+	struct PoolSlice {
+		u32 offset = 0;
+		u32 count = 0;
+	};
+
+	/**
+	 * Общее хранилище геометрии одного вида вершин.
+	 *
+	 * Один буфер GL, простой распределитель со списком свободных кусков и
+	 * склейкой соседей. Растёт вдвое, когда места не хватает; на месте старого
+	 * содержимого делается копия средствами видеокарты, поэтому рост стоит
+	 * одного копирования и случается несколько раз за сессию.
+	 */
+	struct GeometryPool {
+		GLuint Buffer = 0;
+		GLenum Target = GL_ARRAY_BUFFER;
+		u32 Stride = 0;        // байт на элемент
+		u32 Capacity = 0;      // элементов
+		u32 Used = 0;          // элементов в занятых кусках
+		std::vector<PoolSlice> Free;
+
+		bool allocate(u32 count, u32 &offset);
+		void release(u32 offset, u32 count);
+	};
+
+	bool poolEnsure(GeometryPool &pool, u32 need);
+	bool poolPut(GeometryPool &pool, SHWBufferLink_opengl *link,
+			const void *data, u32 count, u32 changed_id);
+	void poolDrop(GeometryPool &pool, SHWBufferLink_opengl *link);
+	bool drawFromPool(const scene::IVertexBuffer *vb, const scene::IIndexBuffer *ib,
+			u32 primCount, scene::E_PRIMITIVE_TYPE pType);
+
+	GeometryPool VertexPool;
+	GeometryPool IndexPool;
+	GLuint PoolVao = 0;
+	bool PoolEnabled = false;
 
 	bool _updateHardwareBuffer(SHWBufferLink_opengl *HWBuffer);
 

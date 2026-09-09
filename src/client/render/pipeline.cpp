@@ -8,6 +8,7 @@
 #include "gettext.h"
 #include "IRenderTarget.h"
 #include "SColor.h"
+#include "porting.h"
 #include "profiler.h"
 #include "threading/mutex_auto_lock.h"
 
@@ -223,10 +224,26 @@ void TextureBufferOutput::activate(PipelineContext &context)
 		depth_texture = buffer->getTexture(depth_stencil);
 
 	if (render_target) {
+		// Разбор смены буфера рендера по частям, см. AXIS_RENDER_PROBE
+		static const bool probe = getenv("AXIS_RENDER_PROBE") != nullptr;
+		const u64 t0 = probe ? porting::getTimeNs() : 0;
+
 		render_target->setTexture(textures, depth_texture);
 
+		const u64 t1 = probe ? porting::getTimeNs() : 0;
+
 		driver->setRenderTargetEx(render_target, m_clear ? video::ECBF_ALL : video::ECBF_NONE, context.clear_color);
+
+		const u64 t2 = probe ? porting::getTimeNs() : 0;
+
 		driver->OnResize(size);
+
+		if (probe) {
+			const u64 t3 = porting::getTimeNs();
+			g_profiler->avg("Probe: target setTexture [us]", (t1 - t0) / 1000.0f);
+			g_profiler->avg("Probe: target bind [us]", (t2 - t1) / 1000.0f);
+			g_profiler->avg("Probe: target resize [us]", (t3 - t2) / 1000.0f);
+		}
 	}
 
 	RenderTarget::activate(context);

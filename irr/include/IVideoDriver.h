@@ -73,6 +73,8 @@ struct SFrameStats {
 	u64 StateNs = 0;
 	/** Наносекунды в самих вызовах отрисовки GL. См. StateNs. */
 	u64 DrawNs = 0;
+	/** Наносекунды в привязке раскладки вершин (VAO). Часть DrawNs. */
+	u64 BindNs = 0;
 };
 
 struct SDriverLimits {
