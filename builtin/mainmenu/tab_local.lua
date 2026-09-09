@@ -121,23 +121,25 @@ local function get_formspec(tabview, name, tabdata)
 	end
 	local disabled_settings = get_disabled_settings(crate)
 
-	local creative, damage = "", ""
+	-- Crate settings the world offers as checkboxes. Each one that survives the
+	-- crate's disabled list takes the next slot down, so the box's own place is
+	-- decided by how many stand above it, not by a running offset.
+	local FIRST_Y = 0.2
+	local ROW_HEIGHT = 0.5625
 
-	-- Y offsets for crate settings checkboxes
-	local y = 0.2
-	local yo = 0.5625
+	local boxes = {}
+	local function checkbox(setting, label)
+		if disabled_settings[setting] ~= nil then
+			return
+		end
+		local y = FIRST_Y + #boxes * ROW_HEIGHT
+		boxes[#boxes + 1] = "checkbox[0," .. y .. ";cb_" .. setting .. ";" ..
+			label .. ";" .. dump(core.settings:get_bool(setting)) .. "]"
+	end
 
 	if world then
-		if disabled_settings["creative_mode"] == nil then
-			creative = "checkbox[0,"..y..";cb_creative_mode;".. fgettext("Creative Mode") .. ";" ..
-				dump(core.settings:get_bool("creative_mode")) .. "]"
-			y = y + yo
-		end
-		if disabled_settings["enable_damage"] == nil then
-			damage = "checkbox[0,"..y..";cb_enable_damage;".. fgettext("Enable Damage") .. ";" ..
-				dump(core.settings:get_bool("enable_damage")) .. "]"
-			y = y + yo
-		end
+		checkbox("creative_mode", fgettext("Creative Mode"))
+		checkbox("enable_damage", fgettext("Enable Damage"))
 	end
 
 	-- Two cards: what the world is set up as, and which world it is
@@ -155,8 +157,7 @@ local function get_formspec(tabview, name, tabdata)
 			"button[6.65,0;3.225,0.8;world_create;".. fgettext("New") .. "]" ..
 			"container_end[]" ..
 			"container[0.75,1.15]" ..
-			creative ..
-			damage ..
+			table.concat(boxes) ..
 			"container_end[]" ..
 			"container[5.625,0.375]" ..
 			menu_style.heading(0, 0.15, 6, 0.6, fgettext("Select World:")) ..
