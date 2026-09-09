@@ -60,13 +60,13 @@ end
 
 -- Serializes Lua nil, booleans, numbers, strings, tables and even functions
 -- Tables are referenced by reference, strings are referenced by value. Supports circular tables.
-local function serialize(value, write)
+local function serialize(root, write)
 	local reference, refnum = "1", 1
 	-- [object] = reference
 	local references = {}
 	-- Circular tables that must be filled using `table[key] = value` statements
 	local to_fill = {}
-	for object, count in pairs(count_objects(value)) do
+	for object, count in pairs(count_objects(root)) do
 		local type_ = type(object)
 		-- Object must appear more than once. If it is a string, the reference has to be shorter than the string.
 		if count >= 2 and (type_ ~= "string" or #reference + 5 < #object) then
@@ -187,7 +187,7 @@ local function serialize(value, write)
 		end
 	end
 	write("return ")
-	dump(value)
+	dump(root)
 end
 
 -- Whether `value` recursively contains a function
@@ -250,13 +250,13 @@ function core.deserialize(str, safe)
 	if safe then
 		env.loadstring = dummy_func
 	else
-		env.loadstring = function(str, ...)
-			local func, err = loadstring(str, ...)
-			if func then
-				setfenv(func, env)
-				return func
+		env.loadstring = function(code, ...)
+			local chunk, chunk_err = loadstring(code, ...)
+			if chunk then
+				setfenv(chunk, env)
+				return chunk
 			end
-			return nil, err
+			return nil, chunk_err
 		end
 	end
 	setfenv(func, env)

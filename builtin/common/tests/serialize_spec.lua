@@ -184,7 +184,7 @@ describe("serialize", function()
 				return tables[math.random(1, #tables)]
 			end
 			for _ = 1, math.random(1, max_actions) do
-				local tab = random_table()
+				local target = random_table()
 				local value
 				if math.random() < 0.5 then
 					if math.random() < 0.5 then
@@ -196,7 +196,7 @@ describe("serialize", function()
 				else
 					value = primitive()
 				end
-				tab[math.random() < 0.5 and (#tab + 1) or primitive()] = value
+				target[math.random() < 0.5 and (#target + 1) or primitive()] = value
 			end
 			return root
 		end

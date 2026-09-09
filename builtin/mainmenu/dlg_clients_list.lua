@@ -8,9 +8,9 @@ local function clients_list_formspec(dialogdata)
 	local clients_list = dialogdata.server.clients_list
 	local servername   = dialogdata.server.name
 
-	local function fmt_formspec_list(clients_list)
+	local function fmt_formspec_list(names)
 		local escaped = {}
-		for i, str in ipairs(clients_list) do
+		for i, str in ipairs(names) do
 			escaped[i] = core.formspec_escape(str)
 		end
 		return table.concat(escaped, ",")

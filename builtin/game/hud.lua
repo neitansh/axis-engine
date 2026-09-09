@@ -223,10 +223,10 @@ register_builtin_hud_element("breath", {
 			if not breathbar_removal_jobs[player_name] then
 				-- The breathbar stays for some time and then gets removed.
 				breathbar_removal_jobs[player_name] = core.after(1, function()
-					local player = core.get_player_by_name(player_name)
+					local still_here = core.get_player_by_name(player_name)
 					local player_hud_ids = hud_ids[player_name]
-					if player and player_hud_ids and player_hud_ids.breath then
-						player:hud_remove(player_hud_ids.breath)
+					if still_here and player_hud_ids and player_hud_ids.breath then
+						still_here:hud_remove(player_hud_ids.breath)
 						player_hud_ids.breath = nil
 					end
 					breathbar_removal_jobs[player_name] = nil

@@ -899,16 +899,16 @@ core.register_chatcommand("rollback_check", {
 		end
 
 		core.rollback_punch_callbacks[name] = function(pos, node, puncher)
-			local name = puncher:get_player_name()
-			core.chat_send_player(name, S("Checking @1 ...", core.pos_to_string(pos)))
+			local puncher_name = puncher:get_player_name()
+			core.chat_send_player(puncher_name, S("Checking @1 ...", core.pos_to_string(pos)))
 			local actions = core.rollback_get_node_actions(pos, range, seconds, limit)
 			if not actions then
-				core.chat_send_player(name, S("Rollback functions are disabled."))
+				core.chat_send_player(puncher_name, S("Rollback functions are disabled."))
 				return
 			end
 			local num_actions = #actions
 			if num_actions == 0 then
-				core.chat_send_player(name,
+				core.chat_send_player(puncher_name,
 						S("Nobody has touched the specified "
 						.. "location in @1 seconds.",
 						seconds))
@@ -917,7 +917,7 @@ core.register_chatcommand("rollback_check", {
 			local time = os.time()
 			for i = num_actions, 1, -1 do
 				local action = actions[i]
-				core.chat_send_player(name,
+				core.chat_send_player(puncher_name,
 					S("@1 @2 @3 -> @4 @5 seconds ago.",
 							core.pos_to_string(action.pos),
 							action.actor,
