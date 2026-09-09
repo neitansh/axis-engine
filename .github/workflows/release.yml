@@ -330,6 +330,13 @@ jobs:
             exit 1
           fi
 
+          # Проверка выше запускает клиента, а он пишет рядом с собой: игра
+          # работает «на месте», и `config/`, `cache/`, `logs/` появляются
+          # прямо в пакете. Уехав в архив, они становятся «принесёнными
+          # файлами» — и следующее обновление сносит вместе с ними настройки
+          # игрока, подменяя их тем, что нащёлкал раннер.
+          rm -rf axis_linux/config axis_linux/cache axis_linux/logs axis_linux/debug.txt
+
 
       # Игроки качают игру из раздачи, а не с GitHub: релизы GitHub из России
       # открываются через раз. Раздача не настроена — сборка падает здесь же:
@@ -549,6 +556,13 @@ jobs:
           if ($alone.ExitCode -eq 0) {
             throw 'The packaged client started without the launcher.'
           }
+
+          # То же, что под linux: проверка запускала клиента, и он оставил
+          # рядом с собой свои каталоги. В архив они не едут — иначе обновление
+          # затрёт настройки игрока.
+          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue `
+            (Join-Path $root 'config'), (Join-Path $root 'cache'), `
+            (Join-Path $root 'logs'), (Join-Path $root 'debug.txt')
 
           Write-Host 'Portable package validation passed.'
 
