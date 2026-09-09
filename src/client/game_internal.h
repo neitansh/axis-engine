@@ -257,6 +257,7 @@ protected:
 
 	static void settingChangedCallback(const std::string &setting_name, void *data);
 	static void pipelineSettingChangedCallback(const std::string &setting_name, void *data);
+	static void shadowRendererSettingChangedCallback(const std::string &setting_name, void *data);
 	static void shaderSettingChangedCallback(const std::string &setting_name, void *data);
 	static void meshSettingChangedCallback(const std::string &setting_name, void *data);
 	static void nodeVisualSettingChangedCallback(const std::string &setting_name, void *data);
@@ -455,6 +456,7 @@ private:
 
 	/// Настройки картинки поменялись, см. applyGraphicsSettings()
 	bool m_needs_pipeline_rebuild = false;
+	bool m_needs_shadow_reset = false;
 	bool m_needs_shader_rebuild = false;
 	bool m_needs_mesh_rebuild = false;
 	bool m_needs_node_visual_rebuild = false;

@@ -613,6 +613,7 @@ Game::Game() : m_chat_log_buf(g_logger),
 		"enable_hotbar_mouse_wheel",
 		"invert_hotbar_mouse_wheel",
 		"pause_on_lost_focus",
+		"display_gamma",
 	};
 	for (auto s : settings)
 		g_settings->registerChangedCallback(s, &settingChangedCallback, this);
@@ -636,6 +637,20 @@ Game::Game() : m_chat_log_buf(g_logger),
 	};
 	for (auto s : pipeline_settings)
 		g_settings->registerChangedCallback(s, &pipelineSettingChangedCallback, this);
+
+	// Числа самого рендерера теней: он читает их при создании, значит его надо
+	// заводить заново, а не переносить в новый конвейер
+	const char *shadow_renderer_settings[] = {
+		"shadow_map_texture_size",
+		"shadow_map_max_distance",
+		"shadow_map_texture_32bit",
+		"shadow_update_frames",
+		// Цветные тени меняют формат самих текстур карты, а он выбирается при
+		// создании рендерера
+		"shadow_map_color",
+	};
+	for (auto s : shadow_renderer_settings)
+		g_settings->registerChangedCallback(s, &shadowRendererSettingChangedCallback, this);
 
 	// Настройки, которые уезжают в шейдер константами сборки. Поменялась такая -
 	// шейдеры надо собрать заново, иначе игрок увидит своё изменение только
@@ -776,8 +791,6 @@ void Game::run()
 	}
 
 	draw_times.reset();
-
-	set_light_curve(g_settings->getFloat("display_gamma"));
 
 	m_touch_simulate_aux1 = g_settings->getBool("fast_move") && client->checkPrivilege("fast");
 
@@ -4858,6 +4871,15 @@ void Game::settingChangedCallback(const std::string &setting_name, void *data)
 	((Game *)data)->readSettings();
 }
 
+void Game::shadowRendererSettingChangedCallback(const std::string &setting_name, void *data)
+{
+	// Свои числа рендерер теней читает один раз, при создании, поэтому мало
+	// пересобрать конвейер: старый рендерер переехал бы в него как есть.
+	auto *game = (Game *)data;
+	game->m_needs_shadow_reset = true;
+	game->m_needs_pipeline_rebuild = true;
+}
+
 void Game::pipelineSettingChangedCallback(const std::string &setting_name, void *data)
 {
 	// Сам конвейер собирается между кадрами: сюда мы попадаем из меню настроек,
@@ -4908,7 +4930,10 @@ void Game::applyGraphicsSettings()
 	{
 		m_needs_pipeline_rebuild = false;
 
-		if (m_rendering_engine->rebuildPipeline(client, hud))
+		const bool reset_shadows = m_needs_shadow_reset;
+		m_needs_shadow_reset = false;
+
+		if (m_rendering_engine->rebuildPipeline(client, hud, reset_shadows))
 		{
 			// Тени завели заново, и список отбрасывающих их узлов пуст: его
 			// наполняют сами объекты, когда появляются в мире. Заставляем их
@@ -4922,6 +4947,10 @@ void Game::readSettings()
 {
 	// The instrument follows its setting, so it can be switched on mid-game
 	update_net_diagnostics();
+
+	// Кривая света уезжает в шейдер uniform'ом каждый кадр, поэтому пересчитать
+	// её достаточно здесь: гамма подействует тем же кадром
+	set_light_curve(g_settings->getFloat("display_gamma"));
 
 	LogLevel chat_log_level = Logger::stringToLevel(g_settings->get("chat_log_level"));
 	if (chat_log_level == LL_MAX)

@@ -409,7 +409,7 @@ void RenderingEngine::initialize(Client *client, Hud *hud)
 	core.reset(createRenderingCore(draw_mode, m_device, client, hud));
 }
 
-bool RenderingEngine::rebuildPipeline(Client *client, Hud *hud)
+bool RenderingEngine::rebuildPipeline(Client *client, Hud *hud, bool reset_shadows)
 {
 	const std::string &draw_mode = g_settings->get("3d_mode");
 
@@ -418,7 +418,7 @@ bool RenderingEngine::rebuildPipeline(Client *client, Hud *hud)
 	// включил или выключил именно их, рендерер нужен другой.
 	std::unique_ptr<ShadowRenderer> shadows;
 	const bool want_shadows = g_settings->getBool("enable_dynamic_shadows");
-	if (core && (core->get_shadow_renderer() != nullptr) == want_shadows)
+	if (core && !reset_shadows && (core->get_shadow_renderer() != nullptr) == want_shadows)
 		shadows = core->takeShadowRenderer();
 
 	const bool shadows_are_new = !shadows;
