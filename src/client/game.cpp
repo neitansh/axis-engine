@@ -691,6 +691,13 @@ Game::Game() : m_chat_log_buf(g_logger),
 	for (auto s : node_visual_settings)
 		g_settings->registerChangedCallback(s, &nodeVisualSettingChangedCallback, this);
 
+	// А эти решаются при создании самой текстуры, и готовой их уже не привить
+	const char *texture_settings[] = {
+		"mip_map",
+	};
+	for (auto s : texture_settings)
+		g_settings->registerChangedCallback(s, &textureSettingChangedCallback, this);
+
 	readSettings();
 }
 
@@ -4902,8 +4909,29 @@ void Game::nodeVisualSettingChangedCallback(const std::string &setting_name, voi
 	((Game *)data)->m_needs_node_visual_rebuild = true;
 }
 
+void Game::textureSettingChangedCallback(const std::string &setting_name, void *data)
+{
+	// Мип-уровни решаются при создании текстуры: у готовой они не появятся,
+	// сколько в неё ни пиши. Значит текстуры надо завести заново, а следом
+	// пересобрать визуалы нод - массивные текстуры сложатся там сами.
+	auto *game = (Game *)data;
+	game->m_needs_texture_rebuild = true;
+	game->m_needs_node_visual_rebuild = true;
+}
+
 void Game::applyGraphicsSettings()
 {
+	// Текстуры раньше всего: визуалы нод разложат по тайлам уже новые.
+	if (m_needs_texture_rebuild)
+	{
+		m_needs_texture_rebuild = false;
+		driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS,
+				g_settings->getBool("mip_map"));
+		texture_src->rebuildImagesAndTextures(true);
+		// Сущности держат текстуры у себя; пусть заведут их заново
+		client->getEnv().expireObjectVisuals();
+	}
+
 	// Порядок не случаен. Шейдеры первыми: визуалы нод раздают их тайлам, а
 	// меши забирают номера материалов при постройке.
 	if (m_needs_shader_rebuild)

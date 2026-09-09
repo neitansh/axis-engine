@@ -136,7 +136,15 @@ public:
 	 * @note This won't invalidate old ITexture's, but may or may not reuse them.
 	 * So you have to re-get all textures anyway.
 	 */
-	virtual void rebuildImagesAndTextures()=0;
+	/**
+	 * Пересобрать картинки и текстуры.
+	 *
+	 * @param recreate заводить текстуры заново, а не переписывать содержимое
+	 * готовых. Нужно, когда поменялось то, что решается при создании текстуры,
+	 * — мип-уровни: у готовой текстуры их уже не появится, сколько в неё ни
+	 * пиши.
+	 */
+	virtual void rebuildImagesAndTextures(bool recreate = false)=0;
 };
 
 IWritableTextureSource *createTextureSource();

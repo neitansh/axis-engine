@@ -112,7 +112,7 @@ public:
 
 	// Rebuild images and textures from the current set of source images
 	// Shall be called from the main thread.
-	void rebuildImagesAndTextures();
+	void rebuildImagesAndTextures(bool recreate = false) override;
 
 	video::SColor getTextureAverageColor(const std::string &name);
 
@@ -140,7 +140,7 @@ private:
 	std::unordered_map<std::string, ImageInfo> m_image_cache;
 
 	// Rebuild a single texture
-	void rebuildTexture(video::IVideoDriver *driver, TextureInfo &ti);
+	void rebuildTexture(video::IVideoDriver *driver, TextureInfo &ti, bool recreate);
 
 	// Process texture request
 	u32 processRequestQueued(const TextureRequest &req);
@@ -547,7 +547,7 @@ void TextureSource::insertSourceImage(const std::string &name, video::IImage *im
 			continue; // Skip dummy entry
 		// If the source image was used, we need to rebuild this texture
 		if (ti.sourceImages.find(name) != ti.sourceImages.end()) {
-			rebuildTexture(driver, ti);
+			rebuildTexture(driver, ti, false);
 			affected++;
 		}
 	}
@@ -556,9 +556,18 @@ void TextureSource::insertSourceImage(const std::string &name, video::IImage *im
 				<< affected << " textures." << std::endl;
 }
 
-void TextureSource::rebuildImagesAndTextures()
+void TextureSource::rebuildImagesAndTextures(bool recreate)
 {
 	MutexAutoLock lock(m_textureinfo_cache_mutex);
+
+	// Настройки, по которым решается, нужна ли текстуре сглаживающая обёртка,
+	// читались один раз за запуск. Перечитываем: игрок мог их только что
+	// поменять, и ради этого мы сюда и пришли.
+	mesh_filter_needed =
+			g_settings->getBool("mip_map") ||
+			g_settings->getBool("trilinear_filter") ||
+			g_settings->getBool("bilinear_filter") ||
+			g_settings->getBool("anisotropic_filter");
 
 	/*
 	 * Note: While it may become useful in the future, it's not clear what the
@@ -579,13 +588,14 @@ void TextureSource::rebuildImagesAndTextures()
 	for (TextureInfo &ti : m_textureinfo_cache) {
 		if (ti.name.empty())
 			continue; // Skip dummy entry
-		rebuildTexture(driver, ti);
+		rebuildTexture(driver, ti, recreate);
 	}
 
 	// FIXME: we should rebuild palettes too
 }
 
-void TextureSource::rebuildTexture(video::IVideoDriver *driver, TextureInfo &ti)
+void TextureSource::rebuildTexture(video::IVideoDriver *driver, TextureInfo &ti,
+		bool recreate)
 {
 	assert(!ti.name.empty());
 	sanity_check(std::this_thread::get_id() == m_main_thread);
@@ -606,7 +616,7 @@ void TextureSource::rebuildTexture(video::IVideoDriver *driver, TextureInfo &ti)
 	video::ITexture *t = nullptr, *t_old = ti.texture;
 	if (!img) {
 		// new texture becomes null
-	} else if (t_old && t_old->getColorFormat() == img->getColorFormat() && t_old->getSize() == img->getDimension()) {
+	} else if (!recreate && t_old && t_old->getColorFormat() == img->getColorFormat() && t_old->getSize() == img->getDimension()) {
 		// can replace texture in-place
 		std::swap(t, t_old);
 		void *ptr = t->lock(video::ETLM_WRITE_ONLY);
