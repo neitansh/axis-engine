@@ -32,14 +32,20 @@ cd po || abort "couldn't change directory to po!"
 # the case for language codes, which are the only subdirs we expect to
 # find in po/ anyway. If you put anything else there, you need to suffer
 # the consequences of your actions, so we don't do sanity checks
-langs=""
+#
+# Языки можно перечислить доводами: `util/updatepo.sh ru` трогает только
+# русский. Остальные приходят переводом со стороны, и переписывать все восемь
+# десятков ради одной правки значит топить её в чужом шуме.
+langs="$*"
 
-for lang in * ; do
-	if test ! -d $lang; then
-		continue
-	fi
-	langs="$langs $lang"
-done
+if test -z "$langs"; then
+	for lang in * ; do
+		if test ! -d $lang; then
+			continue
+		fi
+		langs="$langs $lang"
+	done
+fi
 
 # go back
 cd ..
@@ -49,25 +55,10 @@ cd ..
 # --package-name
 potfile=po/axis.pot
 echo "updating pot"
-xgettext --package-name=axis \
-	--add-comments='TRANSLATORS:'\
-	--sort-by-file \
-	--add-location=file \
-	--keyword=N_ \
-	--keyword=wgettext \
-	--keyword=fwgettext \
-	--keyword=fgettext \
-	--keyword=fgettext_ne \
-	--keyword=hgettext \
-	--keyword=strgettext \
-	--keyword=wstrgettext \
-	--keyword=core.gettext \
-	--keyword=showTranslatedStatusText \
-	--keyword=fmtgettext \
-	--output $potfile \
-	--from-code=utf-8 \
-	`find src/ -name '*.cpp' -o -name '*.h'` \
-	`find builtin/ -name '*.lua'`
+# Выборка строк вынесена: тем же скриптом сверяет шаблон с кодом сторож
+# util/check_translations.sh. Она же собирает src/settings_translation_file.cpp,
+# без которого тексты настроек до перевода не доходят вовсе.
+"$scriptisin/extract_pot.sh" "$potfile" || abort "не собрался шаблон перевода"
 
 # Now iterate on all languages and create the po file if missing, or update it
 # if it exists already
