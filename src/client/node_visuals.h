@@ -67,7 +67,8 @@ private:
 	void updateTextures(ITextureSource *tsrc, IShaderSource *shdsrc, Client *client,
 			PreLoadedTextures *texture_pool, const TextureSettings &tsettings);
 	void updateMesh(Client *client, const TextureSettings &tsettings);
-	void collectMaterials(std::vector<u32> &leaves_materials);
+	void collectMaterials(std::vector<u32> &leaves_materials,
+			std::vector<u32> &sprite_materials);
 };
 
 /**

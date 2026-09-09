@@ -119,6 +119,7 @@ void set_default_settings()
 	settings->setDefault("mesh_generation_interval", "0");
 	settings->setDefault("mesh_generation_threads", "0");
 	settings->setDefault("mesh_buffer_min_vertices", "300");
+	settings->setDefault("foliage_range", "0");
 	settings->setDefault("free_move", "false");
 	settings->setDefault("pitch_move", "false");
 	settings->setDefault("fast_move", "false");

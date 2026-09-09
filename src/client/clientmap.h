@@ -7,8 +7,10 @@
 #include "irrlichttypes_bloated.h"
 #include "map.h"
 #include <ISceneNode.h>
+#include <EMaterialTypes.h>
 #include <map>
 #include <functional>
+#include <vector>
 
 struct MapDrawControl
 {
@@ -214,4 +216,18 @@ private:
 
 	bool m_loops_occlusion_culler;
 	bool m_enable_raytraced_culling;
+
+	/*
+	 * За сколько узлов от камеры перестаёт рисоваться трава.
+	 *
+	 * Ноль значит «рисовать всю». Ниже — список материалов, по которым траву
+	 * узнают; он строится один раз, когда игра узнала о нодах, и живёт до
+	 * смены мира.
+	 */
+	f32 m_cache_sprite_range;
+	std::vector<video::E_MATERIAL_TYPE> m_sprite_materials;
+	bool m_sprite_materials_ready = false;
+
+	/// Материалы травы по списку из nodedef; пустой список — трава не отсекается
+	const std::vector<video::E_MATERIAL_TYPE> *spriteMaterialsFarAway();
 };

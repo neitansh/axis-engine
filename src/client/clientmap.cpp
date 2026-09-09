@@ -65,7 +65,8 @@ namespace {
 		}
 
 		void addFromBlock(v3s16 block_pos, MapBlockMesh *block_mesh,
-			video::IVideoDriver *driver);
+			video::IVideoDriver *driver,
+			const std::vector<video::E_MATERIAL_TYPE> *skip = nullptr);
 	};
 
 	// reference to a mesh buffer used when rendering the map.
@@ -155,6 +156,7 @@ static const std::string ClientMap_settings[] = {
 	"transparency_sorting_distance",
 	"occlusion_culler",
 	"enable_raytraced_culling",
+	"foliage_range",
 };
 
 ClientMap::ClientMap(
@@ -202,6 +204,8 @@ void ClientMap::onSettingChanged(std::string_view name, bool all)
 		m_loops_occlusion_culler = g_settings->get("occlusion_culler") == "loops";
 	if (all || name == "enable_raytraced_culling")
 		m_enable_raytraced_culling = g_settings->getBool("enable_raytraced_culling");
+	if (all || name == "foliage_range")
+		m_cache_sprite_range = std::max(0.0f, g_settings->getFloat("foliage_range"));
 }
 
 ClientMap::~ClientMap()
@@ -850,7 +854,7 @@ void ClientMap::touchMapBlocks()
 }
 
 void MeshBufListMaps::addFromBlock(v3s16 block_pos, MapBlockMesh *block_mesh,
-	video::IVideoDriver *driver)
+	video::IVideoDriver *driver, const std::vector<video::E_MATERIAL_TYPE> *skip)
 {
 	for (int layer = 0; layer < MAX_TILE_LAYERS; layer++) {
 		scene::IMesh *mesh = block_mesh->getMesh(layer);
@@ -861,6 +865,8 @@ void MeshBufListMaps::addFromBlock(v3s16 block_pos, MapBlockMesh *block_mesh,
 			scene::IMeshBuffer *buf = mesh->getMeshBuffer(i);
 
 			auto &material = buf->getMaterial();
+			if (skip && CONTAINS(*skip, material.MaterialType))
+				continue;
 			auto *rnd = driver->getMaterialRenderer(material.MaterialType);
 			bool transparent = rnd && rnd->isTransparent();
 			if (!transparent)
@@ -1025,6 +1031,21 @@ static u32 transformBuffersToDrawOrder(
 	return can_merge < 2 ? 0 : can_merge;
 }
 
+const std::vector<video::E_MATERIAL_TYPE> *ClientMap::spriteMaterialsFarAway()
+{
+	if (m_cache_sprite_range <= 0.0f)
+		return nullptr;
+
+	if (!m_sprite_materials_ready) {
+		auto *shdsrc = m_client->getShaderSource();
+		m_sprite_materials.reserve(m_nodedef->m_sprite_materials.size());
+		for (u32 shader_id : m_nodedef->m_sprite_materials)
+			m_sprite_materials.push_back(shdsrc->getShaderInfo(shader_id).material);
+		m_sprite_materials_ready = true;
+	}
+	return m_sprite_materials.empty() ? nullptr : &m_sprite_materials;
+}
+
 void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 {
 	ZoneScoped;
@@ -1075,6 +1096,11 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 
 	auto is_frustum_culled = m_client->getCamera()->getFrustumCuller();
 
+	// Дальняя трава: за этой чертой её буферы в отрисовку не попадают
+	const auto *sprite_skip = spriteMaterialsFarAway();
+	const float sprite_range_sq = sprite_skip
+			? std::pow(m_cache_sprite_range * BS, 2.0f) : 0.0f;
+
 	for (auto &i : m_drawlist) {
 		const v3s16 block_pos = i.first;
 		MapBlock *block = i.second;
@@ -1092,10 +1118,11 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 		if (is_frustum_culled(mesh_sphere_center, mesh_sphere_radius))
 			continue;
 
+		const float distance_sq = camera_position.getDistanceFromSQ(mesh_sphere_center);
+
 		// Mesh animation
 		if (pass == scene::ESNRP_SOLID) {
 			// 50 nodes is pretty arbitrary but it should work somewhat nicely
-			float distance_sq = camera_position.getDistanceFromSQ(mesh_sphere_center);
 			bool faraway = distance_sq >= std::pow(BS * 50 + mesh_sphere_radius, 2.0f);
 
 			if (block_mesh->isAnimationForced() || !faraway ||
@@ -1120,7 +1147,8 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 				draw_order.emplace_back(get_block_wpos(block_pos), &buffer);
 		} else {
 			// Otherwise, group them
-			grouped_buffers.addFromBlock(block_pos, block_mesh, driver);
+			grouped_buffers.addFromBlock(block_pos, block_mesh, driver,
+					distance_sq > sprite_range_sq ? sprite_skip : nullptr);
 		}
 	}
 
@@ -1522,6 +1550,15 @@ void ClientMap::renderMapShadows(video::IVideoDriver *driver,
 	grouped_buffers.clear();
 	draw_order.clear();
 
+	// Дальняя трава не отбрасывает тень: см. renderMap()
+	const auto *sprite_skip = spriteMaterialsFarAway();
+	const float sprite_range_sq = sprite_skip
+			? std::pow(m_cache_sprite_range * BS, 2.0f) : 0.0f;
+	const auto shadow_distance_sq = [&] (v3s16 pos) {
+		return m_camera_position.getDistanceFromSQ(
+				intToFloat(pos * MAP_BLOCKSIZE, BS));
+	};
+
 	std::size_t count = 0;
 	std::size_t meshes_per_frame = m_drawlist_shadow.size() / total_frames + 1;
 	std::size_t low_bound = is_transparent_pass ? 0 : meshes_per_frame * frame;
@@ -1557,7 +1594,9 @@ void ClientMap::renderMapShadows(video::IVideoDriver *driver,
 				draw_order.emplace_back(get_block_wpos(block_pos), &buffer);
 		} else {
 			// Otherwise, group them
-			grouped_buffers.addFromBlock(block_pos, block->mesh, driver);
+			grouped_buffers.addFromBlock(block_pos, block->mesh, driver,
+					sprite_skip && shadow_distance_sq(block_pos) > sprite_range_sq
+						? sprite_skip : nullptr);
 		}
 	}
 

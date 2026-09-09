@@ -530,17 +530,27 @@ void NodeVisuals::updateMesh(Client *client, const TextureSettings &tsettings)
 	}
 }
 
-void NodeVisuals::collectMaterials(std::vector<u32> &leaves_materials)
+void NodeVisuals::collectMaterials(std::vector<u32> &leaves_materials,
+		std::vector<u32> &sprite_materials)
 {
 	if (f->drawtype == NDT_AIRLIKE)
 		return;
 
+	// Спрайтом рисуются те, у кого геометрия — не куб, а крестик из плоскостей
+	const bool sprite = f->drawtype == NDT_PLANTLIKE
+			|| f->drawtype == NDT_PLANTLIKE_ROOTED
+			|| f->drawtype == NDT_FIRELIKE;
+
 	for (u16 j = 0; j < 6; j++) {
 		auto &l = tiles[j].layers;
-		if (!l[0].empty() && l[0].material_type == TILE_MATERIAL_WAVING_LEAVES)
-			leaves_materials.push_back(l[0].shader_id);
-		if (!l[1].empty() && l[1].material_type == TILE_MATERIAL_WAVING_LEAVES)
-			leaves_materials.push_back(l[1].shader_id);
+		for (u16 k = 0; k < 2; k++) {
+			if (l[k].empty())
+				continue;
+			if (l[k].material_type == TILE_MATERIAL_WAVING_LEAVES)
+				leaves_materials.push_back(l[k].shader_id);
+			if (sprite)
+				sprite_materials.push_back(l[k].shader_id);
+		}
 	}
 }
 
@@ -634,7 +644,7 @@ void NodeVisuals::fillNodeVisuals(NodeDefManager *ndef, Client *client, void *pr
 		auto *v = f.visuals;
 		v->updateTextures(tsrc, shdsrc, client, &plt, tsettings);
 		v->updateMesh(client, tsettings);
-		v->collectMaterials(ndef->m_leaves_materials);
+		v->collectMaterials(ndef->m_leaves_materials, ndef->m_sprite_materials);
 
 		client->showUpdateProgressTexture(progress_callback_args,
 				0.66666f + 0.33333f * progress / size);
@@ -642,7 +652,9 @@ void NodeVisuals::fillNodeVisuals(NodeDefManager *ndef, Client *client, void *pr
 	});
 
 	SORT_AND_UNIQUE(ndef->m_leaves_materials);
+	SORT_AND_UNIQUE(ndef->m_sprite_materials);
 	verbosestream << "m_leaves_materials.size() = " << ndef->m_leaves_materials.size()
+		<< ", m_sprite_materials.size() = " << ndef->m_sprite_materials.size()
 		<< std::endl;
 
 	plt.printStats(infostream);
