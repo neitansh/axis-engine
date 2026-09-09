@@ -40,15 +40,18 @@ uniform float u_dyn_light_count;
 	uniform float xyPerspectiveBias1;
 	uniform vec3 shadow_tint;
 
-	VARYING_ float adj_shadow_strength;
+	uniform float f_timeofday;
+
 	VARYING_ float cosLight;
-	VARYING_ float f_normal_length;
 	VARYING_ vec3 shadow_position;
 	VARYING_ float perspective_factor;
+
 #endif
 
 
 VARYING_ vec3 vNormal;
+// Длина нормали: считается здесь, чтобы не переносить её из вершины
+#define f_normal_length length(vNormal)
 // World position in the visible world (i.e. relative to the cameraOffset.)
 // This can be used for many shader effects without loss of precision.
 // If the absolute position is required it can be calculated with
@@ -65,7 +68,7 @@ CENTROID_ VARYING_ mediump vec2 varTexCoord;
 flat VARYING_ uint varTexLayer;
 #endif
 CENTROID_ VARYING_ float nightRatio;
-VARYING_ highp vec3 eyeVec;
+VARYING_ highp float eyeDist;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 #if (defined(ENABLE_WATER_REFLECTIONS) && MATERIAL_WATER_REFLECTIONS)
@@ -136,6 +139,25 @@ float mtsmoothstep(in float edge0, in float edge1, in float x)
 	return t * t * (3.0 - 2.0 * t);
 }
 #endif
+
+/*
+ * Сила тени по времени суток: одно и то же число на весь кадр.
+ *
+ * Оно приезжало сюда межстадийной переменной, то есть считалось на каждой
+ * вершине и переносилось на каждый пиксель. Между вершиной и пикселем
+ * шейдер нод и так гоняет три десятка чисел на вершину, а при миллионах
+ * вершин это сотни мегабайт за кадр; всё, что можно посчитать здесь из
+ * uniform'а, здесь и считается.
+ */
+float shadowStrengthNow()
+{
+	if (f_timeofday < 0.2)
+		return f_shadow_strength * 0.5 * (1.0 - mtsmoothstep(0.18, 0.2, f_timeofday));
+	if (f_timeofday >= 0.8)
+		return f_shadow_strength * 0.5 * mtsmoothstep(0.8, 0.83, f_timeofday);
+	return f_shadow_strength * mtsmoothstep(0.20, 0.25, f_timeofday) *
+			(1.0 - mtsmoothstep(0.7, 0.8, f_timeofday));
+}
 
 float shadowCutoff(float x) {
 	#if defined(ENABLE_TRANSLUCENT_FOLIAGE) && MATERIAL_TYPE == TILE_MATERIAL_WAVING_LEAVES
@@ -630,7 +652,7 @@ void main(void)
 		float distance_rate = (1.0 - pow(clamp(2.0 * length(posLightSpace.xy - 0.5),0.0,1.0), 10.0));
 		if (max(abs(posLightSpace.x - 0.5), abs(posLightSpace.y - 0.5)) > 0.5)
 			distance_rate = 0.0;
-		float f_adj_shadow_strength = max(adj_shadow_strength - mtsmoothstep(0.9, 1.1, posLightSpace.z),0.0);
+		float f_adj_shadow_strength = max(shadowStrengthNow() - mtsmoothstep(0.9, 1.1, posLightSpace.z),0.0);
 
 		if (distance_rate > 1e-7) {
 
@@ -743,12 +765,12 @@ void main(void)
 	// clamp() is an addition. Else, the clamp() seems to be ignored.
 	// E.g. the following won't work:
 	//      float clarity = clamp(fogShadingParameter
-	//		* (fogDistance - length(eyeVec)) / fogDistance), 0.0, 1.0);
+	//		* (fogDistance - eyeDist) / fogDistance), 0.0, 1.0);
 	// As additions usually come for free following a multiplication, the new formula
 	// should be more efficient as well.
 	// Note: clarity = (1 - fogginess)
 	float clarity = clamp(fogShadingParameter
-		- fogShadingParameter * length(eyeVec) / fogDistance, 0.0, 1.0);
+		- fogShadingParameter * eyeDist / fogDistance, 0.0, 1.0);
 	float fogColorMax = max(max(fogColor.r, fogColor.g), fogColor.b);
 	// Prevent zero division.
 	if (fogColorMax < 0.0000001) fogColorMax = 1.0;

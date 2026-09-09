@@ -65,7 +65,7 @@ uniform float zPerspectiveBias;
 vec4 getRelativePosition(in vec4 position)
 {
 	vec2 l = position.xy - CameraPos.xy;
-	vec2 s = l / abs(l);
+	vec2 s = sign(l);
 	s = (1.0 - s * CameraPos.xy);
 	l /= s;
 	return vec4(l, s);
@@ -194,7 +194,7 @@ void main(void)
 		if (f_normal_length > 0.0) {
 			nNormal = normalize(vNormal);
 			cosLight = max(1e-5, dot(nNormal, -v_LightDirection));
-			float sinLight = pow(1.0 - pow(cosLight, 2.0), 0.5);
+			float sinLight = sqrt(1.0 - cosLight * cosLight);
 			normalOffsetScale = 0.1 * pFactor * pFactor * sinLight * min(f_shadowfar, 500.0) /
 					xyPerspectiveBias1 / f_textureresolution;
 			z_bias = 1e3 * sinLight / cosLight * (0.5 + f_textureresolution / 1024.0);
@@ -202,7 +202,7 @@ void main(void)
 		else {
 			nNormal = vec3(0.0);
 			cosLight = clamp(dot(v_LightDirection, normalize(vec3(v_LightDirection.x, 0.0, v_LightDirection.z))), 1e-2, 1.0);
-			float sinLight = pow(1.0 - pow(cosLight, 2.0), 0.5);
+			float sinLight = sqrt(1.0 - cosLight * cosLight);
 			normalOffsetScale = 0.0;
 			z_bias = 3.6e3 * sinLight / cosLight;
 		}
