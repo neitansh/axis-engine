@@ -34,8 +34,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Английская строка в выпуске — брак, и замечать его должен не игрок.
+  # Проверка стоит перед сборками: собирать то, что выкладывать нельзя, незачем.
+  # Она же ловит расхождение сгенерированных файлов с кодом — то самое, из-за
+  # которого настройки уехали на прод непереведёнными.
+  translations:
+    name: Перевод полон
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext lua5.1
+
+      - name: Check translations
+        run: ./util/check_translations.sh --complete
+
   linux:
     name: Build & Upload Linux Client
+    needs: translations
     if: inputs.platform != 'windows'
     runs-on: ubuntu-22.04
     # Сборка укладывается в восемь минут; час — это про зависший шаг, который
@@ -364,6 +385,7 @@ jobs:
 
   windows:
     name: Build & Upload Windows Client
+    needs: translations
     if: inputs.platform != 'linux'
     runs-on: windows-latest
     timeout-minutes: 60

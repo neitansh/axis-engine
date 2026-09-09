@@ -1,0 +1,50 @@
+name: translations
+
+# Сторож перевода. Строка доходит до игрока цепочкой из четырёх звеньев, и
+# пропущенное звено роняет её в английский молча — ни сборка, ни тесты этого не
+# видят. Так и уехало на прод 97 строк настроек.
+#
+# Здесь предупреждение, а не запрет: пока строку пишут, перевода у неё ещё и не
+# должно быть. Запрет стоит перед выпуском — там же, где ему и место
+# (release.yml, задание translations).
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'builtin/settingtypes.txt'
+      - 'builtin/**.lua'
+      - 'src/**.cpp'
+      - 'src/**.h'
+      - 'po/**'
+      - 'util/extract_pot.sh'
+      - 'util/check_translations.sh'
+      - 'util/generate_settings_translation_file.lua'
+      - '.github/workflows/translations.yml'
+  pull_request:
+    paths:
+      - 'builtin/settingtypes.txt'
+      - 'builtin/**.lua'
+      - 'src/**.cpp'
+      - 'src/**.h'
+      - 'po/**'
+      - 'util/extract_pot.sh'
+      - 'util/check_translations.sh'
+      - 'util/generate_settings_translation_file.lua'
+      - '.github/workflows/translations.yml'
+
+jobs:
+  check:
+    name: Перевод не отстал от кода
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext lua5.1
+
+      - name: Check translations
+        run: ./util/check_translations.sh
