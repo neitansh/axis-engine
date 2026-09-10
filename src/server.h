@@ -15,6 +15,7 @@
 #include "util/metricsbackend.h"
 #include "server/clientiface.h"
 #include "server/mediahttp.h"
+#include "server/skins.h"
 #include "threading/ordered_mutex.h"
 #include "translation.h"
 #include "sound_spec.h"
@@ -319,6 +320,13 @@ public:
 		bool client_cache = true;
 	};
 	bool dynamicAddMedia(const DynamicMediaArgs &args);
+
+	/// Облики, которые сервер раздаёт своим клиентам.
+	SkinCache &skins() { return m_skins; }
+
+	/// Одеть заново всех, кто носит этот облик: картинка приехала, и до сих
+	/// пор они были в том, что везёт сам движок.
+	void refreshSkin(const std::string &hash);
 
 	ServerInventoryManager *getInventoryMgr() const { return m_inventory_mgr.get(); }
 	void sendDetachedInventory(Inventory *inventory, const std::string &name, session_t peer_id);
@@ -812,6 +820,10 @@ private:
 
 	// media files known to server
 	std::unordered_map<std::string, MediaInfo> m_media;
+
+	/// Облики игроков: привозятся один раз по хэшу из билета и раздаются
+	/// клиентам как обычное медиа (doc/avatar.md §6).
+	SkinCache m_skins;
 
 	// Раздача медиа по HTTP рядом с игровым портом. Пусто — раздачи нет, и
 	// медиа едет игровым протоколом, как раньше.

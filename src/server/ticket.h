@@ -38,6 +38,11 @@ struct TicketIdentity
 	std::string display;
 	/// When the ticket stops being valid (unix seconds).
 	s64 expires = 0;
+	/// Hash of the look this player wears. Empty means the one the engine
+	/// ships. It rides in the ticket rather than being asked for: the ticket
+	/// is already signed, so even a stranger's server can read it without
+	/// holding anything of ours (doc/avatar.md §6).
+	std::string skin;
 };
 
 /// Why a ticket was refused. The player is told this in plain words; the

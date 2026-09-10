@@ -5,6 +5,7 @@
 
 #include "player_sao.h"
 #include "avatar.h"
+#include "server/ticket.h"
 #include "util/string.h"
 #include "itemgroup.h"
 #include "luaentity_sao.h"
@@ -171,8 +172,17 @@ std::string PlayerSAO::getDescription()
 // Called after id has been set and has been inserted in environment
 std::string PlayerSAO::getAvatarTexture() const
 {
-	// Until a signed manifest travels with the player, everyone wears the
-	// look the engine ships with.
+	// Which look this player owns is in the ticket they showed on the way in;
+	// the picture behind it the server fetches once and hands to everybody who
+	// sees them. Until it is here — and for a player who owns none — they wear
+	// the look the engine ships with.
+	Server *server = m_env->getServer();
+	TicketIdentity id;
+	if (server->getClientIdentity(getPeerID(), id) && !id.skin.empty()) {
+		const std::string worn = server->skins().want(id.skin);
+		if (!worn.empty())
+			return worn;
+	}
 	return AVATAR_DEFAULT_TEXTURE;
 }
 

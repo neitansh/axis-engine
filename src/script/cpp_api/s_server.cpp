@@ -218,6 +218,9 @@ u32 ScriptApiServer::allocateDynamicMediaCallback(lua_State *L, int f_idx)
 
 void ScriptApiServer::freeDynamicMediaCallback(u32 token)
 {
+	if (token == 0)
+		return;
+
 	SCRIPTAPI_PRECHECKHEADER
 
 	verbosestream << "freeDynamicMediaCallback(" << token << ")" << std::endl;
@@ -233,6 +236,11 @@ void ScriptApiServer::freeDynamicMediaCallback(u32 token)
 
 void ScriptApiServer::on_dynamic_media_added(u32 token, const std::string &playername)
 {
+	// Ноль — это медиа, которое добавил сам движок, а не мод: облик игрока,
+	// например. Ждать его окончания некому, и колбэка под этим номером нет.
+	if (token == 0)
+		return;
+
 	SCRIPTAPI_PRECHECKHEADER
 
 	int error_handler = PUSH_ERROR_HANDLER(L);

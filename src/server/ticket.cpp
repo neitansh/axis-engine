@@ -28,7 +28,7 @@
 	The payload:
 
 		{"k":1,"uid":"…","login":"neitan","name":"Нейтан",
-		 "srv":"salvo-official","iat":…,"exp":…,"jti":"…"}
+		 "srv":"salvo-official","skn":"<sha256>","iat":…,"exp":…,"jti":"…"}
 
 	Everything in it is readable by anyone holding the ticket, and that is
 	fine: there are no secrets inside. What protects it is that the signature
@@ -123,6 +123,12 @@ TicketError checkTicket(const std::string &ticket, const std::string &expect_log
 	id.login = payload.get("login", "").asString();
 	id.display = payload.get("name", "").asString();
 	id.expires = payload.get("exp", 0).asInt64();
+	id.skin = payload.get("skn", "").asString();
+	// Anything but a hash is nothing: the name of the file to ask for is built
+	// out of it, and a stray slash in there would ask for something else.
+	if (id.skin.size() != 64 ||
+			id.skin.find_first_not_of("0123456789abcdef") != std::string::npos)
+		id.skin.clear();
 	if (id.uid.empty() || id.login.empty())
 		return TicketError::Malformed;
 	if (id.display.empty())

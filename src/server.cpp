@@ -911,6 +911,7 @@ void Server::AsyncRunStep(float dtime, bool initial_step)
 	// Every step, not on a timer: somebody is holding a half-open connection
 	// waiting for this, and the answer usually takes milliseconds.
 	stepAwaitingAuth();
+	m_skins.step(this);
 
 #if USE_CURL
 	// send masterserver announce
@@ -3341,6 +3342,19 @@ void Server::stepPendingDynMediaCallbacks(float dtime)
 		}
 		getScriptIface()->freeDynamicMediaCallback(token);
 		return true; });
+}
+
+void Server::refreshSkin(const std::string &hash)
+{
+	for (session_t peer_id : m_clients.getClientIDs()) {
+		TicketIdentity id;
+		if (!getClientIdentity(peer_id, id) || id.skin != hash)
+			continue;
+		RemotePlayer *player = m_env->getPlayer(peer_id);
+		PlayerSAO *sao = player ? player->getPlayerSAO() : nullptr;
+		if (sao)
+			sao->notifyObjectPropertiesModified();
+	}
 }
 
 void Server::stepAwaitingAuth()
