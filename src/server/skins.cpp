@@ -52,14 +52,23 @@ std::string SkinCache::want(const std::string &hash)
 		return mediaName(hash);
 	if (m_pending.count(hash))
 		return "";
+	// Уже роздан и едет к клиентам: второй раз слать тот же файл незачем.
+	for (const auto &[token, sent] : m_awaiting) {
+		(void)token;
+		if (sent == hash)
+			return "";
+	}
 
 	// Уже приезжал когда-то: содержимое по хэшу неизменяемо, и спрашивать его
 	// второй раз незачем — ни у службы, ни после перезапуска сервера.
 	{
 		std::string kept;
 		if (fs::ReadFile(cachePath(hash), kept, true) && hexDigest(kept) == hash) {
-			if (m_owner && publish(m_owner, hash, kept))
-				return mediaName(hash);
+			// Не «готово»: файл с диска доезжает до клиентов так же, как
+			// скачанный, и назвать его можно только после доставки.
+			if (m_owner)
+				publish(m_owner, hash, kept);
+			return "";
 		}
 	}
 
@@ -84,18 +93,34 @@ std::string SkinCache::want(const std::string &hash)
 
 bool SkinCache::publish(Server *server, const std::string &hash, std::string_view data)
 {
+	const u32 token = server->allocateEngineMediaToken();
+
 	Server::DynamicMediaArgs args;
 	args.filename = mediaName(hash);
 	args.data = data;
-	args.token = 0;
+	args.token = token;
 	if (!server->dynamicAddMedia(args))
 		return false;
 
-	m_ready.insert(hash);
-	// Everyone wearing it is drawn again: until now they were in the look the
-	// engine ships, because the one they own was not here yet.
-	server->refreshSkin(hash);
+	// Готовым облик не считается, пока файл в пути: до тех пор его носитель
+	// ходит в том, что везёт движок, и это правильнее сиреневой заглушки.
+	m_awaiting[token] = hash;
 	return true;
+}
+
+void SkinCache::checkDelivered(Server *server)
+{
+	for (auto it = m_awaiting.begin(); it != m_awaiting.end();) {
+		if (server->mediaPending(it->first)) {
+			++it;
+			continue;
+		}
+		const std::string hash = it->second;
+		m_ready.insert(hash);
+		it = m_awaiting.erase(it);
+		// Теперь имя можно назвать: у всех, кто видит носителя, файл есть.
+		server->refreshSkin(hash);
+	}
 }
 
 void SkinCache::step(Server *server)
@@ -103,6 +128,8 @@ void SkinCache::step(Server *server)
 	// Дисковый кэш отдаётся тем же путём, что и приехавшее по сети, а для
 	// этого нужен сервер: раздать медиа умеет только он.
 	m_owner = server;
+
+	checkDelivered(server);
 
 	if (m_pending.empty())
 		return;

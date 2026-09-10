@@ -3345,6 +3345,15 @@ void Server::stepPendingDynMediaCallbacks(float dtime)
 		return true; });
 }
 
+u32 Server::allocateEngineMediaToken()
+{
+	do {
+		if (--m_engine_media_token == 0)
+			m_engine_media_token = U32_MAX;
+	} while (m_pending_dyn_media.count(m_engine_media_token) > 0);
+	return m_engine_media_token;
+}
+
 std::vector<session_t> Server::getClientIDs()
 {
 	return m_clients.getClientIDs();

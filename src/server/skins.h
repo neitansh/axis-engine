@@ -64,12 +64,20 @@ private:
 	};
 
 	bool publish(Server *server, const std::string &hash, std::string_view data);
+	void checkDelivered(Server *server);
 
 	/// Кому раздавать. Ставится на первом же шаге: без сервера медиа не
 	/// раздать, а спрашивают облик раньше, чем случается шаг.
 	Server *m_owner = nullptr;
 	std::unordered_map<std::string, Pending> m_pending;
 	std::unordered_set<std::string> m_ready;
+	/// Роздано клиентам, но ещё не всеми получено: номер раздачи → облик.
+	///
+	/// Пока файл в пути, называть его в свойствах игрока нельзя. Клиент,
+	/// которому имя пришло раньше файла, подставляет заглушку — ту самую
+	/// сиреневую — и второй раз за текстурой не идёт: имя не изменилось,
+	/// значит и перерисовывать ему нечего.
+	std::unordered_map<u32, std::string> m_awaiting;
 	/// Looks we could not get. Kept so a missing skin is asked for once and
 	/// not on every step for as long as its owner is playing.
 	std::unordered_set<std::string> m_missing;
