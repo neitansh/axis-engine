@@ -11,6 +11,7 @@
 #include <AnimSpec.h>
 
 #include "object_properties.h"
+#include "avatar.h"
 #include "clientobject.h"
 #include "constants.h"
 #include "itemgroup.h"
@@ -97,6 +98,16 @@ private:
 	// Visuals
 	scene::IMeshSceneNode *m_meshnode = nullptr;
 	scene::AnimatedMeshSceneNode *m_animated_meshnode = nullptr;
+	/**
+	 * Worn things, drawn as part of the player and not as objects.
+	 *
+	 * They hang off the bones of m_animated_meshnode, so they follow every
+	 * animation on their own and vanish with the player's own model — which
+	 * is what hides them from their owner in first person, where only the
+	 * hands are seen (doc/avatar.md §2).
+	 */
+	AvatarLook m_avatar;
+	std::vector<scene::AnimatedMeshSceneNode *> m_avatar_nodes;
 	WieldMeshSceneNode *m_wield_meshnode = nullptr;
 	scene::IBillboardSceneNode *m_spritenode = nullptr;
 	scene::IDummyTransformationSceneNode *m_matrixnode = nullptr;
@@ -447,6 +458,8 @@ public:
 	}
 
 	void updateMeshCulling();
+	void updateAvatarParts();
+	void clearAvatarParts();
 
 private:
 

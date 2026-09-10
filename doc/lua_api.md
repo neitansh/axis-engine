@@ -6956,6 +6956,24 @@ Authentication
     * There is no counterpart that sets any of this. A game is told who came
       in; deciding who came in is not a game's business.
 
+* `core.player_avatars_enabled()`: whether the engine dresses players on this
+  server (setting `player_avatars`, see `doc/avatar.md`).
+    * When `true`, the model, body texture and size of every player belong to
+      the engine. A game may still call `set_properties` on a player, but
+      `visual`, `mesh`, `textures` and `visual_size` are put back before the
+      change reaches anyone. Ask this and do not bring a character of your own.
+    * When `false`, nothing is enforced and players look however the game
+      dresses them, as before.
+    * There is no counterpart that sets it. Either everything about how a
+      player looks is the engine's, or none of it is.
+
+* `core.get_player_avatar_texture(name)`: the body texture this player wears.
+    * Returns a texture string, or `nil` when avatars are off or the player is
+      not online.
+    * Needed for the arms a player sees in front of themselves: they must be
+      dressed like the player, or a glove is visible to everyone except its
+      owner.
+
 * `core.get_auth_handler()`: Return the currently active auth handler
     * Must be called *after* load time, to ensure that any custom auth handler was
       already registered.

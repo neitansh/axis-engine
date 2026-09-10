@@ -18,6 +18,8 @@
 #include "scripting_server.h"
 #include "server.h"
 #include "serverenvironment.h"
+#include "avatar.h"
+#include "server/player_sao.h"
 
 #include <algorithm>
 
@@ -177,6 +179,46 @@ int ModApiServer::l_get_player_account(lua_State *L)
 	lua_setfield(L, -2, "display");
 	lua_pushinteger(L, id.expires);
 	lua_setfield(L, -2, "expires");
+	return 1;
+}
+
+// player_avatars_enabled()
+//
+// Whether players are dressed by the engine on this server. A game asks so it
+// knows not to bring a character of its own; it cannot set this, and no mod
+// can turn it either way. See doc/avatar.md.
+int ModApiServer::l_player_avatars_enabled(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+
+	lua_pushboolean(L, avatarsEnabled());
+	return 1;
+}
+
+// get_player_avatar_texture(name)
+//
+// The body texture this player wears. A game needs the name for the arms its
+// player sees in front of themselves — a glove everyone sees except its owner
+// is worse than no glove. The string is the engine's to build; a game can pass
+// it around but cannot make up somebody else's.
+int ModApiServer::l_get_player_avatar_texture(lua_State *L)
+{
+	GET_ENV_PTR_NO_MAP_LOCK;
+
+	if (!avatarsEnabled()) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	const char *name = luaL_checkstring(L, 1);
+	RemotePlayer *player = env->getPlayer(name);
+	PlayerSAO *sao = player ? player->getPlayerSAO() : nullptr;
+	if (!sao) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	lua_pushstring(L, sao->getAvatarTexture().c_str());
 	return 1;
 }
 
@@ -819,6 +861,8 @@ void ModApiServer::Initialize(lua_State *L, int top)
 	API_FCT(get_player_privs);
 	API_FCT(get_player_ip);
 	API_FCT(get_player_account);
+	API_FCT(player_avatars_enabled);
+	API_FCT(get_player_avatar_texture);
 	API_FCT(get_ban_list);
 	API_FCT(get_ban_description);
 	API_FCT(ban_player);

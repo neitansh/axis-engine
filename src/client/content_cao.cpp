@@ -660,6 +660,8 @@ void GenericCAO::removeFromScene(bool permanent)
 	// Место в общем буфере отдаётся обратно: следующая гильза ляжет туда же.
 	releaseBatchSlots();
 
+	clearAvatarParts();
+
 	if (m_meshnode) {
 		m_meshnode->remove();
 		m_meshnode->drop();
@@ -693,6 +695,60 @@ void GenericCAO::removeFromScene(bool permanent)
 
 	if (m_marker && m_client->getMinimap())
 		m_client->getMinimap()->removeMarker(&m_marker);
+}
+
+void GenericCAO::clearAvatarParts()
+{
+	for (scene::AnimatedMeshSceneNode *node : m_avatar_nodes) {
+		node->remove();
+		node->drop();
+	}
+	m_avatar_nodes.clear();
+}
+
+void GenericCAO::updateAvatarParts()
+{
+	clearAvatarParts();
+
+	if (!m_animated_meshnode || m_avatar.parts.empty())
+		return;
+
+	ITextureSource *tsrc = m_client->tsrc();
+	for (const AvatarPart &part : m_avatar.parts) {
+		scene::BoneSceneNode *bone =
+				m_animated_meshnode->getJointNode(part.bone.c_str());
+		if (!bone) {
+			warningstream << "GenericCAO: no bone \"" << part.bone
+					<< "\" to hang \"" << part.mesh << "\" on" << std::endl;
+			continue;
+		}
+
+		scene::IAnimatedMesh *mesh = m_client->getMesh(part.mesh, true);
+		if (!mesh) {
+			warningstream << "GenericCAO: could not load worn mesh \""
+					<< part.mesh << "\"" << std::endl;
+			continue;
+		}
+
+		// Hangs off the bone, not off the object: the thing has no place of
+		// its own in the world, and an animation moves it along with the limb
+		// it sits on without anybody sending anything.
+		scene::AnimatedMeshSceneNode *node =
+				m_smgr->addAnimatedMeshSceneNode(mesh, bone);
+		node->grab();
+		mesh->drop();
+
+		setMeshColor(node->getMesh(), video::SColor(0xFFFFFFFF));
+		updateObjectMaterialType(false);
+		node->forEachMaterial([this, &part, tsrc](video::SMaterial &mat) {
+			applyObjectMaterial(mat);
+			mat.MaterialType = m_material_type;
+			mat.BackfaceCulling = true;
+			setMaterialTextureAndFilters(mat, part.texture, tsrc);
+		});
+
+		m_avatar_nodes.push_back(node);
+	}
 }
 
 void GenericCAO::updateObjectMaterialType(bool hw_skin)
@@ -1210,6 +1266,10 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 		}
 	}
 
+	// Надетое живёт на костях этого узла, а узел только что создан заново.
+	updateAvatarParts();
+	setNodeLight(m_last_light);
+
 	for (auto &&[track_name, anim] : deferred_set_animation_cmds) {
 		applyTrackAnimation(std::move(track_name), anim);
 	}
@@ -1271,6 +1331,11 @@ void GenericCAO::setNodeLight(const video::SColor &light_color)
 		updateBatchInstance();
 		return;
 	}
+
+	// Надетое светится наравне с тем, на чём висит: свой узел сцены у него
+	// свой, и общий свет объекта до него сам не доходит.
+	for (scene::AnimatedMeshSceneNode *node : m_avatar_nodes)
+		setColorParam(node, light_color);
 
 	{
 		auto *node = getSceneNode();
@@ -2385,7 +2450,11 @@ void GenericCAO::processMessage(const std::string &data)
 	std::istringstream is(data, std::ios::binary);
 	// command
 	u8 cmd = readU8(is);
-	if (cmd == AO_CMD_SET_PROPERTIES) {
+	if (cmd == AO_CMD_SET_AVATAR) {
+		m_avatar.deSerialize(is);
+		updateAvatarParts();
+		setNodeLight(m_last_light);
+	} else if (cmd == AO_CMD_SET_PROPERTIES) {
 		ObjectProperties newprops;
 		newprops.show_on_minimap = m_is_player; // default
 

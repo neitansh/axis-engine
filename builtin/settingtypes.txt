@@ -1206,6 +1206,13 @@ strict_protocol_version_checking (Strict protocol checking) bool false
 #    strict_protocol_version_checking will effectively override this.
 protocol_version_min (Protocol version minimum) int 1 1 100
 
+#    Dress players with the character the engine ships, and with what they
+#    bought, instead of whatever the game puts on them.
+#    Either everything about how a player looks is the engine's, or none of it
+#    is: there is no half setting, and no mod can turn this either way. Games
+#    that want characters of their own leave it off.
+player_avatars (Players wear their own look) bool false
+
 #    Specifies URL from which client fetches media instead of using UDP.
 #    $filename should be accessible from $remote_media$filename via cURL
 #    (obviously, remote_media should end with a slash).

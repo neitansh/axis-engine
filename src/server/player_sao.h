@@ -9,6 +9,7 @@
 #include "inventorymanager.h" // InventoryLocation
 #include "metadata.h"
 #include "network/networkprotocol.h"
+#include "avatar.h"
 #include "unit_sao.h"
 #include "util/numeric.h"
 #include <set>
@@ -112,6 +113,41 @@ public:
 	void moveTo(v3f pos, bool continuous) override;
 	void setPlayerYaw(const float yaw);
 	std::string getGUID() const override { return m_player_name; }
+
+	void notifyObjectPropertiesModified() override;
+
+	/**
+	 * Play a track on this player.
+	 *
+	 * While avatars are on, a track asked for by frame numbers is refused.
+	 * The engine's character has named tracks, and frame ranges written for
+	 * another model land wherever they land — in practice they lay the player
+	 * out on the ground. Refusing leaves them standing and says in the log
+	 * what to call instead. Which track plays is still the game's to decide;
+	 * only the way of naming it changed.
+	 */
+	void setAnimation(const scene::TrackId &track,
+			scene::TrackAnimSpec anim_spec) override;
+
+	/**
+	 * Put the engine's own character back on the player.
+	 *
+	 * Does nothing while player avatars are off. While they are on, model,
+	 * texture and size are the engine's and a game cannot set them: it may
+	 * still call set_properties, but these fields are put back before anyone
+	 * is told about the change. See doc/avatar.md §2.
+	 */
+	void enforceAvatar();
+
+	/// The body texture this player wears, as the client will resolve it.
+	/// Games need the name for the arms a player sees in front of themselves.
+	std::string getAvatarTexture() const;
+
+	/// What this player wears. Empty while avatars are off.
+	const AvatarLook &getAvatarLook() const { return m_avatar; }
+
+	/// Tell the clients that see this player what they should draw on them.
+	std::string generateSetAvatarCommand() const;
 	// Data should not be sent at player initialization
 	void setPlayerYawAndSend(const float yaw);
 	void setLookPitch(const float pitch);
@@ -286,6 +322,8 @@ private:
 	RemotePlayer *m_player = nullptr;
 	// Extra variable because during shutdown m_player is unavailable, but we still need to know.
 	std::string m_player_name; ///< used as GUID
+	AvatarLook m_avatar;
+	bool m_warned_frame_animation = false;
 	session_t m_peer_id_initial = 0; ///< only used to initialize RemotePlayer
 
 	// Cheat prevention

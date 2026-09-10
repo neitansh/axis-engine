@@ -76,6 +76,12 @@ private:
 	// get_player_account(name)
 	static int l_get_player_account(lua_State *L);
 
+	// player_avatars_enabled()
+	static int l_player_avatars_enabled(lua_State *L);
+
+	// get_player_avatar_texture(name)
+	static int l_get_player_avatar_texture(lua_State *L);
+
 	// get_player_information(name)
 	static int l_get_player_information(lua_State *L);
 

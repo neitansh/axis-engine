@@ -606,6 +606,13 @@ void set_default_settings()
 	settings->setDefault("nodetimer_interval", "0.2");
 	settings->setDefault("ignore_world_load_errors", "false");
 	settings->setDefault("remote_media", "");
+	// Кто одевает игроков: движок или игра. Умолчание — игра, как было
+	// всегда; игры со своими персонажами не должны меняться от обновления.
+	settings->setDefault("player_avatars", "false");
+	// Строительные леса: пока образ не приезжает подписанным, надеть на
+	// игрока нечего, а рисование надетого писать и смотреть уже надо.
+	// Уходит вместе с манифестом. Список «кость модель текстура» через запятую.
+	settings->setDefault("player_avatars_test", "");
 	// Раздача медиа рядом с игровым портом: пусто — тот же номер порта, что у
 	// игры, 0 — не раздавать вовсе и слать медиа игровым протоколом.
 	settings->setDefault("media_http_port", "");

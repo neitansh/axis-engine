@@ -1072,6 +1072,8 @@ void Server::AsyncRunStep(float dtime, bool initial_step)
 
 						if (cmd >= AO_CMD_STOP_ANIMATION && client->net_proto_version < 52)
 							continue; // AO_CMD_STOP_ANIMATION added in protocol version 52
+						if (cmd >= AO_CMD_SET_AVATAR && client->net_proto_version < 55)
+							continue; // AO_CMD_SET_AVATAR added in protocol version 55
 
 						// Add full new data to appropriate buffer
 						std::string &buffer = aom.reliable ? reliable_data : unreliable_data;
@@ -3031,6 +3033,13 @@ void Server::fillMediaCache()
 
 	// ordered in descending priority
 	paths.push_back(getBuiltinLuaPath() + DIR_DELIM "locale");
+	// What the engine itself ships: the player character and the look it comes
+	// with. It goes before the game on purpose. A player's own appearance is
+	// not a server's to replace, and the first path here wins — so a game can
+	// use these files but cannot put its own in their place. Games that want
+	// their own characters turn the whole thing off instead, and then nothing
+	// here is used.
+	fs::GetRecursiveDirs(paths, getBuiltinLuaPath() + DIR_DELIM "media");
 	fs::GetRecursiveDirs(paths,
 						 porting::path_user + DIR_DELIM "textures" DIR_DELIM "server");
 	// A game gets the same media directories as a mod, so that it can keep its

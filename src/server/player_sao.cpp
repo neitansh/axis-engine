@@ -4,6 +4,8 @@
 // Copyright (C) 2013-2020 Minetest core developers & community
 
 #include "player_sao.h"
+#include "avatar.h"
+#include "util/string.h"
 #include "itemgroup.h"
 #include "luaentity_sao.h"
 #include "nodedef.h"
@@ -167,9 +169,100 @@ std::string PlayerSAO::getDescription()
 }
 
 // Called after id has been set and has been inserted in environment
+std::string PlayerSAO::getAvatarTexture() const
+{
+	// Until a signed manifest travels with the player, everyone wears the
+	// look the engine ships with.
+	return AVATAR_DEFAULT_TEXTURE;
+}
+
+/**
+ * Worn things while there is nothing to wear from yet.
+ *
+ * Scaffolding: until a signed manifest travels with the player there is no
+ * wardrobe to read, and the drawing of worn things still has to be built and
+ * looked at. Goes away with the manifest (doc/avatar.md §5). Format is a list
+ * of `bone mesh texture`, separated by commas.
+ */
+static std::vector<AvatarPart> testParts()
+{
+	std::vector<AvatarPart> parts;
+	for (const std::string &entry : str_split(g_settings->get("player_avatars_test"), ',')) {
+		auto words = str_split(std::string(trim(entry)), ' ');
+		if (words.size() != 3)
+			continue;
+		parts.push_back(AvatarPart{words[0], words[1], words[2]});
+		if (parts.size() >= AvatarLook::MAX_PARTS)
+			break;
+	}
+	return parts;
+}
+
+std::string PlayerSAO::generateSetAvatarCommand() const
+{
+	std::ostringstream os(std::ios::binary);
+	writeU8(os, AO_CMD_SET_AVATAR);
+	m_avatar.serialize(os);
+	return os.str();
+}
+
+void PlayerSAO::enforceAvatar()
+{
+	if (!avatarsEnabled())
+		return;
+
+	AvatarLook look;
+	look.body_texture = getAvatarTexture();
+	look.parts = testParts();
+	if (look != m_avatar) {
+		m_avatar = look;
+		// The look is not an object property: properties belong to the game,
+		// and this does not. It rides the object's own channel, which no mod
+		// can write to.
+		m_messages_out.emplace(getId(), true, generateSetAvatarCommand());
+	}
+
+	m_prop.visual = OBJECTVISUAL_MESH;
+	m_prop.mesh = AVATAR_MESH;
+	m_prop.textures.assign(1, getAvatarTexture());
+	m_prop.colors.clear();
+
+	// Drawn to the height of the collision box, never the other way round:
+	// the box is the game's and is picked for the world it stands in, while a
+	// character drawn taller than it leaves a head nobody can hit.
+	const float box = m_prop.collisionbox.MaxEdge.Y - m_prop.collisionbox.MinEdge.Y;
+	const float scale = box > 0.0f ? box / AVATAR_MODEL_HEIGHT : 1.0f;
+	m_prop.visual_size = v3f(scale, scale, scale);
+}
+
+void PlayerSAO::setAnimation(const scene::TrackId &track,
+		scene::TrackAnimSpec anim_spec)
+{
+	if (avatarsEnabled() && std::holds_alternative<u16>(track)) {
+		if (!m_warned_frame_animation) {
+			m_warned_frame_animation = true;
+			warningstream << "Player avatars are on and the game asked for an "
+					"animation by frame numbers on player \"" << m_player_name
+					<< "\". The engine's character has named tracks: call "
+					"play_animation(\"walk\") and the like instead."
+					<< std::endl;
+		}
+		return;
+	}
+
+	UnitSAO::setAnimation(track, std::move(anim_spec));
+}
+
+void PlayerSAO::notifyObjectPropertiesModified()
+{
+	enforceAvatar();
+	UnitSAO::notifyObjectPropertiesModified();
+}
+
 void PlayerSAO::addedToEnvironment(u32 dtime_s)
 {
 	ServerActiveObject::addedToEnvironment(dtime_s);
+	enforceAvatar();
 	m_player->setPlayerSAO(this);
 	m_player->setPeerId(m_peer_id_initial);
 	m_peer_id_initial = PEER_ID_INEXISTENT; // don't try to use it again.
@@ -215,6 +308,8 @@ std::string PlayerSAO::getClientInitializationData(u16 protocol_version)
 		++message_count;
 	};
 	append_message(getPropertyPacket());
+	if (avatarsEnabled())
+		append_message(generateSetAvatarCommand());
 	append_message(generateUpdateArmorGroupsCommand());
 	for (const auto &[track, anim] : getAnimation().tracks) {
 		if (anim.state != TrackAnimation::State::STOPPED)
