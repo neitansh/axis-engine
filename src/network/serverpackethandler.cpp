@@ -1974,7 +1974,9 @@ void Server::handleCommand_HaveMedia(NetworkPacket *pkt)
 			continue;
 		if (it->second.waiting_players.count(peer_id)) {
 			it->second.waiting_players.erase(peer_id);
-			if (player)
+			// Медиа, которое добавил сам движок, ждёт не мод: колбэка под этим
+			// номером нет, и звать по нему Lua — уронить сервер.
+			if (player && !isEngineMediaToken(token))
 				getScriptIface()->on_dynamic_media_added(token, player->getName());
 		}
 	}

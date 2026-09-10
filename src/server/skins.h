@@ -31,8 +31,41 @@ class Server;
 class SkinCache
 {
 public:
-	/// Media name for this look, or empty while it is not here yet.
-	/// Asking starts the fetch; asking again is free.
+	/**
+	 * Media name for a look that is here and delivered, or empty.
+	 *
+	 * A pure question: it starts nothing. Asking cannot start anything, and
+	 * that is the point — the answer goes straight into the properties of a
+	 * player, and a name given out before the file arrived leaves the client
+	 * with a dummy texture it will never replace.
+	 */
+	std::string worn(const std::string &hash) const;
+
+	/// Same for a picture lying on this machine (стенд, см. wantLocal).
+	std::string wornLocal(const std::string &path) const;
+
+	/**
+	 * Fetch what the people here are wearing and hand it out.
+	 *
+	 * Called on every step, and the reason it is here rather than where the
+	 * look is asked for is the joining player: media pushed to a client that
+	 * is still receiving definitions is dropped with a warning and never
+	 * arrives. Only players who finished joining are served.
+	 */
+	void pump(Server *server);
+
+	/**
+	 * The same road, but for a picture lying on this machine.
+	 *
+	 * Scaffolding for the stand: a real look arrives by hash out of a signed
+	 * ticket, and a ticket cannot be written without the account service's
+	 * key — so the whole road (hand out, wait for delivery, name the texture)
+	 * was only ever walked on the live server. It is walked here instead.
+	 * Goes away when the stand can hold a ticket of its own.
+	 */
+	std::string wantLocal(const std::string &path);
+
+	/// Спросить облик и, если его ещё нет, начать его добывать.
 	std::string want(const std::string &hash);
 
 	/// Pick up answers and hand what arrived to the clients.
@@ -78,6 +111,9 @@ private:
 	/// сиреневую — и второй раз за текстурой не идёт: имя не изменилось,
 	/// значит и перерисовывать ему нечего.
 	std::unordered_map<u32, std::string> m_awaiting;
+	/// Путь до картинки со стенда → её хэш: читать файл на каждый вопрос
+	/// незачем, а спрашивают об облике на каждую правку свойств.
+	std::unordered_map<std::string, std::string> m_local;
 	/// Looks we could not get. Kept so a missing skin is asked for once and
 	/// not on every step for as long as its owner is playing.
 	std::unordered_set<std::string> m_missing;

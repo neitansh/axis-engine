@@ -177,9 +177,20 @@ std::string PlayerSAO::getAvatarTexture() const
 	// sees them. Until it is here — and for a player who owns none — they wear
 	// the look the engine ships with.
 	Server *server = m_env->getServer();
+
+	// Строительные леса стенда: настоящий облик приезжает хэшем из билета, а
+	// билет без ключа службы не выписать. Уходит вместе с ними.
+	const std::string local = g_settings->get("player_avatars_test_skin");
+	if (!local.empty()) {
+		const std::string worn = server->skins().wornLocal(local);
+		return worn.empty() ? AVATAR_DEFAULT_TEXTURE : worn;
+	}
+
 	TicketIdentity id;
 	if (server->getClientIdentity(getPeerID(), id) && !id.skin.empty()) {
-		const std::string worn = server->skins().want(id.skin);
+		// Только спрашиваем. Добывает облик шаг сервера: он знает, кто уже
+		// вошёл целиком, а спрашивают отсюда и на середине входа.
+		const std::string worn = server->skins().worn(id.skin);
 		if (!worn.empty())
 			return worn;
 	}

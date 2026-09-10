@@ -63,7 +63,7 @@ std::string SkinCache::want(const std::string &hash)
 	// второй раз незачем — ни у службы, ни после перезапуска сервера.
 	{
 		std::string kept;
-		if (fs::ReadFile(cachePath(hash), kept, true) && hexDigest(kept) == hash) {
+		if (fs::ReadFile(cachePath(hash), kept) && hexDigest(kept) == hash) {
 			// Не «готово»: файл с диска доезжает до клиентов так же, как
 			// скачанный, и назвать его можно только после доставки.
 			if (m_owner)
@@ -108,6 +108,63 @@ bool SkinCache::publish(Server *server, const std::string &hash, std::string_vie
 	return true;
 }
 
+std::string SkinCache::worn(const std::string &hash) const
+{
+	return m_ready.count(hash) > 0 ? mediaName(hash) : std::string();
+}
+
+std::string SkinCache::wornLocal(const std::string &path) const
+{
+	auto known = m_local.find(path);
+	if (known == m_local.end())
+		return "";
+	return worn(known->second);
+}
+
+void SkinCache::pump(Server *server)
+{
+	m_owner = server;
+
+	const std::string local = g_settings->get("player_avatars_test_skin");
+	// getClientIDs() отдаёт только тех, кто уже вошёл целиком: раздавать
+	// файлы тому, кто ещё принимает определения, бесполезно — такой пакет
+	// отбрасывается, и второй раз его никто не пошлёт.
+	for (session_t peer_id : server->getClientIDs()) {
+		if (!local.empty()) {
+			wantLocal(local);
+			continue;
+		}
+		TicketIdentity id;
+		if (server->getClientIdentity(peer_id, id) && !id.skin.empty())
+			want(id.skin);
+	}
+}
+
+std::string SkinCache::wantLocal(const std::string &path)
+{
+	auto known = m_local.find(path);
+	if (known == m_local.end()) {
+		std::string data;
+		if (!fs::ReadFile(path, data, true))
+			return "";
+		known = m_local.emplace(path, hexDigest(data)).first;
+	}
+	const std::string &hash = known->second;
+
+	if (m_ready.count(hash))
+		return mediaName(hash);
+	for (const auto &[token, sent] : m_awaiting) {
+		(void)token;
+		if (sent == hash)
+			return "";
+	}
+
+	std::string data;
+	if (m_owner && fs::ReadFile(path, data))
+		publish(m_owner, hash, data);
+	return "";
+}
+
 void SkinCache::checkDelivered(Server *server)
 {
 	for (auto it = m_awaiting.begin(); it != m_awaiting.end();) {
@@ -119,7 +176,7 @@ void SkinCache::checkDelivered(Server *server)
 		m_ready.insert(hash);
 		it = m_awaiting.erase(it);
 		// Теперь имя можно назвать: у всех, кто видит носителя, файл есть.
-		server->refreshSkin(hash);
+		server->refreshAvatars();
 	}
 }
 
@@ -130,6 +187,7 @@ void SkinCache::step(Server *server)
 	m_owner = server;
 
 	checkDelivered(server);
+	pump(server);
 
 	if (m_pending.empty())
 		return;

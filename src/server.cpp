@@ -3341,7 +3341,10 @@ void Server::stepPendingDynMediaCallbacks(float dtime)
 			m_media.erase(it);
 			updateMediaHttp();
 		}
-		getScriptIface()->freeDynamicMediaCallback(token);
+		if (isEngineMediaToken(token))
+			m_engine_media_tokens.erase(token);
+		else
+			getScriptIface()->freeDynamicMediaCallback(token);
 		return true; });
 }
 
@@ -3351,6 +3354,7 @@ u32 Server::allocateEngineMediaToken()
 		if (--m_engine_media_token == 0)
 			m_engine_media_token = U32_MAX;
 	} while (m_pending_dyn_media.count(m_engine_media_token) > 0);
+	m_engine_media_tokens.insert(m_engine_media_token);
 	return m_engine_media_token;
 }
 
@@ -3376,12 +3380,16 @@ void Server::setClientSkin(session_t peer_id, const std::string &hash)
 		sao->notifyObjectPropertiesModified();
 }
 
-void Server::refreshSkin(const std::string &hash)
+void Server::refreshAvatars()
 {
+	// Одеваем заново всех, а не только носителей приехавшего облика.
+	//
+	// Искать носителей по клейму из билета выходило дешевле, но неверно: во
+	// что игрок одет, решает PlayerSAO, и поводов разойтись с клеймом хватает
+	// — стендовая картинка, облик по умолчанию, смена на ходу. Свойства
+	// дюжины игроков стоят пустяк, а пропущенный переодетый выглядит как
+	// поломка.
 	for (session_t peer_id : m_clients.getClientIDs()) {
-		TicketIdentity id;
-		if (!getClientIdentity(peer_id, id) || id.skin != hash)
-			continue;
 		RemotePlayer *player = m_env->getPlayer(peer_id);
 		PlayerSAO *sao = player ? player->getPlayerSAO() : nullptr;
 		if (sao)
@@ -4477,7 +4485,10 @@ bool Server::dynamicAddMedia(const DynamicMediaArgs &a)
 	for (session_t peer_id : delivered)
 	{
 		if (auto player = m_env->getPlayer(peer_id))
-			getScriptIface()->on_dynamic_media_added(a.token, player->getName());
+		{
+			if (!isEngineMediaToken(a.token))
+				getScriptIface()->on_dynamic_media_added(a.token, player->getName());
+		}
 	}
 
 	// Save all others in our pending state
