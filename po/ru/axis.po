@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 19:45+0300\n"
+"POT-Creation-Date: 2026-09-11 00:36+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -181,6 +181,7 @@ msgid "Crosshair"
 msgstr "Прицел"
 
 #: builtin/common/settings/crosshair_component.lua
+#: builtin/common/settings/quality_component.lua
 #: builtin/common/settings/shadows_component.lua
 msgid "Custom"
 msgstr "Пользовательские"
@@ -2992,6 +2993,38 @@ msgstr "Мир"
 msgid "World generation"
 msgstr "Генерация мира"
 
+#: builtin/common/settings/quality_component.lua
+#: builtin/common/settings/shadows_component.lua
+msgid "High"
+msgstr "Высокие"
+
+#: builtin/common/settings/quality_component.lua
+#: builtin/common/settings/shadows_component.lua
+msgid "Low"
+msgstr "Низкие"
+
+#: builtin/common/settings/quality_component.lua
+#: builtin/common/settings/shadows_component.lua
+msgid "Quality preset"
+msgstr "Пресет качества"
+
+#: builtin/common/settings/quality_component.lua
+msgid ""
+"Sets everything below at once. Changing anything by hand switches this to "
+"Custom."
+msgstr ""
+"Ставит всё нижеследующее разом. Правка любого пункта руками переводит выбор "
+"в «Пользовательские»."
+
+
+#: builtin/common/settings/quality_component.lua
+msgid "Standard"
+msgstr "Обычные"
+
+#: builtin/common/settings/quality_component.lua
+msgid "Ultra"
+msgstr "Ультра"
+
 #: builtin/common/settings/settingtypes.lua
 msgid "Client Mods"
 msgstr "Клиентские моды"
@@ -3009,20 +3042,8 @@ msgid "(The crate will need to enable shadows as well)"
 msgstr "(В крейте также потребуется включить тени)"
 
 #: builtin/common/settings/shadows_component.lua
-msgid "High"
-msgstr "Высокие"
-
-#: builtin/common/settings/shadows_component.lua
-msgid "Low"
-msgstr "Низкие"
-
-#: builtin/common/settings/shadows_component.lua
 msgid "Medium"
 msgstr "Средние"
-
-#: builtin/common/settings/shadows_component.lua
-msgid "Quality preset"
-msgstr "Пресет качества"
 
 #: builtin/common/settings/shadows_component.lua
 msgid "Very High"
@@ -5937,6 +5958,33 @@ msgid "Beach noise threshold"
 msgstr "Порог шума пляжей"
 
 #: src/settings_translation_file.cpp
+msgid ""
+"Beyond this distance from the camera grass, flowers and other sprite-drawn\n"
+"nodes are not drawn at all. A field of grass costs both vertices and\n"
+"overdraw: a glance along the ground passes through a dozen blades and each\n"
+"one is shaded in full. Stated in nodes. 0 draws all of it."
+msgstr ""
+"Дальше этого расстояния от камеры трава, цветы и прочие ноды, нарисованные\n"
+"лоскутами, не рисуются вовсе. Поле травы стоит и вершин, и повторной\n"
+"закраски: взгляд вдоль земли проходит через десяток стеблей, и каждый\n"
+"закрашивается целиком. В нодах. 0 — рисовать всё."
+
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Beyond this distance from the camera the inside of tree crowns is not\n"
+"drawn: those faces sit between leaves and are only visible through the\n"
+"gaps in the texture of the leaf in front, which nobody can make out on a\n"
+"distant tree. They are, however, about half of all vertices in a frame.\n"
+"Stated in nodes. 0 draws every crown in full."
+msgstr ""
+"Дальше этого расстояния от камеры нутро кроны не рисуется: эти грани стоят\n"
+"между листьями и видны только в просветы текстуры переднего листа, а на\n"
+"дальнем дереве их не разглядеть. При этом они — около половины всех вершин\n"
+"в кадре. В нодах. 0 — рисовать каждую крону целиком."
+
+
+#: src/settings_translation_file.cpp
 msgid "Bilinear filtering"
 msgstr "Билинейная фильтрация"
 
@@ -6458,6 +6506,10 @@ msgid "Crosshair thickness"
 msgstr "Толщина прицела"
 
 #: src/settings_translation_file.cpp
+msgid "Crown detail distance"
+msgstr "Дальность подробной кроны"
+
+#: src/settings_translation_file.cpp
 msgid "Damage"
 msgstr "Урон"
 
@@ -6722,6 +6774,21 @@ msgstr ""
 "Это нарушает сортировку по прозрачности между меш буферами, но позволяет "
 "избежать ситуаций,\n"
 "когда в противном случае сортировка по прозрачности была бы очень медленной."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Dress players with the character the engine ships, and with what they\n"
+"bought, instead of whatever the game puts on them.\n"
+"Either everything about how a player looks is the engine's, or none of it\n"
+"is: there is no half setting, and no mod can turn this either way. Games\n"
+"that want characters of their own leave it off."
+msgstr ""
+"Одевать игроков персонажем, который везёт движок, и тем, что они купили, —\n"
+"вместо того, что надевает на них игра.\n"
+"Либо внешность игрока принадлежит движку целиком, либо не принадлежит\n"
+"вовсе: половинчатой настройки нет, и ни один мод её не переключит. Игры со\n"
+"своими персонажами оставляют её выключенной."
+
 
 #: src/settings_translation_file.cpp
 msgid "Dump the mapgen debug information."
@@ -7127,6 +7194,10 @@ msgstr "Туман"
 #: src/settings_translation_file.cpp
 msgid "Fog start"
 msgstr "Граница тумана"
+
+#: src/settings_translation_file.cpp
+msgid "Foliage distance"
+msgstr "Дальность травы"
 
 #: src/settings_translation_file.cpp
 msgid "Font"
@@ -9106,6 +9177,10 @@ msgstr "Задержка повторной установки"
 #: src/settings_translation_file.cpp
 msgid "Player transfer distance"
 msgstr "Расстояние передачи игрока"
+
+#: src/settings_translation_file.cpp
+msgid "Players wear their own look"
+msgstr "Игроки в своём облике"
 
 #: src/settings_translation_file.cpp
 msgid "Post Processing"
@@ -11126,36 +11201,3 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
-
-#~ msgid "Fast mode disabled"
-#~ msgstr "Режим быстрого перемещения отключён"
-
-#~ msgid "Fast mode enabled"
-#~ msgstr "Режим быстрого перемещения включён"
-
-#~ msgid "Fast mode enabled (note: no 'fast' privilege)"
-#~ msgstr "Режим быстрого перемещения включён (но нет привилегии «fast»)"
-
-#~ msgid "Fly mode disabled"
-#~ msgstr "Режим полёта отключён"
-
-#~ msgid "Fly mode enabled"
-#~ msgstr "Режим полёта включён"
-
-#~ msgid "Fly mode enabled (note: no 'fly' privilege)"
-#~ msgstr "Режим полёта включён (но нет привилегии «fly»)"
-
-#~ msgid "Noclip mode disabled"
-#~ msgstr "Режим прохождения сквозь стены отключён"
-
-#~ msgid "Noclip mode enabled"
-#~ msgstr "Режим прохождения сквозь стены включён"
-
-#~ msgid "Noclip mode enabled (note: no 'noclip' privilege)"
-#~ msgstr "Режим прохождения сквозь стены включён (но нет привилегии «noclip»)"
-
-#~ msgid "Pitch move mode disabled"
-#~ msgstr "Режим движения по направлению взгляда отключён"
-
-#~ msgid "Pitch move mode enabled"
-#~ msgstr "Режим движения по направлению взгляда включён"

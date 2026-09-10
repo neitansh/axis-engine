@@ -257,6 +257,10 @@ fake_function() {
 	gettext("Allows liquids to be translucent.");
 	gettext("Leaves style");
 	gettext("Leaves style:\n-   Fancy:  all faces visible\n-   Simple: only outer faces\n-   Opaque: disable transparency");
+	gettext("Crown detail distance");
+	gettext("Beyond this distance from the camera the inside of tree crowns is not\ndrawn: those faces sit between leaves and are only visible through the\ngaps in the texture of the leaf in front, which nobody can make out on a\ndistant tree. They are, however, about half of all vertices in a frame.\nStated in nodes. 0 draws every crown in full.");
+	gettext("Foliage distance");
+	gettext("Beyond this distance from the camera grass, flowers and other sprite-drawn\nnodes are not drawn at all. A field of grass costs both vertices and\noverdraw: a glance along the ground passes through a dozen blades and each\none is shaded in full. Stated in nodes. 0 draws all of it.");
 	gettext("Connect glass");
 	gettext("Connects glass if supported by node.");
 	gettext("Smooth lighting");
@@ -480,6 +484,8 @@ fake_function() {
 	gettext("Enable to disallow old clients from connecting.\nOlder clients are compatible in the sense that they will not crash when connecting\nto new servers, but they may not support all new features that you are expecting.");
 	gettext("Protocol version minimum");
 	gettext("Define the oldest clients allowed to connect.\nOlder clients are compatible in the sense that they will not crash when connecting\nto new servers, but they may not support all new features that you are expecting.\nThis allows for more fine-grained control than strict_protocol_version_checking.\nLuanti still enforces its own internal minimum, and enabling\nstrict_protocol_version_checking will effectively override this.");
+	gettext("Players wear their own look");
+	gettext("Dress players with the character the engine ships, and with what they\nbought, instead of whatever the game puts on them.\nEither everything about how a player looks is the engine's, or none of it\nis: there is no half setting, and no mod can turn this either way. Games\nthat want characters of their own leave it off.");
 	gettext("Remote media");
 	gettext("Specifies URL from which client fetches media instead of using UDP.\n$filename should be accessible from $remote_media$filename via cURL\n(obviously, remote_media should end with a slash).\nFiles that are not present will be fetched the usual way.");
 	gettext("Media HTTP port");

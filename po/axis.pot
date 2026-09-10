@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 19:45+0300\n"
+"POT-Creation-Date: 2026-09-11 00:36+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -197,6 +197,7 @@ msgid "Crosshair"
 msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
+#: builtin/common/settings/quality_component.lua
 #: builtin/common/settings/shadows_component.lua
 msgid "Custom"
 msgstr ""
@@ -2678,6 +2679,35 @@ msgstr ""
 msgid "Reset setting to default"
 msgstr ""
 
+#: builtin/common/settings/quality_component.lua
+#: builtin/common/settings/shadows_component.lua
+msgid "Low"
+msgstr ""
+
+#: builtin/common/settings/quality_component.lua
+msgid "Standard"
+msgstr ""
+
+#: builtin/common/settings/quality_component.lua
+#: builtin/common/settings/shadows_component.lua
+msgid "High"
+msgstr ""
+
+#: builtin/common/settings/quality_component.lua
+msgid "Ultra"
+msgstr ""
+
+#: builtin/common/settings/quality_component.lua
+#: builtin/common/settings/shadows_component.lua
+msgid "Quality preset"
+msgstr ""
+
+#: builtin/common/settings/quality_component.lua
+msgid ""
+"Sets everything below at once. Changing anything by hand switches this to "
+"Custom."
+msgstr ""
+
 #: builtin/common/settings/settingtypes.lua
 msgid "Content: Crates"
 msgstr ""
@@ -2695,23 +2725,11 @@ msgid "Very Low"
 msgstr ""
 
 #: builtin/common/settings/shadows_component.lua
-msgid "Low"
-msgstr ""
-
-#: builtin/common/settings/shadows_component.lua
 msgid "Medium"
 msgstr ""
 
 #: builtin/common/settings/shadows_component.lua
-msgid "High"
-msgstr ""
-
-#: builtin/common/settings/shadows_component.lua
 msgid "Very High"
-msgstr ""
-
-#: builtin/common/settings/shadows_component.lua
-msgid "Quality preset"
 msgstr ""
 
 #: builtin/common/settings/shadows_component.lua
@@ -6188,6 +6206,31 @@ msgid ""
 msgstr ""
 
 #: src/settings_translation_file.cpp
+msgid "Crown detail distance"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Beyond this distance from the camera the inside of tree crowns is not\n"
+"drawn: those faces sit between leaves and are only visible through the\n"
+"gaps in the texture of the leaf in front, which nobody can make out on a\n"
+"distant tree. They are, however, about half of all vertices in a frame.\n"
+"Stated in nodes. 0 draws every crown in full."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Foliage distance"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Beyond this distance from the camera grass, flowers and other sprite-drawn\n"
+"nodes are not drawn at all. A field of grass costs both vertices and\n"
+"overdraw: a glance along the ground passes through a dozen blades and each\n"
+"one is shaded in full. Stated in nodes. 0 draws all of it."
+msgstr ""
+
+#: src/settings_translation_file.cpp
 msgid "Connect glass"
 msgstr ""
 
@@ -7215,6 +7258,19 @@ msgid ""
 "strict_protocol_version_checking.\n"
 "Luanti still enforces its own internal minimum, and enabling\n"
 "strict_protocol_version_checking will effectively override this."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Players wear their own look"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Dress players with the character the engine ships, and with what they\n"
+"bought, instead of whatever the game puts on them.\n"
+"Either everything about how a player looks is the engine's, or none of it\n"
+"is: there is no half setting, and no mod can turn this either way. Games\n"
+"that want characters of their own leave it off."
 msgstr ""
 
 #: src/settings_translation_file.cpp
