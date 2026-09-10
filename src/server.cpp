@@ -912,6 +912,7 @@ void Server::AsyncRunStep(float dtime, bool initial_step)
 	// waiting for this, and the answer usually takes milliseconds.
 	stepAwaitingAuth();
 	m_skins.step(this);
+	m_skins.stepRefresh(this, dtime);
 
 #if USE_CURL
 	// send masterserver announce
@@ -3342,6 +3343,28 @@ void Server::stepPendingDynMediaCallbacks(float dtime)
 		}
 		getScriptIface()->freeDynamicMediaCallback(token);
 		return true; });
+}
+
+std::vector<session_t> Server::getClientIDs()
+{
+	return m_clients.getClientIDs();
+}
+
+void Server::setClientSkin(session_t peer_id, const std::string &hash)
+{
+	RemoteClient *client = m_clients.lockedGetClientNoEx(peer_id, CS_Active);
+	if (!client)
+		return;
+	TicketIdentity id = client->getIdentity();
+	if (id.skin == hash)
+		return;
+	id.skin = hash;
+	client->setIdentity(id);
+
+	RemotePlayer *player = m_env->getPlayer(peer_id);
+	PlayerSAO *sao = player ? player->getPlayerSAO() : nullptr;
+	if (sao)
+		sao->notifyObjectPropertiesModified();
 }
 
 void Server::refreshSkin(const std::string &hash)

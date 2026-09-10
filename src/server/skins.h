@@ -38,6 +38,21 @@ public:
 	/// Pick up answers and hand what arrived to the clients.
 	void step(Server *server);
 
+	/**
+	 * Ask the account service what the players here are wearing now.
+	 *
+	 * A ticket says what somebody wore when they connected, and it cannot be
+	 * rewritten afterwards — so a player who changes their look in the cabinet
+	 * without leaving the game would otherwise keep the old one until they
+	 * came back. This is the server asking instead, every so often, about the
+	 * people sitting on it.
+	 *
+	 * Only a server holding a service token can ask. A stranger's server has
+	 * none: there the new look arrives with the next join, and that is an
+	 * honest difference between our server and a rented one.
+	 */
+	void stepRefresh(Server *server, float dtime);
+
 	/// Media name a look is published under.
 	static std::string mediaName(const std::string &hash);
 
@@ -58,4 +73,10 @@ private:
 	/// Looks we could not get. Kept so a missing skin is asked for once and
 	/// not on every step for as long as its owner is playing.
 	std::unordered_set<std::string> m_missing;
+
+	/// Сколько осталось до следующего вопроса службе, в секундах.
+	float m_ask_in = 0.0f;
+	/// Идёт ли вопрос прямо сейчас: второй поверх первого не задаётся.
+	bool m_asking = false;
+	u64 m_ask_caller = 0;
 };

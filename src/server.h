@@ -328,6 +328,14 @@ public:
 	/// пор они были в том, что везёт сам движок.
 	void refreshSkin(const std::string &hash);
 
+	/// Кто сейчас на сервере. Нужно кэшу обликов: спрашивать службу он может
+	/// только про тех, кто здесь сидит.
+	std::vector<session_t> getClientIDs();
+
+	/// Игрок переоделся, не выходя из игры: запомнить новое и показать его
+	/// всем, кто его видит.
+	void setClientSkin(session_t peer_id, const std::string &hash);
+
 	ServerInventoryManager *getInventoryMgr() const { return m_inventory_mgr.get(); }
 	void sendDetachedInventory(Inventory *inventory, const std::string &name, session_t peer_id);
 

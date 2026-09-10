@@ -8,10 +8,18 @@
 #include "httpfetch.h"
 #include "log.h"
 #include "porting.h"
+#include "convert_json.h"
 #include "server.h"
+#include "server/clientiface.h"
+#include "server/player_sao.h"
+#include "remoteplayer.h"
+#include "serverenvironment.h"
 #include "settings.h"
 #include "util/hashing.h"
 #include "util/hex.h"
+
+#include <json/json.h>
+#include <memory>
 #include "util/string.h"
 
 namespace
@@ -140,4 +148,98 @@ void SkinCache::step(Server *server)
 		}
 		it = m_pending.erase(it);
 	}
+}
+
+namespace
+{
+
+/// Как часто спрашивать службу, во что одеты сидящие. Полминуты — это цена
+/// одного запроса на матч и та задержка, с которой переодевание в кабинете
+/// доезжает до чужих глаз. Чаще незачем: человек переодевается не каждый шаг.
+constexpr float ASK_EVERY = 30.0f;
+
+} // namespace
+
+void SkinCache::stepRefresh(Server *server, float dtime)
+{
+	if (!avatarsEnabled())
+		return;
+
+	if (m_asking) {
+		HTTPFetchResult res;
+		if (!httpfetch_async_get(m_ask_caller, res))
+			return;
+		httpfetch_caller_free(m_ask_caller);
+		m_asking = false;
+
+		if (!res.succeeded || res.response_code != 200) {
+			// Молчащая служба ничего не сказала об облике, и это не повод
+			// раздевать людей: носят то, что носили.
+			warningstream << "Skins: the account service did not answer (code "
+					<< res.response_code << ")" << std::endl;
+			return;
+		}
+
+		Json::Value answer;
+		{
+			Json::CharReaderBuilder builder;
+			std::string errors;
+			const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+			if (!reader->parse(res.data.data(), res.data.data() + res.data.size(),
+					&answer, &errors) || !answer.isObject())
+				return;
+		}
+		const Json::Value &worn = answer["skins"];
+		if (!worn.isObject())
+			return;
+
+		for (session_t peer_id : server->getClientIDs()) {
+			TicketIdentity id;
+			if (!server->getClientIdentity(peer_id, id) || id.uid.empty())
+				continue;
+			// Нет игрока в ответе — на нём движковый облик: служба присылает
+			// только тех, у кого свой.
+			const std::string now = worn.get(id.uid, "").asString();
+			if (now == id.skin)
+				continue;
+			server->setClientSkin(peer_id, now);
+		}
+		return;
+	}
+
+	m_ask_in -= dtime;
+	if (m_ask_in > 0.0f)
+		return;
+	m_ask_in = ASK_EVERY;
+
+	const std::string url = g_settings->get("auth_url");
+	const std::string token = g_settings->get("auth_token");
+	if (url.empty() || token.empty())
+		return; // чужой сервер: спрашивать нечем и не у кого
+
+	Json::Value uids(Json::arrayValue);
+	for (session_t peer_id : server->getClientIDs()) {
+		TicketIdentity id;
+		if (server->getClientIdentity(peer_id, id) && !id.uid.empty())
+			uids.append(id.uid);
+	}
+	if (uids.empty())
+		return;
+
+	Json::Value body;
+	body["uids"] = uids;
+
+	m_ask_caller = httpfetch_caller_alloc();
+	HTTPFetchRequest req;
+	req.caller = m_ask_caller;
+	req.url = url + "/v1/servers/skins";
+	req.method = HTTP_POST;
+	req.raw_data = fastWriteJson(body);
+	req.extra_headers.emplace_back("Content-Type: application/json");
+	req.extra_headers.emplace_back("Authorization: Bearer " + token);
+	req.connect_timeout = 2000;
+	req.timeout = 5000;
+	req.quiet = true;
+	httpfetch_async(req);
+	m_asking = true;
 }
