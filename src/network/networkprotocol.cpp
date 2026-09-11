@@ -87,8 +87,8 @@
 	PROTOCOL VERSION 55
 		Added AO_CMD_SET_AVATAR: what a player wears, drawn by the client
 	PROTOCOL VERSION 56
-		Added TOCLIENT_SCREEN_STATIC: lost-signal static with a caption,
-		faded in and out by the client
+		Added TOCLIENT_EYELIDS: the player's eyelids closing over the
+		picture with a caption, animated by the client
 */
 
 // Note: Also update core.protocol_versions in builtin when bumping

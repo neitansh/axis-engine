@@ -105,25 +105,28 @@ public:
 	// потому что приходят пакетом: обработчику проще дотянуться до игрока.
 	CameraFx camera_fx;
 
-	// Помехи на экране (см. TOCLIENT_SCREEN_STATIC). Сервер называет цель и
-	// за сколько к ней прийти, клиент ведёт силу помех сам, кадр за кадром:
-	// так появление и уход плавные, а не двадцать ступенек в секунду.
-	struct ScreenStatic {
+	// Веки (см. TOCLIENT_EYELIDS). Сервер называет цель и за сколько к ней
+	// прийти, клиент ведёт веки сам, кадр за кадром: так смыкание и
+	// раскрытие плавные, а не двадцать ступенек в секунду.
+	struct Eyelids {
 		f32 target = 0.0f;
 		f32 fade = 0.5f;
-		f32 intensity = 0.0f;
+		f32 closed = 0.0f;
 		f32 time = 0.0f;
+		/// Смыкаются или раскрываются: раскрытие идёт по своей кривой, с
+		/// морганиями, а смыкание — ровно.
+		bool closing = false;
 		std::wstring caption;
 
 		void step(f32 dtime)
 		{
 			time += dtime;
 			const f32 rate = fade > 0.0f ? dtime / fade : 1.0f;
-			intensity += std::clamp(target - intensity, -rate, rate);
+			closed += std::clamp(target - closed, -rate, rate);
 		}
-		bool visible() const { return intensity > 0.001f; }
+		bool visible() const { return closed > 0.001f; }
 	};
-	ScreenStatic screen_static;
+	Eyelids eyelids;
 
 	PlayerHud csm_hud;
 

@@ -216,5 +216,5 @@ const ClientCommandFactory clientCommandFactoryTable[TOCLIENT_NUM_MSG_TYPES] =
 	{ "TOCLIENT_CHAT_COMMANDS",            0, true }, // 0x65
 	{ "TOCLIENT_TRANSFER",                 0, true }, // 0x66
 	{ "TOCLIENT_CAMERA_IMPULSE",           0, true }, // 0x67
-	{ "TOCLIENT_SCREEN_STATIC",            0, true }, // 0x68
+	{ "TOCLIENT_EYELIDS",            0, true }, // 0x68
 };

@@ -1811,8 +1811,8 @@ int ObjectRef::l_add_camera_impulse(lua_State *L)
 	return 1;
 }
 
-// set_screen_static(self, {intensity=, fade=, caption=})
-int ObjectRef::l_set_screen_static(lua_State *L)
+// set_eyelids(self, {closed=, fade=, caption=})
+int ObjectRef::l_set_eyelids(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
 	ObjectRef *ref = checkObject<ObjectRef>(L, 1);
@@ -1821,12 +1821,12 @@ int ObjectRef::l_set_screen_static(lua_State *L)
 		return 0;
 
 	luaL_checktype(L, 2, LUA_TTABLE);
-	const f32 intensity = getfloatfield_default(L, 2, "intensity", 0.0f);
+	const f32 closed = getfloatfield_default(L, 2, "closed", 0.0f);
 	const f32 fade = getfloatfield_default(L, 2, "fade", 0.5f);
 	const std::string caption = getstringfield_default(L, 2, "caption", "");
 
-	lua_pushboolean(L, getServer(L)->SendScreenStatic(player->getPeerId(),
-			intensity, fade, caption));
+	lua_pushboolean(L, getServer(L)->SendEyelids(player->getPeerId(),
+			closed, fade, caption));
 	return 1;
 }
 
@@ -3350,7 +3350,7 @@ luaL_Reg ObjectRef::methods[] = {
 	luamethod(ObjectRef, get_fov),
 	luamethod(ObjectRef, set_fov),
 	luamethod(ObjectRef, add_camera_impulse),
-	luamethod(ObjectRef, set_screen_static),
+	luamethod(ObjectRef, set_eyelids),
 	luamethod(ObjectRef, get_breath),
 	luamethod(ObjectRef, set_breath),
 	luamethod(ObjectRef, get_attribute),

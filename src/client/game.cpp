@@ -240,8 +240,9 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	CachedPixelShaderSetting<float> m_bloom_strength_pixel{"bloomStrength"};
 	CachedPixelShaderSetting<float> m_bloom_radius_pixel{"bloomRadius"};
 	CachedPixelShaderSetting<float> m_saturation_pixel{"saturation"};
-	CachedPixelShaderSetting<float> m_screen_static_pixel{"screenStatic"};
-	CachedPixelShaderSetting<float> m_screen_static_time_pixel{"screenStaticTime"};
+	CachedPixelShaderSetting<float> m_eyelids_pixel{"eyelids"};
+	CachedPixelShaderSetting<float> m_eyelids_time_pixel{"eyelidsTime"};
+	CachedPixelShaderSetting<float> m_eyelids_closing_pixel{"eyelidsClosing"};
 	bool m_volumetric_light_enabled;
 	CachedPixelShaderSetting<float, 3>
 		m_sun_position_pixel{"sunPositionScreen"};
@@ -431,11 +432,13 @@ public:
 		float saturation = lighting.saturation;
 		m_saturation_pixel.set(&saturation, services);
 
-		const auto &screen_static = m_client->getEnv().getLocalPlayer()->screen_static;
-		float static_intensity = screen_static.intensity;
-		m_screen_static_pixel.set(&static_intensity, services);
-		float static_time = screen_static.time;
-		m_screen_static_time_pixel.set(&static_time, services);
+		const auto &eyelids = m_client->getEnv().getLocalPlayer()->eyelids;
+		float eyelids_closed = eyelids.closed;
+		m_eyelids_pixel.set(&eyelids_closed, services);
+		float eyelids_time = eyelids.time;
+		m_eyelids_time_pixel.set(&eyelids_time, services);
+		float eyelids_closing = eyelids.closing ? 1.0f : 0.0f;
+		m_eyelids_closing_pixel.set(&eyelids_closing, services);
 
 		// Всё, что за кадр не меняется, считает первый обратившийся, а
 		// остальные вызовы отрисовки только читают готовое
@@ -3540,7 +3543,7 @@ void Game::updateCamera(f32 dtime)
 	tool_reload_ratio = std::min(tool_reload_ratio, 1.0f);
 	camera->update(player, dtime, tool_reload_ratio);
 	camera->step(dtime);
-	player->screen_static.step(dtime);
+	player->eyelids.step(dtime);
 
 	if (!m_flags.disable_camera_update)
 	{
@@ -4816,11 +4819,11 @@ void Game::drawScene(ProfilerGraph *graph, RunStats *stats)
 	this->driver->beginScene(true, true, sky_color);
 
 	const LocalPlayer *player = this->client->getEnv().getLocalPlayer();
-	// Помехи потерянного сигнала кладутся сведением на кадр, а руки, прицел и
-	// HUD рисуются после него — и остались бы чёткими поверх шума. Сигнал
-	// потерян целиком: пока помехи на экране, ничего этого нет.
-	const bool signal_lost = player->screen_static.visible();
-	const bool show_hud = this->m_game_ui->m_flags.show_hud && !signal_lost;
+	// Веки кладутся сведением на кадр, а руки, прицел и HUD рисуются после
+	// него — и торчали бы поверх закрытых глаз. Пока веки опущены, ничего
+	// этого нет.
+	const bool eyes_shut = player->eyelids.visible();
+	const bool show_hud = this->m_game_ui->m_flags.show_hud && !eyes_shut;
 	bool draw_wield_tool = (show_hud &&
 							(player->hud_flags & HUD_FLAG_WIELDITEM_VISIBLE) &&
 							(this->camera->getCameraMode() == CAMERA_MODE_FIRST));

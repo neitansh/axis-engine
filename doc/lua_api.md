@@ -9470,21 +9470,19 @@ You **must not** mix names and track numbers to refer to the same animation.
     * Note that this affects what the player *sees*, not where the server thinks
       they are aiming. A game that wants the aim to move as well has to mirror
       the same spring server-side and offset the shot direction itself.
-* `set_screen_static(definition)`: Lost-signal static over the whole picture —
-  grain, torn lines, a rolling band, blur and a vignette, with a caption in the
-  middle. The client fades it in and out itself, and hides the HUD, the wielded
-  item, the crosshair and the chat while it is showing: the signal is lost as a
-  whole. Meant for death screens. Requires post-processing on the client.
-    * `intensity`: `0` clears the screen, `1` is nothing but static; in between
-      the world shows through, greyed and blurred.
-    * `fade`: seconds to reach the new intensity from the current one. Default
-      `0.5`.
-    * `caption`: text drawn in the middle, large and red, softened by the same
-      blur as the picture. Empty for none.
+* `set_eyelids(definition)`: The player's eyelids — closes or opens the eyes
+  over the whole picture. Closing is even: the world blurs and dims as the two
+  straight lids meet, and a caption fades in on the black. Opening is not: the
+  lids part a little, shut, part wider, and only then open fully, the picture
+  hazy until they do; the caption fades out first. The HUD, the wielded item,
+  the crosshair and the chat are hidden while the lids are down. Meant for
+  death screens. Requires post-processing on the client.
+    * `closed`: `1` shuts the eyes, `0` opens them.
+    * `fade`: seconds to get there from where the lids are now. Default `0.5`.
+    * `caption`: text shown on the closed eyes, large and red. Empty for none.
     * Returns `false` if the client cannot show it (protocol version below 56).
-    * Example: `player:set_screen_static({intensity = 1, fade = 0.6,
-      caption = "WASTED"})` on death, `player:set_screen_static({intensity = 0,
-      fade = 1})` on respawn.
+    * Example: `player:set_eyelids({closed = 1, fade = 0.5, caption = "WASTED"})`
+      on death, `player:set_eyelids({closed = 0, fade = 2.4})` on respawn.
 * `set_attribute(attribute, value)`:  DEPRECATED, use get_meta() instead
     * Sets an extra attribute with value on player.
     * `value` must be a string, or a number which will be converted to a

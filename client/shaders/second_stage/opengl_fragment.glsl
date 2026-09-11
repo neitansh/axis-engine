@@ -15,7 +15,7 @@ struct ExposureParams {
 
 uniform sampler2D rendered;
 uniform sampler2D bloom;
-// Подпись экрана помех, нарисованная в начале кадра (ScreenCaptionStep).
+// Подпись на закрытых глазах, нарисованная в начале кадра (ScreenCaptionStep).
 uniform sampler2D caption;
 
 uniform vec2 texelSize0;
@@ -23,9 +23,11 @@ uniform vec2 texelSize0;
 uniform ExposureParams exposureParams;
 uniform lowp float bloomIntensity;
 uniform lowp float saturation;
-// Помехи потерянного сигнала: 0 — чисто, 1 — сплошь. См. TOCLIENT_SCREEN_STATIC.
-uniform lowp float screenStatic;
-uniform mediump float screenStaticTime;
+// Веки: 0 — глаза открыты, 1 — закрыты. См. TOCLIENT_EYELIDS.
+uniform lowp float eyelids;
+uniform mediump float eyelidsTime;
+// Смыкаются (1) или раскрываются (0): раскрытие идёт с морганиями.
+uniform lowp float eyelidsClosing;
 
 CENTROID_ VARYING_ mediump vec2 varTexCoord;
 
@@ -107,111 +109,12 @@ vec3 screen_space_dither(highp vec2 frag_coord) {
 }
 #endif
 
-float staticHash(vec2 p)
-{
-	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-}
-
-// Зерно, строчная развёртка, яркая середина и тёмные края трубки: то, чем
-// экран помех отличается от плоской картинки. Возвращает множитель.
-float tubeTexture(vec2 uv, out float grain)
-{
-	float frame = floor(screenStaticTime * 30.0);
-	vec2 px = floor(gl_FragCoord.xy / 2.0);
-	float g = staticHash(px + vec2(frame * 13.0, frame * 7.0));
-	float row = staticHash(vec2(px.y, frame * 3.0));
-	g = mix(g, row, 0.35);
-	grain = smoothstep(0.15, 0.85, g);
-
-	float lines = 0.3 + 0.7 * (0.5 + 0.5 * cos(gl_FragCoord.y * 2.094));
-	float mid = 1.0 - abs(uv.y - 0.5) * 2.0;
-	float edge = length((uv - 0.5) * vec2(1.2, 1.0));
-	float vignette = 1.0 - smoothstep(0.3, 0.95, edge);
-	float flicker = 0.92 + 0.08 * staticHash(vec2(frame, 1.0));
-	return lines * mix(0.5, 1.0, mid) * mix(0.3, 1.0, vignette) * flicker;
-}
-
-// Настроечная таблица: семь цветных полос, под ними обратный ряд, внизу
-// серый клин, — и всё это рвётся построчно, как у сорвавшейся развёртки.
-vec3 colorBars(vec2 uv)
-{
-	float t = screenStaticTime;
-	float band = floor(uv.y * 36.0);
-	float tick = floor(t * 9.0);
-	float torn = step(0.55, staticHash(vec2(band * 3.1, tick + 7.0)));
-	float shift = (staticHash(vec2(band, tick)) - 0.5) * 0.18 * torn;
-	float x = fract(uv.x + shift + 0.015 * sin(t * 2.3 + uv.y * 3.0));
-
-	vec3 c;
-	if (uv.y > 0.34) {
-		float i = floor(x * 7.0);
-		c = i < 1.0 ? vec3(0.75) :
-			i < 2.0 ? vec3(0.75, 0.75, 0.0) :
-			i < 3.0 ? vec3(0.0, 0.75, 0.75) :
-			i < 4.0 ? vec3(0.0, 0.75, 0.0) :
-			i < 5.0 ? vec3(0.75, 0.0, 0.75) :
-			i < 6.0 ? vec3(0.75, 0.0, 0.0) : vec3(0.0, 0.0, 0.75);
-	} else if (uv.y > 0.25) {
-		float i = floor(x * 7.0);
-		c = i < 1.0 ? vec3(0.0, 0.0, 0.75) :
-			i < 2.0 ? vec3(0.0) :
-			i < 3.0 ? vec3(0.75, 0.0, 0.75) :
-			i < 4.0 ? vec3(0.0) :
-			i < 5.0 ? vec3(0.0, 0.75, 0.75) :
-			i < 6.0 ? vec3(0.0) : vec3(0.75);
-	} else {
-		c = x < 0.6 ? vec3(0.08 + 0.7 * x / 0.6) : vec3(0.02);
-	}
-	return c;
-}
-
-// Экран помех целиком: полосы под зерном и развёрткой, с бегущей полосой.
-vec3 staticScreen(vec2 uv, out float grain)
-{
-	float tube = tubeTexture(uv, grain);
-	// Полосы тоже расслаиваются на каналы.
-	float split = 0.006 * (0.5 + 0.5 * sin(screenStaticTime * 7.0));
-	vec3 bars = vec3(colorBars(uv + vec2(split, 0.0)).r, colorBars(uv).g,
-			colorBars(uv - vec2(split, 0.0)).b);
-	vec3 c = bars * (0.55 + 0.75 * grain);
-	c = mix(c, vec3(grain), 0.25);
-	float band = fract(uv.y * 0.6 - screenStaticTime * 0.13);
-	float roll = smoothstep(0.42, 0.5, band) * (1.0 - smoothstep(0.5, 0.62, band));
-	return c * tube * 1.25 + roll * 0.1;
-}
-
-// Гладкий шум: пятна помех с мягкими краями, а не клетки.
-float smoothNoise(vec2 p)
-{
-	vec2 i = floor(p);
-	vec2 f = fract(p);
-	f = f * f * (3.0 - 2.0 * f);
-	float a = staticHash(i);
-	float b = staticHash(i + vec2(1.0, 0.0));
-	float c = staticHash(i + vec2(0.0, 1.0));
-	float d = staticHash(i + vec2(1.0, 1.0));
-	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-}
-
-// Картинка мира там, где сигнал уже пойман: чем сильнее помехи вокруг, тем
-// она серее и размытее — возвращается не сразу в полном качестве.
-// Картинка плывёт: медленная волна по всему кадру и мелкая построчная дрожь,
-// как у плёнки, которую тянет неровно.
-vec2 swim(vec2 uv, float k, float amount)
-{
-	float t = screenStaticTime;
-	uv.x += sin(uv.y * 6.3 + t * 1.7) * 0.012 * amount * k;
-	uv.y += sin(uv.x * 4.7 + t * 1.1) * 0.008 * amount * k;
-	uv.x += sin(uv.y * 90.0 + t * 9.0) * 0.0025 * amount * k;
-	uv.y += sin(t * 0.7) * 0.01 * amount * k;
-	return uv;
-}
-
-vec3 blurredWorld(vec2 uv, float k)
+// Мир сквозь прикрытые веки: мягче и темнее, чем шире они сомкнуты.
+vec3 hazyWorld(vec2 uv, float haze)
 {
 	vec3 color = texture2D(rendered, uv).rgb;
-	if (k > 0.02) {
-		vec2 step = texelSize0 * (1.0 + 5.0 * k);
+	if (haze > 0.02) {
+		vec2 step = texelSize0 * (1.0 + 6.0 * haze);
 		vec3 sum = color;
 		sum += texture2D(rendered, uv + vec2(step.x, 0.0)).rgb;
 		sum += texture2D(rendered, uv - vec2(step.x, 0.0)).rgb;
@@ -219,32 +122,13 @@ vec3 blurredWorld(vec2 uv, float k)
 		sum += texture2D(rendered, uv - vec2(0.0, step.y)).rgb;
 		sum += texture2D(rendered, uv + step).rgb;
 		sum += texture2D(rendered, uv - step).rgb;
-		color = mix(color, sum / 7.0, k);
+		color = mix(color, sum / 7.0, haze);
 	}
 	return color;
 }
 
-// Мир под помехами: плывёт, рвётся построчно и расслаивается на каналы —
-// красный и синий уезжают в стороны, как у сбитого сигнала.
-vec3 worldColor(vec2 uv, float k)
-{
-	uv = swim(uv, k, 1.0);
-	float t = screenStaticTime;
-	float tick = floor(t * 14.0);
-	float row = floor(uv.y * 40.0);
-	float tear = staticHash(vec2(row, tick));
-	if (tear > 0.86)
-		uv.x += (tear - 0.86) * 1.2 * k * (staticHash(vec2(tick, row)) - 0.5);
-
-	float split = 0.004 * k * (0.6 + 0.4 * sin(t * 11.0 + uv.y * 20.0));
-	vec2 off = vec2(split, 0.0);
-	return vec3(blurredWorld(uv + off, k).r, blurredWorld(uv, k).g,
-			blurredWorld(uv - off, k).b);
-}
-
-// Подпись поверх помех: мягкая, с зерном, но не серая — читаться она
-// обязана, это единственное слово на экране.
-vec4 blurredCaption(vec2 uv, float k)
+// Подпись — мягкая, как всё, что видно с закрытыми глазами.
+vec4 softCaption(vec2 uv)
 {
 	const int TAPS = 8;
 	vec2 taps[TAPS];
@@ -252,51 +136,49 @@ vec4 blurredCaption(vec2 uv, float k)
 	taps[2] = vec2(-0.7,  0.7); taps[3] = vec2( 0.7,  0.7);
 	taps[4] = vec2(-1.0,  0.0); taps[5] = vec2( 1.0,  0.0);
 	taps[6] = vec2( 0.0, -1.0); taps[7] = vec2( 0.0,  1.0);
-	uv = swim(uv, k, 0.35);
-	float radius = 0.004;
+	float radius = 0.003;
 	vec4 sum = texture2D(caption, uv);
 	for (int i = 0; i < TAPS; i++)
 		sum += texture2D(caption, uv + taps[i] * radius);
 	return sum / float(TAPS + 1);
 }
 
+// Насколько открыт глаз при раскрытии, 0..1 по ходу раскрытия: два
+// коротких моргания, потом целиком.
+float eyeOpening(float progress)
+{
+	if (progress < 0.16)
+		return 0.35 * smoothstep(0.0, 0.16, progress);
+	if (progress < 0.26)
+		return 0.35 * (1.0 - smoothstep(0.16, 0.26, progress));
+	if (progress < 0.46)
+		return 0.7 * smoothstep(0.26, 0.46, progress);
+	if (progress < 0.56)
+		return mix(0.7, 0.08, smoothstep(0.46, 0.56, progress));
+	return mix(0.08, 1.0, smoothstep(0.56, 1.0, progress));
+}
+
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
-	// Сигнал не возвращается разом. Сперва помехи гаснут в черноту, а потом
-	// игрок открывает глаза: веки — две прямые шторки сверху и снизу —
-	// приоткрываются, смыкаются, открываются шире и лишь потом целиком, а
-	// картинка между ними поначалу мутная. На полной силе экран — помехи.
-	float k = screenStatic;
+	// Веки. Смыкаются ровно, картинка за ними мутнеет и гаснет; на чёрном
+	// проявляется подпись. Раскрываются с морганиями — две прямые шторки
+	// сверху и снизу с мягким краем расходятся, смыкаются, расходятся шире
+	// и лишь потом целиком; подпись гаснет раньше, чем глаз откроется.
+	float k = eyelids;
 	if (k > 0.001) {
-		float t = screenStaticTime;
-
-		// Помехи горят на полной силе и гаснут к 0.85 — быстро, чернота не
-		// пауза, а вспышка наоборот.
-		float lit = smoothstep(0.85, 0.97, k);
-		float loaded = clamp((0.85 - k) / 0.85, 0.0, 1.0);
-
-		// Насколько открыт глаз, 0..1: два коротких моргания и раскрытие.
 		float open;
-		if (loaded < 0.16)
-			open = 0.35 * smoothstep(0.0, 0.16, loaded);
-		else if (loaded < 0.26)
-			open = 0.35 * (1.0 - smoothstep(0.16, 0.26, loaded));
-		else if (loaded < 0.46)
-			open = 0.7 * smoothstep(0.26, 0.46, loaded);
-		else if (loaded < 0.56)
-			open = mix(0.7, 0.08, smoothstep(0.46, 0.56, loaded));
+		if (eyelidsClosing > 0.5)
+			open = 1.0 - smoothstep(0.0, 1.0, k);
 		else
-			open = mix(0.08, 1.0, smoothstep(0.56, 1.0, loaded));
-		// Веко прикрывает всё, что дальше половины раскрытия от середины;
-		// край мягкий — у века нет резкой границы.
+			open = k > 0.85 ? 0.0 : eyeOpening((0.85 - k) / 0.85);
 		float lid = 1.0 - smoothstep(0.5 * open - 0.04, 0.5 * open + 0.01, abs(uv.y - 0.5));
-		// Полностью открытый глаз шторок не имеет.
+		// Сомкнутые веки не пропускают ничего, даже по шву.
+		lid *= smoothstep(0.0, 0.06, open);
 		lid = max(lid, smoothstep(0.92, 1.0, open));
 
-		// Спросонья мутно: размытие сильнее, пока глаз не раскрылся.
-		float haze = clamp(k + (1.0 - open) * 0.6, 0.0, 1.0);
-		vec4 color = vec4(worldColor(uv, haze), 1.0);
+		float haze = (1.0 - open) * 0.8;
+		vec4 color = vec4(hazyWorld(uv, haze), 1.0);
 		color.rgb = pow(color.rgb, vec3(2.2));
 		color.rgb *= exposureParams.compensationFactor;
 #ifdef ENABLE_AUTO_EXPOSURE
@@ -312,16 +194,11 @@ void main(void)
 		color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 #endif
 		color.rgb = applySaturation(color.rgb, saturation);
-		// И тусклее, пока веки не разошлись.
-		vec3 shown = color.rgb * lid * mix(0.6, 1.0, open);
+		color.rgb *= lid * mix(0.6, 1.0, open);
 
-		float grain;
-		vec3 screen = staticScreen(uv, grain);
-		color.rgb = mix(shown, screen, lit);
-
-		vec4 cap = blurredCaption(uv, k);
-		cap.rgb += (grain - 0.5) * 0.25;
-		cap.a *= lit;
+		// Подпись живёт только на закрытых глазах.
+		vec4 cap = softCaption(uv);
+		cap.a *= smoothstep(0.85, 1.0, k);
 		color.rgb = mix(color.rgb, cap.rgb, cap.a);
 		gl_FragColor = vec4(clamp(color.rgb, vec3(0.), vec3(1.)), 1.0);
 		return;

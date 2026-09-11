@@ -2010,17 +2010,18 @@ void Client::handleCommand_Transfer(NetworkPacket *pkt)
 	}
 }
 
-void Client::handleCommand_ScreenStatic(NetworkPacket *pkt)
+void Client::handleCommand_Eyelids(NetworkPacket *pkt)
 {
 	LocalPlayer *player = m_env.getLocalPlayer();
 	assert(player);
 
-	f32 intensity, fade;
+	f32 closed, fade;
 	std::string caption;
-	*pkt >> intensity >> fade >> caption;
+	*pkt >> closed >> fade >> caption;
 
-	auto &st = player->screen_static;
-	st.target = std::clamp(intensity, 0.0f, 1.0f);
+	auto &st = player->eyelids;
+	st.target = std::clamp(closed, 0.0f, 1.0f);
+	st.closing = st.target >= st.closed;
 	st.fade = std::max(fade, 0.0f);
 	st.caption = utf8_to_wide(caption);
 }

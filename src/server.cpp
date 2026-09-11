@@ -1685,7 +1685,7 @@ bool Server::SendTransfer(session_t peer_id, const std::string &address,
 	return true;
 }
 
-bool Server::SendScreenStatic(session_t peer_id, f32 intensity, f32 fade,
+bool Server::SendEyelids(session_t peer_id, f32 closed, f32 fade,
 		const std::string &caption)
 {
 	{
@@ -1695,8 +1695,8 @@ bool Server::SendScreenStatic(session_t peer_id, f32 intensity, f32 fade,
 			return false;
 	}
 
-	NetworkPacket pkt(TOCLIENT_SCREEN_STATIC, 0, peer_id);
-	pkt << intensity << fade << caption;
+	NetworkPacket pkt(TOCLIENT_EYELIDS, 0, peer_id);
+	pkt << closed << fade << caption;
 	Send(&pkt);
 	return true;
 }

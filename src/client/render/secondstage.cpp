@@ -23,7 +23,7 @@ void ScreenCaptionStep::run(PipelineContext &context)
 	LocalPlayer *player = context.client->getEnv().getLocalPlayer();
 	if (!player || !m_target)
 		return;
-	const auto &st = player->screen_static;
+	const auto &st = player->eyelids;
 	if (!st.visible() || st.caption.empty())
 		return;
 
@@ -37,9 +37,9 @@ void ScreenCaptionStep::run(PipelineContext &context)
 	if (!font)
 		return;
 
-	// Та же кривая, что у помех в шейдере: подпись проявляется вместе с ними.
-	const f32 k = st.intensity * st.intensity * (3.0f - 2.0f * st.intensity);
-	const u32 alpha = static_cast<u32>(255.0f * k);
+	// Когда подпись видна и насколько, решает сведение; здесь она рисуется
+	// в полную силу.
+	const u32 alpha = 255;
 	const core::rect<s32> frame(0, 0, size.Width, size.Height);
 	const s32 drop = std::max<s32>(2, size.Height / 160);
 	font->draw(st.caption.c_str(), frame + core::vector2d<s32>(0, drop),
@@ -231,8 +231,8 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 		previousStep->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, std::vector<u8> { TEXTURE_COLOR }, TEXTURE_DEPTH));
 	}
 
-	// Подпись помех: своя текстура, в экранном размере, без сглаживания —
-	// размывает её уже сведение.
+	// Подпись на закрытых глазах: своя текстура, в экранном размере, без
+	// сглаживания — мягкость ей даёт уже сведение.
 	static const u8 TEXTURE_CAPTION = 30;
 	buffer->setTexture(TEXTURE_CAPTION, v2f(1.0f, 1.0f), "caption", video::ECF_A8R8G8B8);
 	caption->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_CAPTION));

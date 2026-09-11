@@ -375,9 +375,9 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 	}
 
 	// Hide chat when disabled by server or when console is visible.
-	// И пока на экране помехи потерянного сигнала: чат — часть картинки.
+	// И пока веки опущены: чат — часть картинки.
 	m_guitext_chat->setVisible(isChatVisible() && !chat_console->isVisible()
-			&& (player->hud_flags & HUD_FLAG_CHAT_VISIBLE) && !player->screen_static.visible());
+			&& (player->hud_flags & HUD_FLAG_CHAT_VISIBLE) && !player->eyelids.visible());
 }
 
 void GameUI::initFlags()

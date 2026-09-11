@@ -115,7 +115,7 @@ const ToClientCommandHandler toClientCommandTable[TOCLIENT_NUM_MSG_TYPES] =
 	{ "TOCLIENT_CHAT_COMMANDS",            TOCLIENT_STATE_CONNECTED, &Client::handleCommand_ChatCommands }, // 0x65,
 	{ "TOCLIENT_TRANSFER",                 TOCLIENT_STATE_CONNECTED, &Client::handleCommand_Transfer }, // 0x66,
 	{ "TOCLIENT_CAMERA_IMPULSE",           TOCLIENT_STATE_CONNECTED, &Client::handleCommand_CameraImpulse }, // 0x67,
-	{ "TOCLIENT_SCREEN_STATIC",            TOCLIENT_STATE_CONNECTED, &Client::handleCommand_ScreenStatic }, // 0x68,
+	{ "TOCLIENT_EYELIDS",            TOCLIENT_STATE_CONNECTED, &Client::handleCommand_Eyelids }, // 0x68,
 };
 
 const static ServerCommandFactory null_command_factory = { nullptr, 0, false };
