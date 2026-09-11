@@ -118,7 +118,8 @@ void UnitSAO::sendOutdatedData()
 		m_messages_out.emplace(getId(), true, generateUpdateArmorGroupsCommand());
 	}
 
-	for (auto &[track, anim_spec] : m_animation.tracks) {
+	for (auto it = m_animation.tracks.begin(); it != m_animation.tracks.end();) {
+		auto &[track, anim_spec] = *it;
 		switch (anim_spec.state) {
 		case TrackAnimation::State::SENT:
 			break;
@@ -129,10 +130,16 @@ void UnitSAO::sendOutdatedData()
 			m_messages_out.emplace(getId(), true, generateUpdateAnimationSpeedCommand(track));
 			break;
 		case TrackAnimation::State::STOPPED:
+			// Остановленная дорожка исчезает совсем. Останься она здесь как
+			// SENT, данные инициализации отдали бы её всякому, кто увидит
+			// объект позже, как играющую — с пустым описанием, застывшую на
+			// нулевом кадре поверх настоящей позы.
 			m_messages_out.emplace(getId(), true, generateStopAnimationCommand(track));
-			break;
+			it = m_animation.tracks.erase(it);
+			continue;
 		}
 		anim_spec.state = TrackAnimation::State::SENT;
+		++it;
 	}
 
 	if (!m_bone_override_sent) {
