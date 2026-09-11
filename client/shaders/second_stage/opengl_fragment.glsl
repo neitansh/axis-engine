@@ -263,10 +263,10 @@ vec4 blurredCaption(vec2 uv, float k)
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
-	// Сигнал не возвращается разом. Сперва помехи гаснут в черноту, а потом
-	// картинка грузится сверху вниз полосами: каждая полоса проявляется
-	// из темноты со светлой кромкой, следующая — за ней. На полной силе
-	// экран — помехи целиком.
+	// Сигнал не возвращается разом. Сперва помехи гаснут в черноту, потом
+	// кадр собирается квадратами: каждый моргает — то мир, то чернота, то
+	// сдвинутый кусок, то обрывок полос — всё чаще ловя мир, и в свой момент
+	// защёлкивается. На полной силе экран — помехи целиком.
 	float k = screenStatic;
 	if (k > 0.001) {
 		float t = screenStaticTime;
@@ -274,15 +274,25 @@ void main(void)
 		// Помехи горят на полной силе и гаснут к 0.85 — быстро, чернота не
 		// пауза, а вспышка наоборот.
 		float lit = smoothstep(0.85, 0.97, k);
-		// Загрузка: от черноты (k = 0.85) до картинки (k = 0).
 		float loaded = clamp((0.85 - k) / 0.85, 0.0, 1.0);
-		const float STRIPES = 18.0;
-		float stripe = floor((1.0 - uv.y) * STRIPES);
-		// У каждой полосы свой момент, сверху вниз, с лёгким разбросом.
-		float start = stripe / STRIPES * 0.8 + (staticHash(vec2(stripe, 5.0)) - 0.5) * 0.04;
-		float reveal = smoothstep(0.0, 1.0, (loaded - start) / 0.2);
 
-		vec4 color = vec4(worldColor(uv, k), 1.0);
+		vec2 cell = floor(uv * vec2(16.0, 9.0));
+		float tick = floor(t * 18.0);
+		// Когда квадрат защёлкивается — у каждого своё, от трети до конца.
+		float lock = 0.3 + 0.65 * staticHash(cell + vec2(9.1, 2.3));
+		float locked = step(lock, loaded);
+		// До того — моргает, и тем чаще ловит мир, чем ближе к защёлкиванию.
+		float chance = smoothstep(0.0, 1.0, loaded / lock) * 0.85;
+		float roll = staticHash(cell + vec2(tick * 1.7, tick * 3.1));
+		float on = max(locked, step(roll, chance));
+		// Чем показать выключенный квадрат: чернотой, сдвинутым куском мира
+		// или обрывком настроечной таблицы.
+		float kind = staticHash(cell + vec2(tick * 2.3, 7.7));
+		vec2 world_uv = uv;
+		if (on < 0.5 && kind > 0.5 && kind < 0.8)
+			world_uv.x += (kind - 0.65) * 0.5;
+
+		vec4 color = vec4(worldColor(world_uv, k), 1.0);
 		color.rgb = pow(color.rgb, vec3(2.2));
 		color.rgb *= exposureParams.compensationFactor;
 #ifdef ENABLE_AUTO_EXPOSURE
@@ -298,13 +308,18 @@ void main(void)
 		color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 #endif
 		color.rgb = applySaturation(color.rgb, saturation);
-		float luma = dot(color.rgb, vec3(0.2125, 0.7154, 0.0721));
-		color.rgb = mix(color.rgb, vec3(luma), 0.6 * (1.0 - reveal));
 
-		// Из черноты к картинке, со светлой кромкой на загружающейся полосе.
-		float glow = 4.0 * reveal * (1.0 - reveal);
-		vec3 shown = color.rgb * pow(reveal, 1.5)
-				+ vec3(0.9, 0.85, 0.75) * glow * 0.3 * (0.3 + luma);
+		vec3 shown;
+		if (on > 0.5) {
+			shown = color.rgb;
+		} else if (kind < 0.5) {
+			shown = vec3(0.0);
+		} else if (kind < 0.8) {
+			// Сдвинутый кусок — чужие цвета: каналы перепутаны.
+			shown = color.gbr * 0.9;
+		} else {
+			shown = colorBars(uv) * 0.7;
+		}
 
 		float grain;
 		vec3 screen = staticScreen(uv, grain);
