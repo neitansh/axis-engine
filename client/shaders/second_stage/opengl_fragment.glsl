@@ -112,29 +112,72 @@ float staticHash(vec2 p)
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
-// Чистые помехи: контрастное чёрно-белое зерно, размазанное вдоль строк,
-// тёмная строчная развёртка через каждые три точки, яркая середина и тёмные
-// края трубки, поверх — бегущая полоса.
-vec3 snowColor(vec2 uv)
+// Зерно, строчная развёртка, яркая середина и тёмные края трубки: то, чем
+// экран помех отличается от плоской картинки. Возвращает множитель.
+float tubeTexture(vec2 uv, out float grain)
 {
 	float frame = floor(screenStaticTime * 30.0);
 	vec2 px = floor(gl_FragCoord.xy / 2.0);
 	float g = staticHash(px + vec2(frame * 13.0, frame * 7.0));
 	float row = staticHash(vec2(px.y, frame * 3.0));
 	g = mix(g, row, 0.35);
-	g = smoothstep(0.15, 0.85, g);
+	grain = smoothstep(0.15, 0.85, g);
 
 	float lines = 0.3 + 0.7 * (0.5 + 0.5 * cos(gl_FragCoord.y * 2.094));
 	float mid = 1.0 - abs(uv.y - 0.5) * 2.0;
 	float edge = length((uv - 0.5) * vec2(1.2, 1.0));
 	float vignette = 1.0 - smoothstep(0.3, 0.95, edge);
+	float flicker = 0.92 + 0.08 * staticHash(vec2(frame, 1.0));
+	return lines * mix(0.5, 1.0, mid) * mix(0.3, 1.0, vignette) * flicker;
+}
+
+// Настроечная таблица: семь цветных полос, под ними обратный ряд, внизу
+// серый клин, — и всё это рвётся построчно, как у сорвавшейся развёртки.
+vec3 colorBars(vec2 uv)
+{
+	float t = screenStaticTime;
+	float band = floor(uv.y * 36.0);
+	float tick = floor(t * 9.0);
+	float torn = step(0.55, staticHash(vec2(band * 3.1, tick + 7.0)));
+	float shift = (staticHash(vec2(band, tick)) - 0.5) * 0.18 * torn;
+	float x = fract(uv.x + shift + 0.015 * sin(t * 2.3 + uv.y * 3.0));
+
+	vec3 c;
+	if (uv.y > 0.34) {
+		float i = floor(x * 7.0);
+		c = i < 1.0 ? vec3(0.75) :
+			i < 2.0 ? vec3(0.75, 0.75, 0.0) :
+			i < 3.0 ? vec3(0.0, 0.75, 0.75) :
+			i < 4.0 ? vec3(0.0, 0.75, 0.0) :
+			i < 5.0 ? vec3(0.75, 0.0, 0.75) :
+			i < 6.0 ? vec3(0.75, 0.0, 0.0) : vec3(0.0, 0.0, 0.75);
+	} else if (uv.y > 0.25) {
+		float i = floor(x * 7.0);
+		c = i < 1.0 ? vec3(0.0, 0.0, 0.75) :
+			i < 2.0 ? vec3(0.0) :
+			i < 3.0 ? vec3(0.75, 0.0, 0.75) :
+			i < 4.0 ? vec3(0.0) :
+			i < 5.0 ? vec3(0.0, 0.75, 0.75) :
+			i < 6.0 ? vec3(0.0) : vec3(0.75);
+	} else {
+		c = x < 0.6 ? vec3(0.08 + 0.7 * x / 0.6) : vec3(0.02);
+	}
+	return c;
+}
+
+// Экран помех целиком: полосы под зерном и развёрткой, с бегущей полосой.
+vec3 staticScreen(vec2 uv, out float grain)
+{
+	float tube = tubeTexture(uv, grain);
+	// Полосы тоже расслаиваются на каналы.
+	float split = 0.006 * (0.5 + 0.5 * sin(screenStaticTime * 7.0));
+	vec3 bars = vec3(colorBars(uv + vec2(split, 0.0)).r, colorBars(uv).g,
+			colorBars(uv - vec2(split, 0.0)).b);
+	vec3 c = bars * (0.55 + 0.75 * grain);
+	c = mix(c, vec3(grain), 0.25);
 	float band = fract(uv.y * 0.6 - screenStaticTime * 0.13);
 	float roll = smoothstep(0.42, 0.5, band) * (1.0 - smoothstep(0.5, 0.62, band));
-	float flicker = 0.92 + 0.08 * staticHash(vec2(frame, 1.0));
-
-	float v = g * lines * mix(0.5, 1.0, mid) * mix(0.3, 1.0, vignette) * flicker;
-	v += roll * 0.12;
-	return vec3(v);
+	return c * tube * 1.25 + roll * 0.1;
 }
 
 // Гладкий шум: пятна помех с мягкими краями, а не клетки.
@@ -164,15 +207,8 @@ vec2 swim(vec2 uv, float k, float amount)
 	return uv;
 }
 
-vec3 worldColor(vec2 uv, float k)
+vec3 blurredWorld(vec2 uv, float k)
 {
-	uv = swim(uv, k, 1.0);
-	float row = floor(uv.y * 48.0);
-	float tick = floor(screenStaticTime * 12.0);
-	float tear = staticHash(vec2(row, tick));
-	if (tear > 0.93)
-		uv.x += (tear - 0.93) * 0.6 * k;
-
 	vec3 color = texture2D(rendered, uv).rgb;
 	if (k > 0.02) {
 		vec2 step = texelSize0 * (1.0 + 5.0 * k);
@@ -186,6 +222,24 @@ vec3 worldColor(vec2 uv, float k)
 		color = mix(color, sum / 7.0, k);
 	}
 	return color;
+}
+
+// Мир под помехами: плывёт, рвётся построчно и расслаивается на каналы —
+// красный и синий уезжают в стороны, как у сбитого сигнала.
+vec3 worldColor(vec2 uv, float k)
+{
+	uv = swim(uv, k, 1.0);
+	float t = screenStaticTime;
+	float tick = floor(t * 14.0);
+	float row = floor(uv.y * 40.0);
+	float tear = staticHash(vec2(row, tick));
+	if (tear > 0.86)
+		uv.x += (tear - 0.86) * 1.2 * k * (staticHash(vec2(tick, row)) - 0.5);
+
+	float split = 0.004 * k * (0.6 + 0.4 * sin(t * 11.0 + uv.y * 20.0));
+	vec2 off = vec2(split, 0.0);
+	return vec3(blurredWorld(uv + off, k).r, blurredWorld(uv, k).g,
+			blurredWorld(uv - off, k).b);
 }
 
 // Подпись поверх помех: мягкая, с зерном, но не серая — читаться она
@@ -209,17 +263,23 @@ vec4 blurredCaption(vec2 uv, float k)
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
-	// Сигнал не уходит и не возвращается разом: по экрану лежит гладкое поле
-	// шума, и у каждого места свой порог силы помех, ниже которого оно ловит
-	// картинку. Так при уходе помех мир проступает мягкими пятнами, которые
-	// растут и сливаются, а на полной силе не проступает нигде.
+	// Сигнал не возвращается разом. Сперва помехи гаснут в черноту, а из
+	// неё мир прогревается пятнами — по гладкому полю шума у каждого места
+	// своя задержка, — с тёплым отсветом раскаляющегося пикселя, к нулю
+	// помех — в полном цвете. На полной силе экран — помехи целиком.
 	float k = screenStatic;
 	if (k > 0.001) {
 		float t = screenStaticTime;
 		float field = 0.6 * smoothNoise(uv * vec2(5.0, 3.0) + vec2(t * 0.12, -t * 0.08))
 				+ 0.4 * smoothNoise(uv * vec2(11.0, 7.0) + vec2(-t * 0.2, t * 0.15));
-		float threshold = 0.1 + 0.85 * field;
-		float snow = smoothstep(threshold - 0.35, threshold, k);
+
+		// Помехи горят на полной силе и гаснут к 0.85 — быстро, чернота не
+		// пауза, а вспышка наоборот.
+		float lit = smoothstep(0.85, 0.97, k);
+		// Прогрев: от черноты (k = 0.85) до картинки (k = 0), у каждого места
+		// со своей задержкой — первые пятна теплеют сразу.
+		float warmed = clamp((0.85 - k) / 0.85, 0.0, 1.0);
+		float reveal = smoothstep(0.0, 1.0, (warmed - 0.45 * field) / 0.55);
 
 		vec4 color = vec4(worldColor(uv, k), 1.0);
 		color.rgb = pow(color.rgb, vec3(2.2));
@@ -238,12 +298,20 @@ void main(void)
 #endif
 		color.rgb = applySaturation(color.rgb, saturation);
 		float luma = dot(color.rgb, vec3(0.2125, 0.7154, 0.0721));
-		color.rgb = mix(color.rgb, vec3(luma), 0.8 * k);
+		color.rgb = mix(color.rgb, vec3(luma), 0.6 * (1.0 - reveal));
 
-		color.rgb = mix(color.rgb, snowColor(uv), snow);
+		// Из черноты через тёплый отсвет к картинке.
+		float glow = 4.0 * reveal * (1.0 - reveal);
+		vec3 shown = color.rgb * pow(reveal, 1.5)
+				+ vec3(0.95, 0.3, 0.06) * glow * 0.35 * (0.25 + luma);
+
+		float grain;
+		vec3 screen = staticScreen(uv, grain);
+		color.rgb = mix(shown, screen, lit);
 
 		vec4 cap = blurredCaption(uv, k);
-		cap.a *= smoothstep(0.55, 0.85, k);
+		cap.rgb += (grain - 0.5) * 0.25;
+		cap.a *= lit;
 		color.rgb = mix(color.rgb, cap.rgb, cap.a);
 		gl_FragColor = vec4(clamp(color.rgb, vec3(0.), vec3(1.)), 1.0);
 		return;
