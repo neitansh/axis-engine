@@ -115,9 +115,10 @@ std::vector<VariantTransform> SkinnedMesh::animateMesh(
 			// Note that a decomposition into a TRS transform need not exist!
 
 			joint_keys.keys.updateTransform(frame, trs);
-			if (progress.blend < 1.0f && old_transforms[joint_id].has_value()) {
+			const auto &from = progress.blend_from ? *progress.blend_from : old_transforms;
+			if (progress.blend < 1.0f && from[joint_id].has_value()) {
 				// Blend with old transform
-				const auto &old_transform = *old_transforms[joint_id];
+				const auto &old_transform = *from[joint_id];
 				trs = old_transform.interpolate(trs, progress.blend);
 			}
 			result[joint_id] = {trs};

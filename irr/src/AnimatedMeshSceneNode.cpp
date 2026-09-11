@@ -445,13 +445,37 @@ void AnimatedMeshSceneNode::animateJoints()
 		s32 priority;
 	};
 	std::vector<Progress> progresses;
-	for (const auto [track, anim] : Anim.tracks) {
+	for (const auto &[track, anim] : Anim.tracks) {
+		const bool blending = anim.blend_duration > 0.0f
+				&& anim.blend_progress < anim.blend_duration;
+		const std::vector<std::optional<core::Transform>> *blend_from = nullptr;
+		if (blending) {
+			auto it = BlendFrom.find(track);
+			// Дорожка только что запущена (или запущена заново — прогресс
+			// откатился): в этот момент PreTransSaves ещё хранит кадр до
+			// неё. Это и есть поза, из которой она перетекает.
+			if (it == BlendFrom.end() || anim.blend_progress < it->second.last_progress)
+				it = BlendFrom.insert_or_assign(track,
+						BlendSource{anim.blend_progress, PerJoint.PreTransSaves}).first;
+			else
+				it->second.last_progress = anim.blend_progress;
+			blend_from = &it->second.pose;
+		} else {
+			BlendFrom.erase(track);
+		}
 		SkinnedMesh::AnimationProgress progress = {
 			track,
 			anim.cur_frame,
-			anim.blend_duration > 0.0f ? (anim.blend_progress / anim.blend_duration) : 1.0f,
+			blending ? (anim.blend_progress / anim.blend_duration) : 1.0f,
+			blend_from,
 		};
 		progresses.push_back({progress, anim.priority});
+	}
+	for (auto it = BlendFrom.begin(); it != BlendFrom.end();) {
+		if (Anim.tracks.count(it->first))
+			++it;
+		else
+			it = BlendFrom.erase(it);
 	}
 	std::sort(progresses.begin(), progresses.end(),
 			[](const Progress &a, const Progress &b) {

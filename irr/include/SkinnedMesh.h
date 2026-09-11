@@ -315,6 +315,8 @@ public:
 		u16 track_nr;
 		f32 frame;
 		f32 blend; // from 0 (old) to 1 (new)
+		/// Откуда перетекать при blend < 1; без него — old_transforms.
+		const std::vector<std::optional<core::Transform>> *blend_from = nullptr;
 	};
 
 	//! Animates joints based on frame input

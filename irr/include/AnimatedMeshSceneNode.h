@@ -152,6 +152,17 @@ private:
 	};
 
 	PerJointData PerJoint;
+
+	// Поза, с которой дорожка перетекает в свою: снимок последнего кадра
+	// перед её запуском, живущий до конца перехода. Брать вместо него
+	// PreTransSaves нельзя: там лежит результат прошлого кадра, уже
+	// сдвинутый к новой позе, и переход сходится за несколько кадров,
+	// какой бы ни была заказанная длительность.
+	struct BlendSource {
+		f32 last_progress;
+		std::vector<std::optional<core::Transform>> pose;
+	};
+	std::unordered_map<u16, BlendSource> BlendFrom;
 };
 
 } // end namespace scene
