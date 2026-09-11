@@ -152,8 +152,21 @@ float smoothNoise(vec2 p)
 
 // Картинка мира там, где сигнал уже пойман: чем сильнее помехи вокруг, тем
 // она серее и размытее — возвращается не сразу в полном качестве.
+// Картинка плывёт: медленная волна по всему кадру и мелкая построчная дрожь,
+// как у плёнки, которую тянет неровно.
+vec2 swim(vec2 uv, float k, float amount)
+{
+	float t = screenStaticTime;
+	uv.x += sin(uv.y * 6.3 + t * 1.7) * 0.012 * amount * k;
+	uv.y += sin(uv.x * 4.7 + t * 1.1) * 0.008 * amount * k;
+	uv.x += sin(uv.y * 90.0 + t * 9.0) * 0.0025 * amount * k;
+	uv.y += sin(t * 0.7) * 0.01 * amount * k;
+	return uv;
+}
+
 vec3 worldColor(vec2 uv, float k)
 {
+	uv = swim(uv, k, 1.0);
 	float row = floor(uv.y * 48.0);
 	float tick = floor(screenStaticTime * 12.0);
 	float tear = staticHash(vec2(row, tick));
@@ -185,6 +198,7 @@ vec4 blurredCaption(vec2 uv, float k)
 	taps[2] = vec2(-0.7,  0.7); taps[3] = vec2( 0.7,  0.7);
 	taps[4] = vec2(-1.0,  0.0); taps[5] = vec2( 1.0,  0.0);
 	taps[6] = vec2( 0.0, -1.0); taps[7] = vec2( 0.0,  1.0);
+	uv = swim(uv, k, 0.35);
 	float radius = 0.004;
 	vec4 sum = texture2D(caption, uv);
 	for (int i = 0; i < TAPS; i++)
