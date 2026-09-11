@@ -137,9 +137,21 @@ vec3 snowColor(vec2 uv)
 	return vec3(v);
 }
 
-// Картинка мира в блоке, который уже поймал сигнал: чем сильнее помехи, тем
-// крупнее пиксель, серее цвет и размытее края — сигнал возвращается не сразу
-// в полном качестве.
+// Гладкий шум: пятна помех с мягкими краями, а не клетки.
+float smoothNoise(vec2 p)
+{
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float a = staticHash(i);
+	float b = staticHash(i + vec2(1.0, 0.0));
+	float c = staticHash(i + vec2(0.0, 1.0));
+	float d = staticHash(i + vec2(1.0, 1.0));
+	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+// Картинка мира там, где сигнал уже пойман: чем сильнее помехи вокруг, тем
+// она серее и размытее — возвращается не сразу в полном качестве.
 vec3 worldColor(vec2 uv, float k)
 {
 	float row = floor(uv.y * 48.0);
@@ -148,18 +160,17 @@ vec3 worldColor(vec2 uv, float k)
 	if (tear > 0.93)
 		uv.x += (tear - 0.93) * 0.6 * k;
 
-	float coarse = mix(1.0, 14.0, k);
-	vec2 step = texelSize0 * coarse;
-	vec2 puv = (floor(uv / step) + 0.5) * step;
-
-	vec3 color = texture2D(rendered, puv).rgb;
-	if (k > 0.05) {
+	vec3 color = texture2D(rendered, uv).rgb;
+	if (k > 0.02) {
+		vec2 step = texelSize0 * (1.0 + 5.0 * k);
 		vec3 sum = color;
-		sum += texture2D(rendered, puv + vec2(step.x, 0.0)).rgb;
-		sum += texture2D(rendered, puv - vec2(step.x, 0.0)).rgb;
-		sum += texture2D(rendered, puv + vec2(0.0, step.y)).rgb;
-		sum += texture2D(rendered, puv - vec2(0.0, step.y)).rgb;
-		color = mix(color, sum / 5.0, k);
+		sum += texture2D(rendered, uv + vec2(step.x, 0.0)).rgb;
+		sum += texture2D(rendered, uv - vec2(step.x, 0.0)).rgb;
+		sum += texture2D(rendered, uv + vec2(0.0, step.y)).rgb;
+		sum += texture2D(rendered, uv - vec2(0.0, step.y)).rgb;
+		sum += texture2D(rendered, uv + step).rgb;
+		sum += texture2D(rendered, uv - step).rgb;
+		color = mix(color, sum / 7.0, k);
 	}
 	return color;
 }
@@ -184,14 +195,17 @@ vec4 blurredCaption(vec2 uv, float k)
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
-	// Сигнал не уходит и не возвращается разом: экран поделен на блоки, у
-	// каждого свой порог силы помех, ниже которого он ловит картинку. Так при
-	// уходе помех мир проступает кусками, а на полной силе не проступает нигде.
+	// Сигнал не уходит и не возвращается разом: по экрану лежит гладкое поле
+	// шума, и у каждого места свой порог силы помех, ниже которого оно ловит
+	// картинку. Так при уходе помех мир проступает мягкими пятнами, которые
+	// растут и сливаются, а на полной силе не проступает нигде.
 	float k = screenStatic;
 	if (k > 0.001) {
-		vec2 cell = floor(uv * vec2(24.0, 14.0));
-		float threshold = 0.12 + 0.88 * staticHash(cell + vec2(3.7, 1.3));
-		float snow = smoothstep(threshold - 0.1, threshold, k);
+		float t = screenStaticTime;
+		float field = 0.6 * smoothNoise(uv * vec2(5.0, 3.0) + vec2(t * 0.12, -t * 0.08))
+				+ 0.4 * smoothNoise(uv * vec2(11.0, 7.0) + vec2(-t * 0.2, t * 0.15));
+		float threshold = 0.1 + 0.85 * field;
+		float snow = smoothstep(threshold - 0.35, threshold, k);
 
 		vec4 color = vec4(worldColor(uv, k), 1.0);
 		color.rgb = pow(color.rgb, vec3(2.2));
