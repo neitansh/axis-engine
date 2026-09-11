@@ -343,6 +343,8 @@ std::string PlayerSAO::getClientInitializationData(u16 protocol_version)
 		if (anim.state != TrackAnimation::State::STOPPED)
 			append_message(generateUpdateAnimationCommand(track));
 	}
+	if (m_ragdolled)
+		append_message(generateRagdollCommand(v3f(0, 0, 0), "", v3f(0, 0, 0)));
 	for (const auto &it : m_bone_override) {
 		append_message(generateUpdateBoneOverrideCommand(
 			it.first, it.second));

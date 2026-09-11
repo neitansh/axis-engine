@@ -17,6 +17,7 @@
 #include "itemgroup.h"
 #include "client/tile.h"
 #include "client/meshbatch.h"
+#include "client/ragdoll.h"
 #include <cassert>
 #include <memory>
 #include <deque>
@@ -238,6 +239,13 @@ private:
 
 	// stores position and rotation for each bone name
 	BoneOverrideMap m_bone_override;
+
+	/// Тряпичная кукла: пока она есть, кости идут от неё, а не от дорожек.
+	/// Считается в мировых координатах, так что пересоздание модели её не
+	/// сбивает. Снимается любой новой дорожкой.
+	std::unique_ptr<Ragdoll> m_ragdoll;
+	void startRagdoll(v3f velocity, const std::string &bone, v3f impulse);
+	void applyRagdoll(f32 dtime);
 
 	// Attachments
 	object_t m_attachment_parent_id = 0;

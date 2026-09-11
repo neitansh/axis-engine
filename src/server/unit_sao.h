@@ -70,6 +70,9 @@ public:
 	std::optional<scene::TrackAnimSpec> getAnimation(const scene::TrackId &track) const override;
 	std::vector<std::pair<scene::TrackId, scene::TrackAnimSpec>>
 	getAllAnimations() const override;
+	void ragdoll(v3f velocity, const std::string &bone, v3f impulse) override;
+	std::string generateRagdollCommand(v3f velocity, const std::string &bone,
+			v3f impulse) const;
 	void setAnimationSpeed(const scene::TrackId &track, f32 fps) override;
 	const Animation &getAnimation() const { return m_animation; }
 
@@ -157,6 +160,12 @@ private:
 	// Animation
 	Animation m_animation;
 
+protected:
+	/// Лежит куклой: тому, кто увидит объект позже, кукла отдаётся вместе с
+	/// данными инициализации — иначе труп для него стоял бы.
+	bool m_ragdolled = false;
+
+private:
 	// Bone positions
 	bool m_bone_override_sent = false;
 

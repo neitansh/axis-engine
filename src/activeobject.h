@@ -64,6 +64,7 @@ enum ActiveObjectCommand : u8 {
 	AO_CMD_STOP_ANIMATION,
 	// >= 5.18.0-dev
 	AO_CMD_SET_AVATAR,
+	AO_CMD_RAGDOLL,
 	// When adding new commands, update Server::AsyncRunStep()
 	// to drop newer commands for older clients
 };

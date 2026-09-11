@@ -134,6 +134,8 @@ private:
 	static int l_stop_animation(lua_State *L);
 	// get_animations(self)
 	static int l_get_animations(lua_State *L);
+	// ragdoll(self, [{velocity=, bone=, impulse=}])
+	static int l_ragdoll(lua_State *L);
 
 	// set_bone_position(self, bone, position, rotation)
 	static int l_set_bone_position(lua_State *L);

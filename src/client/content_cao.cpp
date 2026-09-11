@@ -38,7 +38,9 @@
 
 #include "client/shader.h"
 #include "client/minimap.h"
+#include "client/bedrock/convert.h"
 #include <quaternion.h>
+#include <SkinnedMesh.h>
 #include <SMesh.h>
 #include <IMeshBuffer.h>
 #include <CMeshBuffer.h>
@@ -1137,6 +1139,7 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 					}
 					++it;
 				}
+				applyRagdoll(dtime);
 			});
 		} else
 			errorstream<<"GenericCAO::addToScene(): Could not load mesh "<<m_prop.mesh<<std::endl;
@@ -1957,6 +1960,125 @@ void GenericCAO::updateTextures(std::string mod)
 		updateMeshCulling();
 }
 
+void GenericCAO::startRagdoll(v3f velocity, const std::string &bone, v3f impulse)
+{
+	if (!m_animated_meshnode)
+		return;
+
+	// Точки куклы снимаются с костей как они стоят сейчас: тело падает из
+	// той позы, в какой его застали. Концы конечностей — точки на костях в
+	// пикселях модели (см. axis_character.geo.json), через абсолютное
+	// преобразование сустава они получают и масштаб, и поворот.
+	auto at = [&](const char *joint, f32 up_pixels) -> std::optional<v3f> {
+		auto *node = m_animated_meshnode->getJointNode(joint);
+		if (!node)
+			return std::nullopt;
+		return node->getAbsoluteTransformation().transformVect(
+				v3f(0, up_pixels * bedrock::PIXEL, 0));
+	};
+	Ragdoll::Positions p;
+	struct Spec {
+		Ragdoll::Particle particle;
+		const char *joint;
+		f32 up_pixels;
+	};
+	const Spec specs[] = {
+		{Ragdoll::NECK, "head", 0}, {Ragdoll::HEAD, "head", 8},
+		{Ragdoll::SHOULDER_R, "arm_right", 0}, {Ragdoll::HAND_R, "arm_right", -10},
+		{Ragdoll::SHOULDER_L, "arm_left", 0}, {Ragdoll::HAND_L, "arm_left", -10},
+		{Ragdoll::HIP_R, "leg_right", 0}, {Ragdoll::FOOT_R, "leg_right", -12},
+		{Ragdoll::HIP_L, "leg_left", 0}, {Ragdoll::FOOT_L, "leg_left", -12},
+	};
+	for (const Spec &s : specs) {
+		auto pos = at(s.joint, s.up_pixels);
+		if (!pos) {
+			warningstream << "Ragdoll: mesh " << m_prop.mesh << " has no joint "
+					<< s.joint << ", the character rig is expected" << std::endl;
+			return;
+		}
+		p[s.particle] = *pos;
+	}
+
+	Ragdoll::Particle hit = Ragdoll::COUNT;
+	if (bone == "head")
+		hit = Ragdoll::HEAD;
+	else if (bone == "arm_right")
+		hit = Ragdoll::HAND_R;
+	else if (bone == "arm_left")
+		hit = Ragdoll::HAND_L;
+	else if (bone == "leg_right")
+		hit = Ragdoll::FOOT_R;
+	else if (bone == "leg_left")
+		hit = Ragdoll::FOOT_L;
+	else if (bone == "body")
+		hit = Ragdoll::NECK;
+	else if (bone == "root")
+		hit = Ragdoll::HIP_R;
+
+	m_ragdoll = std::make_unique<Ragdoll>();
+	m_ragdoll->start(p, velocity, hit, impulse);
+}
+
+void GenericCAO::applyRagdoll(f32 dtime)
+{
+	if (!m_ragdoll || !m_animated_meshnode)
+		return;
+
+	const NodeDefManager *ndef = m_client->ndef();
+	Map &map = m_env->getMap();
+	m_ragdoll->step(dtime, [&](v3s16 p) {
+		bool ok = false;
+		const MapNode n = map.getNode(p, &ok);
+		// Незагруженная часть карты — стена: лучше труп повиснет на краю
+		// загруженного, чем провалится в никуда.
+		return !ok || ndef->get(n).walkable;
+	});
+
+	const Ragdoll::Pose pose = m_ragdoll->pose();
+
+	// Кукла живёт в мире, кости — в осях модели: снимаем поворот и место
+	// самой сущности и её масштаб.
+	core::matrix4 to_local;
+	m_animated_meshnode->getAbsoluteTransformation().getInverse(to_local);
+	core::quaternion node_inv(m_matrixnode->getAbsoluteTransformation());
+	node_inv.makeInverse();
+
+	const core::quaternion torso = pose.torso * node_inv;
+	const v3f hip_mid = to_local.transformVect(pose.hip_mid);
+
+	auto *mesh = dynamic_cast<scene::SkinnedMesh *>(m_animated_meshnode->getMesh());
+	if (!mesh)
+		return;
+	auto rest = [&](const char *name) -> v3f {
+		if (auto nr = mesh->getJointNumber(name)) {
+			if (const auto *t = std::get_if<core::Transform>(&mesh->getAllJoints()[*nr]->transform))
+				return t->translation;
+		}
+		return v3f(0, 0, 0);
+	};
+	auto set = [&](const char *name, v3f translation, core::quaternion applied) {
+		if (auto *node = m_animated_meshnode->getJointNode(name)) {
+			// Сустав хранит поворот обратным (см. bedrock/convert.h).
+			applied.makeInverse();
+			node->setTransform({translation, applied, v3f(1, 1, 1)});
+		}
+	};
+
+	const core::quaternion identity;
+	// Корень несёт таз: его место — там, где таз куклы, минус то, где таз
+	// стоит относительно корня в покое.
+	const v3f hip_rest = (rest("leg_right") + rest("leg_left")) / 2.0f;
+	set("root", hip_mid - torso * hip_rest, torso);
+	set("body_control", rest("body_control"), identity);
+	set("body", rest("body"), identity);
+	set("head_control", rest("head_control"), identity);
+	set("head", rest("head"), pose.head);
+	set("arm_right", rest("arm_right"), pose.arm_r);
+	set("arm_left", rest("arm_left"), pose.arm_l);
+	set("leg_right", rest("leg_right"), pose.leg_r);
+	set("leg_left", rest("leg_left"), pose.leg_l);
+}
+
 void GenericCAO::updateAnimation(u16 track_nr)
 {
 	if (!m_animated_meshnode)
@@ -2658,7 +2780,13 @@ void GenericCAO::processMessage(const std::string &data)
 		anim.cur_frame = cur_frame.value_or(anim.fps >= 0 ? anim.min_frame : anim.max_frame);
 
 		// Also clamps cur_frame & max_frame to the track max frame number in the mesh
+		m_ragdoll.reset();
 		applyTrackAnimation(std::move(track_id), anim);
+	} else if (cmd == AO_CMD_RAGDOLL) {
+		const v3f velocity = readV3F32(is) * BS;
+		const std::string bone = deSerializeString16(is);
+		const v3f impulse = readV3F32(is) * BS;
+		startRagdoll(velocity, bone, impulse);
 	} else if (cmd == AO_CMD_SET_ANIMATION_SPEED) {
 		f32 new_fps = readF32(is);
 		scene::TrackId track_id = (u16) 0;

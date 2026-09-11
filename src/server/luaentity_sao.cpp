@@ -324,6 +324,8 @@ std::string LuaEntitySAO::getClientInitializationData(u16 protocol_version)
 		if (anim.state != TrackAnimation::State::STOPPED)
 			append_message(generateUpdateAnimationCommand(track));
 	}
+	if (m_ragdolled)
+		append_message(generateRagdollCommand(v3f(0, 0, 0), "", v3f(0, 0, 0)));
 	for (const auto &bone_override : m_bone_override) {
 		append_message(generateUpdateBoneOverrideCommand(
 			bone_override.first, bone_override.second));

@@ -9293,6 +9293,18 @@ You **must not** mix names and track numbers to refer to the same animation.
     * If no track is given, all currently playing animations are stopped.
 * `get_animations()`: Returns a table of currently playing animations
   `{[track] = animation}`, in the same format as the parameters of `play_animation`.
+* `ragdoll([def])`: Drops the object as a ragdoll. Only for meshes with the
+  engine character rig (`root`, `body`, `head`, `arm_*`, `leg_*`, see
+  `doc/avatar.md`); the fall is simulated on each client from the pose the
+  bones are in when the command arrives. Stops all animation tracks; any
+  later `play_animation` ends the ragdoll.
+  `def` is an optional table:
+    * `velocity`: initial velocity of the whole body, in nodes per second.
+    * `bone`: the bone hit — `"head"`, `"body"`, `"arm_right"`, `"arm_left"`,
+      `"leg_right"`, `"leg_left"` — receives `impulse`.
+    * `impulse`: velocity added to the hit bone, in nodes per second.
+  Example: `player:ragdoll({velocity = player:get_velocity(), bone = "body",
+  impulse = vector.multiply(dir, 5)})`.
 
 #### Lua entity only (no-op for other objects)
 

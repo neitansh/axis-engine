@@ -607,6 +607,32 @@ int ObjectRef::l_stop_animation(lua_State *L)
 	return 0;
 }
 
+// ragdoll(self, [{velocity=, bone=, impulse=}])
+int ObjectRef::l_ragdoll(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	ObjectRef *ref = checkObject<ObjectRef>(L, 1);
+	ServerActiveObject *sao = getobject(ref);
+	if (sao == nullptr)
+		throw LuaError("Invalid ObjectRef");
+
+	v3f velocity, impulse;
+	std::string bone;
+	if (lua_istable(L, 2)) {
+		lua_getfield(L, 2, "velocity");
+		if (!lua_isnil(L, -1))
+			velocity = check_v3f(L, -1);
+		lua_pop(L, 1);
+		lua_getfield(L, 2, "impulse");
+		if (!lua_isnil(L, -1))
+			impulse = check_v3f(L, -1);
+		lua_pop(L, 1);
+		bone = getstringfield_default(L, 2, "bone", "");
+	}
+	sao->ragdoll(velocity, bone, impulse);
+	return 0;
+}
+
 int ObjectRef::l_get_animations(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
@@ -3250,6 +3276,7 @@ luaL_Reg ObjectRef::methods[] = {
 	luamethod(ObjectRef, play_animation),
 	luamethod(ObjectRef, update_animation),
 	luamethod(ObjectRef, stop_animation),
+	luamethod(ObjectRef, ragdoll),
 	luamethod(ObjectRef, get_animations),
 
 	luamethod(ObjectRef, set_bone_position),

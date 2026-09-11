@@ -43,6 +43,7 @@ void UnitSAO::setAnimation(const scene::TrackId &track, scene::TrackAnimSpec ani
 	auto &track_info = m_animation.tracks[track];
 	track_info.spec = anim_spec;
 	track_info.state = TrackAnimation::State::NEEDS_RESEND;
+	m_ragdolled = false;
 }
 
 void UnitSAO::stopAnimation(const scene::TrackId &track)
@@ -418,6 +419,29 @@ std::string UnitSAO::generateStopAnimationCommand(const scene::TrackId &track) c
 	writeU8(os, AO_CMD_STOP_ANIMATION);
 	// parameters
 	writeTrackIdentifier(os, track);
+	return os.str();
+}
+
+void UnitSAO::ragdoll(v3f velocity, const std::string &bone, v3f impulse)
+{
+	// Дорожки снимаются здесь же, а не клиентом: иначе тот, кто увидит
+	// объект позже, получил бы их играющими поверх куклы.
+	for (auto &[track, anim_spec] : m_animation.tracks)
+		anim_spec.state = TrackAnimation::State::STOPPED;
+	sendOutdatedData();
+
+	m_ragdolled = true;
+	m_messages_out.emplace(getId(), true, generateRagdollCommand(velocity, bone, impulse));
+}
+
+std::string UnitSAO::generateRagdollCommand(v3f velocity, const std::string &bone,
+		v3f impulse) const
+{
+	std::ostringstream os(std::ios::binary);
+	writeU8(os, AO_CMD_RAGDOLL);
+	writeV3F32(os, velocity);
+	os << serializeString16(bone);
+	writeV3F32(os, impulse);
 	return os.str();
 }
 

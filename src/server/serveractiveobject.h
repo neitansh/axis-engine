@@ -219,6 +219,10 @@ public:
 	{ return std::nullopt; }
 	virtual void setAnimationSpeed(const scene::TrackId &track, f32 fps)
 	{}
+	/// Уронить тряпичной куклой: клиент считает падение сам. Все дорожки
+	/// при этом снимаются — кости берёт кукла; любая новая дорожка её снимает.
+	virtual void ragdoll(v3f velocity, const std::string &bone, v3f impulse)
+	{}
 
 	virtual void setBoneOverride(const std::string &bone, const BoneOverride &props)
 	{}
