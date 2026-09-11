@@ -263,10 +263,10 @@ vec4 blurredCaption(vec2 uv, float k)
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
-	// Сигнал не возвращается разом. Сперва помехи гаснут в черноту, потом
-	// кадр собирается квадратами: каждый моргает — то мир, то чернота, то
-	// сдвинутый кусок, то обрывок полос — всё чаще ловя мир, и в свой момент
-	// защёлкивается. На полной силе экран — помехи целиком.
+	// Сигнал не возвращается разом. Сперва помехи гаснут в черноту, а потом
+	// игрок открывает глаза: веки — две прямые шторки сверху и снизу —
+	// приоткрываются, смыкаются, открываются шире и лишь потом целиком, а
+	// картинка между ними поначалу мутная. На полной силе экран — помехи.
 	float k = screenStatic;
 	if (k > 0.001) {
 		float t = screenStaticTime;
@@ -276,23 +276,27 @@ void main(void)
 		float lit = smoothstep(0.85, 0.97, k);
 		float loaded = clamp((0.85 - k) / 0.85, 0.0, 1.0);
 
-		vec2 cell = floor(uv * vec2(16.0, 9.0));
-		float tick = floor(t * 18.0);
-		// Когда квадрат защёлкивается — у каждого своё, от трети до конца.
-		float lock = 0.3 + 0.65 * staticHash(cell + vec2(9.1, 2.3));
-		float locked = step(lock, loaded);
-		// До того — моргает, и тем чаще ловит мир, чем ближе к защёлкиванию.
-		float chance = smoothstep(0.0, 1.0, loaded / lock) * 0.85;
-		float roll = staticHash(cell + vec2(tick * 1.7, tick * 3.1));
-		float on = max(locked, step(roll, chance));
-		// Чем показать выключенный квадрат: чернотой, сдвинутым куском мира
-		// или обрывком настроечной таблицы.
-		float kind = staticHash(cell + vec2(tick * 2.3, 7.7));
-		vec2 world_uv = uv;
-		if (on < 0.5 && kind > 0.5 && kind < 0.8)
-			world_uv.x += (kind - 0.65) * 0.5;
+		// Насколько открыт глаз, 0..1: два коротких моргания и раскрытие.
+		float open;
+		if (loaded < 0.16)
+			open = 0.35 * smoothstep(0.0, 0.16, loaded);
+		else if (loaded < 0.26)
+			open = 0.35 * (1.0 - smoothstep(0.16, 0.26, loaded));
+		else if (loaded < 0.46)
+			open = 0.7 * smoothstep(0.26, 0.46, loaded);
+		else if (loaded < 0.56)
+			open = mix(0.7, 0.08, smoothstep(0.46, 0.56, loaded));
+		else
+			open = mix(0.08, 1.0, smoothstep(0.56, 1.0, loaded));
+		// Веко прикрывает всё, что дальше половины раскрытия от середины;
+		// край мягкий — у века нет резкой границы.
+		float lid = 1.0 - smoothstep(0.5 * open - 0.04, 0.5 * open + 0.01, abs(uv.y - 0.5));
+		// Полностью открытый глаз шторок не имеет.
+		lid = max(lid, smoothstep(0.92, 1.0, open));
 
-		vec4 color = vec4(worldColor(world_uv, k), 1.0);
+		// Спросонья мутно: размытие сильнее, пока глаз не раскрылся.
+		float haze = clamp(k + (1.0 - open) * 0.6, 0.0, 1.0);
+		vec4 color = vec4(worldColor(uv, haze), 1.0);
 		color.rgb = pow(color.rgb, vec3(2.2));
 		color.rgb *= exposureParams.compensationFactor;
 #ifdef ENABLE_AUTO_EXPOSURE
@@ -308,18 +312,8 @@ void main(void)
 		color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 #endif
 		color.rgb = applySaturation(color.rgb, saturation);
-
-		vec3 shown;
-		if (on > 0.5) {
-			shown = color.rgb;
-		} else if (kind < 0.5) {
-			shown = vec3(0.0);
-		} else if (kind < 0.8) {
-			// Сдвинутый кусок — чужие цвета: каналы перепутаны.
-			shown = color.gbr * 0.9;
-		} else {
-			shown = colorBars(uv) * 0.7;
-		}
+		// И тусклее, пока веки не разошлись.
+		vec3 shown = color.rgb * lid * mix(0.6, 1.0, open);
 
 		float grain;
 		vec3 screen = staticScreen(uv, grain);
