@@ -323,6 +323,9 @@ private:
 	// Extra variable because during shutdown m_player is unavailable, but we still need to know.
 	std::string m_player_name; ///< used as GUID
 	AvatarLook m_avatar;
+	/// Самая высокая коробка, какую игра давала этому игроку: рост фигуры.
+	/// Коробка ниже неё — поза (присед), а не человек поменьше.
+	float m_avatar_height = 0.0f;
 	bool m_warned_frame_animation = false;
 	session_t m_peer_id_initial = 0; ///< only used to initialize RemotePlayer
 

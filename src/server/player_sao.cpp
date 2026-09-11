@@ -251,8 +251,15 @@ void PlayerSAO::enforceAvatar()
 	// Drawn to the height of the collision box, never the other way round:
 	// the box is the game's and is picked for the world it stands in, while a
 	// character drawn taller than it leaves a head nobody can hit.
+	//
+	// To the tallest box the game has given, not the current one: a crouch
+	// lowers the box, and the character answers it with a pose, not by
+	// shrinking. Scaling here on every crouch would also change visual_size,
+	// and the client rebuilds the whole model on that — the running
+	// animation, its blend and phase included.
 	const float box = m_prop.collisionbox.MaxEdge.Y - m_prop.collisionbox.MinEdge.Y;
-	const float scale = box > 0.0f ? box / AVATAR_MODEL_HEIGHT : 1.0f;
+	m_avatar_height = std::max(m_avatar_height, box);
+	const float scale = m_avatar_height > 0.0f ? m_avatar_height / AVATAR_MODEL_HEIGHT : 1.0f;
 	m_prop.visual_size = v3f(scale, scale, scale);
 }
 
