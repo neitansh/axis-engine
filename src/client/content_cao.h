@@ -246,6 +246,7 @@ private:
 	std::unique_ptr<Ragdoll> m_ragdoll;
 	void startRagdoll(v3f velocity, const std::string &bone, v3f impulse);
 	void applyRagdoll(f32 dtime);
+	void updateHeadBob();
 
 	// Attachments
 	object_t m_attachment_parent_id = 0;

@@ -1601,6 +1601,9 @@ void GenericCAO::step(float dtime, ClientEnvironment *env)
 	if (node)
 		node->setVisible(m_is_visible);
 
+	if (m_is_local_player)
+		updateHeadBob();
+
 	if(getParent() != NULL) // Attachments should be glued to their parent by Irrlicht
 	{
 		// Set these for later
@@ -1958,6 +1961,46 @@ void GenericCAO::updateTextures(std::string mod)
 	// Prevent showing the player after changing texture
 	if (m_is_local_player)
 		updateMeshCulling();
+}
+
+void GenericCAO::updateHeadBob()
+{
+	LocalPlayer *player = m_env->getLocalPlayer();
+	player->head_bob_valid = false;
+	if (!m_animated_meshnode)
+		return;
+
+	// В первом лице модель не рисуется, и сцена её не анимирует. Голова
+	// нужна и тогда — камера идёт за ней, — так что анимируем сами, тем же
+	// временем, каким это делает сцена.
+	if (!m_is_visible)
+		m_animated_meshnode->OnAnimate(RenderingEngine::get_raw_device()->getTimer()->getTime());
+
+	// Положение головы в осях модели: цепочка суставов от корня. Абсолютные
+	// преобразования у невидимого узла не считаются, относительные — всегда.
+	static const char *const CHAIN[] = {"root", "body_control", "body", "head_control", "head"};
+	core::matrix4 now;
+	v3f rest(0, 0, 0);
+	auto *mesh = dynamic_cast<scene::SkinnedMesh *>(m_animated_meshnode->getMesh());
+	if (!mesh)
+		return;
+	for (const char *name : CHAIN) {
+		auto *joint = m_animated_meshnode->getJointNode(name);
+		auto nr = mesh->getJointNumber(name);
+		if (!joint || !nr)
+			return;
+		now = now * joint->getRelativeTransformation();
+		if (const auto *t = std::get_if<core::Transform>(&mesh->getAllJoints()[*nr]->transform))
+			rest += t->translation;
+	}
+	// Масштаб модели — в её узле, суставы его не знают.
+	const v3f scale = m_animated_meshnode->getScale();
+	v3f bob = now.getTranslation() - rest;
+	bob.X *= scale.X;
+	bob.Y *= scale.Y;
+	bob.Z *= scale.Z;
+	player->head_bob = bob;
+	player->head_bob_valid = true;
 }
 
 void GenericCAO::startRagdoll(v3f velocity, const std::string &bone, v3f impulse)

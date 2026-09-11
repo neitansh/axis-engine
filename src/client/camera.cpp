@@ -451,6 +451,10 @@ void Camera::update(LocalPlayer *player, f32 frametime, f32 tool_reload_ratio)
 		// игрока (X вправо, Y вверх, Z вперёд) — ровно та же система, в
 		// которой стоит сама голова, поэтому доворачивать ничего не нужно.
 		eye_offset += fx.offset * BS;
+		// Голова персонажа качается в дорожке — камера первого лица идёт за
+		// ней, и походка чувствуется той же, какой видна со стороны.
+		if (m_camera_mode == CAMERA_MODE_FIRST && player->head_bob_valid)
+			eye_offset += player->head_bob * m_cache_view_bobbing_amount;
 		m_headnode->setPosition(eye_offset);
 		m_headnode->setRotation(v3f(pitch, 0,
 									cameratilt * player->hurt_tilt_strength + fx.rotation.Z));
@@ -462,8 +466,11 @@ void Camera::update(LocalPlayer *player, f32 frametime, f32 tool_reload_ratio)
 	v3f rel_cam_target = v3f(0, 0, 1);
 	v3f rel_cam_up = v3f(0, 1, 0);
 
+	// Своё покачивание — синус от скорости — только моделям без головы: у
+	// персонажа движка камера уже идёт за его головой, а два покачивания
+	// разом дают шаг вразнобой.
 	if (m_cache_view_bobbing_amount != 0.0f && m_view_bobbing_anim != 0.0f &&
-		m_camera_mode < CAMERA_MODE_THIRD)
+		m_camera_mode < CAMERA_MODE_THIRD && !player->head_bob_valid)
 	{
 		f32 bobfrac = my_modf(m_view_bobbing_anim * 2);
 		f32 bobdir = (m_view_bobbing_anim < 0.5) ? 1.0 : -1.0;
