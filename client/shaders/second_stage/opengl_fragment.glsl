@@ -263,23 +263,24 @@ vec4 blurredCaption(vec2 uv, float k)
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
-	// Сигнал не возвращается разом. Сперва помехи гаснут в черноту, а из
-	// неё мир прогревается пятнами — по гладкому полю шума у каждого места
-	// своя задержка, — с тёплым отсветом раскаляющегося пикселя, к нулю
-	// помех — в полном цвете. На полной силе экран — помехи целиком.
+	// Сигнал не возвращается разом. Сперва помехи гаснут в черноту, а потом
+	// картинка грузится сверху вниз полосами: каждая полоса проявляется
+	// из темноты со светлой кромкой, следующая — за ней. На полной силе
+	// экран — помехи целиком.
 	float k = screenStatic;
 	if (k > 0.001) {
 		float t = screenStaticTime;
-		float field = 0.6 * smoothNoise(uv * vec2(5.0, 3.0) + vec2(t * 0.12, -t * 0.08))
-				+ 0.4 * smoothNoise(uv * vec2(11.0, 7.0) + vec2(-t * 0.2, t * 0.15));
 
 		// Помехи горят на полной силе и гаснут к 0.85 — быстро, чернота не
 		// пауза, а вспышка наоборот.
 		float lit = smoothstep(0.85, 0.97, k);
-		// Прогрев: от черноты (k = 0.85) до картинки (k = 0), у каждого места
-		// со своей задержкой — первые пятна теплеют сразу.
-		float warmed = clamp((0.85 - k) / 0.85, 0.0, 1.0);
-		float reveal = smoothstep(0.0, 1.0, (warmed - 0.45 * field) / 0.55);
+		// Загрузка: от черноты (k = 0.85) до картинки (k = 0).
+		float loaded = clamp((0.85 - k) / 0.85, 0.0, 1.0);
+		const float STRIPES = 18.0;
+		float stripe = floor((1.0 - uv.y) * STRIPES);
+		// У каждой полосы свой момент, сверху вниз, с лёгким разбросом.
+		float start = stripe / STRIPES * 0.8 + (staticHash(vec2(stripe, 5.0)) - 0.5) * 0.04;
+		float reveal = smoothstep(0.0, 1.0, (loaded - start) / 0.2);
 
 		vec4 color = vec4(worldColor(uv, k), 1.0);
 		color.rgb = pow(color.rgb, vec3(2.2));
@@ -300,10 +301,10 @@ void main(void)
 		float luma = dot(color.rgb, vec3(0.2125, 0.7154, 0.0721));
 		color.rgb = mix(color.rgb, vec3(luma), 0.6 * (1.0 - reveal));
 
-		// Из черноты через тёплый отсвет к картинке.
+		// Из черноты к картинке, со светлой кромкой на загружающейся полосе.
 		float glow = 4.0 * reveal * (1.0 - reveal);
 		vec3 shown = color.rgb * pow(reveal, 1.5)
-				+ vec3(0.95, 0.3, 0.06) * glow * 0.35 * (0.25 + luma);
+				+ vec3(0.9, 0.85, 0.75) * glow * 0.3 * (0.3 + luma);
 
 		float grain;
 		vec3 screen = staticScreen(uv, grain);
