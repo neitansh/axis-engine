@@ -227,6 +227,10 @@ private:
 
 	bool m_stepheight_smooth_active = false;
 
+	// Высота глаз, которую камера показывает сейчас; к присланной сервером
+	// она подъезжает, а не прыгает. Отрицательная — ещё не выставлена.
+	f32 m_eye_height_smooth = -1.0f;
+
 	// Server-sent FOV variables.
 	// These start at a sane angle rather than whatever the memory held: a
 	// camera entering a world for the second time would otherwise inherit the

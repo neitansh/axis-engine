@@ -415,6 +415,17 @@ void Camera::update(LocalPlayer *player, f32 frametime, f32 tool_reload_ratio)
 	// Calculate and translate the head SceneNode offsets
 	{
 		v3f eye_offset = player->getEyeOffset();
+		// Присед и подъём приходят с сервера сменой eye_height в один кадр:
+		// без доводки взгляд падает на треть ноды скачком, и это самое
+		// заметное, что есть в приседе. Скорость — как у Minecraft, где
+		// глаза за тик проходят половину оставшегося пути.
+		if (m_eye_height_smooth < 0.0f) {
+			m_eye_height_smooth = eye_offset.Y;
+		} else {
+			const f32 t = std::exp(-14.0f * frametime);
+			m_eye_height_smooth = m_eye_height_smooth * t + eye_offset.Y * (1.0f - t);
+		}
+		eye_offset.Y = m_eye_height_smooth;
 		switch (m_camera_mode)
 		{
 		case CAMERA_MODE_ANY:
