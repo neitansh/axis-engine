@@ -481,6 +481,8 @@ public:
 	 * камеры украшение, а не правило.
 	 */
 	bool SendCameraImpulse(session_t peer_id, const CameraImpulse &impulse);
+	bool SendScreenStatic(session_t peer_id, f32 intensity, f32 fade,
+			const std::string &caption);
 	void SendPlayerBreath(PlayerSAO *sao);
 	void SendInventory(RemotePlayer *player, bool incremental, bool skip_wield_anim = false);
 	void SendMovePlayer(PlayerSAO *sao);

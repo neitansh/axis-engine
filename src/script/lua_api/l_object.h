@@ -263,6 +263,8 @@ private:
 
 	// add_camera_impulse(self, def)
 	static int l_add_camera_impulse(lua_State *L);
+	// set_screen_static(self, {intensity=, fade=, caption=})
+	static int l_set_screen_static(lua_State *L);
 
 	// set_look_vertical(self, radians)
 	static int l_set_look_vertical(lua_State *L);

@@ -240,6 +240,8 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	CachedPixelShaderSetting<float> m_bloom_strength_pixel{"bloomStrength"};
 	CachedPixelShaderSetting<float> m_bloom_radius_pixel{"bloomRadius"};
 	CachedPixelShaderSetting<float> m_saturation_pixel{"saturation"};
+	CachedPixelShaderSetting<float> m_screen_static_pixel{"screenStatic"};
+	CachedPixelShaderSetting<float> m_screen_static_time_pixel{"screenStaticTime"};
 	bool m_volumetric_light_enabled;
 	CachedPixelShaderSetting<float, 3>
 		m_sun_position_pixel{"sunPositionScreen"};
@@ -428,6 +430,12 @@ public:
 
 		float saturation = lighting.saturation;
 		m_saturation_pixel.set(&saturation, services);
+
+		const auto &screen_static = m_client->getEnv().getLocalPlayer()->screen_static;
+		float static_intensity = screen_static.intensity;
+		m_screen_static_pixel.set(&static_intensity, services);
+		float static_time = screen_static.time;
+		m_screen_static_time_pixel.set(&static_time, services);
 
 		// Всё, что за кадр не меняется, считает первый обратившийся, а
 		// остальные вызовы отрисовки только читают готовое
@@ -3532,6 +3540,7 @@ void Game::updateCamera(f32 dtime)
 	tool_reload_ratio = std::min(tool_reload_ratio, 1.0f);
 	camera->update(player, dtime, tool_reload_ratio);
 	camera->step(dtime);
+	player->screen_static.step(dtime);
 
 	if (!m_flags.disable_camera_update)
 	{
@@ -4807,16 +4816,21 @@ void Game::drawScene(ProfilerGraph *graph, RunStats *stats)
 	this->driver->beginScene(true, true, sky_color);
 
 	const LocalPlayer *player = this->client->getEnv().getLocalPlayer();
-	bool draw_wield_tool = (this->m_game_ui->m_flags.show_hud &&
+	// Помехи потерянного сигнала кладутся сведением на кадр, а руки, прицел и
+	// HUD рисуются после него — и остались бы чёткими поверх шума. Сигнал
+	// потерян целиком: пока помехи на экране, ничего этого нет.
+	const bool signal_lost = player->screen_static.visible();
+	const bool show_hud = this->m_game_ui->m_flags.show_hud && !signal_lost;
+	bool draw_wield_tool = (show_hud &&
 							(player->hud_flags & HUD_FLAG_WIELDITEM_VISIBLE) &&
 							(this->camera->getCameraMode() == CAMERA_MODE_FIRST));
-	bool draw_crosshair = ((player->hud_flags & HUD_FLAG_CROSSHAIR_VISIBLE) &&
+	bool draw_crosshair = (show_hud && (player->hud_flags & HUD_FLAG_CROSSHAIR_VISIBLE) &&
 						   (this->camera->getCameraMode() != CAMERA_MODE_THIRD_FRONT));
 
 	if (isTouchShootlineUsed())
 		draw_crosshair = false;
 
-	this->m_rendering_engine->draw_scene(sky_color, this->m_game_ui->m_flags.show_hud,
+	this->m_rendering_engine->draw_scene(sky_color, show_hud,
 										 draw_wield_tool, draw_crosshair);
 
 	/*

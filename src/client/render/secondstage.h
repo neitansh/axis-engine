@@ -8,6 +8,28 @@
 #include <string>
 
 /**
+ * Подпись на экране помех — большая, посередине кадра.
+ *
+ * Рисуется в свою текстуру в начале кадра, а сведение (second_stage)
+ * подмешивает её внутри цикла размытия: так размытие и зерно ложатся и на
+ * неё, и подпись живёт в той же испорченной картинке, что и мир. Поверх
+ * кадра вместе с HUD она осталась бы чёткой.
+ */
+class ScreenCaptionStep : public RenderStep
+{
+public:
+	ScreenCaptionStep() = default;
+
+	void setRenderSource(RenderSource *) override {}
+	void setRenderTarget(RenderTarget *target) override { m_target = target; }
+	void reset(PipelineContext &context) override {}
+	void run(PipelineContext &context) override;
+
+private:
+	RenderTarget *m_target {nullptr};
+};
+
+/**
  *  Step to apply post-processing filter to the rendered image
  */
 class PostProcessingStep : public RenderStep
@@ -62,4 +84,5 @@ private:
 };
 
 
-RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep, v2f scale, Client *client);
+RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep, v2f scale, Client *client,
+		ScreenCaptionStep *caption);

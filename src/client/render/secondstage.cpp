@@ -8,12 +8,44 @@
 
 #include <cstdlib>
 #include "client/client.h"
+#include "client/fontengine.h"
+#include <IGUIFont.h>
+#include "client/localplayer.h"
 #include "client/shader.h"
 #include "settings.h"
 #include "plain.h"
 #include "porting.h"
 #include "profiler.h"
 #include <ISceneManager.h>
+
+void ScreenCaptionStep::run(PipelineContext &context)
+{
+	LocalPlayer *player = context.client->getEnv().getLocalPlayer();
+	if (!player || !m_target)
+		return;
+	const auto &st = player->screen_static;
+	if (!st.visible() || st.caption.empty())
+		return;
+
+	m_target->activate(context);
+	video::IVideoDriver *driver = context.device->getVideoDriver();
+	driver->clearBuffers(video::ECBF_COLOR, video::SColor(0, 0, 0, 0));
+	const core::dimension2du size = driver->getScreenSize();
+
+	gui::IGUIFont *font = g_fontengine->getFont(
+			FontSpec(std::max(16u, size.Height / 6), FM_Standard, true, false));
+	if (!font)
+		return;
+
+	// Та же кривая, что у помех в шейдере: подпись проявляется вместе с ними.
+	const f32 k = st.intensity * st.intensity * (3.0f - 2.0f * st.intensity);
+	const u32 alpha = static_cast<u32>(255.0f * k);
+	const core::rect<s32> frame(0, 0, size.Width, size.Height);
+	const s32 drop = std::max<s32>(2, size.Height / 160);
+	font->draw(st.caption.c_str(), frame + core::vector2d<s32>(0, drop),
+			video::SColor(alpha * 4 / 5, 20, 0, 0), true, true);
+	font->draw(st.caption.c_str(), frame, video::SColor(alpha, 236, 38, 38), true, true);
+}
 
 PostProcessingStep::PostProcessingStep(u32 _shader_id, const std::vector<u8> &_texture_map,
 		const std::string &label) :
@@ -102,7 +134,8 @@ void PostProcessingStep::setBilinearFilter(u8 index, bool value)
 	material.TextureLayers[index].MagFilter = value ? video::ETMAGF_LINEAR : video::ETMAGF_NEAREST;
 }
 
-RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep, v2f scale, Client *client)
+RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep, v2f scale, Client *client,
+		ScreenCaptionStep *caption)
 {
 	auto buffer = pipeline->createOwned<TextureBuffer>();
 	auto driver = client->getSceneManager()->getVideoDriver();
@@ -197,6 +230,12 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 	} else {
 		previousStep->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, std::vector<u8> { TEXTURE_COLOR }, TEXTURE_DEPTH));
 	}
+
+	// Подпись помех: своя текстура, в экранном размере, без сглаживания —
+	// размывает её уже сведение.
+	static const u8 TEXTURE_CAPTION = 30;
+	buffer->setTexture(TEXTURE_CAPTION, v2f(1.0f, 1.0f), "caption", video::ECF_A8R8G8B8);
+	caption->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_CAPTION));
 
 	// shared variables
 	u32 shader_id;
@@ -350,7 +389,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 
 	// final merge
 	shader_id = client->getShaderSource()->getShaderRaw("second_stage");
-	PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { final_stage_source, TEXTURE_SCALE_UP, TEXTURE_EXPOSURE_2 }, "second_stage");
+	PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { final_stage_source, TEXTURE_SCALE_UP, TEXTURE_EXPOSURE_2, TEXTURE_CAPTION }, "second_stage");
 	pipeline->addStep(effect);
 	if (enable_ssaa)
 		effect->setBilinearFilter(0, true);

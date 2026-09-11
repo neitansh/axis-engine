@@ -222,6 +222,7 @@ public:
 	void handleCommand_ChatCommands(NetworkPacket *pkt);
 	void handleCommand_Transfer(NetworkPacket *pkt);
 	void handleCommand_CameraImpulse(NetworkPacket *pkt);
+	void handleCommand_ScreenStatic(NetworkPacket *pkt);
 	void handleCommand_ParticleShockwave(NetworkPacket *pkt);
 
 	/// Commands the server said this player may use, for completing them

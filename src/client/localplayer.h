@@ -9,6 +9,7 @@
 #include "constants.h"
 #include "lighting.h"
 #include <string>
+#include <algorithm>
 
 class Client;
 class ClientActiveObject;
@@ -103,6 +104,26 @@ public:
 	// Отдача, удар взрывной волны и дрожь. Живут здесь, а не в Camera,
 	// потому что приходят пакетом: обработчику проще дотянуться до игрока.
 	CameraFx camera_fx;
+
+	// Помехи на экране (см. TOCLIENT_SCREEN_STATIC). Сервер называет цель и
+	// за сколько к ней прийти, клиент ведёт силу помех сам, кадр за кадром:
+	// так появление и уход плавные, а не двадцать ступенек в секунду.
+	struct ScreenStatic {
+		f32 target = 0.0f;
+		f32 fade = 0.5f;
+		f32 intensity = 0.0f;
+		f32 time = 0.0f;
+		std::wstring caption;
+
+		void step(f32 dtime)
+		{
+			time += dtime;
+			const f32 rate = fade > 0.0f ? dtime / fade : 1.0f;
+			intensity += std::clamp(target - intensity, -rate, rate);
+		}
+		bool visible() const { return intensity > 0.001f; }
+	};
+	ScreenStatic screen_static;
 
 	PlayerHud csm_hud;
 

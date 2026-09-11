@@ -86,10 +86,13 @@
 		applied on top of the player's own look
 	PROTOCOL VERSION 55
 		Added AO_CMD_SET_AVATAR: what a player wears, drawn by the client
+	PROTOCOL VERSION 56
+		Added TOCLIENT_SCREEN_STATIC: lost-signal static with a caption,
+		faded in and out by the client
 */
 
 // Note: Also update core.protocol_versions in builtin when bumping
-const u16 LATEST_PROTOCOL_VERSION = 55;
+const u16 LATEST_PROTOCOL_VERSION = 56;
 
 // See also formspec [Version History] in doc/lua_api.md
 const u16 FORMSPEC_API_VERSION = 10;

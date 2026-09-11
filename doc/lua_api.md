@@ -9470,6 +9470,21 @@ You **must not** mix names and track numbers to refer to the same animation.
     * Note that this affects what the player *sees*, not where the server thinks
       they are aiming. A game that wants the aim to move as well has to mirror
       the same spring server-side and offset the shot direction itself.
+* `set_screen_static(definition)`: Lost-signal static over the whole picture —
+  grain, torn lines, a rolling band, blur and a vignette, with a caption in the
+  middle. The client fades it in and out itself, and hides the HUD, the wielded
+  item, the crosshair and the chat while it is showing: the signal is lost as a
+  whole. Meant for death screens. Requires post-processing on the client.
+    * `intensity`: `0` clears the screen, `1` is nothing but static; in between
+      the world shows through, greyed and blurred.
+    * `fade`: seconds to reach the new intensity from the current one. Default
+      `0.5`.
+    * `caption`: text drawn in the middle, large and red, softened by the same
+      blur as the picture. Empty for none.
+    * Returns `false` if the client cannot show it (protocol version below 56).
+    * Example: `player:set_screen_static({intensity = 1, fade = 0.6,
+      caption = "WASTED"})` on death, `player:set_screen_static({intensity = 0,
+      fade = 1})` on respawn.
 * `set_attribute(attribute, value)`:  DEPRECATED, use get_meta() instead
     * Sets an extra attribute with value on player.
     * `value` must be a string, or a number which will be converted to a

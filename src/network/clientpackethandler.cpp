@@ -2010,6 +2010,21 @@ void Client::handleCommand_Transfer(NetworkPacket *pkt)
 	}
 }
 
+void Client::handleCommand_ScreenStatic(NetworkPacket *pkt)
+{
+	LocalPlayer *player = m_env.getLocalPlayer();
+	assert(player);
+
+	f32 intensity, fade;
+	std::string caption;
+	*pkt >> intensity >> fade >> caption;
+
+	auto &st = player->screen_static;
+	st.target = std::clamp(intensity, 0.0f, 1.0f);
+	st.fade = std::max(fade, 0.0f);
+	st.caption = utf8_to_wide(caption);
+}
+
 void Client::handleCommand_CameraImpulse(NetworkPacket *pkt)
 {
 	LocalPlayer *player = m_env.getLocalPlayer();

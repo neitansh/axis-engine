@@ -1,5 +1,6 @@
 #define rendered texture0
 #define bloom texture1
+#define caption texture3
 
 #ifdef GL_ES
 // Dithering requires sufficient floating-point precision
@@ -14,12 +15,17 @@ struct ExposureParams {
 
 uniform sampler2D rendered;
 uniform sampler2D bloom;
+// Подпись экрана помех, нарисованная в начале кадра (ScreenCaptionStep).
+uniform sampler2D caption;
 
 uniform vec2 texelSize0;
 
 uniform ExposureParams exposureParams;
 uniform lowp float bloomIntensity;
 uniform lowp float saturation;
+// Помехи потерянного сигнала: 0 — чисто, 1 — сплошь. См. TOCLIENT_SCREEN_STATIC.
+uniform lowp float screenStatic;
+uniform mediump float screenStaticTime;
 
 CENTROID_ VARYING_ mediump vec2 varTexCoord;
 
@@ -101,9 +107,120 @@ vec3 screen_space_dither(highp vec2 frag_coord) {
 }
 #endif
 
+float staticHash(vec2 p)
+{
+	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+// Кадр под помехами. Размытие, зерно и рваные строки считаются в одном
+// проходе: зерно кладётся на каждую выборку размытия, поэтому размывается
+// вместе с картинкой и подписью, а не сыплется поверх них.
+vec4 sampleStatic(vec2 uv, float k)
+{
+	// Строчная развёртка сорвалась: узкие полосы уезжают вбок, редко и на миг.
+	float row = floor(uv.y * 48.0);
+	float tick = floor(screenStaticTime * 12.0);
+	float tear = staticHash(vec2(row, tick));
+	if (tear > 0.93)
+		uv.x += (tear - 0.93) * 0.6 * k;
+
+	const int TAPS = 12;
+	vec2 taps[TAPS];
+	taps[0] = vec2(-0.326, -0.406); taps[1] = vec2(-0.840, -0.074);
+	taps[2] = vec2(-0.696,  0.457); taps[3] = vec2(-0.203,  0.621);
+	taps[4] = vec2( 0.962, -0.195); taps[5] = vec2( 0.473, -0.480);
+	taps[6] = vec2( 0.519,  0.767); taps[7] = vec2( 0.185, -0.893);
+	taps[8] = vec2( 0.507,  0.064); taps[9] = vec2( 0.896,  0.412);
+	taps[10] = vec2(-0.322, -0.933); taps[11] = vec2(-0.792, -0.598);
+
+	float radius = 0.011 * k;
+	vec3 sum = vec3(0.0);
+	float grain = 0.0;
+	for (int i = 0; i < TAPS; i++) {
+		vec2 at = uv + taps[i] * radius;
+		sum += texture2D(rendered, at).rgb;
+		// Зерно крупнее пикселя: у телевизора оно с точку люминофора.
+		vec2 cell = floor(at / (texelSize0 * 3.0));
+		grain += staticHash(cell + vec2(tick * 7.0, tick * 3.0));
+	}
+	sum /= float(TAPS);
+	grain /= float(TAPS);
+	vec3 color = mix(texture2D(rendered, uv).rgb, sum, k);
+	return vec4(color, grain);
+}
+
+// Подпись поверх испорченного кадра: мягкая, с зерном, но не серая и не
+// утопленная — читаться она обязана, это единственное слово на экране.
+vec4 blurredCaption(vec2 uv, float k)
+{
+	const int TAPS = 8;
+	vec2 taps[TAPS];
+	taps[0] = vec2(-0.7, -0.7); taps[1] = vec2( 0.7, -0.7);
+	taps[2] = vec2(-0.7,  0.7); taps[3] = vec2( 0.7,  0.7);
+	taps[4] = vec2(-1.0,  0.0); taps[5] = vec2( 1.0,  0.0);
+	taps[6] = vec2( 0.0, -1.0); taps[7] = vec2( 0.0,  1.0);
+	float radius = 0.004 * k;
+	vec4 sum = texture2D(caption, uv);
+	for (int i = 0; i < TAPS; i++)
+		sum += texture2D(caption, uv + taps[i] * radius);
+	return sum / float(TAPS + 1);
+}
+
+// Помехи вытесняют картинку: на полной силе на экране одно зерно, мира за
+// ним нет, а по дороге туда он сереет и тонет в шуме. Плюс бегущая полоса и
+// тёмные края, как у трубки, теряющей луч.
+vec3 finishStatic(vec3 color, vec2 uv, float k, float grain)
+{
+	float luma = dot(color, vec3(0.2125, 0.7154, 0.0721));
+	vec3 snow = vec3(0.16 + 0.62 * grain);
+	color = mix(mix(color, vec3(luma), 0.7 * k), snow, k);
+
+	float lines = 0.86 + 0.14 * sin(uv.y * 700.0 + screenStaticTime * 9.0);
+	float band = fract(uv.y * 0.6 - screenStaticTime * 0.13);
+	float roll = smoothstep(0.42, 0.5, band) * (1.0 - smoothstep(0.5, 0.62, band));
+	float flicker = 0.94 + 0.06 * staticHash(vec2(floor(screenStaticTime * 24.0), 1.0));
+	color *= mix(1.0, lines * flicker, k);
+	color += roll * 0.10 * k;
+
+	float edge = length((uv - 0.5) * vec2(1.25, 1.0));
+	float vignette = 1.0 - smoothstep(0.35, 0.95, edge);
+	color *= mix(1.0, vignette, 0.85 * k);
+	color *= 1.0 - 0.25 * k;
+	return color;
+}
+
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
+	// Появление и уход помех — по плавной кривой, а не по прямой: линейный
+	// рост читается как включение рубильником.
+	float staticK = screenStatic * screenStatic * (3.0 - 2.0 * screenStatic);
+	if (staticK > 0.001) {
+		vec4 color = sampleStatic(uv, staticK);
+		color.rgb = pow(color.rgb, vec3(2.2));
+		color.rgb *= exposureParams.compensationFactor;
+#ifdef ENABLE_AUTO_EXPOSURE
+		color.rgb *= exposure;
+#endif
+#ifdef ENABLE_BLOOM
+		color = applyBloom(color, uv);
+#endif
+		color.rgb = clamp(color.rgb, vec3(0.), vec3(1.));
+#if ENABLE_TONE_MAPPING
+		color = applyToneMapping(color);
+#else
+		color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
+#endif
+		color.rgb = applySaturation(color.rgb, saturation);
+		float grain = color.a;
+		color.rgb = finishStatic(color.rgb, uv, staticK, grain);
+		vec4 cap = blurredCaption(uv, staticK);
+		// Слегка тронуть зерном и подпись: цельная картинка, а не наклейка.
+		cap.rgb += (grain - 0.5) * 0.25;
+		color.rgb = mix(color.rgb, cap.rgb, cap.a);
+		gl_FragColor = vec4(clamp(color.rgb, vec3(0.), vec3(1.)), 1.0);
+		return;
+	}
 #ifdef ENABLE_SSAA
 	vec4 color = vec4(0.);
 	for (float dx = 1.; dx < SSAA_SCALE; dx += 2.)

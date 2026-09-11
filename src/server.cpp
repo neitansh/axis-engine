@@ -1685,6 +1685,22 @@ bool Server::SendTransfer(session_t peer_id, const std::string &address,
 	return true;
 }
 
+bool Server::SendScreenStatic(session_t peer_id, f32 intensity, f32 fade,
+		const std::string &caption)
+{
+	{
+		ClientInterface::AutoLock clientlock(m_clients);
+		RemoteClient *client = m_clients.lockedGetClientNoEx(peer_id, CS_Created);
+		if (!client || client->net_proto_version < 56)
+			return false;
+	}
+
+	NetworkPacket pkt(TOCLIENT_SCREEN_STATIC, 0, peer_id);
+	pkt << intensity << fade << caption;
+	Send(&pkt);
+	return true;
+}
+
 bool Server::SendCameraImpulse(session_t peer_id, const CameraImpulse &impulse)
 {
 	{

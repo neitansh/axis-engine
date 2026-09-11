@@ -102,9 +102,12 @@ std::unique_ptr<RenderStep> create3DStage(Client *client, v2f scale)
 	RenderStep *step = new Draw3D();
 	if (g_settings->getBool("enable_post_processing")) {
 		RenderPipeline *pipeline = new RenderPipeline();
+		// Подпись помех рисуется до сцены, в свою текстуру: 2D-рисование в
+		// текстуру сцены после 3D-прохода роняет драйвер видеокарты.
+		auto *caption = pipeline->addStep<ScreenCaptionStep>();
 		pipeline->addStep(pipeline->own(std::unique_ptr<RenderStep>(step)));
 
-		auto effect = addPostProcessing(pipeline, step, scale, client);
+		auto effect = addPostProcessing(pipeline, step, scale, client, caption);
 		effect->setRenderTarget(pipeline->getOutput());
 		step = pipeline;
 	}
