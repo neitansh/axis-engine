@@ -4,6 +4,7 @@
 
 #include "system.h"
 
+#include "filesys.h"
 #include "log_internal.h"
 #include "porting.h"
 #include <ICursorControl.h>
@@ -38,6 +39,20 @@ bool System::LogMessage(Rml::Log::Type type, const Rml::String &message)
 	}
 	g_logger.log(level, "RmlUi: " + message);
 	return true;
+}
+
+void System::JoinPath(Rml::String &translated_path, const Rml::String &document_path,
+		const Rml::String &path)
+{
+	Rml::SystemInterface::JoinPath(translated_path, document_path, path);
+	if (fs::PathExists(translated_path))
+		return;
+	// Чего нет рядом с документом, ищется от корня данных движка: так тема
+	// берёт textures/base/pack/… не зная, где сама лежит.
+	std::string shared = porting::path_share;
+	shared.append(DIR_DELIM).append(path);
+	if (fs::PathExists(shared))
+		translated_path = shared;
 }
 
 void System::SetMouseCursor(const Rml::String &cursor_name)

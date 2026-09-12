@@ -14,7 +14,6 @@ body {
 	font-size: 16dp;
 	line-height: 1.4;
 	color: #E8E6ED;
-	background-color: #0C0A12;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -56,7 +55,23 @@ p {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	margin-bottom: 40dp;
+	margin-bottom: 28dp;
+}
+
+.brand img {
+	width: 448dp;
+	height: 48dp;
+	margin-bottom: 10dp;
+}
+
+.panel {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 28dp 32dp;
+	border-radius: 10dp;
+	background-color: #0C0A12E0;
+	border: 1dp #FFFFFF14;
 }
 
 .stack {

@@ -2095,6 +2095,10 @@ enable_sscsm (Enable SSCSM) [client] enum nowhere nowhere,singleplayer,localhost
 #    Replaces the default main menu with a custom one.
 main_menu_script (Main menu script) [client] string
 
+#    Run the main menu on RmlUi instead of the Lua menu.
+#    Work in progress: only some screens exist yet.
+main_menu_rml (RmlUi main menu) [client] bool false
+
 [**Mod Security] [server]
 
 #    Prevent mods from doing insecure things like running shell commands.

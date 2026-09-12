@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 00:36+0300\n"
+"POT-Creation-Date: 2026-09-12 19:49+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -8646,6 +8646,16 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Replaces the default main menu with a custom one."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "RmlUi main menu"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Run the main menu on RmlUi instead of the Lua menu.\n"
+"Work in progress: only some screens exist yet."
 msgstr ""
 
 #: src/settings_translation_file.cpp

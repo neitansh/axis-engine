@@ -159,6 +159,7 @@ BY_NAME = {
     "dpi_change_notifier": "ClientGraphics",
     "enable_touch": "ClientInput",
     "main_menu_path": "ClientInterface",
+    "main_menu_rml": "ClientInterface",
     "opaque_water": "ClientGraphics",
     "touch_layout": "ClientInput",
     "touch_use_crosshair": "ClientInput",

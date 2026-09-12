@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 00:36+0300\n"
+"POT-Creation-Date: 2026-09-12 19:49+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -3016,7 +3016,6 @@ msgstr ""
 "Ставит всё нижеследующее разом. Правка любого пункта руками переводит выбор "
 "в «Пользовательские»."
 
-
 #: builtin/common/settings/quality_component.lua
 msgid "Standard"
 msgstr "Обычные"
@@ -5969,7 +5968,6 @@ msgstr ""
 "закраски: взгляд вдоль земли проходит через десяток стеблей, и каждый\n"
 "закрашивается целиком. В нодах. 0 — рисовать всё."
 
-
 #: src/settings_translation_file.cpp
 msgid ""
 "Beyond this distance from the camera the inside of tree crowns is not\n"
@@ -5982,7 +5980,6 @@ msgstr ""
 "между листьями и видны только в просветы текстуры переднего листа, а на\n"
 "дальнем дереве их не разглядеть. При этом они — около половины всех вершин\n"
 "в кадре. В нодах. 0 — рисовать каждую крону целиком."
-
 
 #: src/settings_translation_file.cpp
 msgid "Bilinear filtering"
@@ -6788,7 +6785,6 @@ msgstr ""
 "Либо внешность игрока принадлежит движку целиком, либо не принадлежит\n"
 "вовсе: половинчатой настройки нет, и ни один мод её не переключит. Игры со\n"
 "своими персонажами оставляют её выключенной."
-
 
 #: src/settings_translation_file.cpp
 msgid "Dump the mapgen debug information."
@@ -9394,6 +9390,10 @@ msgid "River valley width"
 msgstr "Ширина поймы реки"
 
 #: src/settings_translation_file.cpp
+msgid "RmlUi main menu"
+msgstr "Главное меню на RmlUi"
+
+#: src/settings_translation_file.cpp
 msgid "Rollback recording"
 msgstr "Запись для отката"
 
@@ -9404,6 +9404,14 @@ msgstr "Размер шума холмов"
 #: src/settings_translation_file.cpp
 msgid "Rolling hills spread noise"
 msgstr "Шум распространения холмов"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Run the main menu on RmlUi instead of the Lua menu.\n"
+"Work in progress: only some screens exist yet."
+msgstr ""
+"Главное меню на RmlUi вместо меню на Lua.\n"
+"В работе: пока есть только часть экранов."
 
 #: src/settings_translation_file.cpp
 msgid "Safe digging and placing"

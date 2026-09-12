@@ -111,9 +111,9 @@ void Host::render(Rml::Context &context)
 {
 	const Rml::Vector2i size = context.GetDimensions();
 	m_renderer.SetViewport(size.x, size.y);
-	m_renderer.BeginFrame();
+	m_renderer.beginFrame();
 	context.Render();
-	m_renderer.EndFrame();
+	m_renderer.endFrame();
 }
 
 void Host::toggleDebugger(Rml::Context &context)

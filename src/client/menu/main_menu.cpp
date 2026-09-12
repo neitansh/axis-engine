@@ -4,6 +4,7 @@
 
 #include "main_menu.h"
 
+#include "client/clouds.h"
 #include "client/inputhandler.h"
 #include "client/renderingengine.h"
 #include "content/crates.h"
@@ -65,7 +66,17 @@ void MainMenu::run()
 
 	IrrlichtDevice *device = m_engine->get_raw_device();
 	video::IVideoDriver *driver = device->getVideoDriver();
-	const video::SColor backdrop(255, 12, 10, 18);
+
+	// Небо и облака под меню — те же, что на экране загрузки; цвета по
+	// menu_theme, как у прежнего меню.
+	const bool dark = g_settings->get("menu_theme") == "dark";
+	const video::SColor sky = dark ? video::SColor(255, 0x09, 0x0b, 0x1a)
+			: video::SColor(255, 0x8c, 0xba, 0xfa);
+	const video::SColor clouds = dark ? video::SColor(255, 0x1c, 0x2a, 0x47)
+			: video::SColor(255, 0xf0, 0xf0, 0xff);
+	m_engine->m_menu_sky_color = sky;
+	m_engine->m_menu_clouds_color = clouds;
+	const bool draw_clouds = g_settings->getBool("menu_clouds") && g_menuclouds;
 
 	FpsControl fps_control;
 	f32 dtime = 0.0f;
@@ -80,7 +91,13 @@ void MainMenu::run()
 				g_settings->getFloat("gui_scaling", 0.5f, 20.0f));
 		m_host.update(*m_context);
 
-		driver->beginScene(true, true, backdrop);
+		driver->setFog(sky);
+		driver->beginScene(true, true, sky);
+		if (draw_clouds) {
+			g_menuclouds->update(v3f(0, 0, 0), clouds);
+			g_menuclouds->step(dtime * 3);
+			g_menucloudsmgr->drawAll();
+		}
 		m_host.render(*m_context);
 		driver->endScene();
 	}
