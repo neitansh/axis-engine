@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <IEventReceiver.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <string>
 
@@ -41,6 +42,13 @@ public:
 	// измениться, пока его не было видно.
 	virtual void refresh() {}
 
+	// Ввод до RmlUi: экран забирает событие, вернув true. Нужно тому, что
+	// документ сам не умеет — например, поймать клавишу для привязки.
+	virtual bool onEvent(const SEvent &event) { return false; }
+
+	// Зовётся после каждого обновления контекста, пока экран показан.
+	virtual void afterUpdate() {}
+
 protected:
 	// Наследник вешает свои переменные и действия на модель; общие
 	// действия (nav, quit) уже стоят.
@@ -48,6 +56,7 @@ protected:
 
 	MainMenu &menu() { return m_menu; }
 	Rml::DataModelHandle model() { return m_model; }
+	Rml::ElementDocument *document() { return m_document; }
 
 private:
 	void load();

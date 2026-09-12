@@ -1,0 +1,54 @@
+<rml>
+<head>
+	<title>settings</title>
+	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="settings.rcss"/>
+</head>
+<body data-model="settings" class="settings">
+	<div class="tabs">
+		<button data-for="p : pages" class="tab" data-class-active="p.id == page && search == ''"
+				data-event-click="open(p.id)">{{ p.title }}</button>
+		<input type="text" class="search" placeholder="Поиск" data-value="search" data-event-change="search()"/>
+	</div>
+
+	<div class="settings-body">
+		<div class="sections" data-if="search == ''">
+			<button data-for="s : sections" class="section" data-class-active="s.row == section"
+					data-event-click="jump(s.row)">{{ s.title }}</button>
+		</div>
+
+		<div class="rows" id="rows">
+			<div data-for="r : rows">
+				<h3 class="group" data-if="r.kind == 'heading'" data-attr-id="'row-' + r.index">{{ r.label }}</h3>
+				<div class="setting" data-if="r.kind != 'heading'" data-class-focused="focus == r.index"
+						data-class-changed="r.changed" data-class-keyrow="r.kind == 'key'"
+						data-event-mouseover="focus(r.index)">
+					<span class="label">{{ r.label }}</span>
+					<div class="control" data-rml="r.widget" data-event-change="changed(r.index)"
+							data-event-click="clicked(r.index)"></div>
+					<button class="key" data-if="r.kind == 'key'" data-class-waiting="capturing == r.index"
+							data-event-click="capture(r.index)">{{ capturing == r.index ? 'Нажми клавишу…' : r.value }}</button>
+					<button class="clear" data-class-hidden="!r.changed" data-event-click="reset(r.index)">✕</button>
+				</div>
+			</div>
+			<div class="empty" data-if="rows.size == 0">Ничего не найдено</div>
+			<button class="more" data-if="has_advanced && search == ''" data-event-click="toggle_advanced()">
+				{{ advanced ? 'Скрыть расширенные' : 'Расширенные настройки' }}
+			</button>
+		</div>
+
+		<div class="info">
+			<h4>{{ focus_label }}</h4>
+			<p>{{ focus_help }}</p>
+			<div class="options">
+				<div data-for="o : focus_options" class="opt" data-class-on="o == focus_value">{{ o }}</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="bottom">
+		<button class="ghost" data-event-click="reset_page()">Сбросить страницу</button>
+		<button class="ghost" data-event-click="nav('start')">Назад</button>
+	</div>
+</body>
+</rml>

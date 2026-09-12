@@ -88,6 +88,8 @@ set(client_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/mod_vfs.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/main_menu.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screen.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/menu/settings_catalog.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/settings_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/start_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/worlds_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/shadows/dynamicshadows.cpp

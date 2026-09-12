@@ -13,6 +13,7 @@
 	</div>
 	<div class="stack">
 		<button class="primary" data-event-click="nav('worlds')">Играть</button>
+		<button data-event-click="nav('settings')">Настройки</button>
 		<button data-event-click="quit()">Выйти</button>
 	</div>
 </body>

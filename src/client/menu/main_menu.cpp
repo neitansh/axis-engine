@@ -12,6 +12,7 @@
 #include "gui/guiMainMenu.h"
 #include "log.h"
 #include "porting.h"
+#include "screens/settings_screen.h"
 #include "screens/start_screen.h"
 #include "screens/worlds_screen.h"
 #include "settings.h"
@@ -48,6 +49,7 @@ MainMenu::MainMenu(RenderingEngine *engine, MyEventReceiver *receiver,
 	addScreen(std::make_unique<StartScreen>(*this, m_data->script_data.message));
 	m_data->script_data.message.clear();
 	addScreen(std::make_unique<WorldsScreen>(*this));
+	addScreen(std::make_unique<SettingsScreen>(*this));
 	loadChrome();
 	navigate("start");
 }
@@ -96,6 +98,8 @@ void MainMenu::run()
 		m_host.setPixelRatio(RenderingEngine::getDisplayDensity() *
 				g_settings->getFloat("gui_scaling", 0.5f, 20.0f));
 		m_host.update(*m_context);
+		if (m_current)
+			m_current->afterUpdate();
 
 		driver->setFog(sky);
 		driver->beginScene(true, true, sky);
@@ -175,6 +179,8 @@ bool MainMenu::OnEvent(const SEvent &event)
 	case EET_MOUSE_INPUT_EVENT:
 	case EET_KEY_INPUT_EVENT:
 	case EET_STRING_INPUT_EVENT:
+		if (m_current && m_current->onEvent(event))
+			return true;
 		m_host.feedEvent(*m_context, event);
 		// Под меню нет ни игры, ни другого интерфейса, которым этот ввод
 		// мог бы пригодиться.

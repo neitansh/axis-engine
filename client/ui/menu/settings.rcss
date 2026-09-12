@@ -1,0 +1,401 @@
+/*
+ * Экран настроек: вкладки страниц сверху, разделы слева, строки в середине,
+ * описание строки под курсором справа. Строка — подпись и один виджет; ряд
+ * значений листается стрелками, число тянется ползунком с заливкой.
+ */
+
+body.settings {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: flex-start;
+	background-color: #0C0A12F2;
+	box-sizing: border-box;
+	padding: 20dp 40dp 16dp 40dp;
+}
+
+.tabs {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 18dp;
+}
+
+.tabs button.tab {
+	background-color: transparent;
+	border-color: transparent;
+	color: #948C9E;
+	font-family: "Departure Mono";
+	font-size: 13dp;
+	white-space: nowrap;
+	padding: 8dp 12dp;
+	margin: 0 2dp;
+	border-radius: 6dp;
+}
+
+.tabs button.tab:hover {
+	color: #E8E6ED;
+	background-color: #FFFFFF0C;
+}
+
+.tabs button.tab.active {
+	color: #FFFFFF;
+	background-color: #8B5CF6;
+}
+
+.tabs input.text.search {
+	width: 200dp;
+	margin-left: 24dp;
+	padding: 6dp 12dp;
+}
+
+.settings-body {
+	display: flex;
+	flex-direction: row;
+	flex: 1;
+	min-height: 0;
+}
+
+.sections {
+	display: flex;
+	flex-direction: column;
+	width: 180dp;
+	margin-right: 24dp;
+	padding: 8dp;
+	border-radius: 8dp;
+	background-color: #17131F;
+}
+
+.sections button.section {
+	text-align: left;
+	background-color: transparent;
+	border-color: transparent;
+	color: #948C9E;
+	font-size: 13dp;
+	padding: 8dp 10dp;
+	margin-bottom: 2dp;
+}
+
+.sections button.section:hover {
+	color: #E8E6ED;
+	background-color: #FFFFFF0C;
+}
+
+.sections button.section.active {
+	color: #FFFFFF;
+	background-color: #FFFFFF14;
+	border-color: #A78BFA;
+}
+
+.rows {
+	display: block;
+	flex: 1;
+	overflow-y: auto;
+	padding-right: 12dp;
+}
+
+.rows h3.group {
+	display: block;
+	font-family: "Departure Mono";
+	font-size: 17dp;
+	color: #E8E6ED;
+	margin: 14dp 0 8dp 0;
+}
+
+.rows h3.group:first-child {
+	margin-top: 0;
+}
+
+.setting {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 6dp 10dp;
+	margin-bottom: 4dp;
+	border-radius: 6dp;
+	border: 1dp transparent;
+}
+
+.setting.focused {
+	background-color: #17131F;
+	border-color: #A78BFA;
+}
+
+.setting .label {
+	flex: 1;
+	min-width: 0;
+	color: #C8C3D1;
+	padding-right: 12dp;
+}
+
+.setting.focused .label,
+.setting.changed .label {
+	color: #FFFFFF;
+}
+
+.setting .control {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-end;
+	width: 240dp;
+}
+
+.setting.keyrow .control {
+	width: 0;
+}
+
+.setting button.key {
+	width: 240dp;
+	padding: 6dp 12dp;
+	background-color: #E8E6ED;
+	border-color: #E8E6ED;
+	color: #0C0A12;
+}
+
+.setting button.key:hover {
+	background-color: #FFFFFF;
+}
+
+.setting button.key.waiting {
+	background-color: #8B5CF6;
+	border-color: #A78BFA;
+	color: #FFFFFF;
+}
+
+.setting button.clear {
+	width: 28dp;
+	margin-left: 8dp;
+	padding: 6dp 0;
+	background-color: transparent;
+	border-color: transparent;
+	color: #C05B4D;
+	font-size: 13dp;
+}
+
+.setting button.clear:hover {
+	background-color: #C05B4D22;
+}
+
+.setting button.clear.hidden {
+	visibility: hidden;
+}
+
+/* Ряд значений: стрелки, текущее и черта из отрезков под ним */
+
+.stepper {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	width: 240dp;
+	height: 36dp;
+	border-radius: 6dp;
+	background-color: #0C0A12;
+	border: 1dp #FFFFFF14;
+}
+
+.stepper .arrow {
+	width: 30dp;
+	height: 36dp;
+	line-height: 36dp;
+	text-align: center;
+	color: #948C9E;
+	cursor: pointer;
+	font-size: 18dp;
+}
+
+.stepper .arrow:hover {
+	color: #FFFFFF;
+	background-color: #FFFFFF0C;
+}
+
+.stepper .middle {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	flex: 1;
+}
+
+.stepper .val {
+	color: #E8E6ED;
+	font-size: 14dp;
+	line-height: 20dp;
+}
+
+.stepper .segments {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	padding: 0 6dp;
+	margin-top: 2dp;
+}
+
+.stepper .segments i {
+	display: block;
+	flex: 1;
+	height: 3dp;
+	margin: 0 1dp;
+	border-radius: 1dp;
+	background-color: #FFFFFF24;
+}
+
+.stepper .segments i.on {
+	background-color: #A78BFA;
+}
+
+/* Число: ползунок с заливкой и поле для точного значения */
+
+.setting .control input.range {
+	flex: 1;
+	height: 30dp;
+	border-radius: 6dp;
+	background-color: #0C0A12;
+	border: 1dp #FFFFFF14;
+	margin-right: 8dp;
+}
+
+.setting .control input.range slidertrack {
+	height: 30dp;
+	background-color: transparent;
+}
+
+.setting .control input.range sliderprogress {
+	height: 30dp;
+	border-radius: 5dp;
+	background-color: #8B5CF6;
+}
+
+.setting .control input.range sliderbar {
+	width: 6dp;
+	height: 30dp;
+	border-radius: 3dp;
+	background-color: #E8E6ED;
+	cursor: pointer;
+}
+
+.setting .control input.range sliderbar:hover,
+.setting .control input.range sliderbar:active {
+	background-color: #FFFFFF;
+}
+
+.setting .control input.range sliderarrowdec,
+.setting .control input.range sliderarrowinc {
+	width: 0;
+	height: 0;
+}
+
+.setting .control input.text.num {
+	width: 64dp;
+	padding: 6dp 8dp;
+	text-align: center;
+}
+
+.setting .control input.text.wide {
+	width: 240dp;
+	padding: 6dp 10dp;
+}
+
+.setting .control select {
+	width: 240dp;
+}
+
+.flags {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
+.flags label {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-left: 10dp;
+	font-size: 13dp;
+	color: #948C9E;
+}
+
+input.checkbox {
+	width: 18dp;
+	height: 18dp;
+	border-radius: 4dp;
+	background-color: #0C0A12;
+	border: 1dp #FFFFFF3A;
+	cursor: pointer;
+	margin-right: 6dp;
+}
+
+input.checkbox:hover {
+	border-color: #A78BFA;
+}
+
+input.checkbox:checked {
+	background-color: #8B5CF6;
+	border-color: #A78BFA;
+	decorator: text("✓");
+	color: #FFFFFF;
+	font-size: 13dp;
+	text-align: center;
+}
+
+button.more {
+	margin: 16dp auto 8dp auto;
+	background-color: transparent;
+	border-color: #FFFFFF24;
+	color: #948C9E;
+}
+
+/* Описание справа */
+
+.info {
+	display: flex;
+	flex-direction: column;
+	width: 300dp;
+	margin-left: 24dp;
+	padding: 4dp 0;
+}
+
+.info h4 {
+	display: block;
+	font-family: "Departure Mono";
+	font-size: 16dp;
+	color: #FFFFFF;
+	margin: 0 0 10dp 0;
+}
+
+.info p {
+	color: #948C9E;
+	font-size: 13dp;
+	line-height: 1.5;
+	margin-bottom: 14dp;
+}
+
+.info .options {
+	display: flex;
+	flex-direction: column;
+}
+
+.info .opt {
+	padding: 4dp 10dp;
+	font-size: 13dp;
+	color: #726E7E;
+}
+
+.info .opt.on {
+	color: #0C0A12;
+	background-color: #E8E6ED;
+	border-radius: 4dp;
+}
+
+.bottom {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	align-items: center;
+	margin-top: 12dp;
+}
+
+.bottom button {
+	margin-left: 8dp;
+}
