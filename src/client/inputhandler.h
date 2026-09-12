@@ -89,6 +89,10 @@ public:
 
 	PointerType getLastPointerType() { return last_pointer_type; }
 
+	// Интерфейс на RmlUi видит ввод раньше меню Irrlicht и игры; что он
+	// поглотил, дальше не идёт.
+	void setUiReceiver(IEventReceiver *receiver) { ui_receiver = receiver; }
+
 private:
 	void listenForKey(KeyPress keyCode, GameKeyType action)
 	{
@@ -168,6 +172,8 @@ private:
 	bool esc_down = false;
 
 	PointerType last_pointer_type = PointerType::Mouse;
+
+	IEventReceiver *ui_receiver = nullptr;
 };
 
 class InputHandler

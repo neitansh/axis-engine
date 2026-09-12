@@ -287,6 +287,7 @@ constexpr SettingDomainEntry SETTING_DOMAIN_TABLE[] = {
 	{"liquid_queue_purge_time", ConfigDomain::ServerPerformance},
 	{"liquid_update", ConfigDomain::ServerPerformance},
 	{"main_menu_path", ConfigDomain::ClientInterface},
+	{"main_menu_rml", ConfigDomain::ClientInterface},
 	{"main_menu_script", ConfigDomain::ClientInterface},
 	{"main_world_name", ConfigDomain::ServerServer},
 	{"mainmenu_last_selected_world", ConfigDomain::ClientSession},

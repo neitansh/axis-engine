@@ -262,6 +262,9 @@ bool MyEventReceiver::OnEvent(const SEvent &event)
 	else if (event.EventType == EET_TOUCH_INPUT_EVENT)
 		last_pointer_type = PointerType::Touch;
 
+	if (ui_receiver && ui_receiver->OnEvent(event))
+		return true;
+
 	// Let the menu handle events, if one is active.
 	if (isMenuActive()) {
 		if (g_touchcontrols)

@@ -1,0 +1,20 @@
+<rml>
+<head>
+	<title>start</title>
+	<link type="text/rcss" href="theme.rcss"/>
+</head>
+<body data-model="start">
+	<div class="notice" data-if="notice != ''">
+		<p>{{ notice }}</p>
+		<button class="ghost" data-event-click="dismiss()">✕</button>
+	</div>
+	<div class="brand">
+		<h1>Axis</h1>
+		<p class="dim">{{ version }}</p>
+	</div>
+	<div class="stack">
+		<button class="primary" data-event-click="nav('worlds')">Играть</button>
+		<button data-event-click="quit()">Выйти</button>
+	</div>
+</body>
+</rml>

@@ -324,6 +324,12 @@ public:
 	//! Returns 0.0f on failure.
 	virtual float getDisplayDensity() const = 0;
 
+	//! Keep text input (IME, unicode) flowing for an editor that is not a
+	//! GUI element: the device otherwise stops it whenever no focused element
+	//! accepts IME. Pass nullptr to release. Where the area is known, the IME
+	//! candidate window is placed next to it.
+	virtual void requestTextInput(const core::rect<s32> *area) {}
+
 	//! Check if a driver type is supported by the engine.
 	/** Even if true is returned the driver may not be available
 	for a configuration requested when creating the device. */

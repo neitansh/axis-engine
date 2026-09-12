@@ -16,6 +16,7 @@
 #include "profiler.h"
 #include "exceptions.h"
 #include "gui/guiEngine.h"
+#include "menu/main_menu.h"
 #include "fontengine.h"
 #include "clientlauncher.h"
 #include "version.h"
@@ -639,7 +640,12 @@ void ClientLauncher::main_menu(MainMenuData *menudata)
 	}
 
 	/* show main menu */
-	GUIEngine mymenu(guiroot, m_rendering_engine, &g_menumgr, menudata, *kill);
+	if (g_settings->getBool("main_menu_rml")) {
+		menu::MainMenu mymenu(m_rendering_engine, receiver, menudata, *kill);
+		mymenu.run();
+	} else {
+		GUIEngine mymenu(guiroot, m_rendering_engine, &g_menumgr, menudata, *kill);
+	}
 
 	/* leave scene manager in a clean state */
 	m_rendering_engine->get_scene_manager()->clear();

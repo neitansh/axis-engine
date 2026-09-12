@@ -113,6 +113,8 @@ public:
 	//! Get the display density in dots per inch.
 	float getDisplayDensity() const override;
 
+	void requestTextInput(const core::rect<s32> *area) override;
+
 	void SwapWindow();
 
 	// We need this twice to handle showing an error *with* or *without*
@@ -348,6 +350,9 @@ private:
 #endif // SDL3: Replaced by boolean
 
 	core::rect<s32> lastElemPos;
+
+	bool ExternalTextInput = false;
+	core::rect<s32> ExternalTextInputArea;
 
 	// TODO: This is only used for scancode/keycode conversion with EKEY_CODE (among other things, for Luanti
 	// to display keys to users). Drop this along with EKEY_CODE.

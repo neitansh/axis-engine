@@ -136,6 +136,9 @@ endif()
 
 if(BUILD_CLIENT)
 	find_package(Freetype REQUIRED)
+	set(RMLUI_GL3_LOADER "${CMAKE_CURRENT_SOURCE_DIR}/ui/gl_loader.h")
+	set(RMLUI_GL3_LOADER_LIBRARIES IrrlichtMt::IrrlichtMt)
+	add_subdirectory(${CMAKE_SOURCE_DIR}/lib/rmlui ${CMAKE_BINARY_DIR}/lib/rmlui)
 endif()
 
 option(ENABLE_CURSES "Enable ncurses console" ${BUILD_SERVER})
@@ -560,6 +563,7 @@ endif()
 if (BUILD_CLIENT)
 	add_subdirectory(client)
 	add_subdirectory(gui)
+	add_subdirectory(ui)
 	add_subdirectory(irrlicht_changes)
 endif(BUILD_CLIENT)
 
@@ -567,6 +571,7 @@ list(APPEND client_SRCS
 	${benchmark_client_SRCS}
 	${common_SRCS}
 	${gui_SRCS}
+	${ui_SRCS}
 	${client_network_SRCS}
 	${client_irrlicht_changes_SRCS}
 	${client_SCRIPT_SRCS}
@@ -726,6 +731,7 @@ if(BUILD_CLIENT)
 		lstrpack
 		sha256
 		tweetnacl
+		RmlUi::GL3
 		${FREETYPE_LIBRARY}
 		${PLATFORM_LIBS}
 		# on Android, Luanti depends on SDL2 directly

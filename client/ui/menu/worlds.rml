@@ -1,0 +1,21 @@
+<rml>
+<head>
+	<title>worlds</title>
+	<link type="text/rcss" href="theme.rcss"/>
+</head>
+<body data-model="worlds">
+	<div class="card">
+		<h2>Свои миры</h2>
+		<div class="list">
+			<div class="row" data-for="w : worlds" data-event-click="play(it_index)">
+				<span class="name">{{ w.name }}</span>
+				<span class="crate">{{ w.crate }}</span>
+			</div>
+			<div class="empty" data-if="worlds.size == 0">Миров пока нет</div>
+		</div>
+		<div class="toolbar">
+			<button class="ghost" data-event-click="nav('start')">← Назад</button>
+		</div>
+	</div>
+</body>
+</rml>

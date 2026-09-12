@@ -1,0 +1,8 @@
+set(ui_SRCS
+	${CMAKE_CURRENT_SOURCE_DIR}/files.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/host.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/input.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/renderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/system.cpp
+	PARENT_SCOPE
+)

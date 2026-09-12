@@ -1,0 +1,225 @@
+/*
+ * Тема главного меню по умолчанию. Три уровня поверхностей (panel < surface
+ * < inset), один фиолетовый акцент на главное действие экрана, остальное
+ * нейтральное; те же цвета живут в лаунчере и на сайте.
+ */
+
+body {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	font-family: "Inter Variable";
+	font-size: 16dp;
+	line-height: 1.4;
+	color: #E8E6ED;
+	background-color: #0C0A12;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+h1 {
+	display: block;
+	font-family: "Departure Mono";
+	font-size: 56dp;
+	line-height: 1;
+	color: #A78BFA;
+	margin: 0 0 4dp 0;
+}
+
+h2 {
+	display: block;
+	font-family: "Departure Mono";
+	font-size: 22dp;
+	color: #A78BFA;
+	margin: 0 0 16dp 0;
+}
+
+p {
+	display: block;
+	margin: 0;
+}
+
+.muted {
+	color: #948C9E;
+}
+
+.dim {
+	color: #726E7E;
+	font-size: 13dp;
+}
+
+.brand {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-bottom: 40dp;
+}
+
+.stack {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	width: 260dp;
+}
+
+.stack button {
+	margin-bottom: 10dp;
+}
+
+button {
+	display: block;
+	padding: 12dp 20dp;
+	border-radius: 6dp;
+	background-color: #17131F;
+	border: 1dp #FFFFFF24;
+	color: #E8E6ED;
+	text-align: center;
+	cursor: pointer;
+	transition: background-color 0.12s, border-color 0.12s;
+}
+
+button:hover {
+	background-color: #211B2E;
+	border-color: #FFFFFF3A;
+}
+
+button:active {
+	background-color: #120F19;
+}
+
+button.primary {
+	background-color: #8B5CF6;
+	border-color: #A78BFA;
+	color: #FFFFFF;
+}
+
+button.primary:hover {
+	background-color: #9B72F8;
+}
+
+button.primary:active {
+	background-color: #7C4FE0;
+}
+
+button.ghost {
+	background-color: transparent;
+	border-color: transparent;
+	color: #948C9E;
+}
+
+button.ghost:hover {
+	color: #E8E6ED;
+	background-color: #FFFFFF0C;
+}
+
+.card {
+	display: flex;
+	flex-direction: column;
+	width: 520dp;
+	max-height: 80%;
+	padding: 24dp;
+	border-radius: 10dp;
+	background-color: #120F19;
+	border: 1dp #FFFFFF14;
+}
+
+.card .toolbar {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 16dp;
+}
+
+.list {
+	display: block;
+	overflow-y: auto;
+	border-radius: 6dp;
+	background-color: #0C0A12;
+	border: 1dp #FFFFFF14;
+	max-height: 360dp;
+}
+
+.row {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10dp 14dp;
+	border-bottom: 1dp #FFFFFF0C;
+	cursor: pointer;
+	transition: background-color 0.1s;
+}
+
+.row:hover {
+	background-color: #FFFFFF0C;
+}
+
+.row:active {
+	background-color: #8B5CF633;
+}
+
+.row .name {
+	color: #E8E6ED;
+}
+
+.row .crate {
+	color: #726E7E;
+	font-size: 13dp;
+}
+
+.empty {
+	padding: 24dp;
+	text-align: center;
+	color: #726E7E;
+}
+
+.notice {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	max-width: 520dp;
+	margin-bottom: 24dp;
+	padding: 10dp 14dp;
+	border-radius: 6dp;
+	background-color: #C05B4D22;
+	border: 1dp #C05B4D66;
+	color: #E8E6ED;
+}
+
+.notice p {
+	flex: 1;
+}
+
+.notice button {
+	padding: 4dp 10dp;
+	margin-left: 12dp;
+}
+
+scrollbarvertical {
+	width: 8dp;
+	margin: 2dp;
+}
+
+scrollbarvertical slidertrack {
+	background-color: transparent;
+}
+
+scrollbarvertical sliderbar {
+	border-radius: 4dp;
+	background-color: #FFFFFF24;
+}
+
+scrollbarvertical sliderbar:hover {
+	background-color: #FFFFFF3A;
+}
+
+scrollbarvertical sliderarrowdec,
+scrollbarvertical sliderarrowinc {
+	width: 0;
+	height: 0;
+}
