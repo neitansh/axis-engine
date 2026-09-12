@@ -278,7 +278,7 @@ void PlayerSAO::setAnimation(const scene::TrackId &track,
 		return;
 	}
 
-	UnitSAO::setAnimation(track, std::move(anim_spec));
+	UnitSAO::setAnimation(track, anim_spec);
 }
 
 void PlayerSAO::notifyObjectPropertiesModified()

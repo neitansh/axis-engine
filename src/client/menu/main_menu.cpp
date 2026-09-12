@@ -88,13 +88,15 @@ void MainMenu::run()
 
 std::string MainMenu::themeFile(const std::string &name) const
 {
+	std::string path;
 	for (const std::string &dir : m_theme_dirs) {
-		const std::string path = dir + DIR_DELIM + name;
+		path = dir;
+		path.append(DIR_DELIM).append(name);
 		if (fs::IsFile(path))
 			return path;
 	}
 	errorstream << "MainMenu: theme file \"" << name << "\" is missing" << std::endl;
-	return m_theme_dirs.back() + DIR_DELIM + name;
+	return path;
 }
 
 void MainMenu::navigate(const std::string &name)

@@ -6,15 +6,13 @@
 
 #include "filesys.h"
 #include <cstdio>
-#include <fstream>
-#include <memory>
 
 namespace ui
 {
 
-static std::ifstream &stream(Rml::FileHandle file)
+std::ifstream &Files::stream(Rml::FileHandle file)
 {
-	return *reinterpret_cast<std::ifstream *>(file);
+	return *m_open.at(file);
 }
 
 Rml::FileHandle Files::Open(const Rml::String &path)
@@ -22,12 +20,14 @@ Rml::FileHandle Files::Open(const Rml::String &path)
 	auto ifs = std::make_unique<std::ifstream>(open_ifstream(path.c_str(), true));
 	if (!ifs->good())
 		return 0;
-	return reinterpret_cast<Rml::FileHandle>(ifs.release());
+	const Rml::FileHandle handle = m_next++;
+	m_open.emplace(handle, std::move(ifs));
+	return handle;
 }
 
 void Files::Close(Rml::FileHandle file)
 {
-	delete &stream(file);
+	m_open.erase(file);
 }
 
 size_t Files::Read(void *buffer, size_t size, Rml::FileHandle file)

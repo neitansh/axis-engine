@@ -5,6 +5,9 @@
 #pragma once
 
 #include <RmlUi/Core/FileInterface.h>
+#include <fstream>
+#include <memory>
+#include <unordered_map>
 
 namespace ui
 {
@@ -20,6 +23,12 @@ public:
 	bool Seek(Rml::FileHandle file, long offset, int origin) override;
 	size_t Tell(Rml::FileHandle file) override;
 	size_t Length(Rml::FileHandle file) override;
+
+private:
+	std::ifstream &stream(Rml::FileHandle file);
+
+	std::unordered_map<Rml::FileHandle, std::unique_ptr<std::ifstream>> m_open;
+	Rml::FileHandle m_next = 1;
 };
 
 }
