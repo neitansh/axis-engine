@@ -4,7 +4,6 @@
 
 #include "renderer.h"
 
-#include "log.h"
 #include <IImage.h>
 #include <IVideoDriver.h>
 #include <RmlUi/Core/Log.h>
@@ -14,35 +13,43 @@
 namespace ui
 {
 
-void Renderer::beginFrame()
+void GlBindings::capture()
 {
-	GL.GetIntegerv(GL.VERTEX_ARRAY_BINDING, &m_saved.vertex_array);
-	GL.GetIntegerv(GL.ARRAY_BUFFER_BINDING, &m_saved.array_buffer);
-	GL.GetIntegerv(GL.CURRENT_PROGRAM, &m_saved.program);
-	GL.GetIntegerv(GL.FRAMEBUFFER_BINDING, &m_saved.framebuffer);
-	GL.GetIntegerv(GL.ACTIVE_TEXTURE, &m_saved.active_texture);
+	GL.GetIntegerv(GL.VERTEX_ARRAY_BINDING, &m_vertex_array);
+	GL.GetIntegerv(GL.ARRAY_BUFFER_BINDING, &m_array_buffer);
+	GL.GetIntegerv(GL.CURRENT_PROGRAM, &m_program);
+	GL.GetIntegerv(GL.FRAMEBUFFER_BINDING, &m_framebuffer);
+	GL.GetIntegerv(GL.ACTIVE_TEXTURE, &m_active_texture);
 	for (int i = 0; i < 4; i++) {
 		GL.ActiveTexture(GL.TEXTURE0 + i);
-		GL.GetIntegerv(GL.TEXTURE_BINDING_2D, &m_saved.textures[i]);
+		GL.GetIntegerv(GL.TEXTURE_BINDING_2D, &m_textures[i]);
 	}
-	GL.ActiveTexture(m_saved.active_texture);
+	GL.ActiveTexture(m_active_texture);
+}
 
+void GlBindings::restore() const
+{
+	for (int i = 0; i < 4; i++) {
+		GL.ActiveTexture(GL.TEXTURE0 + i);
+		GL.BindTexture(GL.TEXTURE_2D, m_textures[i]);
+	}
+	GL.ActiveTexture(m_active_texture);
+	GL.BindFramebuffer(GL.FRAMEBUFFER, m_framebuffer);
+	GL.UseProgram(m_program);
+	GL.BindVertexArray(m_vertex_array);
+	GL.BindBuffer(GL.ARRAY_BUFFER, m_array_buffer);
+}
+
+void Renderer::beginFrame()
+{
+	m_bindings.capture();
 	BeginFrame();
 }
 
 void Renderer::endFrame()
 {
 	EndFrame();
-
-	for (int i = 0; i < 4; i++) {
-		GL.ActiveTexture(GL.TEXTURE0 + i);
-		GL.BindTexture(GL.TEXTURE_2D, m_saved.textures[i]);
-	}
-	GL.ActiveTexture(m_saved.active_texture);
-	GL.BindFramebuffer(GL.FRAMEBUFFER, m_saved.framebuffer);
-	GL.UseProgram(m_saved.program);
-	GL.BindVertexArray(m_saved.vertex_array);
-	GL.BindBuffer(GL.ARRAY_BUFFER, m_saved.array_buffer);
+	m_bindings.restore();
 }
 
 Rml::TextureHandle Renderer::LoadTexture(Rml::Vector2i &texture_dimensions,

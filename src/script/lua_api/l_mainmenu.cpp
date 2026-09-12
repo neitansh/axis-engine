@@ -653,46 +653,11 @@ int ModApiMainMenu::l_create_world(lua_State *L)
 	}
 	lua_pop(L, 1);
 
-	std::string path = porting::path_user + DIR_DELIM
-			"worlds" + DIR_DELIM
-			+ sanitizeDirName(name, "world_");
-
-	std::vector<CrateSpec> crates = getAvailableCrates();
-	auto crate_it = std::find_if(crates.begin(), crates.end(), [crateid] (const CrateSpec &spec) {
-		return spec.id == crateid;
-	});
-	if (crate_it == crates.end()) {
-		lua_pushstring(L, "Game ID not found");
-		return 1;
-	}
-
-	// Set the settings for world creation
-	// this is a bad hack but the best we have right now..
-	StringMap backup;
-	for (auto &it : use_settings) {
-		if (g_settings->existsLocal(it.first))
-			backup[it.first] = g_settings->get(it.first);
-		g_settings->set(it.first, it.second);
-	}
-
-	// Create world if it doesn't exist
-	try {
-		loadCrateConfAndInitWorld(path, name, *crate_it, true);
+	const std::string error = createWorld(name, crateid, use_settings);
+	if (error.empty())
 		lua_pushnil(L);
-	} catch (const BaseException &e) {
-		auto err = std::string("Failed to initialize world: ") + e.what();
-		lua_pushstring(L, err.c_str());
-	}
-
-	// Restore previous settings
-	for (auto &it : use_settings) {
-		auto it2 = backup.find(it.first);
-		if (it2 == backup.end())
-			g_settings->remove(it.first); // wasn't set before
-		else
-			g_settings->set(it.first, it2->second); // was set before
-	}
-
+	else
+		lua_pushstring(L, error.c_str());
 	return 1;
 }
 
@@ -705,12 +670,11 @@ int ModApiMainMenu::l_delete_world(lua_State *L)
 		lua_pushstring(L, "Invalid world index");
 		return 1;
 	}
-	const WorldSpec &spec = worlds[world_id];
-	if (!fs::RecursiveDelete(spec.path)) {
-		lua_pushstring(L, "Failed to delete world");
-		return 1;
-	}
-	return 0;
+	const std::string error = deleteWorld(worlds[world_id]);
+	if (error.empty())
+		return 0;
+	lua_pushstring(L, error.c_str());
+	return 1;
 }
 
 /******************************************************************************/

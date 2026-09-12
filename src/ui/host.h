@@ -8,6 +8,7 @@
 #include "input.h"
 #include "renderer.h"
 #include "system.h"
+#include <memory>
 #include <string>
 
 class IrrlichtDevice;
@@ -57,7 +58,7 @@ private:
 	IrrlichtDevice *m_device;
 	System m_system;
 	Files m_files;
-	Renderer m_renderer;
+	std::unique_ptr<Renderer> m_renderer;
 	Input m_input;
 	float m_pixel_ratio = 1.0f;
 	bool m_ok = false;

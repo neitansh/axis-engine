@@ -99,3 +99,12 @@ std::vector<WorldSpec> getAvailableWorlds();
 // and world.mt if they don't exist
 void loadCrateConfAndInitWorld(const std::string &path, const std::string &name,
 		const CrateSpec &cratespec, bool create_world);
+
+// Creates a world under path_user/worlds for the crate. The settings
+// (mg_name, fixed_map_seed, flags) hold only while the world is being
+// initialised. Returns an empty string on success, otherwise the error.
+std::string createWorld(const std::string &name, const std::string &crateid,
+		const std::unordered_map<std::string, std::string> &settings);
+
+// Removes the world directory. Returns an empty string on success.
+std::string deleteWorld(const WorldSpec &world);

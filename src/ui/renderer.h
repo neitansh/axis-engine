@@ -14,10 +14,42 @@ class IVideoDriver;
 namespace ui
 {
 
+// Привязки GL, которые драйвер Irrlicht помнит в своём кэше и после чужих
+// вызовов считает нетронутыми: буферы, VAO, программа, кадровый буфер,
+// текстуры. Всё, что RmlUi делает с GL — кадр, компиляция геометрии при
+// создании рендера, освобождение при обновлении, — идёт между capture() и
+// restore(), иначе драйвер рисует с чужими привязками и падает.
+class GlBindings
+{
+public:
+	void capture();
+	void restore() const;
+
+private:
+	int m_vertex_array = 0;
+	int m_array_buffer = 0;
+	int m_program = 0;
+	int m_framebuffer = 0;
+	int m_active_texture = 0;
+	int m_textures[4] = {};
+};
+
+class GlBindingsGuard
+{
+public:
+	GlBindingsGuard() { m_bindings.capture(); }
+	~GlBindingsGuard() { m_bindings.restore(); }
+
+	GlBindingsGuard(const GlBindingsGuard &) = delete;
+	GlBindingsGuard &operator=(const GlBindingsGuard &) = delete;
+
+private:
+	GlBindings m_bindings;
+};
+
 // Рендер RmlUi поверх контекста OpenGL 3, который держит драйвер Irrlicht.
-// Кадр UI рисуется между сценой и endScene(). Драйвер кэширует состояние GL
-// и после кадра считает привязанными свои буферы, программу и текстуры —
-// beginFrame()/endFrame() возвращают их на место, бэкенд сам этого не делает.
+// Кадр UI рисуется между сценой и endScene(). Бэкенд из поставки сам
+// возвращает блендинг, трафарет и область отсечения; привязки — GlBindings.
 class Renderer final : public RenderInterface_GL3
 {
 public:
@@ -30,18 +62,8 @@ public:
 			const Rml::String &source) override;
 
 private:
-	struct Bindings
-	{
-		int vertex_array = 0;
-		int array_buffer = 0;
-		int program = 0;
-		int framebuffer = 0;
-		int active_texture = 0;
-		int textures[4] = {};
-	};
-
 	video::IVideoDriver *m_driver;
-	Bindings m_saved;
+	GlBindings m_bindings;
 };
 
 }

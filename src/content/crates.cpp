@@ -13,6 +13,7 @@
 #include "map_settings_manager.h"
 #include "util/string.h"
 #include "exceptions.h"
+#include <algorithm>
 
 // The maximum number of identical world names allowed
 #define MAX_WORLD_NAMES 100
@@ -439,6 +440,51 @@ void loadCrateConfAndInitWorld(const std::string &path, const std::string &name,
 	// The Settings object is no longer needed for created worlds
 	if (new_crate_settings)
 		delete crate_settings;
+}
+
+std::string createWorld(const std::string &name, const std::string &crateid,
+		const std::unordered_map<std::string, std::string> &settings)
+{
+	const std::string path = porting::path_user + DIR_DELIM "worlds" DIR_DELIM
+			+ sanitizeDirName(name, "world_");
+
+	const std::vector<CrateSpec> crates = getAvailableCrates();
+	auto crate = std::find_if(crates.begin(), crates.end(),
+			[&crateid](const CrateSpec &spec) { return spec.id == crateid; });
+	if (crate == crates.end())
+		return "Game ID not found";
+
+	// Генератор карты читает свои настройки из g_settings, и передать их
+	// иначе некуда; после создания мира они возвращаются как были.
+	std::unordered_map<std::string, std::string> backup;
+	for (const auto &it : settings) {
+		if (g_settings->existsLocal(it.first))
+			backup[it.first] = g_settings->get(it.first);
+		g_settings->set(it.first, it.second);
+	}
+
+	std::string error;
+	try {
+		loadCrateConfAndInitWorld(path, name, *crate, true);
+	} catch (const BaseException &e) {
+		error = std::string("Failed to initialize world: ") + e.what();
+	}
+
+	for (const auto &it : settings) {
+		auto was = backup.find(it.first);
+		if (was == backup.end())
+			g_settings->remove(it.first);
+		else
+			g_settings->set(it.first, was->second);
+	}
+	return error;
+}
+
+std::string deleteWorld(const WorldSpec &world)
+{
+	if (!fs::RecursiveDelete(world.path))
+		return "Failed to delete world";
+	return "";
 }
 
 std::vector<std::string> getEnvModPaths()

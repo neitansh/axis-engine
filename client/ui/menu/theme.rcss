@@ -238,3 +238,120 @@ scrollbarvertical sliderarrowinc {
 	width: 0;
 	height: 0;
 }
+
+.row.selected {
+	background-color: #8B5CF62E;
+}
+
+.row.selected .name {
+	color: #FFFFFF;
+}
+
+.actions {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.actions button {
+	margin-left: 8dp;
+}
+
+button.danger {
+	background-color: #C05B4D;
+	border-color: #D57365;
+	color: #FFFFFF;
+}
+
+button.danger:hover {
+	background-color: #CE6C5E;
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+}
+
+.form label {
+	display: block;
+	margin: 10dp 0 4dp 0;
+	font-size: 13dp;
+	color: #948C9E;
+}
+
+input.text,
+select {
+	display: block;
+	padding: 8dp 12dp;
+	border-radius: 6dp;
+	background-color: #0C0A12;
+	border: 1dp #FFFFFF24;
+	color: #E8E6ED;
+}
+
+input.text:focus,
+select:focus {
+	border-color: #A78BFA;
+}
+
+input.text {
+	cursor: text;
+	caret-color: #A78BFA;
+}
+
+select {
+	cursor: pointer;
+}
+
+select selectvalue {
+	padding-right: 24dp;
+}
+
+select selectarrow {
+	width: 12dp;
+	height: 12dp;
+	margin: 3dp 0 0 -18dp;
+	decorator: text("▼");
+	font-size: 10dp;
+	color: #948C9E;
+}
+
+select selectbox {
+	margin-top: 4dp;
+	padding: 4dp 0;
+	border-radius: 6dp;
+	background-color: #17131F;
+	border: 1dp #FFFFFF24;
+}
+
+select selectbox option {
+	padding: 6dp 12dp;
+	cursor: pointer;
+}
+
+select selectbox option:hover {
+	background-color: #FFFFFF0C;
+}
+
+select selectbox option:checked {
+	color: #A78BFA;
+}
+
+.error {
+	margin-top: 12dp;
+	color: #E08A7E;
+}
+
+.confirm {
+	display: flex;
+	flex-direction: column;
+	margin-top: 16dp;
+	padding: 12dp 14dp;
+	border-radius: 6dp;
+	background-color: #C05B4D1A;
+	border: 1dp #C05B4D66;
+}
+
+.confirm p {
+	margin-bottom: 10dp;
+}

@@ -21,13 +21,14 @@ static bool g_host_alive = false;
 
 Host::Host(IrrlichtDevice *device) :
 	m_device(device),
-	m_system(device),
-	m_renderer(device->getVideoDriver())
+	m_system(device)
 {
 	FATAL_ERROR_IF(g_host_alive, "ui::Host is created twice");
 	g_host_alive = true;
 
-	if (!m_renderer) {
+	GlBindingsGuard guard;
+	m_renderer = std::make_unique<Renderer>(device->getVideoDriver());
+	if (!*m_renderer) {
 		errorstream << "ui::Host: the OpenGL 3 renderer for RmlUi could not "
 				"be created; the interface stays off" << std::endl;
 		return;
@@ -35,7 +36,7 @@ Host::Host(IrrlichtDevice *device) :
 
 	Rml::SetSystemInterface(&m_system);
 	Rml::SetFileInterface(&m_files);
-	Rml::SetRenderInterface(&m_renderer);
+	Rml::SetRenderInterface(m_renderer.get());
 	if (!Rml::Initialise()) {
 		errorstream << "ui::Host: RmlUi failed to initialise" << std::endl;
 		return;
@@ -48,8 +49,10 @@ Host::Host(IrrlichtDevice *device) :
 
 Host::~Host()
 {
+	GlBindingsGuard guard;
 	if (m_ok)
 		Rml::Shutdown();
+	m_renderer.reset();
 	g_host_alive = false;
 }
 
@@ -104,16 +107,17 @@ void Host::syncDimensions(Rml::Context &context)
 void Host::update(Rml::Context &context)
 {
 	syncDimensions(context);
+	GlBindingsGuard guard;
 	context.Update();
 }
 
 void Host::render(Rml::Context &context)
 {
 	const Rml::Vector2i size = context.GetDimensions();
-	m_renderer.SetViewport(size.x, size.y);
-	m_renderer.beginFrame();
+	m_renderer->SetViewport(size.x, size.y);
+	m_renderer->beginFrame();
 	context.Render();
-	m_renderer.endFrame();
+	m_renderer->endFrame();
 }
 
 void Host::toggleDebugger(Rml::Context &context)
