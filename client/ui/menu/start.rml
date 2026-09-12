@@ -8,15 +8,12 @@
 		<p>{{ notice }}</p>
 		<button class="ghost" data-event-click="dismiss()">✕</button>
 	</div>
-	<div class="panel">
-		<div class="brand">
-			<img src="textures/base/pack/menu_header.png"/>
-			<p class="dim">{{ version }}</p>
-		</div>
-		<div class="stack">
-			<button class="primary" data-event-click="nav('worlds')">Играть</button>
-			<button data-event-click="quit()">Выйти</button>
-		</div>
+	<div class="brand">
+		<img src="textures/base/pack/menu_header.png" rect="483 0 378 144"/>
+	</div>
+	<div class="stack">
+		<button class="primary" data-event-click="nav('worlds')">Играть</button>
+		<button data-event-click="quit()">Выйти</button>
 	</div>
 </body>
 </rml>

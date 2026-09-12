@@ -22,7 +22,6 @@ protected:
 	void bind(Rml::DataModelConstructor &model) override;
 
 private:
-	Rml::String m_version;
 	Rml::String m_notice;
 };
 

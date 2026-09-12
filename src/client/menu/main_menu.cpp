@@ -15,9 +15,12 @@
 #include "screens/start_screen.h"
 #include "screens/worlds_screen.h"
 #include "settings.h"
+#include "version.h"
 #include <IVideoDriver.h>
 #include <IrrlichtDevice.h>
 #include <RmlUi/Core/Context.h>
+#include <RmlUi/Core/DataModelHandle.h>
+#include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Factory.h>
 
 namespace menu
@@ -45,6 +48,7 @@ MainMenu::MainMenu(RenderingEngine *engine, MyEventReceiver *receiver,
 	addScreen(std::make_unique<StartScreen>(*this, m_data->script_data.message));
 	m_data->script_data.message.clear();
 	addScreen(std::make_unique<WorldsScreen>(*this));
+	loadChrome();
 	navigate("start");
 }
 
@@ -52,6 +56,8 @@ MainMenu::~MainMenu()
 {
 	m_receiver->setUiReceiver(nullptr);
 	m_screens.clear();
+	if (m_chrome)
+		m_chrome->Close();
 	if (m_context)
 		m_host.removeContext("menu");
 }
@@ -192,6 +198,21 @@ Screen *MainMenu::findScreen(const std::string &name)
 	return nullptr;
 }
 
+void MainMenu::loadChrome()
+{
+	if (m_chrome) {
+		m_chrome->Close();
+		m_chrome = nullptr;
+		m_context->RemoveDataModel("chrome");
+	}
+	Rml::DataModelConstructor model = m_context->CreateDataModel("chrome");
+	m_version = g_version_hash;
+	model.Bind("version", &m_version);
+	m_chrome = m_context->LoadDocument(themeFile("chrome.rml"));
+	if (m_chrome)
+		m_chrome->Show();
+}
+
 void MainMenu::reloadTheme()
 {
 	// Стили и шаблоны RmlUi держит в кэше по пути: без сброса документ
@@ -200,6 +221,7 @@ void MainMenu::reloadTheme()
 	Rml::Factory::ClearTemplateCache();
 	for (auto &screen : m_screens)
 		screen->reload();
+	loadChrome();
 }
 
 }

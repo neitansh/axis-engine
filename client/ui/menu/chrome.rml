@@ -1,0 +1,15 @@
+<rml>
+<head>
+	<title>chrome</title>
+	<link type="text/rcss" href="theme.rcss"/>
+	<style>
+		body {
+			display: block;
+			pointer-events: none;
+		}
+	</style>
+</head>
+<body data-model="chrome">
+	<p class="version">{{ version }}</p>
+</body>
+</rml>

@@ -16,6 +16,11 @@ class RenderingEngine;
 struct MainMenuData;
 struct WorldSpec;
 
+namespace Rml
+{
+class ElementDocument;
+}
+
 namespace menu
 {
 
@@ -48,6 +53,7 @@ private:
 	bool OnEvent(const SEvent &event) override;
 	void addScreen(std::unique_ptr<Screen> screen);
 	Screen *findScreen(const std::string &name);
+	void loadChrome();
 	void reloadTheme();
 
 	RenderingEngine *m_engine;
@@ -60,6 +66,10 @@ private:
 	std::vector<std::string> m_theme_dirs;
 	std::vector<std::unique_ptr<Screen>> m_screens;
 	Screen *m_current = nullptr;
+	// Общая рамка поверх экранов: версия в углу и то, что должно быть видно
+	// везде.
+	Rml::ElementDocument *m_chrome = nullptr;
+	Rml::String m_version;
 	bool m_start_game = false;
 };
 

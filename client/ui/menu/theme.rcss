@@ -55,30 +55,27 @@ p {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	margin-bottom: 28dp;
+	margin-bottom: 44dp;
 }
 
 .brand img {
-	width: 448dp;
-	height: 48dp;
-	margin-bottom: 10dp;
+	width: 567dp;
+	height: 216dp;
 }
 
-.panel {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	padding: 28dp 32dp;
-	border-radius: 10dp;
-	background-color: #0C0A12E0;
-	border: 1dp #FFFFFF14;
+.version {
+	position: absolute;
+	right: 12dp;
+	bottom: 10dp;
+	font-size: 12dp;
+	color: #E8E6ED99;
 }
 
 .stack {
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
-	width: 260dp;
+	width: 300dp;
 }
 
 .stack button {
