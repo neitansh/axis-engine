@@ -55,12 +55,12 @@ p {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	margin-bottom: 44dp;
+	margin-bottom: 36dp;
 }
 
 .brand img {
-	width: 567dp;
-	height: 216dp;
+	width: 378dp;
+	height: 144dp;
 }
 
 .version {
