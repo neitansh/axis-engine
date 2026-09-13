@@ -16,6 +16,8 @@
 	font-weight: 600;
 	letter-spacing: 3dp;
 	color: #FFFFFFB3;
+	/* Полоса во всю ширину лежит поверх «Назад» и перехватывала бы мышь */
+	pointer-events: none;
 }
 
 .play-body {
