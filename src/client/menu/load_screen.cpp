@@ -65,7 +65,7 @@ void LoadScreen::load()
 
 	const std::string path = porting::path_share + DIR_DELIM "client" DIR_DELIM "ui"
 			DIR_DELIM "menu" DIR_DELIM "loading.rml";
-	m_document = m_context->LoadDocument(path);
+	m_document = ui::Host::loadDocument(*m_context, path);
 	if (m_document)
 		m_document->Show();
 	else

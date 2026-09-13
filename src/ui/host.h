@@ -16,6 +16,7 @@ class IrrlichtDevice;
 namespace Rml
 {
 class Context;
+class ElementDocument;
 }
 
 namespace ui
@@ -38,6 +39,12 @@ public:
 	// Контекст живёт до removeContext() или до конца хоста.
 	Rml::Context *createContext(const std::string &name);
 	void removeContext(const std::string &name);
+
+	// Документ грузится только через это: RmlUi разбирает путь документа как
+	// URL и вырезает каталог по косой черте вперёд, а с обратными чертами
+	// Windows каталога не находит — и относительные пути картинок в документе
+	// (`<img src="icons/…">`) остаются голыми и не открываются.
+	static Rml::ElementDocument *loadDocument(Rml::Context &context, const std::string &path);
 
 	// Размер окна и масштаб dp подтягиваются перед каждым кадром.
 	void setPixelRatio(float ratio);

@@ -13,6 +13,7 @@
 #include <IrrlichtDevice.h>
 #include <RmlUi/Core.h>
 #include <RmlUi/Debugger.h>
+#include <algorithm>
 
 namespace ui
 {
@@ -87,6 +88,13 @@ void Host::removeContext(const std::string &name)
 {
 	if (m_ok)
 		Rml::RemoveContext(name);
+}
+
+Rml::ElementDocument *Host::loadDocument(Rml::Context &context, const std::string &path)
+{
+	std::string forward = path;
+	std::replace(forward.begin(), forward.end(), '\\', '/');
+	return context.LoadDocument(forward);
 }
 
 void Host::setPixelRatio(float ratio)

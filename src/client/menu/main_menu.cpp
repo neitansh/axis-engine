@@ -338,7 +338,7 @@ void MainMenu::loadChrome()
 	Rml::DataModelConstructor model = m_context->CreateDataModel("chrome");
 	m_version = g_version_hash;
 	model.Bind("version", &m_version);
-	m_chrome = m_context->LoadDocument(themeFile("chrome.rml"));
+	m_chrome = ui::Host::loadDocument(*m_context, themeFile("chrome.rml"));
 	showChrome(!m_current || m_current->name() != "intro");
 }
 

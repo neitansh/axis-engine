@@ -45,7 +45,7 @@ void Screen::load()
 	bind(model);
 	m_model = model.GetModelHandle();
 
-	m_document = context.LoadDocument(m_menu.themeFile(m_name + ".rml"));
+	m_document = ui::Host::loadDocument(context, m_menu.themeFile(m_name + ".rml"));
 	if (!m_document)
 		errorstream << "Screen \"" << m_name << "\": document failed to load" << std::endl;
 }
