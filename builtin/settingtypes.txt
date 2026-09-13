@@ -2096,8 +2096,8 @@ enable_sscsm (Enable SSCSM) [client] enum nowhere nowhere,singleplayer,localhost
 main_menu_script (Main menu script) [client] string
 
 #    Run the main menu on RmlUi instead of the Lua menu.
-#    Work in progress: only some screens exist yet.
-main_menu_rml (RmlUi main menu) [client] bool false
+#    Off — the old Lua menu with the content tab and per-world mod selection.
+main_menu_rml (RmlUi main menu) [client] bool true
 
 [**Mod Security] [server]
 

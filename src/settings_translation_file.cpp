@@ -783,7 +783,7 @@ fake_function() {
 	gettext("Main menu script");
 	gettext("Replaces the default main menu with a custom one.");
 	gettext("RmlUi main menu");
-	gettext("Run the main menu on RmlUi instead of the Lua menu.\nWork in progress: only some screens exist yet.");
+	gettext("Run the main menu on RmlUi instead of the Lua menu.\nOff — the old Lua menu with the content tab and per-world mod selection.");
 	gettext("Mod Security");
 	gettext("Enable mod security");
 	gettext("Prevent mods from doing insecure things like running shell commands.");

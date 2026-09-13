@@ -498,7 +498,7 @@ void set_default_settings()
 
 	// Main menu
 	settings->setDefault("main_menu_path", "");
-	settings->setDefault("main_menu_rml", "false");
+	settings->setDefault("main_menu_rml", "true");
 
 	// General font settings
 	settings->setDefault("font_path", porting::getDataPath("fonts" DIR_DELIM "DepartureMono-Regular.otf"));
