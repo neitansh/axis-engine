@@ -296,7 +296,7 @@
 	align-items: center;
 	height: 48dp;
 	padding: 0 12dp;
-	margin: 0 0 2dp -12dp;
+	margin-bottom: 2dp;
 	border-radius: 10dp;
 	cursor: pointer;
 	transition: background-color 0.12s linear-in-out;

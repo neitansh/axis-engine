@@ -23,7 +23,7 @@ body.page {
 	flex-direction: row;
 	align-items: center;
 	height: 52dp;
-	margin-bottom: 28dp;
+	margin-bottom: 40dp;
 }
 
 /* Бока шапки равной ширины: то, что стоит между ними (вкладки), оказывается
