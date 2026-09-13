@@ -8,10 +8,12 @@
 	<div class="back" data-event-click="nav('start')">
 		<div class="arrow"/>
 		<span>Назад</span>
+		<span class="hint">Esc</span>
 	</div>
 
 	<div class="tabbar">
 		<div class="tabs">
+			<div class="indicator" data-style-transform="tab_indicator"/>
 			<div data-for="p : pages" class="tab" data-class-active="p.id == page"
 					data-event-click="open(p.id)">
 				<img data-attr-src="'icons/' + p.id + '.png'"/>

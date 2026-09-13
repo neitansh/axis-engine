@@ -238,6 +238,7 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 
 	model.Bind("pages", &m_pages);
 	model.Bind("page", &m_page);
+	model.Bind("tab_indicator", &m_tab_indicator);
 	model.Bind("rows", &m_rows);
 	model.Bind("capturing", &m_capturing);
 	model.Bind("focus", &m_focus);
@@ -298,8 +299,15 @@ void SettingsScreen::refresh()
 
 bool SettingsScreen::onEvent(const SEvent &event)
 {
-	if (m_capturing < 0 || (size_t)m_capturing >= m_rows.size())
+	const bool capturing = m_capturing >= 0 && (size_t)m_capturing < m_rows.size();
+	if (!capturing) {
+		if (event.EventType == EET_KEY_INPUT_EVENT && event.KeyInput.PressedDown
+				&& event.KeyInput.Key == KEY_ESCAPE) {
+			menu().navigate("start");
+			return true;
+		}
 		return false;
+	}
 
 	KeyPress key;
 	if (event.EventType == EET_KEY_INPUT_EVENT) {
@@ -333,6 +341,13 @@ void SettingsScreen::rebuild()
 {
 	m_armed = false;
 	m_rows.clear();
+
+	// Подсветка едет к открытой вкладке: шаг — ширина вкладки с полями
+	// (settings.rcss, .tabs .tab).
+	for (size_t i = 0; i < m_pages.size(); i++) {
+		if (m_pages[i].id == m_page)
+			m_tab_indicator = "translateX(" + std::to_string(i * 56) + "dp)";
+	}
 
 	for (const SettingsPage &page : m_catalog.pages()) {
 		if (page.id != m_page)
