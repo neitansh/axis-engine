@@ -13,7 +13,7 @@
 			<div class="item" data-event-click="nav('online')"><i class="glow"/><span class="word">[[Multiplayer]]</span></div>
 			<div class="item" data-event-click="nav('worlds')"><i class="glow"/><span class="word">[[Worlds]]</span></div>
 			<div class="item" data-event-click="nav('settings')"><i class="glow"/><span class="word">[[Settings]]</span></div>
-			<div class="item" data-event-click="quit_begin()"><i class="glow"/><span class="word">[[Exit]]</span></div>
+			<div class="item apart" data-event-click="quit_begin()"><i class="glow"/><span class="word">[[Exit]]</span></div>
 		</div>
 	</div>
 	<div class="about-link" data-event-click="nav('about')">[[About]]</div>
