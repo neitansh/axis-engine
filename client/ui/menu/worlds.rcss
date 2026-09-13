@@ -116,12 +116,16 @@
 	background-color: #1C1C1E;
 }
 
+/* Полоса прокрутки уходит в правый отступ карточки: строки кончаются там же,
+   где черта заголовка, а не на ширину полосы раньше */
+
 .world-list {
 	display: block;
 	flex: 1;
 	overflow-y: auto;
 	margin-top: 6dp;
-	padding-right: 8dp;
+	margin-right: -12dp;
+	padding-right: 12dp;
 }
 
 .world-list scrollbarvertical {

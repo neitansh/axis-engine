@@ -253,6 +253,7 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 					return;
 				m_page = args[0].Get<Rml::String>();
 				rebuild();
+				scrollToTop();
 				handle.DirtyAllVariables();
 			});
 	model.BindEventCallback("changed",
@@ -287,12 +288,29 @@ void SettingsScreen::afterUpdate()
 	m_armed = true;
 }
 
+// Настройки всякий раз открываются с первой вкладки и с её начала: сюда
+// приходят за чем-то новым, а не туда, где остановились в прошлый раз.
+void SettingsScreen::entered()
+{
+	if (!m_pages.empty())
+		m_page = m_pages.front().id;
+	scrollToTop();
+}
+
 void SettingsScreen::refresh()
 {
 	m_capturing = -1;
 	m_crosshair_status.clear();
 	rebuild();
 	model().DirtyAllVariables();
+}
+
+void SettingsScreen::scrollToTop()
+{
+	if (!document())
+		return;
+	if (Rml::Element *rows = document()->GetElementById("rows"))
+		rows->SetScrollTop(0.0f);
 }
 
 bool SettingsScreen::onEvent(const SEvent &event)

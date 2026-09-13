@@ -32,6 +32,7 @@ class SettingsScreen final : public Screen
 public:
 	explicit SettingsScreen(MainMenu &menu);
 
+	void entered() override;
 	void refresh() override;
 	bool onEvent(const SEvent &event) override;
 	void afterUpdate() override;
@@ -70,6 +71,7 @@ private:
 	void write(Row &row, const std::string &value, bool refresh_widget);
 	void refreshRow(Row &row);
 	void refreshAll();
+	void scrollToTop();
 	void changed(int index, Rml::Event &event);
 	void clicked(int index, Rml::Event &event);
 	void step(Row &row, const SettingDef &def, int direction);

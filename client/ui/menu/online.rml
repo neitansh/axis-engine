@@ -92,7 +92,7 @@
 		</div>
 
 		<div class="side">
-			<div class="side-body panel" data-if="selected >= 0">
+			<div class="side-body panel picked" data-if="selected >= 0">
 				<div class="eyebrow">[[From the list]]</div>
 				<h4>{{ selected_name }}</h4>
 				<div class="facts">

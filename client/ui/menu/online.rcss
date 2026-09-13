@@ -385,8 +385,11 @@ button.refresh .icon {
 	padding: 20dp 24dp 24dp 24dp;
 }
 
-.side-body.direct {
-	margin-top: 16dp;
+/* Зазор — у верхней карточки, а не у нижней: без выбранного сервера верхней
+   нет, и вход по адресу встаёт вровень с левой карточкой */
+
+.side-body.picked {
+	margin-bottom: 16dp;
 }
 
 .side h4 {
