@@ -62,7 +62,7 @@
 				<div class="queue-title">{{ queue_title }}</div>
 				<div class="queue-line">{{ queue_line }}</div>
 				<div class="queue-below">{{ queue_below }}</div>
-				<button data-event-click="cancel()">[[Cancel]]</button>
+				<button data-if="!queue_joining" data-event-click="cancel()">[[Cancel]]</button>
 			</div>
 		</div>
 	</div>

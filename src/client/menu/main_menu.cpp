@@ -138,6 +138,11 @@ void MainMenu::run()
 		fps_control.limit(device, &dtime);
 		if (!device->isWindowVisible())
 			continue;
+		// Кадр в меню длиннее шестой секунды — что-то держит поток: такое
+		// нужно видеть в журнале, а не гадать по заикнувшейся музыке.
+		if (dtime > 0.15f)
+			actionstream << "MainMenu: frame took " << (int)(dtime * 1000) << " ms on screen \""
+					<< (m_current ? m_current->name() : "") << "\"" << std::endl;
 
 		m_net.poll();
 		if (m_servers.poll() && m_current)
@@ -272,6 +277,7 @@ void MainMenu::startJoin(const std::string &address, int port, const std::string
 		}
 		if (!m_join_error.empty()) {
 			m_launcher.inMenu();
+			m_matchmaking.joinFailed();
 			if (m_current)
 				m_current->refresh();
 			return;

@@ -68,6 +68,7 @@ void OnlineScreen::bind(Rml::DataModelConstructor &model)
 	model.Bind("modes_loaded", &m_modes_loaded);
 	model.Bind("modes", &m_modes);
 	model.Bind("waiting", &m_waiting);
+	model.Bind("queue_joining", &m_queue_joining);
 	model.Bind("queue_title", &m_queue_title);
 	model.Bind("queue_line", &m_queue_line);
 	model.Bind("queue_below", &m_queue_below);
@@ -315,16 +316,21 @@ void OnlineScreen::rebuildMatches()
 	if (mm.queue()) {
 		const Matchmaking::Queue &q = *mm.queue();
 		m_queue_title = q.title;
+		m_queue_joining = q.joining;
 		// Про готовящуюся арену говорим, только когда комната и правда
 		// полна: греть её начинают раньше.
-		if (q.room_state == "warming" && q.waiting >= q.needed)
+		if (q.joining)
+			m_queue_line = strgettext("The arena is ready");
+		else if (q.room_state == "warming" && q.waiting >= q.needed)
 			m_queue_line = strgettext("Everyone is here. Preparing the arena");
 		else
 			m_queue_line = strgettext("Waiting for players") + "  " + std::to_string(q.waiting)
 					+ " / " + std::to_string(q.needed);
 		// Когда счёт кончился, комната ещё не ушла: сервер матча строит
 		// арену, и это полминуты, а не миг.
-		if (q.starts_in > 0)
+		if (q.joining)
+			m_queue_below = strgettext("Joining…");
+		else if (q.starts_in > 0)
 			m_queue_below = fmtgettext("Starts in %d s", q.starts_in);
 		else if (q.waiting < q.min)
 			m_queue_below = strgettext("Waiting for more players");

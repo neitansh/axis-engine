@@ -9,7 +9,7 @@ msgstr ""
 "#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 22:28+0300\n"
+"POT-Creation-Date: 2026-09-13 23:33+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 22:32+0300\n"
+"POT-Creation-Date: 2026-09-13 23:37+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2512,8 +2512,8 @@ msgstr ""
 #: builtin/mainmenu/dlg_delete_content.lua
 #: builtin/mainmenu/dlg_delete_world.lua
 #: builtin/mainmenu/dlg_rename_modpack.lua builtin/mainmenu/matchmaking.lua
-#: src/gui/guiOpenURL.cpp client/ui/menu/online.rml client/ui/menu/start.rml
-#: client/ui/menu/worlds.rml
+#: src/gui/guiOpenURL.cpp client/ui/menu/online.rml client/ui/menu/pause.rml
+#: client/ui/menu/start.rml client/ui/menu/worlds.rml
 msgid "Cancel"
 msgstr ""
 
@@ -3233,7 +3233,8 @@ msgid "Always show this dialog."
 msgstr ""
 
 #: builtin/mainmenu/dlg_confirm_exit.lua
-#: src/client/menu/screens/start_screen.cpp client/ui/menu/start.rml
+#: src/client/menu/screens/start_screen.cpp client/ui/menu/pause.rml
+#: client/ui/menu/start.rml
 msgid "Quit"
 msgstr ""
 
@@ -4957,6 +4958,14 @@ msgstr ""
 #: src/client/menu/screens/online_screen.cpp
 #: src/client/menu/screens/settings_screen.cpp
 msgid "Tabs"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "The arena is ready"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "Joining…"
 msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
@@ -10192,12 +10201,12 @@ msgstr ""
 msgid "Exit game"
 msgstr ""
 
-#: client/ui/menu/settings.rml
-msgid "Nothing found"
+#: client/ui/menu/pause.rml client/ui/menu/start.rml
+msgid "Quit the game?"
 msgstr ""
 
-#: client/ui/menu/start.rml
-msgid "Quit the game?"
+#: client/ui/menu/settings.rml
+msgid "Nothing found"
 msgstr ""
 
 #: client/ui/menu/start.rml

@@ -217,11 +217,17 @@ bool Matchmaking::enterMatch(const Json::Value &body)
 	const int port = body.get("port", 0).asInt();
 	if (address.empty() || port <= 0)
 		return false;
-	m_queue.reset();
 	// Экрана уже нет: бросать игрока в игру мимо его воли нельзя.
 	if (!m_shown) {
 		stop();
 		return true;
+	}
+	// Карточка ожидания остаётся до самого экрана загрузки: пока идёт билет,
+	// показывать снова арены — мигание, а не переход. Очередь кончилась, но
+	// комната не забыта — поле joining говорит экрану, что происходит.
+	if (m_queue) {
+		m_queue->joining = true;
+		m_queue->starts_in = 0;
 	}
 	const std::string title = body.get("title", body.get("mode", "").asString()).asString();
 	if (m_on_match)
@@ -429,6 +435,16 @@ void Matchmaking::cancel()
 	changed();
 }
 
+// Билет на матч не дали: очередь кончилась, а игры не вышло — снова арены.
+void Matchmaking::joinFailed()
+{
+	if (!m_queue || !m_queue->joining)
+		return;
+	m_queue.reset();
+	m_launcher.inMenu();
+	changed();
+}
+
 // Ручная попытка прощает всё: если вход отвалился по случайности, второй
 // заход по кнопке должен его вернуть.
 void Matchmaking::retry()
@@ -452,13 +468,18 @@ void Matchmaking::stop()
 	m_asking = false;
 	m_polling = false;
 	if (m_queue) {
+		// Комната с адресом на руках — не очередь: сниматься с неё на пороге
+		// игры значило бы вылететь из матча, в который идём.
+		const bool joining = m_queue->joining;
 		m_queue.reset();
-		m_launcher.inMenu();
-		// Снимает с очереди пропуск, а не имя: иначе уйти можно было бы за
-		// любого, назвав его ник.
-		Json::Value body;
-		body["pass"] = m_pass;
-		request("/v1/leave", &body, [](const Net::Answer &) {});
+		if (!joining) {
+			m_launcher.inMenu();
+			// Снимает с очереди пропуск, а не имя: иначе уйти можно было бы
+			// за любого, назвав его ник.
+			Json::Value body;
+			body["pass"] = m_pass;
+			request("/v1/leave", &body, [](const Net::Answer &) {});
+		}
 		m_pass.clear();
 	}
 	m_status.clear();

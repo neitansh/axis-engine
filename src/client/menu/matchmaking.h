@@ -39,6 +39,8 @@ public:
 		int needed = 0;
 		int starts_in = 0;
 		int min = 1;
+		// Адрес получен, идёт билет и вход: карточка ожидания ещё на месте.
+		bool joining = false;
 	};
 
 	// Диспетчер назвал адрес: дальше обычный вход на сервер.
@@ -56,6 +58,7 @@ public:
 
 	void join(const std::string &mode_id);
 	void cancel();
+	void joinFailed();
 	void retry();
 	// Приглашение из Discord, забранное до того, как открыли этот экран.
 	void invited(const std::string &room);

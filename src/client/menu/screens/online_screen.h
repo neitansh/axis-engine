@@ -73,6 +73,7 @@ private:
 	std::vector<ModeEntry> m_modes;
 	bool m_waiting = false;
 	Rml::String m_queue_title;
+	bool m_queue_joining = false;
 	Rml::String m_queue_line;
 	Rml::String m_queue_below;
 	Rml::String m_status;
