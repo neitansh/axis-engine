@@ -285,8 +285,10 @@
 	transition: background-color 0.12s linear-in-out;
 }
 
+/* Наведение тёмным, а не белым с прозрачностью — см. worlds.rcss, .crate */
+
 .server:hover {
-	background-color: #FFFFFF14;
+	background-color: #2E2E30;
 }
 
 .server.active {

@@ -37,8 +37,12 @@
 	transition: background-color 0.12s linear-in-out;
 }
 
+/* Наведение — тёмным, а не белым с прозрачностью: RmlUi ведёт переход по
+   цвету без учёта альфы, и путь от прозрачного белого к тёмной подсветке
+   проходит через светло-серую вспышку */
+
 .crate:hover {
-	background-color: #FFFFFF14;
+	background-color: #1C1C1E99;
 }
 
 .crate.active {
@@ -151,7 +155,7 @@
 }
 
 .world:hover {
-	background-color: #FFFFFF14;
+	background-color: #2E2E30;
 }
 
 .world.active {
