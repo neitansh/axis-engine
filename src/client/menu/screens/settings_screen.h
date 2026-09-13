@@ -91,7 +91,7 @@ private:
 	SettingsCatalog m_catalog;
 	std::vector<PageEntry> m_pages;
 	Rml::String m_page;
-	std::string m_back = "start";
+	Rml::String m_back = "start";
 	Rml::String m_tab_indicator;
 	std::vector<Row> m_rows;
 	int m_capturing = -1;

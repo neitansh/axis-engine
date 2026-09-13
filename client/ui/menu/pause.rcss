@@ -47,6 +47,10 @@ body.pause {
 	margin-bottom: 14dp;
 }
 
+.pause .confirm {
+	margin-top: 0;
+}
+
 /* Появление: карточка проступает и чуть подрастает */
 
 body.shown .card {

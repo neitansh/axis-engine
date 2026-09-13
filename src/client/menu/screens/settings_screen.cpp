@@ -232,6 +232,7 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 
 	model.Bind("pages", &m_pages);
 	model.Bind("page", &m_page);
+	model.Bind("back", &m_back);
 	model.Bind("tab_indicator", &m_tab_indicator);
 	model.Bind("rows", &m_rows);
 	model.Bind("capturing", &m_capturing);

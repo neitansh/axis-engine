@@ -25,8 +25,11 @@ protected:
 	void bind(Rml::DataModelConstructor &model) override;
 
 private:
+	void askToQuit();
+
 	GameMenu &m_game;
 	bool m_singleplayer = false;
+	bool m_confirm_exit = false;
 };
 
 }

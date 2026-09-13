@@ -8,7 +8,7 @@
 <body data-model="settings" class="page settings">
 	<div class="page-head">
 		<div class="head-side">
-			<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
+			<div class="back" data-event-click="nav(back)"><div class="arrow"/></div>
 			<h1>[[Settings]]</h1>
 			<span class="kbd">Esc</span>
 		</div>

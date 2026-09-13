@@ -9,11 +9,18 @@
 	<div class="scrim"/>
 	<div class="card">
 		<h1>[[Paused]]</h1>
-		<div class="actions">
+		<div class="actions" data-if="!confirm_exit">
 			<button class="primary big" autofocus data-event-click="resume()">[[Continue]]</button>
 			<button data-event-click="nav('settings')">[[Settings]]</button>
 			<button class="destructive" data-event-click="leave()">[[Exit to menu]]</button>
-			<button class="destructive" data-event-click="quit()">[[Exit game]]</button>
+			<button class="destructive" data-event-click="quit_begin()">[[Exit game]]</button>
+		</div>
+		<div class="confirm" data-if="confirm_exit">
+			<p>[[Quit the game?]]</p>
+			<div class="confirm-actions">
+				<button autofocus data-event-click="quit_cancel()">[[Cancel]]</button>
+				<button class="danger" data-event-click="quit_confirm()">[[Quit]]</button>
+			</div>
 		</div>
 	</div>
 </body>
