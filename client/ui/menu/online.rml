@@ -46,7 +46,7 @@
 				<div class="centered" data-if="decided && modes_loaded && modes.size == 0">
 					<p data-if="status == ''">[[No arenas available]]</p>
 					<p data-if="status != ''">{{ status }}</p>
-					<button data-event-click="retry()">[[Try again]]</button>
+					<button class="primary" data-event-click="retry()">[[Try again]]</button>
 				</div>
 				<div class="tiles" data-if="decided && modes_loaded && modes.size > 0">
 					<div class="tile" data-for="m : modes" data-event-click="join_mode(m.id)">
@@ -62,7 +62,7 @@
 				<div class="queue-title">{{ queue_title }}</div>
 				<div class="queue-line">{{ queue_line }}</div>
 				<div class="queue-below">{{ queue_below }}</div>
-				<button class="ghost" data-event-click="cancel()">[[Cancel]]</button>
+				<button data-event-click="cancel()">[[Cancel]]</button>
 			</div>
 		</div>
 	</div>
@@ -101,8 +101,8 @@
 				<p class="error" data-if="join_error != ''">{{ join_error }}</p>
 				<button class="primary big" data-if="!joining" data-event-click="join_selected()">[[Join]]</button>
 				<button class="primary big" data-if="joining">[[Connecting…]]</button>
-				<button class="ghost" data-if="can_favorite && !is_favorite" data-event-click="favorite()">[[Add favorite]]</button>
-				<button class="ghost" data-if="can_favorite && is_favorite" data-event-click="favorite()">[[Remove favorite]]</button>
+				<button data-if="can_favorite && !is_favorite" data-event-click="favorite()">[[Add favorite]]</button>
+				<button data-if="can_favorite && is_favorite" data-event-click="favorite()">[[Remove favorite]]</button>
 			</div>
 
 			<div class="side-body panel direct">

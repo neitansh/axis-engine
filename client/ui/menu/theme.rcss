@@ -69,43 +69,42 @@ p {
 	color: #FFFFFFB3;
 }
 
-/* Кнопки — пилюли. Главное действие экрана заливается акцентом, остальные
-   держатся каймой. */
+/* Кнопки — пилюли, все залитые, без каймы: кайма одна на тёмном не читается.
+   Главное действие экрана — акцент; обычное — серая плитка; опасное —
+   серая плитка с красной надписью, а после подтверждения красная заливка;
+   ghost — только текст, для того, что должно почти не бросаться в глаза. */
 
 button {
 	display: block;
 	height: 44dp;
-	line-height: 42dp;
+	line-height: 44dp;
 	box-sizing: border-box;
 	padding: 0 20dp;
 	border-radius: 22dp;
-	background-color: transparent;
-	border: 1dp #38383A;
+	background-color: #2C2C2E;
 	color: #F5F5F7;
 	font-size: 15dp;
 	text-align: center;
 	cursor: pointer;
-	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out, color 0.12s linear-in-out, opacity 0.12s linear-in-out;
+	transition: background-color 0.12s linear-in-out, color 0.12s linear-in-out, opacity 0.12s linear-in-out;
 }
 
 button:hover {
-	background-color: #FFFFFF14;
+	background-color: #38383A;
 }
 
 button:active {
-	background-color: #FFFFFF1F;
+	background-color: #48484A;
 }
 
 button.primary {
 	background-color: #A78BFA;
-	border-color: #A78BFA;
 	color: #1C1C1E;
 	font-weight: 600;
 }
 
 button.primary:hover {
 	background-color: #B9A3FB;
-	border-color: #B9A3FB;
 }
 
 button.primary:active {
@@ -113,7 +112,7 @@ button.primary:active {
 }
 
 button.ghost {
-	border-color: transparent;
+	background-color: transparent;
 	color: #A1A1A6;
 }
 
@@ -122,16 +121,27 @@ button.ghost:hover {
 	background-color: #FFFFFF14;
 }
 
+button.destructive {
+	color: #FF453A;
+}
+
+button.destructive:hover {
+	background-color: #FF453A;
+	color: #FFFFFF;
+}
+
 button.danger {
 	background-color: #FF453A;
-	border-color: #FF453A;
 	color: #FFFFFF;
 	font-weight: 600;
 }
 
 button.danger:hover {
 	background-color: #FF5C52;
-	border-color: #FF5C52;
+}
+
+button.danger:active {
+	background-color: #E63B31;
 }
 
 /* Поле ввода и список: кайма в один пиксель, фокус — её цвет */
@@ -279,20 +289,36 @@ input.checkbox:checked {
 	margin-left: 12dp;
 }
 
-/* Подтверждение опасного действия — врезка в карточке, а не окно */
+/* Подтверждение опасного действия — на месте кнопок, без рамки и окна:
+   вопрос и два ответа в ряд, опасный — красной заливкой */
 
 .confirm {
 	display: flex;
 	flex-direction: column;
-	margin-top: 16dp;
-	padding: 14dp 16dp;
-	border-radius: 12dp;
-	background-color: #1C1C1E;
-	border: 1dp #FF453A4D;
+	margin-top: 20dp;
 }
 
 .confirm p {
-	margin-bottom: 10dp;
+	margin-bottom: 14dp;
+	font-size: 14dp;
+	line-height: 1.45;
+	color: #A1A1A6;
+}
+
+.confirm-actions {
+	display: flex;
+	flex-direction: row;
+}
+
+.confirm-actions button {
+	flex: 1;
+	width: 0;
+	min-width: 0;
+	margin: 0;
+}
+
+.confirm-actions button + button {
+	margin-left: 8dp;
 }
 
 /* Кольцо ожидания — то же, что крутится в лаунчере и на сайте: двенадцать

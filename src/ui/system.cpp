@@ -75,12 +75,24 @@ void System::JoinPath(Rml::String &translated_path, const Rml::String &document_
 	Rml::SystemInterface::JoinPath(translated_path, document_path, path);
 	if (fs::PathExists(translated_path))
 		return;
+	// Склейка RmlUi проводит путь через свой разбор URL, и путь Windows с
+	// буквой диска и «..» из RUN_IN_PLACE она собирает не всегда; рядом с
+	// документом ищем ещё раз своими средствами.
+	std::string beside = fs::RemoveLastPathComponent(document_path);
+	beside.append(DIR_DELIM).append(path);
+	if (fs::PathExists(beside)) {
+		translated_path = beside;
+		return;
+	}
 	// Чего нет рядом с документом, ищется от корня данных движка: так тема
 	// берёт textures/base/pack/… не зная, где сама лежит.
 	std::string shared = porting::path_share;
 	shared.append(DIR_DELIM).append(path);
 	if (fs::PathExists(shared))
 		translated_path = shared;
+	else
+		errorstream << "ui: file \"" << path << "\" is missing beside \"" << document_path
+				<< "\" and in the engine data" << std::endl;
 }
 
 void System::SetMouseCursor(const Rml::String &cursor_name)

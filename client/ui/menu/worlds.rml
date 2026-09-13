@@ -64,7 +64,7 @@
 				<p class="hint">[[Leave the seed empty for a random world.]]</p>
 				<p class="error" data-if="error != ''">{{ error }}</p>
 				<button class="primary big" data-event-click="create()">[[Create]]</button>
-				<button class="ghost" data-event-click="create_cancel()">[[Cancel]]</button>
+				<button data-event-click="create_cancel()">[[Cancel]]</button>
 			</div>
 
 			<div class="side-body" data-if="!creating && selected >= 0">
@@ -77,12 +77,14 @@
 				<p class="error" data-if="error != ''">{{ error }}</p>
 				<div data-if="!confirm_delete">
 					<button class="primary big" data-event-click="play()">[[Play]]</button>
-					<button class="ghost" data-event-click="delete_begin()">[[Delete]]</button>
+					<button class="destructive" data-event-click="delete_begin()">[[Delete]]</button>
 				</div>
 				<div class="confirm" data-if="confirm_delete">
 					<p>{{ delete_question }}</p>
-					<button class="danger" data-event-click="delete()">[[Delete]]</button>
-					<button class="ghost" data-event-click="delete_cancel()">[[Keep]]</button>
+					<div class="confirm-actions">
+						<button data-event-click="delete_cancel()">[[Cancel]]</button>
+						<button class="danger" data-event-click="delete()">[[Delete]]</button>
+					</div>
 				</div>
 			</div>
 
