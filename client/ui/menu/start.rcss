@@ -1,21 +1,182 @@
 /*
- * Стартовый экран: логотип и столбик кнопок на небе, ссылка «О программе»
- * под ними, подтверждение выхода — окно поверх страницы.
+ * Стартовый экран: логотип и пункты меню крупным текстом у левого края, как
+ * заглавный экран игры; правая половина оставлена небу. «Об Axis» — в левом
+ * нижнем углу, подтверждение выхода — окно поверх страницы.
  */
 
-.about-link {
-	margin-top: 8dp;
-	padding: 6dp 12dp;
-	border-radius: 8dp;
-	font-size: 13dp;
-	color: #1C1C1EB3;
+body {
+	align-items: flex-start;
+	justify-content: center;
+	background-color: #000000B8;
+	box-sizing: border-box;
+	padding: 40dp 88dp 40dp 88dp;
+}
+
+.hero {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	margin-top: -24dp;
+}
+
+.brand {
+	display: block;
+	margin-bottom: 44dp;
+	margin-left: 4dp;
+}
+
+.brand img {
+	width: 315dp;
+	height: 120dp;
+}
+
+/* Пункты тянутся на ширину самого длинного: наведение справа от короткого
+   слова попадает в него, а не в пустоту между пунктами */
+
+.menu {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+/* Пункт — строка текста без рамки и заливки. В покое текст стоит на месте
+   акцентной черты; при наведении черта вырастает слева, текст уступает ей
+   место, сдвигаясь вправо, а остальные пункты глохнут. Нажатие подкрашивает
+   текст акцентом. */
+
+.item {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 78dp;
 	cursor: pointer;
-	transition: color 0.12s linear-in-out, background-color 0.12s linear-in-out;
+}
+
+.item .mark {
+	display: block;
+	width: 6dp;
+	height: 44dp;
+	border-radius: 3dp;
+	background-color: #A78BFA;
+	transform: scaleX(0);
+	transform-origin: 0% 50%;
+	opacity: 0;
+	transition: transform 0.24s cubic-out, opacity 0.16s linear-in-out;
+}
+
+.item span {
+	display: block;
+	margin-left: 18dp;
+	font-size: 64dp;
+	font-weight: 700;
+	letter-spacing: -2.5dp;
+	line-height: 1;
+	color: #F5F5F7;
+	transform: translateX(-24dp);
+	transition: color 0.2s linear-in-out, transform 0.26s cubic-out;
+}
+
+.menu:hover .item span {
+	color: #86868B;
+}
+
+.item:hover .mark {
+	transform: scaleX(1);
+	opacity: 1;
+}
+
+.menu:hover .item:hover span {
+	color: #F5F5F7;
+	transform: translateX(0dp);
+}
+
+.menu:hover .item:active span {
+	color: #A78BFA;
+	transform: translateX(4dp);
+}
+
+.about-link {
+	position: absolute;
+	left: 88dp;
+	bottom: 36dp;
+	padding: 6dp 0;
+	font-size: 13dp;
+	color: #86868B;
+	cursor: pointer;
+	transition: color 0.12s linear-in-out;
 }
 
 .about-link:hover {
-	color: #1C1C1E;
-	background-color: #FFFFFF33;
+	color: #F5F5F7;
+}
+
+/* Появление: логотип, пункты по одному и подпись въезжают слева. Задержка
+   не через animation-delay — до его конца RmlUi держит элемент в покое,
+   и пункты мигнули бы; каждый пункт вместо этого держит начало кадрами.
+   Класс shown ставит и снимает Screen, чтобы въезд шёл при каждом возврате. */
+
+body.shown .brand {
+	animation: 0.8s cubic-out enter-brand;
+}
+
+body.shown .item:nth-child(1) {
+	animation: 0.8s cubic-out enter-item-1;
+}
+
+body.shown .item:nth-child(2) {
+	animation: 0.8s cubic-out enter-item-2;
+}
+
+body.shown .item:nth-child(3) {
+	animation: 0.8s cubic-out enter-item-3;
+}
+
+body.shown .item:nth-child(4) {
+	animation: 0.8s cubic-out enter-item-4;
+}
+
+body.shown .about-link {
+	animation: 0.8s cubic-out enter-about;
+}
+
+@keyframes enter-brand {
+	0% { opacity: 0; transform: translateX(-32dp); }
+	60% { opacity: 1; transform: translateX(0dp); }
+	100% { opacity: 1; transform: translateX(0dp); }
+}
+
+@keyframes enter-item-1 {
+	0% { opacity: 0; transform: translateX(-48dp); }
+	10% { opacity: 0; transform: translateX(-48dp); }
+	55% { opacity: 1; transform: translateX(0dp); }
+	100% { opacity: 1; transform: translateX(0dp); }
+}
+
+@keyframes enter-item-2 {
+	0% { opacity: 0; transform: translateX(-48dp); }
+	20% { opacity: 0; transform: translateX(-48dp); }
+	65% { opacity: 1; transform: translateX(0dp); }
+	100% { opacity: 1; transform: translateX(0dp); }
+}
+
+@keyframes enter-item-3 {
+	0% { opacity: 0; transform: translateX(-48dp); }
+	30% { opacity: 0; transform: translateX(-48dp); }
+	75% { opacity: 1; transform: translateX(0dp); }
+	100% { opacity: 1; transform: translateX(0dp); }
+}
+
+@keyframes enter-item-4 {
+	0% { opacity: 0; transform: translateX(-48dp); }
+	40% { opacity: 0; transform: translateX(-48dp); }
+	85% { opacity: 1; transform: translateX(0dp); }
+	100% { opacity: 1; transform: translateX(0dp); }
+}
+
+@keyframes enter-about {
+	0% { opacity: 0; }
+	60% { opacity: 0; }
+	100% { opacity: 1; }
 }
 
 /* Окно поверх страницы: подложка размывается, а не только темнеет — за окном

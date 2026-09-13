@@ -69,16 +69,20 @@ void Screen::show()
 		load();
 	entered();
 	refresh();
-	if (m_document)
+	if (m_document) {
 		m_document->Show();
+		m_document->SetClass("shown", true);
+	}
 }
 
 void Screen::hide()
 {
 	m_shown = false;
 	left();
-	if (m_document)
+	if (m_document) {
+		m_document->SetClass("shown", false);
 		m_document->Hide();
+	}
 }
 
 void Screen::reload()

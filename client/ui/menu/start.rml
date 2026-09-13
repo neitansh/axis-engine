@@ -5,14 +5,16 @@
 	<link type="text/rcss" href="start.rcss"/>
 </head>
 <body data-model="start">
-	<div class="brand">
-		<img src="textures/base/pack/menu_header.png" rect="483 0 378 144"/>
-	</div>
-	<div class="stack">
-		<button class="primary" data-event-click="nav('online')">[[Multiplayer]]</button>
-		<button class="solid" data-event-click="nav('worlds')">[[Singleplayer]]</button>
-		<button class="solid" data-event-click="nav('settings')">[[Settings]]</button>
-		<button class="solid" data-event-click="quit_begin()">[[Exit]]</button>
+	<div class="hero">
+		<div class="brand">
+			<img src="textures/base/pack/menu_header.png" rect="483 0 378 144"/>
+		</div>
+		<div class="menu">
+			<div class="item" data-event-click="nav('online')"><i class="mark"/><span>[[Multiplayer]]</span></div>
+			<div class="item" data-event-click="nav('worlds')"><i class="mark"/><span>[[Singleplayer]]</span></div>
+			<div class="item" data-event-click="nav('settings')"><i class="mark"/><span>[[Settings]]</span></div>
+			<div class="item" data-event-click="quit_begin()"><i class="mark"/><span>[[Exit]]</span></div>
+		</div>
 	</div>
 	<div class="about-link" data-event-click="nav('about')">[[About]]</div>
 

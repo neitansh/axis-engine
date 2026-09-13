@@ -34,6 +34,8 @@ public:
 
 	const std::string &name() const { return m_name; }
 
+	// Пока экран показан, у body стоит класс shown: анимация появления в теме
+	// вешается на него и потому заново идёт при каждом возврате на экран.
 	void show();
 	void hide();
 	void reload();
