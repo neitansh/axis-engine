@@ -76,23 +76,20 @@ private:
 	void crosshairChanged(Rml::Element *target, const std::string &value);
 	void crosshairClicked(Rml::Element *target);
 	void reset(int index);
-	void resetPage();
 	void focus(int index);
 
 	SettingsCatalog m_catalog;
 	std::vector<PageEntry> m_pages;
 	Rml::String m_page;
 	Rml::String m_search;
-	bool m_advanced = false;
-	bool m_has_advanced = false;
 	std::vector<Row> m_rows;
 	int m_capturing = -1;
 	int m_focus = -1;
 	Rml::String m_focus_label;
 	Rml::String m_focus_help;
 	Rml::String m_focus_load;
+	Rml::String m_focus_load_class;
 	Rml::String m_focus_note;
-	Rml::String m_focus_options;
 	Rml::String m_crosshair_status;
 	// Пока строки строятся, виджеты шлют change сами по себе; до первого
 	// обновления после rebuild() события не считаются.

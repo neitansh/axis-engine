@@ -5,6 +5,11 @@
 	<link type="text/rcss" href="settings.rcss"/>
 </head>
 <body data-model="settings" class="settings">
+	<div class="back" data-event-click="nav('start')">
+		<div class="arrow"/>
+		<span>Назад</span>
+	</div>
+
 	<div class="tabbar">
 		<div class="tabs">
 			<div data-for="p : pages" class="tab" data-class-active="p.id == page && search == ''"
@@ -16,25 +21,25 @@
 	</div>
 
 	<div class="settings-body">
-		<div class="rows" id="rows">
-			<div data-for="r : rows">
-				<h3 class="group" data-if="r.kind == 'heading'">{{ r.label }}</h3>
-				<div class="setting" data-if="r.kind != 'heading'"
-						data-class-focused="focus == r.index" data-class-changed="r.changed"
-						data-class-keyrow="r.kind == 'key'" data-class-tall="r.kind == 'crosshair'"
-						data-event-mouseover="focus(r.index)">
-					<span class="label">{{ r.label }}</span>
-					<div class="control" data-rml="r.widget" data-event-change="changed(r.index)"
-							data-event-click="clicked(r.index)"></div>
-					<button class="key" data-if="r.kind == 'key'" data-class-waiting="capturing == r.index"
-							data-event-click="capture(r.index)">{{ capturing == r.index ? 'Нажми клавишу…' : r.value }}</button>
-					<button class="clear" data-class-hidden="!r.changed" data-event-click="reset(r.index)">✕</button>
+		<div class="rows-frame">
+			<div class="rows" id="rows">
+				<div data-for="r : rows">
+					<h3 class="group" data-if="r.kind == 'heading'">{{ r.label }}</h3>
+					<div class="setting" data-if="r.kind != 'heading'"
+							data-class-focused="focus == r.index" data-class-changed="r.changed"
+							data-class-keyrow="r.kind == 'key'" data-class-tall="r.kind == 'crosshair'"
+							data-event-mouseover="focus(r.index)">
+						<span class="label">{{ r.label }}</span>
+						<div class="control" data-rml="r.widget" data-event-change="changed(r.index)"
+								data-event-click="clicked(r.index)"></div>
+						<div class="key" data-if="r.kind == 'key'" data-class-waiting="capturing == r.index"
+								data-event-click="capture(r.index)">{{ capturing == r.index ? 'Нажми клавишу…' : r.value }}</div>
+						<div class="undo" data-class-hidden="!r.changed" data-event-click="reset(r.index)"/>
+					</div>
 				</div>
+				<div class="empty" data-if="rows.size == 0">Ничего не найдено</div>
 			</div>
-			<div class="empty" data-if="rows.size == 0">Ничего не найдено</div>
-			<button class="more" data-if="has_advanced && search == ''" data-event-click="toggle_advanced()">
-				{{ advanced ? 'Скрыть расширенные' : 'Расширенные настройки' }}
-			</button>
+			<div class="rows-fade"/>
 		</div>
 
 		<div class="info">
@@ -42,17 +47,12 @@
 			<div class="info-body" data-if="focus >= 0">
 				<h4>{{ focus_label }}</h4>
 				<p>{{ focus_help }}</p>
-				<p class="load" data-if="focus_load != ''">{{ focus_load }}</p>
+				<p class="load" data-if="focus_load != ''" data-class-high="focus_load_class == 'high'"
+						data-class-medium="focus_load_class == 'medium'" data-class-low="focus_load_class == 'low'">{{ focus_load }}</p>
 				<p class="note" data-if="focus_note != ''">{{ focus_note }}</p>
-				<div class="options" data-rml="focus_options"></div>
 				<p class="status" data-if="crosshair_status != ''">{{ crosshair_status }}</p>
 			</div>
 		</div>
-	</div>
-
-	<div class="bottom">
-		<button data-event-click="reset_page()">Сбросить страницу</button>
-		<button data-event-click="nav('start')">Назад</button>
 	</div>
 </body>
 </rml>

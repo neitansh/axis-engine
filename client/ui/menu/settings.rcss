@@ -4,71 +4,123 @@
  * значений листается стрелками, число тянется ползунком с заливкой.
  */
 
+@keyframes caption-in {
+	from { opacity: 0; transform: translate(-50%, -6dp); }
+	to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes fade-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
 body.settings {
+	position: absolute;
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
 	justify-content: flex-start;
-	background-color: #06050A99;
-	backdrop-filter: blur(18dp);
+	background-color: #06050A73;
+	backdrop-filter: blur(26dp);
 	box-sizing: border-box;
-	padding: 16dp 48dp 40dp 48dp;
+	padding: 22dp 48dp 0 48dp;
 }
 
-/* Вкладки: иконки в тёмной размытой полосе, подпись — только под открытой */
+/* Назад: текст со стрелкой в левом верхнем углу */
+
+.back {
+	position: absolute;
+	top: 30dp;
+	left: 40dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 6dp 10dp 6dp 6dp;
+	color: #B9B3C4;
+	font-size: 14dp;
+	cursor: pointer;
+	transition: color 0.15s linear-in-out;
+}
+
+.back .arrow {
+	width: 18dp;
+	height: 18dp;
+	margin-right: 6dp;
+	decorator: image(icons/back.png scale-none);
+	image-color: #B9B3C4;
+	transition: transform 0.18s cubic-out, image-color 0.15s linear-in-out;
+}
+
+.back:hover {
+	color: #FFFFFF;
+}
+
+.back:hover .arrow {
+	image-color: #FFFFFF;
+	transform: translateX(-4dp);
+}
+
+/* Вкладки: иконки в стеклянной полосе, подпись висит под открытой */
 
 .tabbar {
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
-	margin-bottom: 16dp;
+	margin-bottom: 40dp;
 }
 
 .tabs {
 	display: flex;
 	flex-direction: row;
-	align-items: flex-start;
+	align-items: center;
 	padding: 6dp 8dp;
-	border-radius: 10dp;
-	background-color: #00000073;
-	backdrop-filter: blur(10dp);
+	border-radius: 12dp;
+	background-color: #00000040;
+	backdrop-filter: blur(8dp);
 }
 
 .tabs .tab {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+	position: relative;
 	width: 44dp;
+	height: 44dp;
 	margin: 0 3dp;
 	cursor: pointer;
 }
 
 .tabs .tab img {
+	position: absolute;
+	top: 6dp;
+	left: 0;
 	width: 22dp;
 	height: 22dp;
-	margin: 6dp 0;
 	padding: 5dp 11dp;
 	border-radius: 8dp;
 	image-color: #FFFFFFA6;
+	transition: transform 0.15s cubic-out, background-color 0.15s linear-in-out, image-color 0.15s linear-in-out;
 }
 
 .tabs .tab:hover img {
 	image-color: #FFFFFF;
-	background-color: #FFFFFF12;
+	transform: scale(1.12);
 }
 
 .tabs .tab.active img {
 	image-color: #FFFFFF;
 	background-color: #FFFFFF26;
+	transform: scale(1);
 }
 
 .tabs .tab .caption {
+	position: absolute;
+	top: 52dp;
+	left: 50%;
+	transform: translate(-50%, 0);
 	font-size: 10dp;
 	font-weight: 600;
 	letter-spacing: 1dp;
 	color: #FFFFFF;
 	white-space: nowrap;
-	margin-bottom: 4dp;
+	animation: 0.2s cubic-out caption-in;
 }
 
 /* Тело: строки и описание */
@@ -78,7 +130,15 @@ body.settings {
 	flex-direction: row;
 	flex: 1;
 	min-height: 0;
-	padding: 0 48dp;
+	padding: 0 40dp;
+}
+
+.rows-frame {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
 }
 
 .rows {
@@ -86,6 +146,17 @@ body.settings {
 	flex: 1;
 	overflow-y: auto;
 	padding-right: 16dp;
+	padding-bottom: 48dp;
+}
+
+.rows-fade {
+	position: absolute;
+	left: 0;
+	right: 16dp;
+	bottom: 0;
+	height: 72dp;
+	decorator: linear-gradient(to bottom, #0B0A1200 0%, #0B0A1299 100%);
+	pointer-events: none;
 }
 
 .rows scrollbarvertical {
@@ -100,15 +171,16 @@ body.settings {
 
 .rows h3.group {
 	display: block;
-	font-size: 13dp;
+	font-size: 22dp;
 	font-weight: 700;
-	letter-spacing: 1.5dp;
-	color: #FFFFFF;
-	margin: 22dp 0 8dp 0;
+	letter-spacing: 3dp;
+	color: #A78BFA;
+	margin: 30dp 0 12dp 0;
+	animation: 0.25s cubic-out fade-in;
 }
 
 .rows h3.group:first-child {
-	margin-top: 0;
+	margin-top: 4dp;
 }
 
 .setting {
@@ -120,6 +192,7 @@ body.settings {
 	margin-bottom: 2dp;
 	border-radius: 6dp;
 	border: 1dp transparent;
+	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out;
 }
 
 .setting.tall {
@@ -164,44 +237,52 @@ body.settings {
 	width: 460dp;
 }
 
-.setting button.key {
+/* Клавиша: тёмная плашка, как ряд значений; ожидание ввода — акцентом */
+
+.setting .key {
 	width: 260dp;
 	height: 34dp;
-	padding: 0 12dp;
-	line-height: 34dp;
-	background-color: #E8E6ED;
-	border-color: #E8E6ED;
-	color: #0C0A12;
+	line-height: 32dp;
+	box-sizing: border-box;
+	text-align: center;
+	border-radius: 6dp;
+	background-color: #1B1626;
+	border: 1dp #FFFFFF14;
+	color: #E8E6ED;
 	font-size: 13dp;
+	cursor: pointer;
+	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out;
 }
 
-.setting button.key:hover {
-	background-color: #FFFFFF;
+.setting .key:hover {
+	border-color: #A78BFA;
 }
 
-.setting button.key.waiting {
+.setting .key.waiting {
 	background-color: #8B5CF6;
 	border-color: #A78BFA;
 	color: #FFFFFF;
 }
 
-.setting button.clear {
+/* Откат к умолчанию */
+
+.setting .undo {
 	width: 30dp;
 	height: 34dp;
 	margin-left: 6dp;
-	padding: 0;
-	line-height: 34dp;
-	background-color: transparent;
-	border-color: transparent;
-	color: #C05B4D;
-	font-size: 13dp;
+	border-radius: 6dp;
+	decorator: image(icons/reset.png scale-none);
+	image-color: #948C9E;
+	cursor: pointer;
+	transition: image-color 0.15s linear-in-out, background-color 0.15s linear-in-out;
 }
 
-.setting button.clear:hover {
-	background-color: #C05B4D22;
+.setting .undo:hover {
+	image-color: #FFFFFF;
+	background-color: #FFFFFF14;
 }
 
-.setting button.clear.hidden {
+.setting .undo.hidden {
 	visibility: hidden;
 }
 
@@ -214,17 +295,18 @@ body.settings {
 	width: 260dp;
 	height: 34dp;
 	border-radius: 6dp;
-	background-color: #0C0A12;
-	border: 1dp #FFFFFF14;
+	background-color: #1B1626;
 	box-sizing: border-box;
 }
 
 .stepper .arrow {
 	width: 30dp;
-	height: 32dp;
+	height: 34dp;
+	border-radius: 6dp;
 	cursor: pointer;
 	decorator: image(icons/chevron.png scale-none);
 	image-color: #948C9E;
+	transition: image-color 0.12s linear-in-out, background-color 0.12s linear-in-out;
 }
 
 .stepper .arrow.next {
@@ -233,7 +315,7 @@ body.settings {
 
 .stepper .arrow:hover {
 	image-color: #FFFFFF;
-	background-color: #FFFFFF0C;
+	background-color: #FFFFFF14;
 }
 
 .stepper .middle {
@@ -268,6 +350,7 @@ body.settings {
 	margin: 0 1dp;
 	border-radius: 1dp;
 	background-color: #FFFFFF24;
+	transition: background-color 0.15s linear-in-out;
 }
 
 .stepper .segments i.on {
@@ -280,33 +363,28 @@ body.settings {
 	flex: 1;
 	height: 34dp;
 	border-radius: 6dp;
-	background-color: #0C0A12;
-	border: 1dp #FFFFFF14;
+	background-color: #1B1626;
 	margin-right: 6dp;
 	box-sizing: border-box;
 }
 
 .setting .control input.range slidertrack {
-	height: 32dp;
+	height: 34dp;
 	background-color: transparent;
 }
 
 .setting .control input.range sliderprogress {
-	height: 32dp;
-	border-radius: 5dp 0 0 5dp;
+	height: 34dp;
+	border-radius: 6dp 0 0 6dp;
 	background-color: #8B5CF6;
 }
 
 .setting .control input.range sliderbar {
-	width: 6dp;
-	height: 32dp;
-	background-color: #E8E6ED;
-	cursor: pointer;
-}
-
-.setting .control input.range sliderbar:hover,
-.setting .control input.range sliderbar:active {
+	width: 4dp;
+	height: 34dp;
+	border-radius: 2dp;
 	background-color: #FFFFFF;
+	cursor: pointer;
 }
 
 .setting .control input.range sliderarrowdec,
@@ -320,7 +398,19 @@ body.settings {
 	line-height: 22dp;
 	padding: 5dp 10dp;
 	box-sizing: border-box;
+	border-radius: 6dp;
+	background-color: #1B1626;
+	border: 1dp transparent;
 	font-size: 13dp;
+	transition: border-color 0.15s linear-in-out;
+}
+
+.setting .control input.text:hover {
+	border-color: #FFFFFF24;
+}
+
+.setting .control input.text:focus {
+	border-color: #A78BFA;
 }
 
 .setting .control input.text.num {
@@ -330,6 +420,66 @@ body.settings {
 
 .setting .control input.text.wide {
 	width: 260dp;
+}
+
+/* Список: для длинных рядов значений */
+
+.setting .control select {
+	width: 260dp;
+	height: 34dp;
+	line-height: 22dp;
+	padding: 5dp 10dp;
+	box-sizing: border-box;
+	border-radius: 6dp;
+	background-color: #1B1626;
+	border: 1dp transparent;
+	font-size: 13dp;
+	color: #FFFFFF;
+	cursor: pointer;
+	transition: border-color 0.15s linear-in-out;
+}
+
+.setting .control select:hover {
+	border-color: #FFFFFF24;
+}
+
+.setting .control select selectvalue {
+	padding-right: 24dp;
+}
+
+.setting .control select selectarrow {
+	width: 30dp;
+	height: 32dp;
+	margin: -5dp -10dp 0 -30dp;
+	decorator: image(icons/chevron.png scale-none);
+	image-color: #948C9E;
+	transform: rotate(-90deg);
+}
+
+.setting .control select selectbox {
+	margin-top: 4dp;
+	padding: 4dp 0;
+	height: 260dp;
+	overflow-y: auto;
+	border-radius: 6dp;
+	background-color: #17131F;
+	border: 1dp #FFFFFF14;
+}
+
+.setting .control select selectbox option {
+	padding: 6dp 12dp;
+	font-size: 13dp;
+	color: #C8C3D1;
+	cursor: pointer;
+}
+
+.setting .control select selectbox option:hover {
+	background-color: #FFFFFF0C;
+	color: #FFFFFF;
+}
+
+.setting .control select selectbox option:checked {
+	color: #A78BFA;
 }
 
 .flags {
@@ -352,10 +502,11 @@ input.checkbox {
 	width: 18dp;
 	height: 18dp;
 	border-radius: 4dp;
-	background-color: #0C0A12;
+	background-color: #1B1626;
 	border: 1dp #FFFFFF3A;
 	cursor: pointer;
 	margin-right: 6dp;
+	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out;
 }
 
 input.checkbox:hover {
@@ -382,8 +533,7 @@ input.checkbox:checked {
 	width: 96dp;
 	height: 96dp;
 	border-radius: 6dp;
-	background-color: #0C0A12;
-	border: 1dp #FFFFFF14;
+	background-color: #1B1626;
 	margin-right: 14dp;
 }
 
@@ -432,25 +582,22 @@ input.checkbox:checked {
 
 .xhair-fields .field.share .button {
 	display: block;
-	padding: 6dp 14dp;
+	height: 34dp;
+	line-height: 32dp;
+	box-sizing: border-box;
+	padding: 0 14dp;
 	margin-right: 8dp;
 	border-radius: 6dp;
-	background-color: #17131F;
-	border: 1dp #FFFFFF24;
+	background-color: #1B1626;
+	border: 1dp #FFFFFF14;
 	color: #E8E6ED;
 	font-size: 12dp;
 	cursor: pointer;
+	transition: border-color 0.15s linear-in-out;
 }
 
 .xhair-fields .field.share .button:hover {
-	background-color: #211B2E;
-}
-
-button.more {
-	margin: 16dp auto 8dp auto;
-	background-color: transparent;
-	border-color: #FFFFFF24;
-	color: #948C9E;
+	border-color: #A78BFA;
 }
 
 /* Описание справа */
@@ -469,12 +616,20 @@ button.more {
 	padding: 5dp 12dp;
 	box-sizing: border-box;
 	margin-bottom: 18dp;
+	border-radius: 6dp;
+	background-color: #1B1626;
+	border: 1dp transparent;
 	font-size: 13dp;
+}
+
+.info input.text.search:focus {
+	border-color: #A78BFA;
 }
 
 .info-body {
 	display: flex;
 	flex-direction: column;
+	animation: 0.2s cubic-out fade-in;
 }
 
 .info h4 {
@@ -493,8 +648,20 @@ button.more {
 }
 
 .info p.load {
-	color: #F2C14E;
 	font-size: 12dp;
+	font-weight: 600;
+}
+
+.info p.load.high {
+	color: #FF8A75;
+}
+
+.info p.load.medium {
+	color: #F2C14E;
+}
+
+.info p.load.low {
+	color: #8BD6A0;
 }
 
 .info p.note {
@@ -505,40 +672,4 @@ button.more {
 .info p.status {
 	color: #A78BFA;
 	font-size: 12dp;
-}
-
-.info .options {
-	display: flex;
-	flex-direction: column;
-}
-
-.info .opt {
-	padding: 4dp 10dp;
-	font-size: 13dp;
-	color: #726E7E;
-}
-
-.info .opt.on {
-	color: #0C0A12;
-	background-color: #E8E6ED;
-	border-radius: 4dp;
-}
-
-/* Низ */
-
-.bottom {
-	display: flex;
-	flex-direction: row;
-	justify-content: flex-end;
-	align-items: center;
-	margin-top: 14dp;
-	padding: 0 48dp;
-}
-
-.bottom button {
-	margin-left: 8dp;
-	height: 36dp;
-	padding: 0 18dp;
-	line-height: 36dp;
-	font-size: 13dp;
 }

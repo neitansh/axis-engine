@@ -239,16 +239,14 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 	model.Bind("pages", &m_pages);
 	model.Bind("page", &m_page);
 	model.Bind("search", &m_search);
-	model.Bind("advanced", &m_advanced);
-	model.Bind("has_advanced", &m_has_advanced);
 	model.Bind("rows", &m_rows);
 	model.Bind("capturing", &m_capturing);
 	model.Bind("focus", &m_focus);
 	model.Bind("focus_label", &m_focus_label);
 	model.Bind("focus_help", &m_focus_help);
 	model.Bind("focus_load", &m_focus_load);
+	model.Bind("focus_load_class", &m_focus_load_class);
 	model.Bind("focus_note", &m_focus_note);
-	model.Bind("focus_options", &m_focus_options);
 	model.Bind("crosshair_status", &m_crosshair_status);
 
 	auto index_arg = [](const Rml::VariantList &args) {
@@ -261,18 +259,11 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 					return;
 				m_page = args[0].Get<Rml::String>();
 				m_search.clear();
-				m_advanced = false;
 				rebuild();
 				handle.DirtyAllVariables();
 			});
 	model.BindEventCallback("search",
 			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
-				rebuild();
-				handle.DirtyAllVariables();
-			});
-	model.BindEventCallback("toggle_advanced",
-			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
-				m_advanced = !m_advanced;
 				rebuild();
 				handle.DirtyAllVariables();
 			});
@@ -289,11 +280,6 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 	model.BindEventCallback("reset",
 			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &args) {
 				reset(index_arg(args));
-				handle.DirtyAllVariables();
-			});
-	model.BindEventCallback("reset_page",
-			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
-				resetPage();
 				handle.DirtyAllVariables();
 			});
 	model.BindEventCallback("focus",
@@ -353,38 +339,24 @@ void SettingsScreen::rebuild()
 {
 	m_armed = false;
 	m_rows.clear();
-	m_has_advanced = false;
 
 	const bool searching = !trim(m_search).empty();
 	for (const SettingsPage &page : m_catalog.pages()) {
 		if (!searching && page.id != m_page)
 			continue;
-		if (searching) {
-			appendItems(page.basic);
-			appendItems(page.advanced);
-			continue;
-		}
 		appendItems(page.basic);
-		// Страница без избранного (генерация мира, разработчик) открывается
-		// сразу целиком: прятать единственное содержимое за кнопкой незачем.
+		// Расширенные идут следом под своим заголовком, без раскрытия; у
+		// страницы без избранного они и есть всё содержимое.
 		bool has_basic = false;
 		for (const SettingsPage::Item &item : page.basic)
 			has_basic = has_basic || !item.setting.empty();
-		if (!has_basic) {
+		if (has_basic && !searching) {
+			std::vector<SettingsPage::Item> advanced = page.advanced;
+			advanced.insert(advanced.begin(), {"Advanced settings", ""});
+			appendItems(advanced);
+		} else {
 			appendItems(page.advanced);
-			continue;
 		}
-		for (const SettingsPage::Item &item : page.advanced) {
-			if (item.setting.empty())
-				continue;
-			const SettingDef *def = m_catalog.find(item.setting);
-			if (def && isShown(*def)) {
-				m_has_advanced = true;
-				break;
-			}
-		}
-		if (m_advanced)
-			appendItems(page.advanced);
 	}
 	for (size_t i = 0; i < m_rows.size(); i++)
 		m_rows[i].index = (int)i;
@@ -526,6 +498,16 @@ std::string SettingsScreen::makeWidget(const SettingDef &def, const std::string 
 		rml += "<input type=\"text\" class=\"num\" value=" + attr(value) + "/>";
 		break;
 	case SettingDef::Kind::Enum: {
+		// Длинный ряд (языки) стрелками не пролистать — ему список.
+		if (def.values.size() > 8) {
+			rml = "<select>";
+			for (const std::string &option : def.values) {
+				rml += "<option value=" + attr(option) + (option == value ? " selected" : "")
+						+ ">" + text(optionLabel(def, option)) + "</option>";
+			}
+			rml += "</select>";
+			break;
+		}
 		std::vector<std::string> labels;
 		for (const std::string &option : def.values)
 			labels.push_back(optionLabel(def, option));
@@ -753,7 +735,10 @@ void SettingsScreen::changed(int index, Rml::Event &event)
 		return;
 	}
 
-	if (def->kind == SettingDef::Kind::Int || def->kind == SettingDef::Kind::Float) {
+	if (def->kind == SettingDef::Kind::Enum) {
+		if (std::find(def->values.begin(), def->values.end(), value) == def->values.end())
+			return;
+	} else if (def->kind == SettingDef::Kind::Int || def->kind == SettingDef::Kind::Float) {
 		const bool from_slider = type == "range";
 		const bool submitted = from_slider || event.GetParameter<bool>("linebreak", false);
 		char *end = nullptr;
@@ -917,25 +902,14 @@ void SettingsScreen::reset(int index)
 	focus(index);
 }
 
-void SettingsScreen::resetPage()
-{
-	for (const Row &row : m_rows) {
-		if (row.kind == "heading" || row.name.empty() || row.name[0] == '@')
-			continue;
-		g_settings->remove(row.name);
-	}
-	clearKeyCache();
-	rebuild();
-}
-
 void SettingsScreen::focus(int index)
 {
 	m_focus = -1;
 	m_focus_label.clear();
 	m_focus_help.clear();
 	m_focus_load.clear();
+	m_focus_load_class.clear();
 	m_focus_note.clear();
-	m_focus_options.clear();
 	if (index < 0 || (size_t)index >= m_rows.size() || m_rows[index].kind == "heading")
 		return;
 
@@ -958,29 +932,12 @@ void SettingsScreen::focus(int index)
 	if (!def)
 		return;
 	m_focus_help = describe(*def);
-	if (!def->load.empty())
+	if (!def->load.empty()) {
 		m_focus_load = strgettext("Cost:") + " " + strgettext(loadWord(def->load));
+		m_focus_load_class = def->load;
+	}
 	if (!def->note.empty())
 		m_focus_note = strgettext(def->note);
-
-	std::vector<std::string> options;
-	std::string current;
-	if (def->kind == SettingDef::Kind::Bool) {
-		options = {strgettext("Disabled"), strgettext("Enabled")};
-		current = is_yes(row.value) ? options[1] : options[0];
-	} else if (def->kind == SettingDef::Kind::Enum) {
-		for (const std::string &option : def->values)
-			options.push_back(optionLabel(*def, option));
-		current = optionLabel(*def, row.value);
-	}
-	// Список вариантов идёт готовой разметкой: data-for на нём при смене
-	// строки обновлял старые элементы по новому, уже короткому массиву.
-	for (const std::string &option : options) {
-		m_focus_options += "<div class=\"opt";
-		if (option == current)
-			m_focus_options += " on";
-		m_focus_options += "\">" + text(option) + "</div>";
-	}
 }
 
 }

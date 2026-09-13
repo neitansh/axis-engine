@@ -76,8 +76,7 @@ const std::vector<PageSpec> PAGE_SPECS = {
 	{"multiplayer", "Game and network",
 		{"Client and Server|Client", "Client and Server|Server",
 			"Client and Server|Server Security", "Client and Server|Server Gameplay"},
-		{"#Player", "name",
-		"#Hosting", "server_name", "server_description", "max_users", "port",
+		{"#Hosting", "server_name", "server_description", "max_users", "port",
 			"server_announce",
 		"#Client", "enable_local_map_saving"}},
 	{"worldgen", "World generation",
@@ -475,7 +474,8 @@ bool SettingsCatalog::parseFile(const std::string &path)
 
 void SettingsCatalog::buildPages()
 {
-	std::map<std::string, bool> claimed;
+	// Имя игрока приходит от служб платформы, крутить его в меню нечего.
+	std::map<std::string, bool> claimed = {{"name", true}};
 	for (const PageSpec &spec : PAGE_SPECS) {
 		for (const char *item : spec.basic) {
 			if (item[0] != '#')
