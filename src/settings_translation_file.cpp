@@ -340,6 +340,14 @@ fake_function() {
 	gettext("Volume multiplier when the window is unfocused.");
 	gettext("Mute sound");
 	gettext("Whether to mute sounds. You can unmute sounds at any time.\nIn-game, you can toggle the mute state with the mute key or by using the\npause menu.");
+	gettext("Menu music");
+	gettext("Play music under the main menu.");
+	gettext("Menu music volume");
+	gettext("Volume of the music under the main menu.");
+	gettext("Menu sounds");
+	gettext("Play a sound when a control in the main menu is hovered or pressed.");
+	gettext("Menu sound volume");
+	gettext("Volume of the hover and click sounds in the main menu.");
 	gettext("User Interfaces");
 	gettext("Language");
 	gettext("Set the language. By default, the system language is used.\nApplies immediately; text that came from the server changes on next join.");

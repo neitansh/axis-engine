@@ -85,6 +85,7 @@ local PAGES = {
 		sources = { "Graphics and Audio|Audio" },
 		basic = {
 			"sound_volume", "sound_volume_unfocused", "mute_sound",
+			"menu_music", "menu_music_volume", "menu_ui_sounds", "menu_ui_sound_volume",
 		},
 	},
 	{

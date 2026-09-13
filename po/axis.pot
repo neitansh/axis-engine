@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 08:35+0300\n"
+"POT-Creation-Date: 2026-09-13 19:27+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1207,7 +1207,26 @@ msgid "Show moving clouds behind the main menu."
 msgstr ""
 
 #: builtin/common/settings/descriptions.lua
+msgid "Play music while you are in the main menu."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "How loud the menu music is, on top of the overall volume."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
 msgid "Which look the main menu uses."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid ""
+"How loud the hover and click sounds in the menu are, on top of the overall "
+"volume."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid ""
+"Make a soft sound when you hover over or press something in the main menu."
 msgstr ""
 
 #: builtin/common/settings/descriptions.lua
@@ -3694,7 +3713,7 @@ msgid "Play Crate"
 msgstr ""
 
 #: builtin/mainmenu/tab_local.lua src/client/clientlauncher.cpp
-#: src/client/game.cpp client/ui/menu/start.rml client/ui/menu/worlds.rml
+#: src/client/game.cpp
 msgid "Singleplayer"
 msgstr ""
 
@@ -4907,7 +4926,8 @@ msgstr ""
 msgid "Press a key…"
 msgstr ""
 
-#: src/client/menu/screens/worlds_screen.cpp
+#: src/client/menu/screens/worlds_screen.cpp client/ui/menu/start.rml
+#: client/ui/menu/worlds.rml
 msgid "Worlds"
 msgstr ""
 
@@ -6688,6 +6708,38 @@ msgid ""
 "Whether to mute sounds. You can unmute sounds at any time.\n"
 "In-game, you can toggle the mute state with the mute key or by using the\n"
 "pause menu."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Menu music"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Play music under the main menu."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Menu music volume"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Volume of the music under the main menu."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Menu sounds"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Play a sound when a control in the main menu is hovered or pressed."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Menu sound volume"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Volume of the hover and click sounds in the main menu."
 msgstr ""
 
 #: src/settings_translation_file.cpp

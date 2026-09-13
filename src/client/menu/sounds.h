@@ -48,6 +48,7 @@ private:
 	std::vector<std::string> m_music;
 	size_t m_music_pos = 0;
 	sound_handle_t m_track = 0;
+	float m_music_gain = 0.0f;
 	Rml::Element *m_hovered = nullptr;
 };
 

@@ -6,6 +6,7 @@
 
 #include "client/sound/sound_openal.h"
 #include "filesys.h"
+#include "settings.h"
 #include "sound_spec.h"
 #include "util/string.h"
 #include <RmlUi/Core/ComputedValues.h>
@@ -21,9 +22,8 @@ namespace menu
 namespace
 {
 
-constexpr float EFFECT_GAIN = 0.7f;
-constexpr float MUSIC_GAIN = 0.45f;
 constexpr float MUSIC_FADE_IN = 0.25f;
+constexpr float MUSIC_FADE_STEP = 2.0f;
 
 // Курсор наследуется, и у слова внутри пункта он тот же, что у пункта;
 // звучит верхний из подряд идущих элементов с рукой — сам пункт.
@@ -72,8 +72,7 @@ Sounds::Sounds(const std::vector<std::string> &theme_dirs)
 		}
 	}
 
-	std::shuffle(m_music.begin(), m_music.end(), std::mt19937(std::random_device{}()));
-	nextTrack();
+	m_music_pos = m_music.size();
 }
 
 Sounds::~Sounds()
@@ -98,11 +97,20 @@ void Sounds::step(f32 dtime, bool window_active)
 	m_manager->step(dtime);
 	for (sound_handle_t id : m_manager->pollRemovedSounds()) {
 		m_manager->freeId(id);
-		if (id == m_track) {
+		if (id == m_track)
 			m_track = 0;
-			nextTrack();
-		}
 	}
+
+	const bool music_on = g_settings->getBool("menu_music");
+	const float music_gain = g_settings->getFloat("menu_music_volume", 0.0f, 1.0f);
+	if (!music_on && m_track > 0) {
+		m_manager->stopSound(m_track);
+	} else if (music_on && m_track == 0) {
+		nextTrack();
+	} else if (m_track > 0 && music_gain != m_music_gain) {
+		m_manager->fadeSound(m_track, MUSIC_FADE_STEP, music_gain);
+	}
+	m_music_gain = music_gain;
 }
 
 void Sounds::ProcessEvent(Rml::Event &event)
@@ -120,17 +128,30 @@ void Sounds::ProcessEvent(Rml::Event &event)
 
 void Sounds::playEffect(const std::string &name)
 {
-	m_manager->playSound(0, SoundSpec(name, EFFECT_GAIN));
+	if (!g_settings->getBool("menu_ui_sounds"))
+		return;
+	m_manager->playSound(0, SoundSpec(name,
+			g_settings->getFloat("menu_ui_sound_volume", 0.0f, 1.0f)));
 }
 
+// Треки идут вперемешку; когда круг пройден, порядок тасуется заново так,
+// чтобы новый круг не начался с того, чем кончился прежний.
 void Sounds::nextTrack()
 {
 	if (m_music.empty())
 		return;
-	const std::string &name = m_music[m_music_pos];
-	m_music_pos = (m_music_pos + 1) % m_music.size();
+	if (m_music_pos >= m_music.size()) {
+		std::mt19937 rng{std::random_device{}()};
+		const std::string last = m_music.back();
+		std::shuffle(m_music.begin(), m_music.end(), rng);
+		if (m_music.size() > 1 && m_music.front() == last)
+			std::swap(m_music.front(), m_music.back());
+		m_music_pos = 0;
+	}
+	const std::string &name = m_music[m_music_pos++];
+	m_music_gain = g_settings->getFloat("menu_music_volume", 0.0f, 1.0f);
 	m_track = m_manager->allocateId(1);
-	m_manager->playSound(m_track, SoundSpec(name, MUSIC_GAIN, false, MUSIC_FADE_IN));
+	m_manager->playSound(m_track, SoundSpec(name, m_music_gain, false, MUSIC_FADE_IN));
 }
 
 }
