@@ -254,11 +254,7 @@ body.settings.enter {
 	font-weight: 700;
 	letter-spacing: 4dp;
 	color: #A78BFA;
-	margin: 34dp 0 14dp 0;
-}
-
-.rows h3.group:first-child {
-	margin-top: 4dp;
+	margin: 26dp 0 14dp 0;
 }
 
 .setting {

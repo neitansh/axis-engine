@@ -296,10 +296,10 @@ void SettingsScreen::afterUpdate()
 	animateNewRows();
 }
 
-// Строки поднимаются одна за другой. Анимация ставится свойством прямо на
-// новые элементы, а не правилом темы: правило с nth-child или привязка
-// data-style перезапускали её при каждом обновлении модели, и список мигал.
-// Дальше первого экрана задержка не растёт — тех строк всё равно не видно.
+// Строки поднимаются одна за другой. Вход сделан переходом, а не keyframes:
+// анимацию по свойству animation RmlUi перезапускает при любом пересчёте
+// стиля, и список мигал не переставая. Переход же играет один раз — когда
+// начальные opacity и transform снимаются со строки кадром позже.
 void SettingsScreen::animateNewRows()
 {
 	Rml::Element *rows = document() ? document()->GetElementById("rows") : nullptr;
@@ -308,11 +308,23 @@ void SettingsScreen::animateNewRows()
 	int order = 0;
 	for (int i = 0; i < rows->GetNumChildren(); i++) {
 		Rml::Element *row = rows->GetChild(i);
-		if (row->HasAttribute("data-entered"))
+		const Rml::String state = row->GetAttribute<Rml::String>("data-entered", "");
+		if (state == "done")
 			continue;
-		row->SetAttribute("data-entered", "1");
-		const int delay = 120 + std::min(order, 14) * 30;
-		row->SetProperty("animation", "0.4s cubic-out " + std::to_string(delay) + "ms rise-in");
+		if (state == "pending") {
+			row->SetAttribute("data-entered", "done");
+			row->RemoveProperty("opacity");
+			row->RemoveProperty("transform");
+			continue;
+		}
+		row->SetAttribute("data-entered", "pending");
+		// Дальше первого экрана задержка не растёт — тех строк всё равно не видно.
+		const int delay = 60 + std::min(order, 14) * 30;
+		const std::string ms = std::to_string(delay) + "ms";
+		row->SetProperty("opacity", "0");
+		row->SetProperty("transform", "translateY(14dp)");
+		row->SetProperty("transition", "opacity 0.4s cubic-out " + ms
+				+ ", transform 0.4s cubic-out " + ms);
 		order++;
 	}
 }
