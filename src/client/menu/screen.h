@@ -7,6 +7,7 @@
 #include <IEventReceiver.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <string>
+#include <vector>
 
 namespace Rml
 {
@@ -54,8 +55,22 @@ public:
 	// документ сам не умеет — например, поймать клавишу для привязки.
 	virtual bool onEvent(const SEvent &event) { return false; }
 
-	// Зовётся после каждого обновления контекста, пока экран показан.
+	// Клавиша, которую RmlUi не взял: стрелка упёрлась в край прокручиваемого
+	// списка — RmlUi не ходит стрелками через его границу, и экран сам
+	// переносит фокус на соседний остров (см. hop()).
+	virtual void onUnhandledKey(const SEvent &event) {}
+
+	// Зовётся меню после каждого обновления контекста, пока экран показан.
+	void settle();
 	virtual void afterUpdate() {}
+
+	// Подсказка по клавишам в нижней строке рамки: пары «клавиша — действие».
+	struct KeyHint
+	{
+		Rml::String key;
+		Rml::String label;
+	};
+	virtual std::vector<KeyHint> keys() const { return {}; }
 
 protected:
 	// Наследник вешает свои переменные и действия на модель; общие
@@ -66,6 +81,17 @@ protected:
 	Rml::DataModelHandle model() { return m_model; }
 	Rml::ElementDocument *document() { return m_document; }
 
+	// Фокус в текстовом поле: буквы-горячие клавиши экрана в это время — текст.
+	bool typing() const;
+
+	// Элемент в фокусе и перенос фокуса на первый элемент по селектору.
+	Rml::Element *focused() const;
+	bool hop(const char *selector);
+	// Снова встать на элемент с autofocus после ближайшего обновления —
+	// когда модель поменялась и разметка с ним ещё не перестроена.
+	void refocus() { m_autofocus_pending = true; }
+	static int arrowOf(const SEvent &event);
+
 private:
 	void load();
 	void unload();
@@ -75,6 +101,7 @@ private:
 	Rml::ElementDocument *m_document = nullptr;
 	Rml::DataModelHandle m_model;
 	bool m_shown = false;
+	bool m_autofocus_pending = false;
 };
 
 }

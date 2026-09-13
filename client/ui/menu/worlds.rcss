@@ -41,7 +41,8 @@
    цвету без учёта альфы, и путь от прозрачного белого к тёмной подсветке
    проходит через светло-серую вспышку */
 
-.crate:hover {
+.crate:hover,
+.crate:focus {
 	background-color: #1C1C1E99;
 }
 
@@ -85,6 +86,7 @@
 }
 
 .crate:hover .name,
+.crate:focus .name,
 .crate.active .name {
 	color: #F5F5F7;
 }
@@ -154,7 +156,8 @@
 	transition: background-color 0.12s linear-in-out;
 }
 
-.world:hover {
+.world:hover,
+.world:focus {
 	background-color: #2E2E30;
 }
 

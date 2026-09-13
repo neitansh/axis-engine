@@ -14,8 +14,8 @@
 		</div>
 		<div class="switch">
 			<div class="indicator" data-style-transform="tab_indicator"/>
-			<div class="option" data-class-active="mode == 'matches'" data-event-click="open('matches')">[[Matches]]</div>
-			<div class="option" data-class-active="mode == 'servers'" data-event-click="open('servers')">[[Server List]]</div>
+			<div class="option focusable" data-class-active="mode == 'matches'" data-attrif-autofocus="mode == 'matches'" data-event-click="open('matches')">[[Matches]]</div>
+			<div class="option focusable" data-class-active="mode == 'servers'" data-attrif-autofocus="mode == 'servers'" data-event-click="open('servers')">[[Server List]]</div>
 		</div>
 		<div class="head-side"/>
 	</div>
@@ -49,7 +49,7 @@
 					<button class="primary" data-event-click="retry()">[[Try again]]</button>
 				</div>
 				<div class="tiles" data-if="decided && modes_loaded && modes.size > 0">
-					<div class="tile" data-for="m : modes" data-event-click="join_mode(m.id)">
+					<div class="tile focusable" data-for="m : modes" data-event-click="join_mode(m.id)">
 						<div class="tile-title">{{ m.title }}</div>
 						<div class="tile-count">{{ m.count }}</div>
 					</div>
@@ -73,8 +73,9 @@
 			<div class="server-list" data-if="hint == '' && list_loaded">
 				<div data-for="r : servers">
 					<div class="section" data-if="r.kind == 'header'">{{ r.name }}</div>
-					<div class="server" data-if="r.kind == 'row'" data-class-active="r.index == selected"
-							data-event-click="select(r.index)" data-event-dblclick="play(r.index)">
+					<div class="server focusable" data-if="r.kind == 'row'" data-class-active="r.index == selected"
+							data-event-click="select(r.index)" data-event-dblclick="play(r.index)"
+							data-event-keydown="server_key(r.index)">
 						<div class="star" data-if="r.favorite"/>
 						<div class="name">{{ r.name }}</div>
 						<div class="players">{{ r.players }}</div>

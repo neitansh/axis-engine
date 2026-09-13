@@ -17,6 +17,6 @@
 		<div class="tag">[[Based on Luanti]]</div>
 	</div>
 
-	<div class="hint">[[Press any key to skip]]</div>
+	<div class="hint"><span>[[Press any key to skip]]</span><span class="arrow">→</span></div>
 </body>
 </rml>

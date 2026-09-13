@@ -4,6 +4,7 @@
 
 #include "worlds_screen.h"
 
+#include "client/menu/keys.h"
 #include "client/menu/main_menu.h"
 #include "client/menu/text.h"
 #include "filesys.h"
@@ -11,6 +12,7 @@
 #include "mapgen/mapgen.h"
 #include "settings.h"
 #include "util/string.h"
+#include <RmlUi/Core/Element.h>
 #include <algorithm>
 
 namespace menu
@@ -92,6 +94,23 @@ void WorldsScreen::bind(Rml::DataModelConstructor &model)
 			[this](Rml::DataModelHandle, Rml::Event &, const Rml::VariantList &) {
 				if (m_selected >= 0 && (size_t)m_selected < m_worlds.size())
 					menu().startSingleplayer(m_worlds[m_selected]);
+			});
+	// Enter на строке: выбранный мир — играть, другой — выбрать. Дальше
+	// событие не идёт, иначе RmlUi ещё и «нажмёт» строку как кнопку.
+	model.BindEventCallback("world_key",
+			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &event, const Rml::VariantList &args) {
+				if (!isEnter(event))
+					return;
+				event.StopPropagation();
+				const int index = index_arg(args);
+				if (index == m_selected && m_selected >= 0 && (size_t)m_selected < m_worlds.size()) {
+					menu().startSingleplayer(m_worlds[m_selected]);
+					return;
+				}
+				selectWorld(index);
+				m_confirm_delete = false;
+				m_creating = false;
+				handle.DirtyAllVariables();
 			});
 	model.BindEventCallback("create_begin",
 			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
@@ -178,6 +197,42 @@ bool WorldsScreen::onEvent(const SEvent &event)
 		menu().navigate("start");
 	}
 	return true;
+}
+
+// Миры лежат в прокручиваемом списке — острове для стрелок RmlUi; между
+// крейтами, списком и правой карточкой фокус переносится здесь.
+void WorldsScreen::onUnhandledKey(const SEvent &event)
+{
+	const int arrow = arrowOf(event);
+	if (arrow == 0)
+		return;
+	const bool horizontal = event.KeyInput.Key == KEY_LEFT || event.KeyInput.Key == KEY_RIGHT;
+	Rml::Element *focus = focused();
+	const bool in_crates = focus && focus->Closest(".crates");
+	const bool in_worlds = focus && focus->Closest(".world-list");
+	const bool in_side = focus && (focus->Closest(".side") || focus->Closest(".list-actions"));
+
+	if (horizontal && arrow > 0 && in_crates) {
+		if (!hop(".world.active"))
+			hop(".side button, .side input, button.new");
+	} else if (horizontal && arrow > 0 && in_worlds) {
+		hop(".side button.primary, .side button, .side input");
+	} else if (horizontal && arrow < 0 && in_worlds) {
+		hop(".crate.active");
+	} else if (horizontal && arrow < 0 && in_side) {
+		if (!hop(".world.active"))
+			hop(".crate.active");
+	} else if (!horizontal && arrow > 0 && in_worlds) {
+		hop("button.new");
+	} else if (!horizontal && arrow < 0 && in_side) {
+		hop(".world.active");
+	}
+}
+
+std::vector<Screen::KeyHint> WorldsScreen::keys() const
+{
+	return {{"↑↓", strgettext("Choose")}, {"Enter", strgettext("Play")},
+			{"Tab", strgettext("Next")}, {"Esc", strgettext("Back")}};
 }
 
 void WorldsScreen::selectCrate(int index)

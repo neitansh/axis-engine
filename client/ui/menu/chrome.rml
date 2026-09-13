@@ -2,6 +2,7 @@
 <head>
 	<title>chrome</title>
 	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="page.rcss"/>
 	<style>
 		body {
 			display: block;
@@ -9,7 +10,8 @@
 			z-index: 100;
 		}
 
-		body.shown .version {
+		body.shown .version,
+		body.shown .keys {
 			animation: 0.7s linear-in-out chrome-in;
 		}
 
@@ -17,9 +19,39 @@
 			0% { opacity: 0; }
 			100% { opacity: 1; }
 		}
+
+		/* Подсказка по клавишам экрана — строкой в левом нижнем углу */
+
+		.keys {
+			position: absolute;
+			left: 56dp;
+			bottom: 10dp;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+		}
+
+		.keys .hint {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			margin-right: 18dp;
+		}
+
+		.keys .kbd {
+			margin-right: 6dp;
+		}
+
+		.keys .label {
+			font-size: 12dp;
+			color: #86868B;
+		}
 	</style>
 </head>
 <body data-model="chrome">
+	<div class="keys">
+		<div class="hint" data-for="k : keys"><span class="kbd">{{ k.key }}</span><span class="label">{{ k.label }}</span></div>
+	</div>
 	<p class="version">{{ version }}</p>
 </body>
 </rml>

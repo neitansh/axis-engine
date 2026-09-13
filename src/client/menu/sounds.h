@@ -57,6 +57,7 @@ private:
 	float m_music_gain = 0.0f;
 	bool m_hold_music = false;
 	Rml::Element *m_hovered = nullptr;
+	Rml::Context *m_context = nullptr;
 };
 
 }

@@ -7,6 +7,7 @@
 #include "launcher.h"
 #include "matchmaking.h"
 #include "net.h"
+#include "screen.h"
 #include "server_list.h"
 #include "sounds.h"
 #include "ui/host.h"
@@ -28,8 +29,6 @@ class ElementDocument;
 
 namespace menu
 {
-
-class Screen;
 
 // Главное меню на RmlUi. Логика — здесь и в экранах, вид — файлы темы:
 // движок несёт тему по умолчанию в client/ui/menu, крейт может положить
@@ -73,6 +72,7 @@ public:
 	Sounds &sounds() { return *m_sounds; }
 	// Рамка с версией поверх экранов; заставка прячет её, версия там своя.
 	void showChrome(bool show);
+	void showKeys(const std::vector<Screen::KeyHint> &keys);
 
 private:
 	bool OnEvent(const SEvent &event) override;
@@ -98,7 +98,9 @@ private:
 	// Общая рамка поверх экранов: версия в углу и то, что должно быть видно
 	// везде.
 	Rml::ElementDocument *m_chrome = nullptr;
+	Rml::DataModelHandle m_chrome_model;
 	Rml::String m_version;
+	std::vector<Screen::KeyHint> m_keys;
 	bool m_start_game = false;
 	bool m_joining = false;
 	std::string m_join_error;

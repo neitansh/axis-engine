@@ -41,6 +41,7 @@
 }
 
 .switch .option:hover,
+.switch .option:focus,
 .switch .option.active {
 	color: #F5F5F7;
 }
@@ -169,7 +170,8 @@
 	transition: background-color 0.12s linear-in-out, transform 0.15s cubic-out;
 }
 
-.tile:hover {
+.tile:hover,
+.tile:focus {
 	background-color: #2C2C2E;
 	transform: translateY(-2dp);
 }
@@ -287,7 +289,8 @@
 
 /* Наведение тёмным, а не белым с прозрачностью — см. worlds.rcss, .crate */
 
-.server:hover {
+.server:hover,
+.server:focus {
 	background-color: #2E2E30;
 }
 

@@ -52,6 +52,8 @@ body.page {
 	margin-right: 6dp;
 	border-radius: 12dp;
 	cursor: pointer;
+	tab-index: auto;
+	nav: auto;
 	transition: background-color 0.12s linear-in-out;
 }
 
@@ -63,11 +65,13 @@ body.page {
 	transition: transform 0.18s cubic-out, image-color 0.12s linear-in-out;
 }
 
-.back:hover {
+.back:hover,
+.back:focus {
 	background-color: #FFFFFF14;
 }
 
-.back:hover .arrow {
+.back:hover .arrow,
+.back:focus .arrow {
 	image-color: #F5F5F7;
 	transform: translateX(-3dp);
 }

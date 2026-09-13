@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 20:10+0300\n"
+"POT-Creation-Date: 2026-09-13 21:54+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -109,6 +109,7 @@ msgid "Disabled"
 msgstr "Отключено"
 
 #: builtin/common/settings/components.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Edit"
 msgstr "Править"
 
@@ -1974,7 +1975,9 @@ msgstr "Показать маленькую карту в углу экрана.
 msgid ""
 "Show the studio and engine cards for a few seconds when the game starts. Any "
 "key skips them."
-msgstr "На несколько секунд показывать при запуске карточки студии и движка. Любая клавиша пропускает."
+msgstr ""
+"На несколько секунд показывать при запуске карточки студии и движка. Любая "
+"клавиша пропускает."
 
 #: builtin/common/settings/descriptions.lua
 msgid "Show the technical information panel."
@@ -2851,7 +2854,10 @@ msgstr "Звук"
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/mainmenu/content/dlg_contentdb.lua
 #: builtin/mainmenu/content/dlg_package.lua client/ui/menu/loading.rml
-#: src/gui/guiVolumeChange.cpp
+#: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/settings_screen.cpp
+#: src/client/menu/screens/worlds_screen.cpp src/gui/guiVolumeChange.cpp
 msgid "Back"
 msgstr "Назад"
 
@@ -3542,6 +3548,7 @@ msgid "Are you sure you want to quit?"
 msgstr "Вы уверены, что хотите уйти?"
 
 #: builtin/mainmenu/dlg_confirm_exit.lua client/ui/menu/start.rml
+#: src/client/menu/screens/start_screen.cpp
 msgid "Quit"
 msgstr "Выйти"
 
@@ -4098,6 +4105,7 @@ msgid "Incompatible Servers"
 msgstr "Несовместимые сервера"
 
 #: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
+#: src/client/menu/screens/online_screen.cpp
 msgid "Join"
 msgstr "Подключиться"
 
@@ -4123,6 +4131,7 @@ msgid "Ping"
 msgstr "Задержка"
 
 #: builtin/mainmenu/tab_online.lua client/ui/menu/worlds.rml
+#: src/client/menu/screens/worlds_screen.cpp
 msgid "Play"
 msgstr "Играть"
 
@@ -4245,10 +4254,6 @@ msgstr "Миры"
 #: client/ui/menu/worlds.rml
 msgid "Create a world for this crate and it will show up here."
 msgstr "Создайте мир для этого крейта — он появится здесь."
-
-#: client/ui/menu/worlds.rml
-msgid "Keep"
-msgstr "Оставить"
 
 #: client/ui/menu/worlds.rml
 msgid "Leave the seed empty for a random world."
@@ -5384,9 +5389,25 @@ msgstr "Y (геймпад)"
 msgid "Copied"
 msgstr "Скопировано"
 
+#: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/worlds_screen.cpp
+msgid "Next"
+msgstr "Дальше"
+
+#: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/start_screen.cpp src/gui/guiOpenURL.cpp
+msgid "Open"
+msgstr "Открыть"
+
 #: src/client/menu/screens/online_screen.cpp
 msgid "Address and port are required"
 msgstr "Нужны адрес и порт"
+
+#: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/start_screen.cpp
+#: src/client/menu/screens/worlds_screen.cpp
+msgid "Choose"
+msgstr "Выбор"
 
 #: src/client/menu/screens/online_screen.cpp
 msgid "Connect by address"
@@ -5396,6 +5417,19 @@ msgstr "Подключиться по адресу"
 #, c-format
 msgid "Starts in %d s"
 msgstr "Старт через %d с"
+
+#: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Tabs"
+msgstr "Вкладки"
+
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Change"
+msgstr "Изменить"
+
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Rows"
+msgstr "Строки"
 
 #: src/client/menu/screens/settings_screen.cpp
 msgid ""
@@ -5517,10 +5551,6 @@ msgstr "Не удалось загрузить скрипт главного м�
 #: src/gui/guiFormSpecMenu.cpp
 msgid "Proceed"
 msgstr "Продолжить"
-
-#: src/gui/guiOpenURL.cpp
-msgid "Open"
-msgstr "Открыть"
 
 #: src/gui/guiOpenURL.cpp
 msgid "Open URL?"
@@ -11125,7 +11155,8 @@ msgid ""
 "The sound fades to it when you switch windows and comes back when you return."
 msgstr ""
 "Множитель громкости, когда окно не в фокусе.\n"
-"Звук плавно угасает до него при переключении окна и возвращается, когда вы вернётесь."
+"Звук плавно угасает до него при переключении окна и возвращается, когда вы "
+"вернётесь."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -11485,5 +11516,5 @@ msgstr "Адрес прокси для cURL"
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
 
-#~ msgid "Volume multiplier when the window is unfocused."
-#~ msgstr "Увеличивается громкость, когда окно не сфокусировано."
+#~ msgid "Keep"
+#~ msgstr "Оставить"

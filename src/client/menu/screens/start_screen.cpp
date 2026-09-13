@@ -5,6 +5,7 @@
 #include "start_screen.h"
 
 #include "client/menu/main_menu.h"
+#include "gettext.h"
 #include "settings.h"
 #include <RmlUi/Core/ElementDocument.h>
 
@@ -62,6 +63,12 @@ void StartScreen::left()
 {
 	if (document())
 		document()->SetClass("veiled", false);
+}
+
+std::vector<Screen::KeyHint> StartScreen::keys() const
+{
+	return {{"↑↓", strgettext("Choose")}, {"Enter", strgettext("Open")},
+			{"Esc", strgettext("Quit")}};
 }
 
 // Подтверждение можно выключить галкой в нём же или в настройках — тогда

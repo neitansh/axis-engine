@@ -13,6 +13,11 @@
  *   высота органа управления 44dp
  */
 
+/* Клавиатура: всё, на что можно нажать, берёт фокус (tab-index) и ходит
+   стрелками (nav — пространственный поиск RmlUi); nav у body — откуда
+   искать, пока ничего не в фокусе. Вид в фокусе — тот же, что под мышью:
+   наведение мышью переносит фокус (menu::Sounds), так что подсветка одна. */
+
 body {
 	position: absolute;
 	top: 0;
@@ -27,6 +32,29 @@ body {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	nav: auto;
+}
+
+button,
+input.text,
+input.checkbox,
+select,
+.focusable {
+	tab-index: auto;
+	nav: auto;
+}
+
+/* Внутри строки-пункта фокус берёт сама строка, а не подпись под курсором:
+   клавиши, нажатые на строке, должны приходить ей. Поля и списки внутри
+   остаются сами по себе. */
+
+.focusable > * {
+	focus: none;
+}
+
+.focusable input,
+.focusable select {
+	focus: auto;
 }
 
 h1 {
@@ -89,7 +117,8 @@ button {
 	transition: background-color 0.12s linear-in-out, color 0.12s linear-in-out, opacity 0.12s linear-in-out;
 }
 
-button:hover {
+button:hover,
+button:focus {
 	background-color: #38383A;
 }
 
@@ -103,7 +132,8 @@ button.primary {
 	font-weight: 600;
 }
 
-button.primary:hover {
+button.primary:hover,
+button.primary:focus {
 	background-color: #B9A3FB;
 }
 
@@ -116,7 +146,8 @@ button.ghost {
 	color: #A1A1A6;
 }
 
-button.ghost:hover {
+button.ghost:hover,
+button.ghost:focus {
 	color: #F5F5F7;
 	background-color: #FFFFFF14;
 }
@@ -125,7 +156,8 @@ button.destructive {
 	color: #FF453A;
 }
 
-button.destructive:hover {
+button.destructive:hover,
+button.destructive:focus {
 	background-color: #FF453A;
 	color: #FFFFFF;
 }
@@ -136,7 +168,8 @@ button.danger {
 	font-weight: 600;
 }
 
-button.danger:hover {
+button.danger:hover,
+button.danger:focus {
 	background-color: #FF5C52;
 }
 
@@ -232,7 +265,8 @@ input.checkbox {
 	transition: border-color 0.12s linear-in-out, background-color 0.12s linear-in-out;
 }
 
-input.checkbox:hover {
+input.checkbox:hover,
+input.checkbox:focus {
 	border-color: #A78BFA;
 }
 

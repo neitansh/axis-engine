@@ -24,6 +24,8 @@ public:
 	void left() override;
 	void afterUpdate() override;
 	bool onEvent(const SEvent &event) override;
+	std::vector<KeyHint> keys() const override;
+	void onUnhandledKey(const SEvent &event) override;
 
 protected:
 	void bind(Rml::DataModelConstructor &model) override;

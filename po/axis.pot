@@ -6,9 +6,21 @@
 #, fuzzy
 msgid ""
 msgstr ""
+"#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 20:10+0300\n"
+"POT-Creation-Date: 2026-09-13 21:54+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
+"Project-Id-Version: axis\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-13 21:57+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -131,6 +143,7 @@ msgid "Select file"
 msgstr ""
 
 #: builtin/common/settings/components.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Edit"
 msgstr ""
 
@@ -2688,7 +2701,11 @@ msgstr ""
 #. TRANSLATORS: Button text to go back
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/mainmenu/content/dlg_contentdb.lua
-#: builtin/mainmenu/content/dlg_package.lua src/gui/guiVolumeChange.cpp
+#: builtin/mainmenu/content/dlg_package.lua
+#: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/settings_screen.cpp
+#: src/client/menu/screens/worlds_screen.cpp src/gui/guiVolumeChange.cpp
 #: client/ui/menu/loading.rml
 msgid "Back"
 msgstr ""
@@ -3214,7 +3231,8 @@ msgstr ""
 msgid "Always show this dialog."
 msgstr ""
 
-#: builtin/mainmenu/dlg_confirm_exit.lua client/ui/menu/start.rml
+#: builtin/mainmenu/dlg_confirm_exit.lua
+#: src/client/menu/screens/start_screen.cpp client/ui/menu/start.rml
 msgid "Quit"
 msgstr ""
 
@@ -3765,7 +3783,8 @@ msgstr ""
 msgid "Connecting…"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
+#: client/ui/menu/online.rml
 msgid "Join"
 msgstr ""
 
@@ -3822,7 +3841,8 @@ msgstr ""
 msgid "Incompatible Servers"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/worlds_screen.cpp
+#: client/ui/menu/worlds.rml
 msgid "Play"
 msgstr ""
 
@@ -4909,8 +4929,29 @@ msgstr ""
 msgid "Copied"
 msgstr ""
 
+#: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/worlds_screen.cpp
+msgid "Next"
+msgstr ""
+
+#: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/start_screen.cpp src/gui/guiOpenURL.cpp
+msgid "Open"
+msgstr ""
+
 #: src/client/menu/screens/online_screen.cpp
 msgid "Connect by address"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/start_screen.cpp
+#: src/client/menu/screens/worlds_screen.cpp
+msgid "Choose"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Tabs"
 msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
@@ -4920,6 +4961,14 @@ msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
 msgid "Address and port are required"
+msgstr ""
+
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Rows"
+msgstr ""
+
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Change"
 msgstr ""
 
 #: src/client/menu/screens/settings_screen.cpp
@@ -5049,10 +5098,6 @@ msgstr ""
 
 #: src/gui/guiOpenURL.cpp
 msgid "Unable to open URL"
-msgstr ""
-
-#: src/gui/guiOpenURL.cpp
-msgid "Open"
 msgstr ""
 
 #: src/gui/guiVolumeChange.cpp
@@ -10170,10 +10215,6 @@ msgstr ""
 
 #: client/ui/menu/worlds.rml
 msgid "Leave the seed empty for a random world."
-msgstr ""
-
-#: client/ui/menu/worlds.rml
-msgid "Keep"
 msgstr ""
 
 #: client/ui/menu/worlds.rml

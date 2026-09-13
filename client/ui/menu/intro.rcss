@@ -73,8 +73,25 @@ body {
 
 .hint {
 	position: absolute;
-	right: 24dp;
-	bottom: 20dp;
-	font-size: 12dp;
-	color: #86868B4D;
+	right: 32dp;
+	bottom: 28dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	font-size: 16dp;
+	color: #A1A1A6;
+}
+
+/* Стрелка подзывает: качается вправо-влево */
+
+.hint .arrow {
+	margin-left: 10dp;
+	font-size: 20dp;
+	color: #F5F5F7;
+	animation: 1.2s cubic-in-out infinite alternate hint-nudge;
+}
+
+@keyframes hint-nudge {
+	0% { transform: translateX(0dp); }
+	100% { transform: translateX(6dp); }
 }

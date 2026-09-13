@@ -89,26 +89,27 @@ body {
 	line-height: 70dp;
 	white-space: nowrap;
 	text-transform: uppercase;
-	color: #F5F5F7;
+	color: #86868B;
 	transform: translateX(0dp);
 	transition: color 0.2s linear-in-out, transform 0.28s cubic-out;
 }
 
-.menu:hover .word {
-	color: #86868B;
-}
+/* Текущий пункт один — тот, что в фокусе (мышь переносит фокус за собой):
+   он белый и с дымкой, остальные глохнут */
 
-.menu:hover .item:hover .word {
+.item:hover .word,
+.item:focus .word {
 	color: #F5F5F7;
 	transform: translateX(14dp);
 }
 
-.item:hover .glow {
+.item:hover .glow,
+.item:focus .glow {
 	opacity: 1;
 	transform: translateX(0dp);
 }
 
-.menu:hover .item:active .word {
+.item:active .word {
 	transform: translateX(22dp);
 }
 

@@ -4,10 +4,12 @@
 
 #include "online_screen.h"
 
+#include "client/menu/keys.h"
 #include "client/menu/main_menu.h"
 #include "gettext.h"
 #include "settings.h"
 #include "util/string.h"
+#include <RmlUi/Core/Element.h>
 
 namespace menu
 {
@@ -119,6 +121,20 @@ void OnlineScreen::bind(Rml::DataModelConstructor &model)
 				joinSelected();
 				handle.DirtyAllVariables();
 			});
+	// Enter на строке: выбранный сервер — войти, другой — выбрать.
+	model.BindEventCallback("server_key",
+			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &event, const Rml::VariantList &args) {
+				if (!isEnter(event))
+					return;
+				event.StopPropagation();
+				const int index = index_arg(args);
+				if (index == m_selected && m_selected >= 0) {
+					joinSelected();
+				} else {
+					selectServer(index);
+				}
+				handle.DirtyAllVariables();
+			});
 	model.BindEventCallback("join_selected",
 			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
 				joinSelected();
@@ -188,14 +204,60 @@ void OnlineScreen::afterUpdate()
 
 bool OnlineScreen::onEvent(const SEvent &event)
 {
-	if (event.EventType != EET_KEY_INPUT_EVENT || !event.KeyInput.PressedDown
-			|| event.KeyInput.Key != KEY_ESCAPE)
+	if (event.EventType != EET_KEY_INPUT_EVENT || !event.KeyInput.PressedDown)
 		return false;
-	if (m_waiting)
-		menu().matchmaking().cancel();
-	else
-		menu().navigate("start");
-	return true;
+	if (event.KeyInput.Key == KEY_ESCAPE) {
+		if (m_waiting)
+			menu().matchmaking().cancel();
+		else
+			menu().navigate("start");
+		return true;
+	}
+	// Q и E листают вкладки, как бамперы на геймпаде; в поле ввода это буквы.
+	if ((event.KeyInput.Key == KEY_KEY_Q || event.KeyInput.Key == KEY_KEY_E) && !typing()) {
+		open(m_mode == "matches" ? "servers" : "matches");
+		model().DirtyAllVariables();
+		// Тело вкладки пересобирается, и фокус в нём пропал бы; встаёт на
+		// открытую вкладку — от неё стрелка вниз ведёт в содержимое.
+		refocus();
+		return true;
+	}
+	return false;
+}
+
+// Плитки арен и список серверов — прокручиваемые острова для стрелок RmlUi;
+// между переключателем, списком и правой колонкой фокус переносится здесь.
+void OnlineScreen::onUnhandledKey(const SEvent &event)
+{
+	const int arrow = arrowOf(event);
+	if (arrow == 0)
+		return;
+	const bool horizontal = event.KeyInput.Key == KEY_LEFT || event.KeyInput.Key == KEY_RIGHT;
+	Rml::Element *focus = focused();
+	const bool in_switch = focus && focus->Closest(".switch");
+	const bool in_list = focus && (focus->Closest(".server-list") || focus->Closest(".tiles"));
+	const bool in_side = focus && (focus->Closest(".side") || focus->Closest(".list-actions")
+			|| focus->Closest(".centered") || focus->Closest(".waiting"));
+
+	if (!horizontal && arrow > 0 && in_switch) {
+		if (!hop(".tile, .server.active, .server"))
+			hop(".centered button, .waiting button, .side button.primary, .side input");
+	} else if (!horizontal && arrow < 0 && (in_list || in_side)) {
+		if (in_list || !hop(".server.active, .server"))
+			hop(".switch .option.active");
+	} else if (horizontal && arrow > 0 && in_list) {
+		hop(".side button.primary, .side input");
+	} else if (horizontal && arrow < 0 && in_side) {
+		hop(".server.active, .server, .tile");
+	} else if (!horizontal && arrow > 0 && in_list) {
+		hop("button.refresh");
+	}
+}
+
+std::vector<Screen::KeyHint> OnlineScreen::keys() const
+{
+	return {{"Q E", strgettext("Tabs")}, {"↑↓", strgettext("Choose")},
+			{"Enter", strgettext("Join")}, {"Esc", strgettext("Back")}};
 }
 
 void OnlineScreen::refresh()

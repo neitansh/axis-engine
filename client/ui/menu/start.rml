@@ -10,13 +10,13 @@
 			<img src="textures/base/pack/menu_header.png" rect="483 0 378 144"/>
 		</div>
 		<div class="menu">
-			<div class="item" data-event-click="nav('online')"><i class="glow"/><span class="word">[[Multiplayer]]</span></div>
-			<div class="item" data-event-click="nav('worlds')"><i class="glow"/><span class="word">[[Worlds]]</span></div>
-			<div class="item" data-event-click="nav('settings')"><i class="glow"/><span class="word">[[Settings]]</span></div>
-			<div class="item apart" data-event-click="quit_begin()"><i class="glow"/><span class="word">[[Exit]]</span></div>
+			<div class="item focusable" autofocus data-event-click="nav('online')"><i class="glow"/><span class="word">[[Multiplayer]]</span></div>
+			<div class="item focusable" data-event-click="nav('worlds')"><i class="glow"/><span class="word">[[Worlds]]</span></div>
+			<div class="item focusable" data-event-click="nav('settings')"><i class="glow"/><span class="word">[[Settings]]</span></div>
+			<div class="item apart focusable" data-event-click="quit_begin()"><i class="glow"/><span class="word">[[Exit]]</span></div>
 		</div>
 	</div>
-	<div class="about-link" data-event-click="nav('about')">[[About]]</div>
+	<div class="about-link focusable" data-event-click="nav('about')">[[About]]</div>
 	<div class="veil"/>
 
 	<div class="scrim" data-if="confirm_exit" data-event-click="quit_cancel()"/>

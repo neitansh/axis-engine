@@ -148,7 +148,7 @@ void MainMenu::run()
 				g_settings->getFloat("gui_scaling", 0.5f, 20.0f));
 		m_host.update(*m_context);
 		if (m_current)
-			m_current->afterUpdate();
+			m_current->settle();
 
 		driver->setFog(sky);
 		driver->beginScene(true, true, sky);
@@ -188,6 +188,7 @@ void MainMenu::navigate(const std::string &name)
 		m_current->hide();
 	m_current = next;
 	m_current->show();
+	showKeys(m_current->keys());
 }
 
 void MainMenu::quit()
@@ -305,7 +306,8 @@ bool MainMenu::OnEvent(const SEvent &event)
 	case EET_STRING_INPUT_EVENT:
 		if (m_current && m_current->onEvent(event))
 			return true;
-		m_host.feedEvent(*m_context, event);
+		if (!m_host.feedEvent(*m_context, event) && m_current)
+			m_current->onUnhandledKey(event);
 		// Под меню нет ни игры, ни другого интерфейса, которым этот ввод
 		// мог бы пригодиться.
 		return true;
@@ -336,10 +338,24 @@ void MainMenu::loadChrome()
 		m_context->RemoveDataModel("chrome");
 	}
 	Rml::DataModelConstructor model = m_context->CreateDataModel("chrome");
+	if (auto hint = model.RegisterStruct<Screen::KeyHint>()) {
+		hint.RegisterMember("key", &Screen::KeyHint::key);
+		hint.RegisterMember("label", &Screen::KeyHint::label);
+	}
+	model.RegisterArray<std::vector<Screen::KeyHint>>();
 	m_version = g_version_hash;
 	model.Bind("version", &m_version);
+	model.Bind("keys", &m_keys);
+	m_chrome_model = model.GetModelHandle();
 	m_chrome = ui::Host::loadDocument(*m_context, themeFile("chrome.rml"));
 	showChrome(!m_current || m_current->name() != "intro");
+}
+
+void MainMenu::showKeys(const std::vector<Screen::KeyHint> &keys)
+{
+	m_keys = keys;
+	if (m_chrome_model)
+		m_chrome_model.DirtyVariable("keys");
 }
 
 void MainMenu::showChrome(bool show)

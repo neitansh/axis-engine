@@ -47,7 +47,8 @@
 	transition: transform 0.15s cubic-out, image-color 0.12s linear-in-out;
 }
 
-.tabs .tab:hover img {
+.tabs .tab:hover img,
+.tabs .tab:focus img {
 	image-color: #F5F5F7;
 	transform: translateY(-2dp);
 }
@@ -126,7 +127,8 @@
 	padding-bottom: 10dp;
 }
 
-.setting.focused {
+.setting.focused,
+.setting:focus {
 	background-color: #FFFFFF0A;
 }
 

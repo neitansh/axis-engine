@@ -36,6 +36,8 @@ public:
 	void refresh() override;
 	bool onEvent(const SEvent &event) override;
 	void afterUpdate() override;
+	std::vector<KeyHint> keys() const override;
+	void onUnhandledKey(const SEvent &event) override;
 
 protected:
 	void bind(Rml::DataModelConstructor &model) override;
@@ -72,6 +74,8 @@ private:
 	void refreshRow(Row &row);
 	void refreshAll();
 	void scrollToTop();
+	void turnPage(int direction);
+	bool rowKey(int index, Rml::Event &event);
 	void changed(int index, Rml::Event &event);
 	void clicked(int index, Rml::Event &event);
 	void step(Row &row, const SettingDef &def, int direction);

@@ -190,4 +190,10 @@ bool AboutScreen::onEvent(const SEvent &event)
 	return true;
 }
 
+std::vector<Screen::KeyHint> AboutScreen::keys() const
+{
+	return {{"Tab", strgettext("Next")}, {"Enter", strgettext("Open")},
+			{"Esc", strgettext("Back")}};
+}
+
 }

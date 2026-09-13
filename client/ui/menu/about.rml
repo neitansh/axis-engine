@@ -22,13 +22,13 @@
 				<div class="fact"><span class="k">[[Renderer]]</span><span class="v">{{ renderer }}</span></div>
 				<div class="fact"><span class="k">[[System]]</span><span class="v">{{ platform }}</span></div>
 			</div>
-			<button data-if="copied == ''" data-event-click="copy()">[[Copy for a bug report]]</button>
+			<button data-if="copied == ''" autofocus data-event-click="copy()">[[Copy for a bug report]]</button>
 			<button data-if="copied != ''" data-event-click="copy()">{{ copied }}</button>
 			<button data-event-click="open_data()">[[Open the data folder]]</button>
 			<p class="path">{{ user_path }}</p>
 			<div class="links">
-				<div class="link" data-event-click="open_url('https://github.com/neitansh/axis-engine')">axis-engine</div>
-				<div class="link" data-event-click="open_url('https://www.luanti.org/')">luanti.org</div>
+				<div class="link focusable" data-event-click="open_url('https://github.com/neitansh/axis-engine')">axis-engine</div>
+				<div class="link focusable" data-event-click="open_url('https://www.luanti.org/')">luanti.org</div>
 			</div>
 		</div>
 
@@ -36,7 +36,7 @@
 			<h3 class="group" data-if="music.size > 0">[[Music]]</h3>
 			<p class="lead" data-if="music.size > 0">[[The tracks under the menu — click to open the source:]]</p>
 			<div class="tracks" data-if="music.size > 0">
-				<div class="track" data-for="t : music" data-event-click="open_url(t.url)">
+				<div class="track focusable" data-for="t : music" data-event-click="open_url(t.url)">
 					<span class="name">{{ t.title }}</span>
 					<span class="note">{{ t.author }} · {{ t.license }}</span>
 				</div>

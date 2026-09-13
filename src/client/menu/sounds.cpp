@@ -12,6 +12,7 @@
 #include <RmlUi/Core/ComputedValues.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
+#include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Event.h>
 #include <algorithm>
 #include <random>
@@ -83,10 +84,10 @@ Sounds::~Sounds()
 
 void Sounds::attach(Rml::Context &context)
 {
-	if (!m_manager)
-		return;
+	m_context = &context;
 	context.AddEventListener("mouseover", this);
 	context.AddEventListener("mousedown", this);
+	context.AddEventListener("focus", this, true);
 }
 
 void Sounds::step(f32 dtime, bool window_active)
@@ -113,22 +114,46 @@ void Sounds::step(f32 dtime, bool window_active)
 	m_music_gain = music_gain;
 }
 
+// Мышь ведёт фокус за собой: подсветка у пункта одна, что под курсором, что
+// под стрелками, и Enter жмёт то, на что смотришь. Поле ввода фокус держит:
+// пока набирают текст, курсор над кнопкой его не отнимает.
 void Sounds::ProcessEvent(Rml::Event &event)
 {
 	Rml::Element *target = pointerTarget(event.GetTargetElement());
-	if (event.GetId() == Rml::EventId::Mouseover) {
-		if (target && target != m_hovered)
+	switch (event.GetId()) {
+	case Rml::EventId::Mouseover: {
+		if (!target)
+			break;
+		const bool focusable = target->GetComputedValues().tab_index() == Rml::Style::TabIndex::Auto;
+		Rml::Element *focused = m_context ? m_context->GetFocusElement() : nullptr;
+		const bool typing = focused && focused->GetTagName() == "input"
+				&& focused->GetAttribute<Rml::String>("type", "text") == "text";
+		if (focusable && !typing) {
+			if (focused != target)
+				target->Focus(false);
+		} else if (target != m_hovered) {
 			play("hover");
+		}
 		m_hovered = target;
-	} else if (event.GetId() == Rml::EventId::Mousedown) {
+		break;
+	}
+	case Rml::EventId::Focus:
+		if (Rml::Element *focused = event.GetTargetElement();
+				focused && focused->GetComputedValues().tab_index() == Rml::Style::TabIndex::Auto)
+			play("hover");
+		break;
+	case Rml::EventId::Mousedown:
 		if (target && event.GetParameter<int>("button", 0) == 0)
 			play("click");
+		break;
+	default:
+		break;
 	}
 }
 
 void Sounds::play(const std::string &name)
 {
-	if (!g_settings->getBool("menu_ui_sounds"))
+	if (!m_manager || !g_settings->getBool("menu_ui_sounds"))
 		return;
 	m_manager->playSound(0, SoundSpec(name,
 			g_settings->getFloat("menu_ui_sound_volume", 0.0f, 1.0f)));

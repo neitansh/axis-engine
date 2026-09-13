@@ -5,6 +5,7 @@
 #include "settings_screen.h"
 
 #include "client/keycode.h"
+#include "client/menu/keys.h"
 #include "client/menu/main_menu.h"
 #include "client/menu/settings_presets.h"
 #include "client/renderingengine.h"
@@ -15,6 +16,7 @@
 #include "util/string.h"
 #include <IOSOperator.h>
 #include <IrrlichtDevice.h>
+#include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Event.h>
@@ -281,6 +283,69 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 				m_capturing = index_arg(args);
 				handle.DirtyVariable("capturing");
 			});
+	// Клавиши на строке в фокусе: ←→ меняют значение, Enter — то же, что
+	// щелчок по клавише в строке привязки или по полю. Только для самой
+	// строки: у ползунка и поля внутри свои стрелки, их RmlUi ведёт сам.
+	model.BindEventCallback("row_key",
+			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &event, const Rml::VariantList &args) {
+				if (Rml::Element *target = event.GetTargetElement();
+						target && target->Closest("input, select"))
+					return;
+				if (rowKey(index_arg(args), event))
+					handle.DirtyAllVariables();
+			});
+}
+
+bool SettingsScreen::rowKey(int index, Rml::Event &event)
+{
+	if (index < 0 || (size_t)index >= m_rows.size())
+		return false;
+	Row &row = m_rows[index];
+	const Rml::Input::KeyIdentifier key = keyOf(event);
+	const int direction = key == Rml::Input::KI_LEFT ? -1 : key == Rml::Input::KI_RIGHT ? 1 : 0;
+
+	if (isEnter(event)) {
+		event.StopPropagation();
+		if (row.kind == "key") {
+			m_capturing = index;
+			return true;
+		}
+		// Поле или список внутри строки: Enter отдаёт им фокус, Esc вернёт.
+		if (Rml::Element *inner = event.GetCurrentElement()->QuerySelector("input.text, select")) {
+			inner->Focus(true);
+			return false;
+		}
+		if (const SettingDef *def = m_catalog.find(row.name);
+				def && def->kind == SettingDef::Kind::Bool) {
+			step(row, *def, 1);
+			return true;
+		}
+		return false;
+	}
+	if (direction == 0)
+		return false;
+	event.StopPropagation();
+	if (row.kind == "preset") {
+		stepSpecial(row, direction);
+		return true;
+	}
+	const SettingDef *def = m_catalog.find(row.name);
+	if (!def)
+		return false;
+	if (def->kind == SettingDef::Kind::Int || def->kind == SettingDef::Kind::Float) {
+		if (!isRanged(*def))
+			return false;
+		double value = 0;
+		try {
+			value = std::stod(readSetting(*def));
+		} catch (...) {
+		}
+		value = std::clamp(value + direction * sliderStep(*def), *def->min, *def->max);
+		write(row, formatNumber(value, def->kind == SettingDef::Kind::Int), true);
+		return true;
+	}
+	step(row, *def, direction);
+	return true;
 }
 
 void SettingsScreen::afterUpdate()
@@ -305,6 +370,44 @@ void SettingsScreen::refresh()
 	model().DirtyAllVariables();
 }
 
+void SettingsScreen::turnPage(int direction)
+{
+	if (m_pages.empty())
+		return;
+	int pos = 0;
+	for (size_t i = 0; i < m_pages.size(); i++)
+		if (m_pages[i].id == m_page)
+			pos = (int)i;
+	const int count = (int)m_pages.size();
+	m_page = m_pages[((pos + direction) % count + count) % count].id;
+	rebuild();
+	scrollToTop();
+	model().DirtyAllVariables();
+	refocus();
+}
+
+// Строки лежат в прокручиваемом списке — острове для стрелок RmlUi: вниз с
+// вкладки — на первую строку, вверх с первой строки — на открытую вкладку.
+void SettingsScreen::onUnhandledKey(const SEvent &event)
+{
+	const int arrow = arrowOf(event);
+	if (arrow == 0 || (event.KeyInput.Key != KEY_DOWN && event.KeyInput.Key != KEY_UP))
+		return;
+	Rml::Element *focus = focused();
+	const bool in_rows = focus && focus->Closest(".rows");
+	if (arrow > 0 && !in_rows)
+		hop(".setting");
+	else if (arrow < 0 && in_rows)
+		hop(".tab.active");
+}
+
+std::vector<Screen::KeyHint> SettingsScreen::keys() const
+{
+	return {{"Q E", strgettext("Tabs")}, {"↑↓", strgettext("Rows")},
+			{"←→", strgettext("Change")}, {"Enter", strgettext("Edit")},
+			{"Esc", strgettext("Back")}};
+}
+
 void SettingsScreen::scrollToTop()
 {
 	if (!document())
@@ -317,9 +420,22 @@ bool SettingsScreen::onEvent(const SEvent &event)
 {
 	const bool capturing = m_capturing >= 0 && (size_t)m_capturing < m_rows.size();
 	if (!capturing) {
-		if (event.EventType == EET_KEY_INPUT_EVENT && event.KeyInput.PressedDown
-				&& event.KeyInput.Key == KEY_ESCAPE) {
+		if (event.EventType != EET_KEY_INPUT_EVENT || !event.KeyInput.PressedDown)
+			return false;
+		if (event.KeyInput.Key == KEY_ESCAPE) {
+			// Из поля ввода Esc сначала возвращает фокус строке.
+			if (typing()) {
+				if (Rml::Element *inner = menu().context().GetFocusElement())
+					if (Rml::Element *row = inner->Closest(".setting"))
+						row->Focus(true);
+				return true;
+			}
 			menu().navigate("start");
+			return true;
+		}
+		// Q и E листают вкладки, как бамперы на геймпаде; в поле ввода это буквы.
+		if ((event.KeyInput.Key == KEY_KEY_Q || event.KeyInput.Key == KEY_KEY_E) && !typing()) {
+			turnPage(event.KeyInput.Key == KEY_KEY_E ? 1 : -1);
 			return true;
 		}
 		return false;

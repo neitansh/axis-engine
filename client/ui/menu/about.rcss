@@ -103,7 +103,8 @@
 	transition: background-color 0.12s linear-in-out;
 }
 
-.link:hover {
+.link:hover,
+.link:focus {
 	background-color: #221B36;
 }
 
@@ -141,7 +142,8 @@
 	transition: background-color 0.12s linear-in-out;
 }
 
-.track:hover {
+.track:hover,
+.track:focus {
 	background-color: #FFFFFF14;
 }
 
@@ -155,7 +157,8 @@
 	color: #86868B;
 }
 
-.track:hover .name {
+.track:hover .name,
+.track:focus .name {
 	color: #A78BFA;
 }
 

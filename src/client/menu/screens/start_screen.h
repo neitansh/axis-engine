@@ -19,6 +19,7 @@ public:
 	void entered() override;
 	void left() override;
 	bool onEvent(const SEvent &event) override;
+	std::vector<KeyHint> keys() const override;
 
 	// Следующий показ начнётся из черноты: заставка кончается чёрным, и
 	// стартовый экран проявляется из него, а не вспыхивает небом.

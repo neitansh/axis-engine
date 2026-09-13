@@ -23,7 +23,7 @@
 	<div class="play-body" data-if="crates.size > 0">
 		<div class="crates">
 			<div class="eyebrow">{{ crate_heading }}</div>
-			<div class="crate" data-for="c : crates" data-class-active="it_index == crate"
+			<div class="crate focusable" data-for="c : crates" data-class-active="it_index == crate"
 					data-event-click="select_crate(it_index)">
 				<img class="icon" data-if="c.icon != ''" data-attr-src="c.icon"/>
 				<div class="tile" data-if="c.icon == ''">{{ c.initial }}</div>
@@ -38,8 +38,10 @@
 		<div class="worlds">
 			<h3 class="group">{{ worlds_heading }}</h3>
 			<div class="world-list">
-				<div class="world" data-for="w : worlds" data-class-active="it_index == selected"
-						data-event-click="select(it_index)" data-event-dblclick="play()">
+				<div class="world focusable" data-for="w : worlds" data-class-active="it_index == selected"
+						data-attrif-autofocus="it_index == selected"
+						data-event-click="select(it_index)" data-event-dblclick="play()"
+						data-event-keydown="world_key(it_index)">
 					<div class="name">{{ w.name }}</div>
 					<div class="meta" data-if="w.mapgen != ''">{{ w.mapgen }}</div>
 				</div>
