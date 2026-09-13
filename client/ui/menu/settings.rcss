@@ -1,6 +1,6 @@
 /*
- * Экран настроек: вкладки страниц сверху, разделы слева, строки в середине,
- * описание строки под курсором справа. Строка — подпись и один виджет; ряд
+ * Экран настроек: вкладки-иконки сверху, строки в середине, описание строки
+ * под курсором справа. Строка — подпись и один виджет одной высоты: ряд
  * значений листается стрелками, число тянется ползунком с заливкой.
  */
 
@@ -12,7 +12,7 @@ body.settings {
 	background-color: #06050A99;
 	backdrop-filter: blur(18dp);
 	box-sizing: border-box;
-	padding: 16dp 40dp 16dp 40dp;
+	padding: 16dp 48dp 40dp 48dp;
 }
 
 /* Вкладки: иконки в тёмной размытой полосе, подпись — только под открытой */
@@ -20,9 +20,8 @@ body.settings {
 .tabbar {
 	display: flex;
 	flex-direction: row;
-	align-items: flex-start;
 	justify-content: center;
-	margin-bottom: 14dp;
+	margin-bottom: 16dp;
 }
 
 .tabs {
@@ -67,42 +66,45 @@ body.settings {
 	font-size: 10dp;
 	font-weight: 600;
 	letter-spacing: 1dp;
-	text-transform: uppercase;
 	color: #FFFFFF;
 	white-space: nowrap;
 	margin-bottom: 4dp;
 }
 
-.tabbar input.text.search {
-	width: 200dp;
-	margin-left: 24dp;
-	margin-top: 6dp;
-	padding: 6dp 12dp;
-}
+/* Тело: строки и описание */
 
 .settings-body {
 	display: flex;
 	flex-direction: row;
 	flex: 1;
 	min-height: 0;
+	padding: 0 48dp;
 }
 
 .rows {
 	display: block;
 	flex: 1;
 	overflow-y: auto;
-	padding-right: 12dp;
-	padding-left: 180dp;
+	padding-right: 16dp;
+}
+
+.rows scrollbarvertical {
+	width: 4dp;
+	margin: 0;
+}
+
+.rows scrollbarvertical sliderbar {
+	border-radius: 2dp;
+	background-color: #FFFFFF33;
 }
 
 .rows h3.group {
 	display: block;
-	font-size: 14dp;
+	font-size: 13dp;
 	font-weight: 700;
 	letter-spacing: 1.5dp;
-	text-transform: uppercase;
 	color: #FFFFFF;
-	margin: 22dp 0 10dp 0;
+	margin: 22dp 0 8dp 0;
 }
 
 .rows h3.group:first-child {
@@ -113,14 +115,22 @@ body.settings {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	padding: 6dp 10dp;
-	margin-bottom: 4dp;
+	height: 46dp;
+	padding: 0 10dp 0 12dp;
+	margin-bottom: 2dp;
 	border-radius: 6dp;
 	border: 1dp transparent;
 }
 
+.setting.tall {
+	height: auto;
+	align-items: flex-start;
+	padding-top: 10dp;
+	padding-bottom: 10dp;
+}
+
 .setting.focused {
-	background-color: #17131F;
+	background-color: #FFFFFF0F;
 	border-color: #A78BFA;
 }
 
@@ -128,13 +138,14 @@ body.settings {
 	flex: 1;
 	min-width: 0;
 	font-size: 14dp;
-	color: #B9B3C4;
-	padding-right: 12dp;
+	color: #E8E6ED;
+	padding-right: 16dp;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
-.setting.focused .label,
-.setting.changed .label {
-	color: #FFFFFF;
+.setting.tall .label {
+	padding-top: 8dp;
 }
 
 .setting .control {
@@ -142,19 +153,26 @@ body.settings {
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-end;
-	width: 240dp;
+	width: 260dp;
 }
 
 .setting.keyrow .control {
 	width: 0;
 }
 
+.setting.tall .control {
+	width: 460dp;
+}
+
 .setting button.key {
-	width: 240dp;
-	padding: 6dp 12dp;
+	width: 260dp;
+	height: 34dp;
+	padding: 0 12dp;
+	line-height: 34dp;
 	background-color: #E8E6ED;
 	border-color: #E8E6ED;
 	color: #0C0A12;
+	font-size: 13dp;
 }
 
 .setting button.key:hover {
@@ -168,9 +186,11 @@ body.settings {
 }
 
 .setting button.clear {
-	width: 28dp;
-	margin-left: 8dp;
-	padding: 6dp 0;
+	width: 30dp;
+	height: 34dp;
+	margin-left: 6dp;
+	padding: 0;
+	line-height: 34dp;
 	background-color: transparent;
 	border-color: transparent;
 	color: #C05B4D;
@@ -191,25 +211,28 @@ body.settings {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	width: 240dp;
-	height: 36dp;
+	width: 260dp;
+	height: 34dp;
 	border-radius: 6dp;
 	background-color: #0C0A12;
 	border: 1dp #FFFFFF14;
+	box-sizing: border-box;
 }
 
 .stepper .arrow {
 	width: 30dp;
-	height: 36dp;
-	line-height: 36dp;
-	text-align: center;
-	color: #948C9E;
+	height: 32dp;
 	cursor: pointer;
-	font-size: 18dp;
+	decorator: image(icons/chevron.png scale-none);
+	image-color: #948C9E;
+}
+
+.stepper .arrow.next {
+	transform: rotate(180deg);
 }
 
 .stepper .arrow:hover {
-	color: #FFFFFF;
+	image-color: #FFFFFF;
 	background-color: #FFFFFF0C;
 }
 
@@ -218,20 +241,24 @@ body.settings {
 	flex-direction: column;
 	align-items: center;
 	flex: 1;
+	min-width: 0;
 }
 
 .stepper .val {
-	color: #E8E6ED;
-	font-size: 14dp;
-	line-height: 20dp;
+	color: #FFFFFF;
+	font-size: 13dp;
+	line-height: 18dp;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 .stepper .segments {
 	display: flex;
 	flex-direction: row;
 	width: 100%;
-	padding: 0 6dp;
+	padding: 0 8dp;
 	margin-top: 2dp;
+	box-sizing: border-box;
 }
 
 .stepper .segments i {
@@ -251,27 +278,28 @@ body.settings {
 
 .setting .control input.range {
 	flex: 1;
-	height: 30dp;
+	height: 34dp;
 	border-radius: 6dp;
 	background-color: #0C0A12;
 	border: 1dp #FFFFFF14;
-	margin-right: 8dp;
+	margin-right: 6dp;
+	box-sizing: border-box;
 }
 
 .setting .control input.range slidertrack {
-	height: 30dp;
+	height: 32dp;
 	background-color: transparent;
 }
 
 .setting .control input.range sliderprogress {
-	height: 30dp;
+	height: 32dp;
 	border-radius: 5dp 0 0 5dp;
 	background-color: #8B5CF6;
 }
 
 .setting .control input.range sliderbar {
 	width: 6dp;
-	height: 30dp;
+	height: 32dp;
 	background-color: #E8E6ED;
 	cursor: pointer;
 }
@@ -287,19 +315,21 @@ body.settings {
 	height: 0;
 }
 
+.setting .control input.text {
+	height: 34dp;
+	line-height: 22dp;
+	padding: 5dp 10dp;
+	box-sizing: border-box;
+	font-size: 13dp;
+}
+
 .setting .control input.text.num {
-	width: 64dp;
-	padding: 6dp 8dp;
+	width: 72dp;
 	text-align: center;
 }
 
 .setting .control input.text.wide {
-	width: 240dp;
-	padding: 6dp 10dp;
-}
-
-.setting .control select {
-	width: 240dp;
+	width: 260dp;
 }
 
 .flags {
@@ -314,8 +344,8 @@ body.settings {
 	flex-direction: row;
 	align-items: center;
 	margin-left: 10dp;
-	font-size: 13dp;
-	color: #948C9E;
+	font-size: 12dp;
+	color: #B9B3C4;
 }
 
 input.checkbox {
@@ -335,10 +365,85 @@ input.checkbox:hover {
 input.checkbox:checked {
 	background-color: #8B5CF6;
 	border-color: #A78BFA;
-	decorator: text("✓");
-	color: #FFFFFF;
-	font-size: 13dp;
-	text-align: center;
+	decorator: image(icons/check.png);
+}
+
+/* Перекрестье: предпросмотр, набор, цвета, обмен */
+
+.xhair {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	width: 460dp;
+}
+
+.xhair-preview {
+	position: relative;
+	width: 96dp;
+	height: 96dp;
+	border-radius: 6dp;
+	background-color: #0C0A12;
+	border: 1dp #FFFFFF14;
+	margin-right: 14dp;
+}
+
+.xhair-preview .piece {
+	position: absolute;
+	display: block;
+}
+
+.xhair-fields {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+.xhair-fields .field {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 34dp;
+	margin-bottom: 6dp;
+}
+
+.xhair-fields .field span {
+	width: 90dp;
+	font-size: 12dp;
+	color: #B9B3C4;
+}
+
+.xhair-fields .field .stepper {
+	flex: 1;
+	width: auto;
+}
+
+.xhair-fields .field input.text.color {
+	width: 110dp;
+	margin-right: 8dp;
+}
+
+.xhair-fields .swatch {
+	display: block;
+	width: 22dp;
+	height: 22dp;
+	border-radius: 4dp;
+	border: 1dp #FFFFFF3A;
+}
+
+.xhair-fields .field.share .button {
+	display: block;
+	padding: 6dp 14dp;
+	margin-right: 8dp;
+	border-radius: 6dp;
+	background-color: #17131F;
+	border: 1dp #FFFFFF24;
+	color: #E8E6ED;
+	font-size: 12dp;
+	cursor: pointer;
+}
+
+.xhair-fields .field.share .button:hover {
+	background-color: #211B2E;
 }
 
 button.more {
@@ -353,9 +458,23 @@ button.more {
 .info {
 	display: flex;
 	flex-direction: column;
-	width: 300dp;
-	margin-left: 24dp;
-	padding: 4dp 0;
+	width: 320dp;
+	margin-left: 28dp;
+	padding-left: 24dp;
+	border-left: 1dp #FFFFFF14;
+}
+
+.info input.text.search {
+	height: 34dp;
+	padding: 5dp 12dp;
+	box-sizing: border-box;
+	margin-bottom: 18dp;
+	font-size: 13dp;
+}
+
+.info-body {
+	display: flex;
+	flex-direction: column;
 }
 
 .info h4 {
@@ -367,10 +486,25 @@ button.more {
 }
 
 .info p {
-	color: #948C9E;
+	color: #B9B3C4;
 	font-size: 13dp;
 	line-height: 1.5;
-	margin-bottom: 14dp;
+	margin-bottom: 12dp;
+}
+
+.info p.load {
+	color: #F2C14E;
+	font-size: 12dp;
+}
+
+.info p.note {
+	color: #948C9E;
+	font-size: 12dp;
+}
+
+.info p.status {
+	color: #A78BFA;
+	font-size: 12dp;
 }
 
 .info .options {
@@ -390,14 +524,21 @@ button.more {
 	border-radius: 4dp;
 }
 
+/* Низ */
+
 .bottom {
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
 	align-items: center;
-	margin-top: 12dp;
+	margin-top: 14dp;
+	padding: 0 48dp;
 }
 
 .bottom button {
 	margin-left: 8dp;
+	height: 36dp;
+	padding: 0 18dp;
+	line-height: 36dp;
+	font-size: 13dp;
 }

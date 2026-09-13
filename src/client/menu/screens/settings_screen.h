@@ -17,9 +17,10 @@ class Event;
 namespace menu
 {
 
-// Настройки: страницы слева, строки справа. Значение пишется в g_settings
-// сразу, как в прежнем меню. Поиск ищет по всем страницам, «Расширенные»
-// раскрывают остальное из разделов страницы.
+// Настройки: вкладки страниц сверху, строки в середине, описание строки под
+// курсором справа. Значение пишется в g_settings сразу, как в прежнем меню.
+// Поиск ищет по всем страницам, «Расширенные» раскрывают остальное из
+// разделов страницы.
 //
 // Виджет строки приходит в документ готовой разметкой (data-rml), а не
 // собирается из data-attr: у RmlUi порядок применения атрибутов не задан, и
@@ -44,18 +45,11 @@ private:
 		Rml::String title;
 	};
 
-	struct Section
-	{
-		int row = 0;
-		Rml::String title;
-	};
-
 	struct Row
 	{
 		int index = 0;
 		Rml::String name;
 		Rml::String label;
-		Rml::String help;
 		Rml::String kind;
 		Rml::String value;
 		Rml::String widget;
@@ -67,16 +61,23 @@ private:
 	bool matchesSearch(const SettingDef &def) const;
 	bool isShown(const SettingDef &def) const;
 	Row makeRow(const SettingDef &def) const;
+	Row makeSpecialRow(const std::string &name) const;
 	std::string makeWidget(const SettingDef &def, const std::string &value) const;
 	std::string makeStepper(const std::vector<std::string> &labels, size_t current) const;
+	std::string makeCrosshairWidget() const;
+	std::string optionLabel(const SettingDef &def, const std::string &value) const;
 	void write(Row &row, const std::string &value, bool refresh_widget);
+	void refreshRow(Row &row);
+	void refreshAll();
 	void changed(int index, Rml::Event &event);
 	void clicked(int index, Rml::Event &event);
 	void step(Row &row, const SettingDef &def, int direction);
+	void stepSpecial(Row &row, int direction);
+	void crosshairChanged(Rml::Element *target, const std::string &value);
+	void crosshairClicked(Rml::Element *target);
 	void reset(int index);
 	void resetPage();
 	void focus(int index);
-	void jump(int row);
 
 	SettingsCatalog m_catalog;
 	std::vector<PageEntry> m_pages;
@@ -85,14 +86,14 @@ private:
 	bool m_advanced = false;
 	bool m_has_advanced = false;
 	std::vector<Row> m_rows;
-	std::vector<Section> m_sections;
-	int m_section = -1;
 	int m_capturing = -1;
 	int m_focus = -1;
 	Rml::String m_focus_label;
 	Rml::String m_focus_help;
-	Rml::String m_focus_value;
+	Rml::String m_focus_load;
+	Rml::String m_focus_note;
 	Rml::String m_focus_options;
+	Rml::String m_crosshair_status;
 	// Пока строки строятся, виджеты шлют change сами по себе; до первого
 	// обновления после rebuild() события не считаются.
 	bool m_armed = false;

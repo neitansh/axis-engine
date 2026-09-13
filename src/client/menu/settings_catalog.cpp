@@ -8,6 +8,7 @@
 #include "log.h"
 #include "porting.h"
 #include "util/string.h"
+#include <algorithm>
 #include <sstream>
 
 namespace menu
@@ -151,12 +152,121 @@ bool SettingsCatalog::load()
 	m_by_source.clear();
 	m_pages.clear();
 
-	const std::string path = porting::path_share + DIR_DELIM "builtin" DIR_DELIM
-			"settingtypes.txt";
-	if (!parseFile(path))
+	const std::string builtin = porting::path_share + DIR_DELIM "builtin";
+	if (!parseFile(builtin + DIR_DELIM "settingtypes.txt"))
 		return false;
+	parseDescriptions(builtin + DIR_DELIM "common" DIR_DELIM "settings" DIR_DELIM
+			"descriptions.lua");
+	annotate();
 	buildPages();
 	return true;
+}
+
+// Пояснения живут в descriptions.lua: их читает и меню на Lua, и по ним
+// собираются переводы. Второй экземпляр на C++ разошёлся бы с первым, поэтому
+// файл разбирается как есть — строки в нём одного вида:
+//   ["name"] = { text = N_("..."), load = "high" },
+void SettingsCatalog::parseDescriptions(const std::string &path)
+{
+	std::string content;
+	if (!fs::ReadFile(path, content, true))
+		return;
+
+	auto unescape = [](std::string_view raw) {
+		std::string out;
+		for (size_t i = 0; i < raw.size(); i++) {
+			if (raw[i] != '\\' || i + 1 >= raw.size()) {
+				out += raw[i];
+				continue;
+			}
+			const char c = raw[++i];
+			out += c == 'n' ? '\n' : c;
+		}
+		return out;
+	};
+
+	std::istringstream in(content);
+	std::string line;
+	while (std::getline(in, line)) {
+		std::string_view rest(line);
+		skipSpace(rest);
+		if (rest.size() < 3 || rest[0] != '[' || rest[1] != '"')
+			continue;
+		const size_t name_end = rest.find("\"]");
+		if (name_end == std::string_view::npos)
+			continue;
+		const std::string name(rest.substr(2, name_end - 2));
+		auto it = m_index.find(name);
+		if (it == m_index.end())
+			continue;
+		SettingDef &def = m_defs[it->second];
+
+		const size_t text_start = rest.find("N_(\"");
+		if (text_start == std::string_view::npos)
+			continue;
+		size_t i = text_start + 4;
+		size_t end = i;
+		while (end < rest.size() && !(rest[end] == '"' && rest[end - 1] != '\\'))
+			end++;
+		def.description = unescape(rest.substr(i, end - i));
+
+		const size_t load = rest.find("load = \"", end);
+		if (load != std::string_view::npos) {
+			const size_t load_end = rest.find('"', load + 8);
+			if (load_end != std::string_view::npos)
+				def.load = std::string(rest.substr(load + 8, load_end - load - 8));
+		}
+	}
+}
+
+// То, что меню на Lua дописывает к разобранному файлу (dlg_settings.lua):
+// подписи языков и сенсорных настроек, примечания про крейт.
+void SettingsCatalog::annotate()
+{
+	auto set_labels = [this](const char *name, std::map<std::string, std::string> labels) {
+		auto it = m_index.find(name);
+		if (it != m_index.end())
+			m_defs[it->second].option_labels = std::move(labels);
+	};
+	auto set_note = [this](const char *name, const char *note) {
+		auto it = m_index.find(name);
+		if (it != m_index.end())
+			m_defs[it->second].note = note;
+	};
+
+	// Названия языков не переводятся: каждое на своём языке. Список держится
+	// вровень с src/unsupported_language_list.txt.
+	set_labels("language", {
+		{"", "(Use system language)"},
+		{"be", "Беларуская [be]"}, {"bg", "Български [bg]"}, {"ca", "Català [ca]"},
+		{"cs", "Česky [cs]"}, {"cy", "Cymraeg [cy]"}, {"da", "Dansk [da]"},
+		{"de", "Deutsch [de]"}, {"el", "Ελληνικά [el]"}, {"en", "English [en]"},
+		{"eo", "Esperanto [eo]"}, {"es", "Español [es]"}, {"et", "Eesti [et]"},
+		{"eu", "Euskara [eu]"}, {"fi", "Suomi [fi]"}, {"fil", "Wikang Filipino [fil]"},
+		{"fr", "Français [fr]"}, {"gd", "Gàidhlig [gd]"}, {"gl", "Galego [gl]"},
+		{"hu", "Magyar [hu]"}, {"id", "Bahasa Indonesia [id]"}, {"it", "Italiano [it]"},
+		{"ja", "日本語 [ja]"}, {"jbo", "Lojban [jbo]"}, {"kk", "Қазақша [kk]"},
+		{"ko", "한국어 [ko]"}, {"ky", "Kırgızca / Кыргызча [ky]"}, {"lt", "Lietuvių [lt]"},
+		{"lv", "Latviešu [lv]"}, {"mn", "Монгол [mn]"}, {"mr", "मराठी [mr]"},
+		{"ms", "Bahasa Melayu [ms]"}, {"nb", "Norsk Bokmål [nb]"}, {"nl", "Nederlands [nl]"},
+		{"nn", "Norsk Nynorsk [nn]"}, {"oc", "Occitan [oc]"}, {"pl", "Polski [pl]"},
+		{"pt", "Português [pt]"}, {"pt_BR", "Português do Brasil [pt_BR]"},
+		{"ro", "Română [ro]"}, {"ru", "Русский [ru]"}, {"sk", "Slovenčina [sk]"},
+		{"sl", "Slovenščina [sl]"}, {"sr_Cyrl", "Српски [sr_Cyrl]"},
+		{"sr_Latn", "Srpski (Latinica) [sr_Latn]"}, {"sv", "Svenska [sv]"},
+		{"sw", "Kiswahili [sw]"}, {"tr", "Türkçe [tr]"}, {"tt", "Tatarça [tt]"},
+		{"uk", "Українська [uk]"}, {"vi", "Tiếng Việt [vi]"},
+		{"zh_CN", "中文 (简体) [zh_CN]"}, {"zh_TW", "正體中文 (繁體) [zh_TW]"},
+	});
+	set_labels("touch_controls", {{"auto", "Auto"}, {"true", "Enabled"}, {"false", "Disabled"}});
+	set_labels("touch_interaction_style", {{"tap", "Tap"}, {"tap_crosshair", "Tap with crosshair"},
+			{"buttons_crosshair", "Buttons with crosshair"}});
+	set_labels("touch_punch_gesture", {{"short_tap", "Short tap"}, {"long_tap", "Long tap"}});
+
+	set_note("enable_auto_exposure", "(The crate will need to enable automatic exposure as well)");
+	set_note("enable_bloom", "(The crate will need to enable bloom as well)");
+	set_note("enable_volumetric_lighting", "(The crate will need to enable volumetric lighting as well)");
+	set_note("enable_dynamic_shadows", "(The crate will need to enable shadows as well)");
 }
 
 const SettingDef *SettingsCatalog::find(const std::string &name) const
@@ -406,6 +516,22 @@ void SettingsCatalog::buildPages()
 		}
 		m_pages.push_back(std::move(page));
 	}
+
+	// Свои строки, которых нет в settingtypes.txt: наборы качества и теней,
+	// перекрестье с предпросмотром. Имя с «@» экран разбирает сам.
+	auto insert_before = [this](const char *page_id, const char *before, const char *item) {
+		for (SettingsPage &page : m_pages) {
+			if (page.id != page_id)
+				continue;
+			auto it = before ? std::find_if(page.basic.begin(), page.basic.end(),
+					[before](const SettingsPage::Item &i) { return i.setting == before; })
+					: page.basic.begin();
+			page.basic.insert(it, {"", item});
+		}
+	};
+	insert_before("graphics", nullptr, "@quality");
+	insert_before("effects", "enable_dynamic_shadows", "@shadows");
+	insert_before("interface", "crosshair_shape", "@crosshair");
 }
 
 }

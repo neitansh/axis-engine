@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-12 19:49+0300\n"
+"POT-Creation-Date: 2026-09-13 03:28+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -97,12 +97,14 @@ msgid "Conflicts with \"$1\""
 msgstr "Конфликтует с \"$1\""
 
 #: builtin/common/settings/components.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Cost:"
 msgstr "Требовательность:"
 
 #: builtin/common/settings/components.lua
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Disabled"
 msgstr "Отключено"
 
@@ -112,6 +114,7 @@ msgstr "Править"
 
 #: builtin/common/settings/components.lua
 #: builtin/common/settings/dlg_settings.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Enabled"
 msgstr "Включено"
 
@@ -156,6 +159,7 @@ msgid "Color"
 msgstr "Цвет"
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Copy"
 msgstr "Скопировать"
 
@@ -176,13 +180,16 @@ msgid "Cross, no gap"
 msgstr "Крест без просвета"
 
 #: builtin/common/settings/crosshair_component.lua
-#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+#: builtin/common/settings/dlg_settings.lua
+#: src/client/menu/screens/settings_screen.cpp
+#: src/settings_translation_file.cpp
 msgid "Crosshair"
 msgstr "Прицел"
 
 #: builtin/common/settings/crosshair_component.lua
 #: builtin/common/settings/quality_component.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Custom"
 msgstr "Пользовательские"
 
@@ -199,6 +206,7 @@ msgid "Frame with dot"
 msgstr "Рамка с точкой"
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "No crosshair code in the clipboard"
 msgstr "В буфере обмена нет кода прицела"
 
@@ -215,10 +223,12 @@ msgid "Outline"
 msgstr "Обводка"
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Paste"
 msgstr "Вставить"
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Preset"
 msgstr "Набор"
 
@@ -231,6 +241,7 @@ msgid "Set colors"
 msgstr "Задать"
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Share"
 msgstr "Обмен"
 
@@ -2933,6 +2944,7 @@ msgstr "Настройки"
 
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Shadows"
 msgstr "Тени"
 
@@ -3005,10 +3017,12 @@ msgstr "Низкие"
 
 #: builtin/common/settings/quality_component.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Quality preset"
 msgstr "Пресет качества"
 
 #: builtin/common/settings/quality_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid ""
 "Sets everything below at once. Changing anything by hand switches this to "
 "Custom."
@@ -3037,6 +3051,7 @@ msgid "Content: Mods"
 msgstr "Контент: Моды"
 
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "(The crate will need to enable shadows as well)"
 msgstr "(В крейте также потребуется включить тени)"
 
@@ -5196,6 +5211,18 @@ msgstr "X (геймпад)"
 #: src/client/keycode.cpp
 msgid "Y (Pad)"
 msgstr "Y (геймпад)"
+
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Copied"
+msgstr "Скопировано"
+
+#: src/client/menu/screens/settings_screen.cpp
+msgid ""
+"Shape, size, gap, dot and outline of the crosshair; presets, colors and a "
+"code to share with others."
+msgstr ""
+"Форма, размер, просвет, точка и обводка перекрестья; наборы, цвета и код, "
+"которым можно поделиться."
 
 #: src/client/minimap.cpp
 msgid "Minimap hidden"

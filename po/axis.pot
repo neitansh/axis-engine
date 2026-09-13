@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-12 19:49+0300\n"
+"POT-Creation-Date: 2026-09-13 03:28+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -93,6 +93,7 @@ msgid "light"
 msgstr ""
 
 #: builtin/common/settings/components.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Cost:"
 msgstr ""
 
@@ -107,11 +108,13 @@ msgstr ""
 #: builtin/common/settings/components.lua
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Disabled"
 msgstr ""
 
 #: builtin/common/settings/components.lua
 #: builtin/common/settings/dlg_settings.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Enabled"
 msgstr ""
 
@@ -192,17 +195,21 @@ msgid "Nothing"
 msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
-#: builtin/common/settings/dlg_settings.lua src/settings_translation_file.cpp
+#: builtin/common/settings/dlg_settings.lua
+#: src/client/menu/screens/settings_screen.cpp
+#: src/settings_translation_file.cpp
 msgid "Crosshair"
 msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
 #: builtin/common/settings/quality_component.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Custom"
 msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Preset"
 msgstr ""
 
@@ -223,14 +230,17 @@ msgid "Set colors"
 msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Share"
 msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Copy"
 msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Paste"
 msgstr ""
 
@@ -243,6 +253,7 @@ msgid "Apply a crosshair code from the clipboard"
 msgstr ""
 
 #: builtin/common/settings/crosshair_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "No crosshair code in the clipboard"
 msgstr ""
 
@@ -2491,6 +2502,7 @@ msgstr ""
 
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Shadows"
 msgstr ""
 
@@ -2699,10 +2711,12 @@ msgstr ""
 
 #: builtin/common/settings/quality_component.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "Quality preset"
 msgstr ""
 
 #: builtin/common/settings/quality_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid ""
 "Sets everything below at once. Changing anything by hand switches this to "
 "Custom."
@@ -2733,6 +2747,7 @@ msgid "Very High"
 msgstr ""
 
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/screens/settings_screen.cpp
 msgid "(The crate will need to enable shadows as well)"
 msgstr ""
 
@@ -4837,6 +4852,16 @@ msgstr ""
 #: src/client/keycode.cpp
 #, c-format
 msgid "Axis %d-"
+msgstr ""
+
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Copied"
+msgstr ""
+
+#: src/client/menu/screens/settings_screen.cpp
+msgid ""
+"Shape, size, gap, dot and outline of the crosshair; presets, colors and a "
+"code to share with others."
 msgstr ""
 
 #: src/client/minimap.cpp

@@ -42,6 +42,15 @@ struct SettingDef
 	std::vector<std::string> values;
 	std::map<std::string, bool> requires;
 	std::string context;
+
+	// Пояснение игроку и цена (high, medium, low или пусто) из
+	// builtin/common/settings/descriptions.lua; без него — comment.
+	std::string description;
+	std::string load;
+	// Подписи вариантов перечисления, если сырые значения игроку ни о чём.
+	std::map<std::string, std::string> option_labels;
+	// Примечание под описанием: что крейт должен включить со своей стороны.
+	std::string note;
 };
 
 // Страница настроек: избранное сверху, всё остальное из её разделов — под
@@ -71,6 +80,8 @@ public:
 
 private:
 	bool parseFile(const std::string &path);
+	void parseDescriptions(const std::string &path);
+	void annotate();
 	void buildPages();
 
 	std::vector<SettingDef> m_defs;

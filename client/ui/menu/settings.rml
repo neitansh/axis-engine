@@ -13,16 +13,15 @@
 				<span class="caption" data-if="p.id == page && search == ''">{{ p.title }}</span>
 			</div>
 		</div>
-		<input type="text" class="search" placeholder="Поиск" data-value="search" data-event-change="search()"/>
 	</div>
 
 	<div class="settings-body">
-
 		<div class="rows" id="rows">
 			<div data-for="r : rows">
-				<h3 class="group" data-if="r.kind == 'heading'" data-attr-id="'row-' + r.index">{{ r.label }}</h3>
-				<div class="setting" data-if="r.kind != 'heading'" data-class-focused="focus == r.index"
-						data-class-changed="r.changed" data-class-keyrow="r.kind == 'key'"
+				<h3 class="group" data-if="r.kind == 'heading'">{{ r.label }}</h3>
+				<div class="setting" data-if="r.kind != 'heading'"
+						data-class-focused="focus == r.index" data-class-changed="r.changed"
+						data-class-keyrow="r.kind == 'key'" data-class-tall="r.kind == 'crosshair'"
 						data-event-mouseover="focus(r.index)">
 					<span class="label">{{ r.label }}</span>
 					<div class="control" data-rml="r.widget" data-event-change="changed(r.index)"
@@ -39,15 +38,21 @@
 		</div>
 
 		<div class="info">
-			<h4>{{ focus_label }}</h4>
-			<p>{{ focus_help }}</p>
-			<div class="options" data-rml="focus_options"></div>
+			<input type="text" class="search" placeholder="Поиск" data-value="search" data-event-change="search()"/>
+			<div class="info-body" data-if="focus >= 0">
+				<h4>{{ focus_label }}</h4>
+				<p>{{ focus_help }}</p>
+				<p class="load" data-if="focus_load != ''">{{ focus_load }}</p>
+				<p class="note" data-if="focus_note != ''">{{ focus_note }}</p>
+				<div class="options" data-rml="focus_options"></div>
+				<p class="status" data-if="crosshair_status != ''">{{ crosshair_status }}</p>
+			</div>
 		</div>
 	</div>
 
 	<div class="bottom">
-		<button class="ghost" data-event-click="reset_page()">Сбросить страницу</button>
-		<button class="ghost" data-event-click="nav('start')">Назад</button>
+		<button data-event-click="reset_page()">Сбросить страницу</button>
+		<button data-event-click="nav('start')">Назад</button>
 	</div>
 </body>
 </rml>
