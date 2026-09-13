@@ -416,7 +416,7 @@ bool SettingsScreen::isShown(const SettingDef &def) const
 	g_settings->getNoEx("touch_interaction_style", touch_style);
 	const bool touch_auto = touch_controls == "auto";
 
-	for (const auto &[req, wanted] : def.requires) {
+	for (const auto &[req, wanted] : def.needs) {
 		bool actual;
 		if (req == "android")
 			actual = false;
@@ -499,6 +499,7 @@ std::string SettingsScreen::makeWidget(const SettingDef &def, const std::string 
 			break;
 		}
 		std::vector<std::string> labels;
+		labels.reserve(def.values.size());
 		for (const std::string &option : def.values)
 			labels.push_back(optionLabel(def, option));
 		const auto it = std::find(def.values.begin(), def.values.end(), value);
@@ -631,6 +632,7 @@ SettingsScreen::Row SettingsScreen::makeSpecialRow(const std::string &name) cons
 		const PresetGroup &group = quality ? qualityPresets() : shadowPresets();
 		const int current = group.detect();
 		std::vector<std::string> labels;
+		labels.reserve(group.labels.size());
 		for (const std::string &label : group.labels)
 			labels.push_back(strgettext(label));
 		// «Свои» показываются, только когда они и есть: иначе это пункт,

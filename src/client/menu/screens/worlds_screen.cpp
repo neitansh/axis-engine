@@ -244,7 +244,7 @@ std::vector<Rml::String> WorldsScreen::mapgensFor(const CrateSpec &crate) const
 		const bool in_disallowed = std::find(disallowed.begin(), disallowed.end(), name)
 				!= disallowed.end();
 		if ((allowed.empty() || in_allowed) && !in_disallowed)
-			out.push_back(name);
+			out.emplace_back(name);
 	}
 	return out;
 }

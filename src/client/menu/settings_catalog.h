@@ -40,7 +40,8 @@ struct SettingDef
 	std::optional<double> min;
 	std::optional<double> max;
 	std::vector<std::string> values;
-	std::map<std::string, bool> requires;
+	// Не «requires»: в C++20 это ключевое слово.
+	std::map<std::string, bool> needs;
 	std::string context;
 
 	// Пояснение игроку и цена (high, medium, low или пусто) из

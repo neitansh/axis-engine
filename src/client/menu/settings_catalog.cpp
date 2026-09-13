@@ -17,6 +17,15 @@ namespace menu
 namespace
 {
 
+// Ключ раздела в том же виде, в каком его пишут страницы: «Раздел|Подраздел».
+std::string sourceKey(const std::string &section, const std::string &subsection)
+{
+	std::string key = section;
+	key += '|';
+	key += subsection;
+	return key;
+}
+
 // Страницы собираются из разделов settingtypes.txt («Раздел|Подраздел»);
 // перечисленное в basic стоит наверху, остальное из тех же разделов уходит
 // под «Расширенные». Список тот же, что у меню на Lua (dlg_settings.lua).
@@ -338,7 +347,7 @@ bool SettingsCatalog::parseFile(const std::string &path)
 			} else if (level == 1) {
 				subsection = std::string(inner);
 			} else if (!section.empty()) {
-				m_by_source[section + "|" + subsection].push_back(
+				m_by_source[sourceKey(section, subsection)].push_back(
 						{std::string(inner), ""});
 			}
 			continue;
@@ -381,7 +390,7 @@ bool SettingsCatalog::parseFile(const std::string &path)
 						part = std::string(trim(part.substr(1)));
 					}
 					if (!part.empty())
-						def.requires[part] = value;
+						def.needs[part] = value;
 				}
 			}
 		}
@@ -443,7 +452,7 @@ bool SettingsCatalog::parseFile(const std::string &path)
 		} else if (type == "key") {
 			def.kind = SettingDef::Kind::Key;
 			def.default_value = std::string(rest);
-			def.requires["keyboard_mouse"] = true;
+			def.needs["keyboard_mouse"] = true;
 		} else if (type == "v3f") {
 			def.kind = SettingDef::Kind::V3f;
 			def.default_value = std::string(rest);
@@ -466,7 +475,7 @@ bool SettingsCatalog::parseFile(const std::string &path)
 			continue;
 		m_index[def.name] = m_defs.size();
 		if (!section.empty())
-			m_by_source[section + "|" + subsection].push_back({"", def.name});
+			m_by_source[sourceKey(section, subsection)].push_back({"", def.name});
 		m_defs.push_back(std::move(def));
 	}
 	return true;
