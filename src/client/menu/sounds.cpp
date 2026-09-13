@@ -53,7 +53,7 @@ Sounds::Sounds(const std::vector<std::string> &theme_dirs)
 
 	for (const std::string &dir : theme_dirs) {
 		const std::string sounds = dir + DIR_DELIM "sounds";
-		for (const char *effect : {"hover", "click"}) {
+		for (const char *effect : {"hover", "click", "sting"}) {
 			if (m_manager->loadSoundFile(effect,
 					sounds + DIR_DELIM + effect + ".ogg"))
 				m_manager->addSoundToGroup(effect, effect);
@@ -101,7 +101,7 @@ void Sounds::step(f32 dtime, bool window_active)
 			m_track = 0;
 	}
 
-	const bool music_on = g_settings->getBool("menu_music");
+	const bool music_on = g_settings->getBool("menu_music") && !m_hold_music;
 	const float music_gain = g_settings->getFloat("menu_music_volume", 0.0f, 1.0f);
 	if (!music_on && m_track > 0) {
 		m_manager->stopSound(m_track);
@@ -118,15 +118,15 @@ void Sounds::ProcessEvent(Rml::Event &event)
 	Rml::Element *target = pointerTarget(event.GetTargetElement());
 	if (event.GetId() == Rml::EventId::Mouseover) {
 		if (target && target != m_hovered)
-			playEffect("hover");
+			play("hover");
 		m_hovered = target;
 	} else if (event.GetId() == Rml::EventId::Mousedown) {
 		if (target && event.GetParameter<int>("button", 0) == 0)
-			playEffect("click");
+			play("click");
 	}
 }
 
-void Sounds::playEffect(const std::string &name)
+void Sounds::play(const std::string &name)
 {
 	if (!g_settings->getBool("menu_ui_sounds"))
 		return;

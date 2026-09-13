@@ -69,6 +69,9 @@ public:
 	Launcher &launcher() { return m_launcher; }
 	ServerList &servers() { return m_servers; }
 	Matchmaking &matchmaking() { return m_matchmaking; }
+	Sounds &sounds() { return *m_sounds; }
+	// Рамка с версией поверх экранов; заставка прячет её, версия там своя.
+	void showChrome(bool show);
 
 private:
 	bool OnEvent(const SEvent &event) override;

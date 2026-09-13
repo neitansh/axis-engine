@@ -113,7 +113,7 @@ void set_default_settings()
 	// input method used.
 	settings->setDefault("touch_gui", bool_to_cstr(has_touch));
 	settings->setDefault("sound_volume", "0.8");
-	settings->setDefault("sound_volume_unfocused", "0.3");
+	settings->setDefault("sound_volume_unfocused", "0.0");
 	settings->setDefault("mute_sound", "false");
 	settings->setDefault("menu_music", "true");
 	settings->setDefault("menu_music_volume", "0.05");
@@ -319,6 +319,7 @@ void set_default_settings()
 	settings->setDefault("soft_clouds", "false");
 	settings->setDefault("cloud_radius", "12");
 	settings->setDefault("menu_clouds", "true");
+	settings->setDefault("menu_intro", "true");
 	settings->setDefault("menu_theme", "light");
 	settings->setDefault("translucent_liquids", "true");
 	settings->setDefault("console_height", "0.6");

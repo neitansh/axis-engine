@@ -919,7 +919,8 @@ enable_water_reflections (Liquid reflections) bool false
 sound_volume (Volume) float 0.8 0.0 1.0
 
 #    Volume multiplier when the window is unfocused.
-sound_volume_unfocused (Volume when unfocused) float 0.3 0.0 1.0
+#    The sound fades to it when you switch windows and comes back when you return.
+sound_volume_unfocused (Volume when unfocused) float 0.0 0.0 1.0
 
 #    Whether to mute sounds. You can unmute sounds at any time.
 #    In-game, you can toggle the mute state with the mute key or by using the
@@ -1022,6 +1023,9 @@ tooltip_append_itemname (Append item name to tooltips) bool false
 
 #    Use a cloud animation for the main menu background.
 menu_clouds (Clouds in menu) bool true
+
+#    Show the studio and engine cards when the game starts.
+menu_intro (Intro on start) bool true
 
 #    Choose theme colors for the main menu background.
 menu_theme (Menu theme) enum light dark,light

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 19:45+0300\n"
+"POT-Creation-Date: 2026-09-13 20:10+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1204,6 +1204,12 @@ msgstr ""
 
 #: builtin/common/settings/descriptions.lua
 msgid "Show moving clouds behind the main menu."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid ""
+"Show the studio and engine cards for a few seconds when the game starts. Any "
+"key skips them."
 msgstr ""
 
 #: builtin/common/settings/descriptions.lua
@@ -6696,7 +6702,9 @@ msgid "Volume when unfocused"
 msgstr ""
 
 #: src/settings_translation_file.cpp
-msgid "Volume multiplier when the window is unfocused."
+msgid ""
+"Volume multiplier when the window is unfocused.\n"
+"The sound fades to it when you switch windows and comes back when you return."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -6945,6 +6953,14 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Use a cloud animation for the main menu background."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Intro on start"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Show the studio and engine cards when the game starts."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -10094,6 +10110,14 @@ msgstr ""
 
 #: client/ui/menu/about.rml
 msgid "Authors"
+msgstr ""
+
+#: client/ui/menu/intro.rml
+msgid "Based on Luanti"
+msgstr ""
+
+#: client/ui/menu/intro.rml
+msgid "Press any key to skip"
 msgstr ""
 
 #: client/ui/menu/online.rml

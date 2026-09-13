@@ -1,0 +1,22 @@
+<rml>
+<head>
+	<title>intro</title>
+	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="intro.rcss"/>
+</head>
+<body data-model="intro">
+	<div id="studio" class="card">
+		<img class="ivy" src="brand/ivy.png"/>
+		<div class="wordmark">The <span class="green">iVy</span></div>
+		<div class="tag">STUDIO</div>
+	</div>
+
+	<div id="engine" class="card">
+		<img class="axis" src="textures/base/pack/menu_header.png" rect="483 0 378 144"/>
+		<div class="stamp">{{ version }}</div>
+		<div class="tag">[[Based on Luanti]]</div>
+	</div>
+
+	<div class="hint">[[Press any key to skip]]</div>
+</body>
+</rml>

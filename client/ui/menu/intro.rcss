@@ -1,0 +1,80 @@
+/*
+ * Заставка при запуске: чёрный экран, карточки по центру — студия, движок.
+ * Экран ставит карточке класс on; она проявляется и чуть подрастает, а без
+ * класса гаснет переходом. Что и когда показывать — решает экран, тема
+ * отвечает только за вид.
+ */
+
+body {
+	background-color: #000000;
+}
+
+.card {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	transition: opacity 0.4s linear-in-out;
+}
+
+.card.on {
+	opacity: 1;
+	animation: 1.6s cubic-out card-in;
+}
+
+@keyframes card-in {
+	0% { transform: scale(0.94) translateY(10dp); }
+	100% { transform: scale(1) translateY(0dp); }
+}
+
+.ivy {
+	width: 96dp;
+	height: 96dp;
+	margin-bottom: 22dp;
+}
+
+.wordmark {
+	font-size: 40dp;
+	font-weight: 700;
+	letter-spacing: -2dp;
+	line-height: 1;
+	color: #F5F5F7;
+}
+
+.wordmark .green {
+	color: #5BA363;
+}
+
+.tag {
+	margin-top: 14dp;
+	font-family: "Departure Mono";
+	font-size: 11dp;
+	letter-spacing: 3dp;
+	color: #86868B;
+}
+
+.axis {
+	width: 315dp;
+	height: 120dp;
+	margin-bottom: 18dp;
+}
+
+.stamp {
+	font-family: "Departure Mono";
+	font-size: 13dp;
+	color: #A1A1A6;
+}
+
+.hint {
+	position: absolute;
+	right: 24dp;
+	bottom: 20dp;
+	font-size: 12dp;
+	color: #86868B4D;
+}

@@ -35,13 +35,19 @@ public:
 	void attach(Rml::Context &context);
 	void step(f32 dtime, bool window_active);
 
+	// Звук из темы по имени файла без расширения: hover, click, sting.
+	void play(const std::string &name);
+
+	// Пока держим, музыка не начинается: заставка пускает её сама, на своей
+	// карточке, а не с первого кадра чёрного экрана.
+	void holdMusic(bool hold) { m_hold_music = hold; }
+
 	// Тема перечитана — прежние элементы мертвы, и наведение считается заново.
 	void forgetHover() { m_hovered = nullptr; }
 
 	void ProcessEvent(Rml::Event &event) override;
 
 private:
-	void playEffect(const std::string &name);
 	void nextTrack();
 
 	std::unique_ptr<ISoundManager> m_manager;
@@ -49,6 +55,7 @@ private:
 	size_t m_music_pos = 0;
 	sound_handle_t m_track = 0;
 	float m_music_gain = 0.0f;
+	bool m_hold_music = false;
 	Rml::Element *m_hovered = nullptr;
 };
 

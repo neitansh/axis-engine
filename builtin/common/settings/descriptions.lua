@@ -284,6 +284,7 @@ return {
 	["max_simultaneous_block_sends_per_client"] = { text = N_("How many pieces of the world the server sends one player at a time.") },
 	["max_users"] = { text = N_("How many players may be on the server at once.") },
 	["menu_clouds"] = { text = N_("Show moving clouds behind the main menu."), load = "low" },
+	["menu_intro"] = { text = N_("Show the studio and engine cards for a few seconds when the game starts. Any key skips them.") },
 	["menu_music"] = { text = N_("Play music while you are in the main menu.") },
 	["menu_music_volume"] = { text = N_("How loud the menu music is, on top of the overall volume.") },
 	["menu_theme"] = { text = N_("Which look the main menu uses.") },

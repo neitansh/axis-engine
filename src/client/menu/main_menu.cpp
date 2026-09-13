@@ -14,6 +14,7 @@
 #include "porting.h"
 #include "gettext.h"
 #include "screens/about_screen.h"
+#include "screens/intro_screen.h"
 #include "screens/online_screen.h"
 #include "screens/settings_screen.h"
 #include "screens/start_screen.h"
@@ -57,8 +58,19 @@ MainMenu::MainMenu(RenderingEngine *engine, ui::Host &host, MyEventReceiver *rec
 	addScreen(std::make_unique<OnlineScreen>(*this));
 	addScreen(std::make_unique<SettingsScreen>(*this));
 	addScreen(std::make_unique<AboutScreen>(*this));
+	addScreen(std::make_unique<IntroScreen>(*this));
 	loadChrome();
-	navigate(findScreen(m_data->screen) ? m_data->screen : "start");
+
+	// Заставка — только при холодном старте: меню создаётся заново после
+	// каждого выхода из мира, а показывать её каждый раз незачем.
+	static bool intro_shown = false;
+	const bool intro = !intro_shown && m_data->screen.empty()
+			&& g_settings->getBool("menu_intro");
+	intro_shown = true;
+	if (intro)
+		navigate("intro");
+	else
+		navigate(findScreen(m_data->screen) ? m_data->screen : "start");
 	m_data->screen.clear();
 
 	m_matchmaking.setOnMatch([this](const std::string &address, int port,
@@ -327,8 +339,17 @@ void MainMenu::loadChrome()
 	m_version = g_version_hash;
 	model.Bind("version", &m_version);
 	m_chrome = m_context->LoadDocument(themeFile("chrome.rml"));
-	if (m_chrome)
+	showChrome(!m_current || m_current->name() != "intro");
+}
+
+void MainMenu::showChrome(bool show)
+{
+	if (!m_chrome)
+		return;
+	if (show)
 		m_chrome->Show();
+	else
+		m_chrome->Hide();
 }
 
 void MainMenu::reloadTheme()

@@ -311,6 +311,7 @@ constexpr SettingDomainEntry SETTING_DOMAIN_TABLE[] = {
 	{"max_users", ConfigDomain::ServerServer},
 	{"media_http_port", ConfigDomain::ServerNetwork},
 	{"menu_clouds", ConfigDomain::ClientInterface},
+	{"menu_intro", ConfigDomain::ClientInterface},
 	{"menu_last_crate", ConfigDomain::ClientSession},
 	{"menu_music", ConfigDomain::ClientAudio},
 	{"menu_music_volume", ConfigDomain::ClientAudio},

@@ -184,6 +184,8 @@ public:
 
 /**
  * A helper function to control sound volume based on some values: sound volume
- * settings, mute sound setting, and window activity.
+ * settings, mute sound setting, and window activity. Meant to be called every
+ * frame: the volume glides to its target instead of jumping, so switching
+ * windows fades the sound out and back in.
  */
 void sound_volume_control(ISoundManager *sound_mgr, bool is_window_active);

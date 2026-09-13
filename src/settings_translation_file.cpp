@@ -337,7 +337,7 @@ fake_function() {
 	gettext("Volume");
 	gettext("Volume of all sounds.\nRequires the sound system to be enabled.");
 	gettext("Volume when unfocused");
-	gettext("Volume multiplier when the window is unfocused.");
+	gettext("Volume multiplier when the window is unfocused.\nThe sound fades to it when you switch windows and comes back when you return.");
 	gettext("Mute sound");
 	gettext("Whether to mute sounds. You can unmute sounds at any time.\nIn-game, you can toggle the mute state with the mute key or by using the\npause menu.");
 	gettext("Menu music");
@@ -395,6 +395,8 @@ fake_function() {
 	gettext("Append the full item name to the tooltip of item stacks.");
 	gettext("Clouds in menu");
 	gettext("Use a cloud animation for the main menu background.");
+	gettext("Intro on start");
+	gettext("Show the studio and engine cards when the game starts.");
 	gettext("Menu theme");
 	gettext("Choose theme colors for the main menu background.");
 	gettext("HUD");

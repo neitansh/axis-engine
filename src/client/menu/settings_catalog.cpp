@@ -59,7 +59,7 @@ const std::vector<PageSpec> PAGE_SPECS = {
 			"menu_ui_sound_volume"}},
 	{"interface", "Interface", {"Graphics and Audio|User Interfaces"},
 		{"#General", "language", "font_size", "gui_scaling", "hud_scaling",
-			"menu_theme", "menu_clouds",
+			"menu_theme", "menu_clouds", "menu_intro",
 		"#Crosshair", "crosshair_shape", "crosshair_size", "crosshair_thickness",
 			"crosshair_gap", "crosshair_dot", "crosshair_outline",
 		"#Hints", "tooltip_show_delay", "tooltip_append_itemname",

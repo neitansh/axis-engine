@@ -10,6 +10,7 @@
 #include "settings.h"
 #include "util/numeric.h"
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -84,23 +85,36 @@ void ISoundManager::freeId(sound_handle_t id, u32 num_owners)
 
 void sound_volume_control(ISoundManager *sound_mgr, bool is_window_active)
 {
-	bool mute_sound = g_settings->getBool("mute_sound");
-	if (mute_sound) {
-		sound_mgr->setListenerGain(0.0f);
-	} else {
+	float target = 0.0f;
+	if (!g_settings->getBool("mute_sound")) {
 		// Check if volume is in the proper range, else fix it.
 		float old_volume = g_settings->getFloat("sound_volume");
-		float new_volume = rangelim(old_volume, 0.0f, 1.0f);
+		target = rangelim(old_volume, 0.0f, 1.0f);
 
-		if (old_volume != new_volume) {
-			g_settings->setFloat("sound_volume", new_volume);
+		if (old_volume != target) {
+			g_settings->setFloat("sound_volume", target);
 		}
 
 		if (!is_window_active) {
-			new_volume *= g_settings->getFloat("sound_volume_unfocused");
-			new_volume = rangelim(new_volume, 0.0f, 1.0f);
+			target *= g_settings->getFloat("sound_volume_unfocused");
+			target = rangelim(target, 0.0f, 1.0f);
 		}
-
-		sound_mgr->setListenerGain(new_volume);
 	}
+
+	// Скольжение к цели: смена окна гасит звук за полсекунды и так же
+	// возвращает, а не обрывает на полуслове. Состояние общее на процесс —
+	// слушатель у OpenAL один, кто бы им ни владел, меню или игра.
+	static float current = -1.0f;
+	static u64 last_ms = 0;
+	const u64 now_ms = porting::getTimeMs();
+	if (current < 0.0f || now_ms < last_ms || now_ms - last_ms > 1000) {
+		current = target;
+	} else {
+		const float k = std::min(1.0f, (now_ms - last_ms) * 0.006f);
+		current += (target - current) * k;
+		if (std::fabs(target - current) < 0.002f)
+			current = target;
+	}
+	last_ms = now_ms;
+	sound_mgr->setListenerGain(current);
 }

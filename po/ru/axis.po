@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 19:39+0300\n"
+"POT-Creation-Date: 2026-09-13 20:10+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -1969,6 +1969,12 @@ msgstr ""
 #: builtin/common/settings/descriptions.lua
 msgid "Show the small map in the corner of the screen."
 msgstr "Показать маленькую карту в углу экрана."
+
+#: builtin/common/settings/descriptions.lua
+msgid ""
+"Show the studio and engine cards for a few seconds when the game starts. Any "
+"key skips them."
+msgstr "На несколько секунд показывать при запуске карточки студии и движка. Любая клавиша пропускает."
 
 #: builtin/common/settings/descriptions.lua
 msgid "Show the technical information panel."
@@ -4189,6 +4195,14 @@ msgstr "Система"
 #: client/ui/menu/about.rml
 msgid "The tracks under the menu — click to open the source:"
 msgstr "Треки под меню — нажмите, чтобы открыть источник:"
+
+#: client/ui/menu/intro.rml
+msgid "Based on Luanti"
+msgstr "На основе Luanti"
+
+#: client/ui/menu/intro.rml
+msgid "Press any key to skip"
+msgstr "Любая клавиша — пропустить"
 
 #: client/ui/menu/online.rml
 msgid "From the list"
@@ -8177,6 +8191,10 @@ msgid "Interval of saving important changes in the world, stated in seconds."
 msgstr "Интервал сохранения важных изменений в мире, в секундах."
 
 #: src/settings_translation_file.cpp
+msgid "Intro on start"
+msgstr "Заставка при запуске"
+
+#: src/settings_translation_file.cpp
 msgid "Inventory items animations"
 msgstr "Анимация предметов в инвентаре"
 
@@ -10093,6 +10111,10 @@ msgid "Show name tag backgrounds by default"
 msgstr "Подложка под именами игроков"
 
 #: src/settings_translation_file.cpp
+msgid "Show the studio and engine cards when the game starts."
+msgstr "Показывать при запуске карточки студии и движка."
+
+#: src/settings_translation_file.cpp
 msgid ""
 "Show what network motion is doing: how evenly packets arrive, how deep the\n"
 "playback buffer runs, and how much the speed of what you see changes from\n"
@@ -11098,8 +11120,12 @@ msgid "Volume"
 msgstr "Громкость"
 
 #: src/settings_translation_file.cpp
-msgid "Volume multiplier when the window is unfocused."
-msgstr "Увеличивается громкость, когда окно не сфокусировано."
+msgid ""
+"Volume multiplier when the window is unfocused.\n"
+"The sound fades to it when you switch windows and comes back when you return."
+msgstr ""
+"Множитель громкости, когда окно не в фокусе.\n"
+"Звук плавно угасает до него при переключении окна и возвращается, когда вы вернётесь."
 
 #: src/settings_translation_file.cpp
 msgid ""
@@ -11458,3 +11484,6 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
+
+#~ msgid "Volume multiplier when the window is unfocused."
+#~ msgstr "Увеличивается громкость, когда окно не сфокусировано."

@@ -95,7 +95,7 @@ local PAGES = {
 		basic = {
 			{ heading = N_("General") },
 			"language", "font_size", "gui_scaling", "hud_scaling",
-			"menu_theme", "menu_clouds",
+			"menu_theme", "menu_clouds", "menu_intro",
 			{ heading = N_("Crosshair") },
 			"crosshair_shape", "crosshair_size", "crosshair_thickness",
 			"crosshair_gap", "crosshair_dot", "crosshair_outline",
