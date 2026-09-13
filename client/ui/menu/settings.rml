@@ -31,7 +31,7 @@
 							data-class-focused="focus == r.index" data-class-changed="r.changed"
 							data-class-keyrow="r.kind == 'key'" data-class-tall="r.kind == 'crosshair'"
 							data-event-mouseover="focus(r.index)">
-						<span class="label">{{ r.label }}</span>
+						<div class="label" data-class-long="r.long_label">{{ r.label }}</div>
 						<div class="control" data-rml="r.widget" data-event-change="changed(r.index)"
 								data-event-click="clicked(r.index)"></div>
 						<div class="key" data-if="r.kind == 'key'" data-class-waiting="capturing == r.index"

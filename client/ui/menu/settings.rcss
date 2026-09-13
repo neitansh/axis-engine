@@ -236,13 +236,22 @@ body.settings {
 }
 
 .setting .label {
+	display: block;
 	flex: 1;
+	width: 0;
 	min-width: 0;
 	font-size: 16dp;
+	line-height: 24dp;
 	color: #F2F0F5;
 	padding-right: 16dp;
 	white-space: nowrap;
 	overflow: hidden;
+	/* Длинная подпись не режется по букве, а тает у правого края */
+	mask-image: linear-gradient(to right, #FFFFFF 78%, #FFFFFF00 100%);
+}
+
+.setting .label.long {
+	font-size: 14dp;
 }
 
 .setting.tall .label {
@@ -408,9 +417,9 @@ body.settings {
 }
 
 .setting .control input.range sliderbar {
-	width: 4dp;
+	width: 10dp;
 	height: 40dp;
-	border-radius: 2dp;
+	border-radius: 3dp;
 	background-color: #FFFFFF;
 	cursor: pointer;
 }

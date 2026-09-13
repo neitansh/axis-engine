@@ -53,6 +53,7 @@ private:
 		Rml::String kind;
 		Rml::String value;
 		Rml::String widget;
+		bool long_label = false;
 		bool changed = false;
 	};
 

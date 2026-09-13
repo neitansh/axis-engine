@@ -232,6 +232,7 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 		row.RegisterMember("kind", &Row::kind);
 		row.RegisterMember("value", &Row::value);
 		row.RegisterMember("widget", &Row::widget);
+		row.RegisterMember("long_label", &Row::long_label);
 		row.RegisterMember("changed", &Row::changed);
 	}
 	model.RegisterArray<std::vector<PageEntry>>();
@@ -544,26 +545,33 @@ std::string SettingsScreen::makeCrosshairWidget() const
 	const std::string code = style.toCode();
 
 	// Предпросмотр крупнее настоящего перекрестья: его разглядывают, а не
-	// целятся им. Рисуется теми же прямоугольниками, что и на экране.
+	// целятся им. Геометрию в увеличенном масштабе считает сам движок, как
+	// для большого экрана: масштабировать готовые прямоугольники нельзя —
+	// штрих нечётной толщины уехал бы от центра на половину масштаба.
 	const int box = 120;
-	const int px = 3;
+	const float scale = 3.0f;
+	// Середина бокса из 120 пикселей лежит между 59-м и 60-м, а не на 60-м.
+	const float origin = box / 2.0f - 0.5f;
 	std::string rml = "<div class=\"xhair\"><div class=\"xhair-preview\">";
+	auto dp = [](float v) {
+		char buf[32];
+		snprintf(buf, sizeof(buf), "%.1fdp", v);
+		return std::string(buf);
+	};
 	auto pieces = [&](const std::vector<CrosshairStyle::Piece> &list, video::SColor color) {
 		for (const auto &p : list) {
-			int x = box / 2 + p.x * px, y = box / 2 + p.y * px;
-			int w = p.w * px, h = p.h * px;
-			const int x2 = std::min(x + w, box), y2 = std::min(y + h, box);
-			x = std::max(x, 0);
-			y = std::max(y, 0);
+			const float x = std::max(origin + p.x, 0.0f), y = std::max(origin + p.y, 0.0f);
+			const float x2 = std::min(origin + p.x + p.w, (float)box);
+			const float y2 = std::min(origin + p.y + p.h, (float)box);
 			if (x2 <= x || y2 <= y)
 				continue;
-			rml += "<div class=\"piece\" style=\"left:" + std::to_string(x) + "dp;top:"
-					+ std::to_string(y) + "dp;width:" + std::to_string(x2 - x) + "dp;height:"
-					+ std::to_string(y2 - y) + "dp;background-color:" + hexOf(color) + ";\"/>";
+			rml += "<div class=\"piece\" style=\"left:" + dp(x) + ";top:" + dp(y)
+					+ ";width:" + dp(x2 - x) + ";height:" + dp(y2 - y)
+					+ ";background-color:" + hexOf(color) + ";\"/>";
 		}
 	};
-	pieces(style.outlinePieces(), style.outline_color);
-	pieces(style.pieces(), style.color);
+	pieces(style.outlinePieces(scale), style.outline_color);
+	pieces(style.pieces(scale), style.color);
 	rml += "</div><div class=\"xhair-fields\">";
 
 	std::vector<std::string> names = {strgettext("Custom")};
@@ -594,6 +602,7 @@ SettingsScreen::Row SettingsScreen::makeRow(const SettingDef &def) const
 	Row row;
 	row.name = def.name;
 	row.label = def.readable.empty() ? def.name : strgettext(def.readable);
+	row.long_label = utf8_to_wide(row.label).size() > 34;
 	row.value = readSetting(def);
 	row.changed = row.value != defaultOf(def);
 	row.widget = makeWidget(def, row.value);
