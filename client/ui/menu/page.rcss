@@ -10,7 +10,9 @@ body.page {
 	flex-direction: column;
 	align-items: stretch;
 	justify-content: flex-start;
-	background-color: #000000;
+	/* Небо с облаками остаётся под страницей, но притушено: карточки и текст
+	   лежат на нём как на чёрном, а движение облаков не спорит с ними */
+	background-color: #000000B8;
 	box-sizing: border-box;
 	padding: 40dp 88dp 40dp 88dp;
 	font-size: 15dp;
