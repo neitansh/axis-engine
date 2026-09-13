@@ -4145,16 +4145,8 @@ msgid "Multiplayer"
 msgstr "Сетевая игра"
 
 #: client/ui/menu/worlds.rml
-msgid ""
-"A crate is a game that Axis runs. Install one, and you can create a world "
-"here."
-msgstr ""
-"Крейт — это игра, которую запускает Axis. Установи крейт, и здесь можно "
-"будет создать мир."
-
-#: client/ui/menu/worlds.rml
 msgid "Create a world for this crate and it will show up here."
-msgstr "Создай мир для этого крейта — он появится здесь."
+msgstr "Создайте мир для этого крейта — он появится здесь."
 
 #: client/ui/menu/worlds.rml
 msgid "Keep"
@@ -4162,7 +4154,7 @@ msgstr "Оставить"
 
 #: client/ui/menu/worlds.rml
 msgid "Leave the seed empty for a random world."
-msgstr "Оставь сид пустым — мир будет случайным."
+msgstr "Оставьте сид пустым — мир будет случайным."
 
 #: client/ui/menu/worlds.rml
 msgid "Map generator"
@@ -4177,8 +4169,8 @@ msgid "New world"
 msgstr "Новый мир"
 
 #: client/ui/menu/worlds.rml
-msgid "No crates installed"
-msgstr "У тебя пока нет ни одного крейта"
+msgid "No crates yet"
+msgstr "Крейтов пока нет"
 
 #: client/ui/menu/worlds.rml
 msgid "No world yet"
@@ -4186,7 +4178,16 @@ msgstr "Миров пока нет"
 
 #: client/ui/menu/worlds.rml
 msgid "No worlds yet — create the first one"
-msgstr "Миров пока нет — создай первый"
+msgstr "Миров пока нет — создайте первый"
+
+#: client/ui/menu/worlds.rml
+msgid ""
+"The engine decides how the game works; a crate decides what is in it — the "
+"rules, the items, the look. Install a crate, and you can create a world here."
+msgstr ""
+"Движок отвечает за то, как работает игра, а крейт — за то, что в ней есть: "
+"правила, предметы и внешний вид. Установите крейт, и здесь можно будет "
+"создать мир."
 
 #: src/chat.cpp
 msgid "Player names: "
@@ -5294,7 +5295,7 @@ msgstr ""
 
 #: src/client/menu/screens/settings_screen.h
 msgid "Press a key…"
-msgstr "Нажми клавишу…"
+msgstr "Нажмите клавишу…"
 
 #: src/client/menu/screens/worlds_screen.cpp
 #, c-format
@@ -11330,3 +11331,13 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
+
+#~ msgid ""
+#~ "A crate is a game that Axis runs. Install one, and you can create a world "
+#~ "here."
+#~ msgstr ""
+#~ "Крейт — это игра, которую запускает Axis. Установи крейт, и здесь можно "
+#~ "будет создать мир."
+
+#~ msgid "No crates installed"
+#~ msgstr "У тебя пока нет ни одного крейта"
