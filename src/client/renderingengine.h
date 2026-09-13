@@ -130,6 +130,18 @@ public:
 			float dtime = 0, int percent = 0, float *indef_pos = nullptr,
 			const std::wstring &bottom_text = {});
 
+	// Кто рисует экран загрузки вместо встроенного: меню на RmlUi отдаёт
+	// свой, и все состояния — от «подключение» до «текстуры» — идут в него.
+	class LoadScreen
+	{
+	public:
+		virtual ~LoadScreen() = default;
+		// percent — доля, если indef_pos пуст; иначе бегунок без конца.
+		virtual void draw(const std::wstring &text, ITextureSource *tsrc, float dtime,
+				int percent, float *indef_pos, const std::wstring &bottom_text) = 0;
+	};
+	void setLoadScreen(LoadScreen *screen) { m_load_screen = screen; }
+
 	void draw_scene(video::SColor skycolor, bool show_hud,
 			bool draw_wield_tool, bool draw_crosshair);
 
@@ -185,6 +197,7 @@ public:
 
 	video::SColor m_menu_sky_color = video::SColor(255, 140, 186, 250);
 	video::SColor m_menu_clouds_color = video::SColor(255, 240, 240, 255);
+	LoadScreen *m_load_screen = nullptr;
 
 private:
 	static void settingChangedCallback(const std::string &name, void *data);

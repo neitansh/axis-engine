@@ -1,0 +1,86 @@
+/*
+ * Экран загрузки: карточка посреди страницы — что сейчас делается, полоса
+ * хода и подробности; если не вышло — та же карточка с ошибкой и «Назад».
+ * Страница и шапка — в page.rcss.
+ */
+
+.load-body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+}
+
+.load-card {
+	align-items: stretch;
+	width: 480dp;
+	box-sizing: border-box;
+	padding: 28dp 32dp;
+	/* Карточка стоит чуть выше середины: центр по глазу выше геометрического */
+	margin-bottom: 60dp;
+}
+
+.load-card .status {
+	display: block;
+	font-size: 18dp;
+	font-weight: 500;
+	color: #F5F5F7;
+	text-align: center;
+	margin-bottom: 18dp;
+}
+
+.load-card .bar {
+	position: relative;
+	display: block;
+	height: 6dp;
+	border-radius: 3dp;
+	background-color: #2C2C2E;
+	overflow: hidden;
+}
+
+.load-card .bar .fill {
+	position: absolute;
+	top: 0;
+	height: 6dp;
+	border-radius: 3dp;
+	background-color: #A78BFA;
+	transition: width 0.15s linear-in-out;
+}
+
+.load-card p.detail {
+	margin-top: 14dp;
+	text-align: center;
+	font-family: "Departure Mono";
+	font-size: 12dp;
+	line-height: 1.6;
+	color: #86868B;
+}
+
+/* Не вышло */
+
+.failure {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.failure .mark {
+	width: 32dp;
+	height: 32dp;
+	margin-bottom: 14dp;
+	decorator: image(icons/alert.png scale-none);
+	image-color: #FF453A;
+}
+
+.failure p.error {
+	margin: 0 0 22dp 0;
+	text-align: center;
+	font-size: 15dp;
+	line-height: 1.5;
+	color: #F5F5F7;
+}
+
+.failure button {
+	width: 200dp;
+}

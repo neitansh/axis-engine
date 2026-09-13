@@ -37,7 +37,7 @@ class Screen;
 class MainMenu : private IEventReceiver
 {
 public:
-	MainMenu(RenderingEngine *engine, MyEventReceiver *receiver,
+	MainMenu(RenderingEngine *engine, ui::Host &host, MyEventReceiver *receiver,
 			MainMenuData *data, volatile std::sig_atomic_t &kill);
 	~MainMenu();
 
@@ -81,7 +81,7 @@ private:
 	MainMenuData *m_data;
 	volatile std::sig_atomic_t &m_kill;
 
-	ui::Host m_host;
+	ui::Host &m_host;
 	Net m_net;
 	Launcher m_launcher;
 	ServerList m_servers;

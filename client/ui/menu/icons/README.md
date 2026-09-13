@@ -6,5 +6,5 @@
 после замены `stroke="currentColor"` на белый.
 
 Имя файла — id страницы настроек из `settings_catalog.cpp`; остальные
-(`back`, `chevron`, `check`, `reset`, `plus`, `package`) — по смыслу, растр
+(`back`, `chevron`, `check`, `reset`, `plus`, `package`, `star`, `alert`) — по смыслу, растр
 того размера, в каком стоят на экране.

@@ -16,7 +16,9 @@
 #include "profiler.h"
 #include "exceptions.h"
 #include "gui/guiEngine.h"
+#include "menu/load_screen.h"
 #include "menu/main_menu.h"
+#include "ui/host.h"
 #include "fontengine.h"
 #include "clientlauncher.h"
 #include "version.h"
@@ -57,6 +59,8 @@ static void dump_start_data(const GameStartData &data)
 }
 #endif
 
+ClientLauncher::ClientLauncher() = default;
+
 ClientLauncher::~ClientLauncher()
 {
 	delete input;
@@ -83,6 +87,11 @@ ClientLauncher::~ClientLauncher()
 	g_gamecallback = nullptr;
 
 	assert(g_menumgr.menuCount() == 0);
+
+	if (m_rendering_engine)
+		m_rendering_engine->setLoadScreen(nullptr);
+	m_load_screen.reset();
+	m_ui.reset();
 
 	delete m_rendering_engine;
 
@@ -180,6 +189,15 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 	camera = g_menucloudsmgr->addCameraSceneNode(NULL, v3f(0, 0, 0), v3f(0, 60, 100));
 	camera->setFarValue(10000);
 
+	if (g_settings->getBool("main_menu_rml")) {
+		m_ui = std::make_unique<ui::Host>(m_rendering_engine->get_raw_device());
+		if (m_ui->ok()) {
+			m_load_screen = std::make_unique<menu::LoadScreen>(m_rendering_engine, *m_ui,
+					receiver);
+			m_rendering_engine->setLoadScreen(m_load_screen.get());
+		}
+	}
+
 	/*
 		GUI stuff
 	*/
@@ -242,6 +260,10 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 			// Break out of menu-game loop to shut down cleanly
 			if (!m_rendering_engine->run() || *kill)
 				break;
+
+			if (m_load_screen)
+				m_load_screen->setTitle(start_data.isSinglePlayer()
+						? strgettext("Singleplayer") : strgettext("Multiplayer"));
 
 			the_game(
 				kill,
@@ -640,9 +662,18 @@ void ClientLauncher::main_menu(MainMenuData *menudata)
 	}
 
 	/* show main menu */
-	if (g_settings->getBool("main_menu_rml")) {
-		menu::MainMenu mymenu(m_rendering_engine, receiver, menudata, *kill);
+	if (m_ui && m_ui->ok()) {
+		// Чем кончился прошлый заход, показывает экран загрузки, а не
+		// стартовая страница: ошибка стоит там, где игрок её ждёт, а «Назад»
+		// ведёт туда, откуда он уходил в игру.
+		if (!menudata->script_data.message.empty() && m_load_screen) {
+			m_load_screen->showError(menudata->script_data.message, *kill);
+			menudata->script_data.message.clear();
+		}
+		menudata->screen = m_menu_screen;
+		menu::MainMenu mymenu(m_rendering_engine, *m_ui, receiver, menudata, *kill);
 		mymenu.run();
+		m_menu_screen = menudata->screen;
 	} else {
 		GUIEngine mymenu(guiroot, m_rendering_engine, &g_menumgr, menudata, *kill);
 	}

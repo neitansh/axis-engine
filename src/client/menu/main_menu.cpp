@@ -29,13 +29,13 @@
 namespace menu
 {
 
-MainMenu::MainMenu(RenderingEngine *engine, MyEventReceiver *receiver,
+MainMenu::MainMenu(RenderingEngine *engine, ui::Host &host, MyEventReceiver *receiver,
 		MainMenuData *data, volatile std::sig_atomic_t &kill) :
 	m_engine(engine),
 	m_receiver(receiver),
 	m_data(data),
 	m_kill(kill),
-	m_host(engine->get_raw_device()),
+	m_host(host),
 	m_launcher(m_net),
 	m_servers(m_launcher),
 	m_matchmaking(m_net, m_launcher, m_servers)
@@ -57,7 +57,8 @@ MainMenu::MainMenu(RenderingEngine *engine, MyEventReceiver *receiver,
 	addScreen(std::make_unique<OnlineScreen>(*this));
 	addScreen(std::make_unique<SettingsScreen>(*this));
 	loadChrome();
-	navigate("start");
+	navigate(findScreen(m_data->screen) ? m_data->screen : "start");
+	m_data->screen.clear();
 
 	m_matchmaking.setOnMatch([this](const std::string &address, int port,
 			const std::string &server_id, const std::string &match) {
@@ -191,6 +192,7 @@ void MainMenu::startSingleplayer(const WorldSpec &world)
 		m_data->ticket.clear();
 		m_data->server_id.clear();
 		m_data->script_data.message.clear();
+		m_data->screen = "worlds";
 		m_launcher.playingSolo();
 		m_start_game = true;
 		return;
@@ -223,6 +225,7 @@ void MainMenu::startJoin(const std::string &address, int port, const std::string
 	m_data->selected_world = -1;
 	m_data->name = g_settings->get("name");
 	m_data->script_data.message.clear();
+	m_data->screen = "online";
 
 	if (!m_launcher.available()) {
 		// Клиент запустили без лаунчера. Билета не будет, и это не наша

@@ -301,6 +301,11 @@ void RenderingEngine::draw_load_screen(const std::wstring &text,
 		gui::IGUIEnvironment *guienv, ITextureSource *tsrc, float dtime,
 		int percent, float *indef_pos, const std::wstring &bottom_text)
 {
+	if (m_load_screen) {
+		m_load_screen->draw(text, tsrc, dtime, percent, indef_pos, bottom_text);
+		return;
+	}
+
 	v2u32 screensize = getWindowSize();
 
 	const float density = g_settings->getFloat("gui_scaling", 0.5f, 20.0f) *

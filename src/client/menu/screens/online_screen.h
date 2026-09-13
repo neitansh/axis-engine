@@ -55,7 +55,7 @@ private:
 	void joinSelected();
 	void connect();
 
-	Rml::String m_mode = "matches";
+	Rml::String m_mode;
 	Rml::String m_tab_indicator;
 	Rml::String m_title;
 	Rml::String m_matches_heading;

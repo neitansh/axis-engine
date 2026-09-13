@@ -9,7 +9,7 @@ msgstr ""
 "#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 07:33+0300\n"
+"POT-Creation-Date: 2026-09-13 07:54+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 07:37+0300\n"
+"POT-Creation-Date: 2026-09-13 07:58+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2670,10 +2670,12 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Button text to go back
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/mainmenu/content/dlg_contentdb.lua
 #: builtin/mainmenu/content/dlg_package.lua src/gui/guiVolumeChange.cpp
+#: client/ui/menu/loading.rml
 msgid "Back"
 msgstr ""
 
@@ -2867,7 +2869,8 @@ msgstr ""
 #: builtin/mainmenu/content/dlg_contentdb.lua
 #: builtin/mainmenu/content/dlg_install.lua
 #: builtin/mainmenu/content/dlg_package.lua builtin/mainmenu/matchmaking.lua
-#: src/client/game.cpp client/ui/menu/online.rml
+#: src/client/game.cpp src/client/menu/load_screen.cpp
+#: client/ui/menu/online.rml
 msgid "Loading..."
 msgstr ""
 
@@ -3700,8 +3703,8 @@ msgstr ""
 msgid "Play Crate"
 msgstr ""
 
-#: builtin/mainmenu/tab_local.lua src/client/game.cpp client/ui/menu/start.rml
-#: client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_local.lua src/client/clientlauncher.cpp
+#: src/client/game.cpp client/ui/menu/start.rml client/ui/menu/worlds.rml
 msgid "Singleplayer"
 msgstr ""
 
@@ -3861,6 +3864,11 @@ msgstr ""
 msgid "Main Menu"
 msgstr ""
 
+#: src/client/clientlauncher.cpp src/client/game.cpp
+#: src/client/menu/screens/online_screen.cpp client/ui/menu/start.rml
+msgid "Multiplayer"
+msgstr ""
+
 #: src/client/clientlauncher.cpp
 msgid "Provided password file failed to open: "
 msgstr ""
@@ -3912,11 +3920,6 @@ msgstr ""
 
 #: src/client/game.cpp
 msgid "Connection failed for unknown reason"
-msgstr ""
-
-#: src/client/game.cpp src/client/menu/screens/online_screen.cpp
-#: client/ui/menu/start.rml
-msgid "Multiplayer"
 msgstr ""
 
 #: src/client/game.cpp

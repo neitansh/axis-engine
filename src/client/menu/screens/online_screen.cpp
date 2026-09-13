@@ -12,8 +12,14 @@
 namespace menu
 {
 
+// Открытая вкладка переживает игру: меню строится заново после каждого
+// захода, а игрок, которого не пустило на сервер, ждёт увидеть список
+// серверов, а не арены.
+static Rml::String s_last_mode = "matches";
+
 OnlineScreen::OnlineScreen(MainMenu &menu) : Screen(menu, "online")
 {
+	m_mode = s_last_mode;
 	m_title = strgettext("Multiplayer");
 	m_matches_heading = strgettext("Arenas");
 	m_servers_heading = strgettext("Server List");
@@ -164,6 +170,7 @@ void OnlineScreen::open(const std::string &mode)
 		menu().servers().sync();
 	}
 	m_mode = mode;
+	s_last_mode = mode;
 	m_tab_indicator = mode == "matches" ? "translateX(0dp)" : "translateX(100%)";
 	refresh();
 }

@@ -1,0 +1,32 @@
+<rml>
+<head>
+	<title>loading</title>
+	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="page.rcss"/>
+	<link type="text/rcss" href="loading.rcss"/>
+</head>
+<body data-model="loading" class="page loading">
+	<div class="page-head">
+		<div class="head-side">
+			<div class="back" data-event-click="back()"><div class="arrow"/></div>
+			<h1>{{ title }}</h1>
+			<span class="kbd">Esc</span>
+		</div>
+	</div>
+
+	<div class="load-body">
+		<div class="load-card panel" data-class-failed="failed">
+			<div class="status" data-if="!failed">{{ status }}</div>
+			<div class="bar" data-if="!failed">
+				<div class="fill" data-style-left="fill_left" data-style-width="fill_width"/>
+			</div>
+			<p class="detail" data-if="!failed && detail != ''">{{ detail }}</p>
+			<div class="failure" data-if="failed">
+				<div class="mark"/>
+				<p class="error">{{ error }}</p>
+				<button class="primary" data-event-click="back()">[[Back]]</button>
+			</div>
+		</div>
+	</div>
+</body>
+</rml>

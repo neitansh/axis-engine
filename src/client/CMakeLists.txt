@@ -87,6 +87,7 @@ set(client_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/wieldmesh.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/mod_vfs.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/launcher.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/menu/load_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/main_menu.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/matchmaking.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/net.cpp

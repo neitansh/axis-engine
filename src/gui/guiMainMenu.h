@@ -21,6 +21,12 @@ struct MainMenuData : GameClientData {
 	// Server options
 	int selected_world = 0;
 
+	// Экран меню, с которого ушли в игру и на который вернутся. Меню
+	// строится заново после каждой игры, и без этого игрок, которого не
+	// пустило на сервер, оказывался бы на стартовом экране, а не там, где
+	// нажимал «Подключиться».
+	std::string screen;
+
 	// Data to be passed to the script
 	GameErrorData &script_data;
 };
