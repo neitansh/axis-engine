@@ -6,6 +6,7 @@
 
 #include "client/menu/main_menu.h"
 #include "settings.h"
+#include <RmlUi/Core/ElementDocument.h>
 
 namespace menu
 {
@@ -48,6 +49,19 @@ void StartScreen::refresh()
 	m_confirm_exit = false;
 	m_ask_always = g_settings->getBool("enable_esc_dialog");
 	model().DirtyAllVariables();
+}
+
+void StartScreen::entered()
+{
+	if (m_fade_in && document())
+		document()->SetClass("veiled", true);
+	m_fade_in = false;
+}
+
+void StartScreen::left()
+{
+	if (document())
+		document()->SetClass("veiled", false);
 }
 
 // Подтверждение можно выключить галкой в нём же или в настройках — тогда

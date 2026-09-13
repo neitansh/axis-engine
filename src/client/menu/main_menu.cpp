@@ -346,6 +346,7 @@ void MainMenu::showChrome(bool show)
 {
 	if (!m_chrome)
 		return;
+	m_chrome->SetClass("shown", show);
 	if (show)
 		m_chrome->Show();
 	else

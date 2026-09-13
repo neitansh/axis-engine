@@ -150,6 +150,30 @@ body.shown .about-link {
 	animation: 0.8s cubic-out enter-about;
 }
 
+/* После заставки экран проявляется из черноты: чёрная пелена поверх всего
+   тает, пока пункты въезжают. Класс veiled ставит стартовый экран на один
+   показ; в остальное время пелена прозрачна и мыши не мешает. */
+
+.veil {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #000000;
+	opacity: 0;
+	pointer-events: none;
+}
+
+body.veiled .veil {
+	animation: 0.7s linear-in-out veil-out;
+}
+
+@keyframes veil-out {
+	0% { opacity: 1; }
+	100% { opacity: 0; }
+}
+
 @keyframes enter-brand {
 	0% { opacity: 0; transform: translateX(-32dp); }
 	60% { opacity: 1; transform: translateX(0dp); }

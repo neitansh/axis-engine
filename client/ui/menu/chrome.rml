@@ -8,6 +8,15 @@
 			pointer-events: none;
 			z-index: 100;
 		}
+
+		body.shown .version {
+			animation: 0.7s linear-in-out chrome-in;
+		}
+
+		@keyframes chrome-in {
+			0% { opacity: 0; }
+			100% { opacity: 1; }
+		}
 	</style>
 </head>
 <body data-model="chrome">

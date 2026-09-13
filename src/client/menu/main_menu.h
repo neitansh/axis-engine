@@ -51,6 +51,7 @@ public:
 	std::string themeFile(const std::string &name) const;
 
 	void navigate(const std::string &screen);
+	Screen *findScreen(const std::string &name);
 	void quit();
 	void startSingleplayer(const WorldSpec &world);
 	// Вход на сервер по адресу. Билет спрашивается у лаунчера здесь же:
@@ -76,7 +77,6 @@ public:
 private:
 	bool OnEvent(const SEvent &event) override;
 	void addScreen(std::unique_ptr<Screen> screen);
-	Screen *findScreen(const std::string &name);
 	void loadChrome();
 	void reloadTheme();
 

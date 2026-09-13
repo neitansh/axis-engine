@@ -16,7 +16,13 @@ public:
 	explicit StartScreen(MainMenu &menu) : Screen(menu, "start") {}
 
 	void refresh() override;
+	void entered() override;
+	void left() override;
 	bool onEvent(const SEvent &event) override;
+
+	// Следующий показ начнётся из черноты: заставка кончается чёрным, и
+	// стартовый экран проявляется из него, а не вспыхивает небом.
+	void fadeInOnce() { m_fade_in = true; }
 
 protected:
 	void bind(Rml::DataModelConstructor &model) override;
@@ -26,6 +32,7 @@ private:
 
 	bool m_confirm_exit = false;
 	bool m_ask_always = true;
+	bool m_fade_in = false;
 };
 
 }

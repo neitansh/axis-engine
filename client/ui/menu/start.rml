@@ -17,6 +17,7 @@
 		</div>
 	</div>
 	<div class="about-link" data-event-click="nav('about')">[[About]]</div>
+	<div class="veil"/>
 
 	<div class="scrim" data-if="confirm_exit" data-event-click="quit_cancel()"/>
 	<div class="modal" data-if="confirm_exit">

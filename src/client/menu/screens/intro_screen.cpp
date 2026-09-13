@@ -6,6 +6,7 @@
 
 #include "client/menu/main_menu.h"
 #include "porting.h"
+#include "start_screen.h"
 #include "util/basic_macros.h"
 #include "version.h"
 #include <RmlUi/Core/ElementDocument.h>
@@ -95,6 +96,8 @@ void IntroScreen::card(const char *id, bool on)
 void IntroScreen::finish()
 {
 	menu().sounds().holdMusic(false);
+	if (auto *start = dynamic_cast<StartScreen *>(menu().findScreen("start")))
+		start->fadeInOnce();
 	menu().navigate("start");
 }
 
