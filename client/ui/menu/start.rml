@@ -12,9 +12,9 @@
 		<img src="textures/base/pack/menu_header.png" rect="483 0 378 144"/>
 	</div>
 	<div class="stack">
-		<button class="primary" data-event-click="nav('worlds')">Играть</button>
-		<button data-event-click="nav('settings')">Настройки</button>
-		<button data-event-click="quit()">Выйти</button>
+		<button class="primary" data-event-click="nav('worlds')">[[Play]]</button>
+		<button data-event-click="nav('settings')">[[Settings]]</button>
+		<button data-event-click="quit()">[[Exit]]</button>
 	</div>
 </body>
 </rml>

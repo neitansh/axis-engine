@@ -19,6 +19,10 @@ test -n "$potfile" || abort "нужен путь к .pot"
 
 scriptisin="$( cd "$( dirname "$0" )" && pwd )"
 cd "$scriptisin/.." || abort "не найден корень репозитория"
+case "$potfile" in
+/*) ;;
+*) potfile="$PWD/$potfile" ;;
+esac
 
 # Тексты настроек доходят до xgettext только через сгенерированный
 # src/settings_translation_file.cpp: сам settingtypes.txt он не читает.
@@ -45,4 +49,24 @@ xgettext --package-name=axis \
 	--output "$potfile" \
 	--from-code=utf-8 \
 	`find src/ -name '*.cpp' -o -name '*.h'` \
-	`find builtin/ -name '*.lua'`
+	`find builtin/ -name '*.lua'` || exit 1
+
+# Тексты темы RmlUi стоят в документах в [[двойных скобках]]; xgettext
+# такой разметки не знает, так что скобки переписываются в N_("…") во
+# временную копию с тем же путём — по нему в шаблоне и видно, откуда строка.
+work=$(mktemp -d) || abort "не создался временный каталог"
+trap 'rm -rf "$work"' EXIT
+rml=$(find client/ui -name '*.rml')
+for f in $rml; do
+	mkdir -p "$work/$(dirname "$f")"
+	grep -o '\[\[[^]]*\]\]' "$f" |
+		sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' \
+			-e 's/^\[\[/N_("/' -e 's/\]\]$/");/' > "$work/$f"
+done
+test -n "$rml" || exit 0
+(cd "$work" && xgettext --package-name=axis --language=C --sort-by-file \
+	--add-location=file --keyword=N_ --from-code=utf-8 \
+	--output "$work/theme.pot" $rml) || abort "не собрались строки темы"
+# msgcat без сортировки держит порядок первого файла: иначе шаблон
+# перетасовывается целиком, и правка в один экран выглядит как правка во все.
+msgcat --output "$potfile" "$potfile" "$work/theme.pot"

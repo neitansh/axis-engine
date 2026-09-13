@@ -5,7 +5,7 @@
 </head>
 <body data-model="worlds">
 	<div class="card">
-		<h2>Своя игра</h2>
+		<h2>[[Local game]]</h2>
 
 		<div class="list" data-if="!creating">
 			<div class="row" data-for="w : worlds" data-class-selected="it_index == selected"
@@ -13,46 +13,46 @@
 				<span class="name">{{ w.name }}</span>
 				<span class="crate">{{ w.crate }}</span>
 			</div>
-			<div class="empty" data-if="worlds.size == 0">Миров пока нет — создай первый</div>
+			<div class="empty" data-if="worlds.size == 0">[[No worlds yet — create the first one]]</div>
 		</div>
 
 		<div class="form" data-if="creating">
-			<label>Название</label>
+			<label>[[Name]]</label>
 			<input type="text" data-value="new_name" maxlength="64"/>
-			<label>Крейт</label>
+			<label>[[Crate]]</label>
 			<select data-value="new_crate">
 				<option data-for="c : crates" data-attr-value="c.id">{{ c.title }}</option>
 			</select>
-			<label>Генератор карты</label>
+			<label>[[Map generator]]</label>
 			<select data-value="new_mapgen">
 				<option data-for="m : mapgens" data-attr-value="m">{{ m }}</option>
 			</select>
-			<label>Зерно</label>
+			<label>[[Seed]]</label>
 			<input type="text" data-value="new_seed" maxlength="64"/>
 		</div>
 
 		<p class="error" data-if="error != ''">{{ error }}</p>
 
 		<div class="confirm" data-if="confirm_delete">
-			<p>Удалить мир «{{ selected_name }}» безвозвратно?</p>
+			<p>{{ delete_question }}</p>
 			<div class="actions">
-				<button class="danger" data-event-click="delete()">Удалить</button>
-				<button class="ghost" data-event-click="delete_cancel()">Оставить</button>
+				<button class="danger" data-event-click="delete()">[[Delete]]</button>
+				<button class="ghost" data-event-click="delete_cancel()">[[Keep]]</button>
 			</div>
 		</div>
 
 		<div class="toolbar" data-if="!creating && !confirm_delete">
-			<button class="ghost" data-event-click="nav('start')">← Назад</button>
+			<button class="ghost" data-event-click="nav('start')">← [[Back]]</button>
 			<div class="actions">
-				<button data-event-click="create_begin()">Новый мир</button>
-				<button data-event-click="delete_begin()" data-if="selected >= 0">Удалить</button>
-				<button class="primary" data-event-click="play()" data-if="selected >= 0">Играть</button>
+				<button data-event-click="create_begin()">[[New world]]</button>
+				<button data-event-click="delete_begin()" data-if="selected >= 0">[[Delete]]</button>
+				<button class="primary" data-event-click="play()" data-if="selected >= 0">[[Play]]</button>
 			</div>
 		</div>
 
 		<div class="toolbar" data-if="creating">
-			<button class="ghost" data-event-click="create_cancel()">Отмена</button>
-			<button class="primary" data-event-click="create()">Создать</button>
+			<button class="ghost" data-event-click="create_cancel()">[[Cancel]]</button>
+			<button class="primary" data-event-click="create()">[[Create]]</button>
 		</div>
 	</div>
 </body>

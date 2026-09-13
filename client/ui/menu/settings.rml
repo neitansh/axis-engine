@@ -7,7 +7,7 @@
 <body data-model="settings" class="settings">
 	<div class="back" data-event-click="nav('start')">
 		<div class="arrow"/>
-		<span>Назад</span>
+		<span>[[Back]]</span>
 		<span class="hint">Esc</span>
 	</div>
 
@@ -35,11 +35,11 @@
 						<div class="control" data-rml="r.widget" data-event-change="changed(r.index)"
 								data-event-click="clicked(r.index)"></div>
 						<div class="key" data-if="r.kind == 'key'" data-class-waiting="capturing == r.index"
-								data-event-click="capture(r.index)">{{ capturing == r.index ? 'Нажми клавишу…' : r.value }}</div>
+								data-event-click="capture(r.index)">{{ capturing == r.index ? key_prompt : r.value }}</div>
 						<div class="undo" data-class-hidden="!r.changed" data-event-click="reset(r.index)"/>
 					</div>
 				</div>
-				<div class="empty" data-if="rows.size == 0">Ничего не найдено</div>
+				<div class="empty" data-if="rows.size == 0">[[Nothing found]]</div>
 			</div>
 		</div>
 

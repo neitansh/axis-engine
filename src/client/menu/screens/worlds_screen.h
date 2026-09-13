@@ -49,7 +49,7 @@ private:
 	std::vector<Rml::String> m_mapgens;
 
 	int m_selected = -1;
-	Rml::String m_selected_name;
+	Rml::String m_delete_question;
 	bool m_creating = false;
 	bool m_confirm_delete = false;
 	Rml::String m_new_name;

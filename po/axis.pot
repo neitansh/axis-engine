@@ -6,9 +6,21 @@
 #, fuzzy
 msgid ""
 msgstr ""
+"#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 03:28+0300\n"
+"POT-Creation-Date: 2026-09-13 05:59+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
+"Project-Id-Version: axis\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-13 06:01+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -205,6 +217,7 @@ msgstr ""
 #: builtin/common/settings/quality_component.lua
 #: builtin/common/settings/shadows_component.lua
 #: src/client/menu/screens/settings_screen.cpp
+#: src/client/menu/settings_presets.cpp
 msgid "Custom"
 msgstr ""
 
@@ -2303,9 +2316,10 @@ msgstr ""
 msgid "The multiplier for the noise before the offset is added."
 msgstr ""
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Value for randomness
 #: builtin/common/settings/dlg_change_mapgen_flags.lua
-#: builtin/mainmenu/dlg_create_world.lua
+#: builtin/mainmenu/dlg_create_world.lua client/ui/menu/worlds.rml
 msgid "Seed"
 msgstr ""
 
@@ -2472,7 +2486,7 @@ msgstr ""
 #: builtin/mainmenu/dlg_delete_content.lua
 #: builtin/mainmenu/dlg_delete_world.lua
 #: builtin/mainmenu/dlg_rename_modpack.lua builtin/mainmenu/matchmaking.lua
-#: src/gui/guiOpenURL.cpp
+#: src/gui/guiOpenURL.cpp client/ui/menu/worlds.rml
 msgid "Cancel"
 msgstr ""
 
@@ -2640,8 +2654,10 @@ msgid ""
 "combination with the current settings."
 msgstr ""
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Try to keep the translation short
 #: builtin/common/settings/dlg_settings.lua src/client/game_formspec.cpp
+#: client/ui/menu/start.rml
 msgid "Settings"
 msgstr ""
 
@@ -2654,10 +2670,12 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Button text to go back
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/mainmenu/content/dlg_contentdb.lua
 #: builtin/mainmenu/content/dlg_package.lua src/gui/guiVolumeChange.cpp
+#: client/ui/menu/settings.rml client/ui/menu/worlds.rml
 msgid "Back"
 msgstr ""
 
@@ -2693,19 +2711,23 @@ msgstr ""
 
 #: builtin/common/settings/quality_component.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/settings_presets.cpp
 msgid "Low"
 msgstr ""
 
 #: builtin/common/settings/quality_component.lua
+#: src/client/menu/settings_presets.cpp
 msgid "Standard"
 msgstr ""
 
 #: builtin/common/settings/quality_component.lua
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/settings_presets.cpp
 msgid "High"
 msgstr ""
 
 #: builtin/common/settings/quality_component.lua
+#: src/client/menu/settings_presets.cpp
 msgid "Ultra"
 msgstr ""
 
@@ -2735,14 +2757,17 @@ msgid "Client Mods"
 msgstr ""
 
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/settings_presets.cpp
 msgid "Very Low"
 msgstr ""
 
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/settings_presets.cpp
 msgid "Medium"
 msgstr ""
 
 #: builtin/common/settings/shadows_component.lua
+#: src/client/menu/settings_presets.cpp
 msgid "Very High"
 msgstr ""
 
@@ -3348,11 +3373,12 @@ msgstr ""
 msgid "Mapgen"
 msgstr ""
 
-#: builtin/mainmenu/dlg_create_world.lua
+#: builtin/mainmenu/dlg_create_world.lua client/ui/menu/worlds.rml
 msgid "Create"
 msgstr ""
 
 #: builtin/mainmenu/dlg_create_world.lua
+#: src/client/menu/screens/worlds_screen.cpp
 msgid "No crate selected"
 msgstr ""
 
@@ -3366,6 +3392,7 @@ msgstr ""
 
 #: builtin/mainmenu/dlg_delete_content.lua
 #: builtin/mainmenu/dlg_delete_world.lua builtin/mainmenu/tab_local.lua
+#: client/ui/menu/worlds.rml
 msgid "Delete"
 msgstr ""
 
@@ -3654,7 +3681,7 @@ msgstr ""
 msgid "Enable Damage"
 msgstr ""
 
-#: builtin/mainmenu/tab_local.lua
+#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
 msgid "Crate"
 msgstr ""
 
@@ -3773,7 +3800,8 @@ msgstr ""
 msgid "Incompatible Servers"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/start.rml
+#: client/ui/menu/worlds.rml
 msgid "Play"
 msgstr ""
 
@@ -4864,6 +4892,20 @@ msgid ""
 "code to share with others."
 msgstr ""
 
+#: src/client/menu/screens/settings_screen.h
+msgid "Press a key…"
+msgstr ""
+
+#: src/client/menu/screens/worlds_screen.cpp
+#, c-format
+msgid "Delete the world \"%s\" for good?"
+msgstr ""
+
+#: src/client/menu/screens/worlds_screen.cpp
+#, c-format
+msgid "A world named \"%s\" already exists"
+msgstr ""
+
 #: src/client/minimap.cpp
 msgid "Minimap hidden"
 msgstr ""
@@ -4904,6 +4946,18 @@ msgstr ""
 #: src/client/shader.cpp
 #, c-format
 msgid "Failed to compile the \"%s\" shader."
+msgstr ""
+
+#: src/content/crates.cpp
+msgid "Game ID not found"
+msgstr ""
+
+#: src/content/crates.cpp
+msgid "Failed to initialize world: "
+msgstr ""
+
+#: src/content/crates.cpp
+msgid "Failed to delete world"
 msgstr ""
 
 #: src/content/mod_configuration.cpp
@@ -5013,7 +5067,7 @@ msgstr ""
 msgid "Drop"
 msgstr ""
 
-#: src/gui/touchscreenlayout.cpp
+#: src/gui/touchscreenlayout.cpp client/ui/menu/start.rml
 msgid "Exit"
 msgstr ""
 
@@ -9945,4 +9999,32 @@ msgstr ""
 #: src/util/screenshot.cpp
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
+msgstr ""
+
+#: client/ui/menu/settings.rml
+msgid "Nothing found"
+msgstr ""
+
+#: client/ui/menu/worlds.rml
+msgid "Local game"
+msgstr ""
+
+#: client/ui/menu/worlds.rml
+msgid "No worlds yet — create the first one"
+msgstr ""
+
+#: client/ui/menu/worlds.rml
+msgid "Name"
+msgstr ""
+
+#: client/ui/menu/worlds.rml
+msgid "Map generator"
+msgstr ""
+
+#: client/ui/menu/worlds.rml
+msgid "Keep"
+msgstr ""
+
+#: client/ui/menu/worlds.rml
+msgid "New world"
 msgstr ""

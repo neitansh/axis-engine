@@ -13,6 +13,7 @@
 #include "map_settings_manager.h"
 #include "util/string.h"
 #include "exceptions.h"
+#include "gettext.h"
 #include <algorithm>
 
 // The maximum number of identical world names allowed
@@ -452,7 +453,7 @@ std::string createWorld(const std::string &name, const std::string &crateid,
 	auto crate = std::find_if(crates.begin(), crates.end(),
 			[&crateid](const CrateSpec &spec) { return spec.id == crateid; });
 	if (crate == crates.end())
-		return "Game ID not found";
+		return strgettext("Game ID not found");
 
 	// Генератор карты читает свои настройки из g_settings, и передать их
 	// иначе некуда; после создания мира они возвращаются как были.
@@ -467,7 +468,7 @@ std::string createWorld(const std::string &name, const std::string &crateid,
 	try {
 		loadCrateConfAndInitWorld(path, name, *crate, true);
 	} catch (const BaseException &e) {
-		error = std::string("Failed to initialize world: ") + e.what();
+		error = strgettext("Failed to initialize world: ") + e.what();
 	}
 
 	for (const auto &it : settings) {
@@ -483,7 +484,7 @@ std::string createWorld(const std::string &name, const std::string &crateid,
 std::string deleteWorld(const WorldSpec &world)
 {
 	if (!fs::RecursiveDelete(world.path))
-		return "Failed to delete world";
+		return strgettext("Failed to delete world");
 	return "";
 }
 

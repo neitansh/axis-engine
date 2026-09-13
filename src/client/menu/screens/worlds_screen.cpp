@@ -5,6 +5,7 @@
 #include "worlds_screen.h"
 
 #include "client/menu/main_menu.h"
+#include "gettext.h"
 #include "mapgen/mapgen.h"
 #include "settings.h"
 #include <algorithm>
@@ -30,7 +31,7 @@ void WorldsScreen::bind(Rml::DataModelConstructor &model)
 	model.Bind("crates", &m_crates);
 	model.Bind("mapgens", &m_mapgens);
 	model.Bind("selected", &m_selected);
-	model.Bind("selected_name", &m_selected_name);
+	model.Bind("delete_question", &m_delete_question);
 	model.Bind("creating", &m_creating);
 	model.Bind("confirm_delete", &m_confirm_delete);
 	model.Bind("new_name", &m_new_name);
@@ -115,7 +116,9 @@ void WorldsScreen::reloadWorlds()
 void WorldsScreen::select(int index)
 {
 	m_selected = index >= 0 && (size_t)index < m_worlds.size() ? index : -1;
-	m_selected_name = m_selected >= 0 ? m_worlds[m_selected].name : "";
+	m_delete_question = m_selected >= 0
+			? fmtgettext("Delete the world \"%s\" for good?", m_worlds[m_selected].name.c_str())
+			: "";
 }
 
 void WorldsScreen::beginCreate()
@@ -153,12 +156,12 @@ void WorldsScreen::create()
 	}
 	for (const WorldSpec &world : m_worlds) {
 		if (world.name == name) {
-			m_error = "A world named \"" + name + "\" already exists";
+			m_error = fmtgettext("A world named \"%s\" already exists", name.c_str());
 			return;
 		}
 	}
 	if (m_new_crate.empty()) {
-		m_error = "No crate selected";
+		m_error = strgettext("No crate selected");
 		return;
 	}
 

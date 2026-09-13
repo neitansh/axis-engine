@@ -5,6 +5,7 @@
 #include "system.h"
 
 #include "filesys.h"
+#include "gettext.h"
 #include "log_internal.h"
 #include "porting.h"
 #include <ICursorControl.h>
@@ -39,6 +40,27 @@ bool System::LogMessage(Rml::Log::Type type, const Rml::String &message)
 	}
 	g_logger.log(level, "RmlUi: " + message);
 	return true;
+}
+
+int System::TranslateString(Rml::String &translated, const Rml::String &input)
+{
+	translated.clear();
+	int count = 0;
+	size_t pos = 0;
+	while (pos < input.size()) {
+		const size_t open = input.find("[[", pos);
+		const size_t close = open == Rml::String::npos
+				? Rml::String::npos : input.find("]]", open + 2);
+		if (close == Rml::String::npos) {
+			translated.append(input, pos, Rml::String::npos);
+			break;
+		}
+		translated.append(input, pos, open - pos);
+		translated += strgettext(input.substr(open + 2, close - open - 2));
+		pos = close + 2;
+		count++;
+	}
+	return count;
 }
 
 void System::JoinPath(Rml::String &translated_path, const Rml::String &document_path,

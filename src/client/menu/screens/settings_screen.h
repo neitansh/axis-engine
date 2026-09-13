@@ -6,6 +6,7 @@
 
 #include "client/menu/screen.h"
 #include "client/menu/settings_catalog.h"
+#include "gettext.h"
 #include <vector>
 
 namespace Rml
@@ -84,6 +85,7 @@ private:
 	Rml::String m_tab_indicator;
 	std::vector<Row> m_rows;
 	int m_capturing = -1;
+	Rml::String m_key_prompt = strgettext("Press a key…");
 	int m_focus = -1;
 	Rml::String m_focus_label;
 	Rml::String m_focus_help;

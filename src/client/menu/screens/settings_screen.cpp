@@ -243,6 +243,7 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 	model.Bind("tab_indicator", &m_tab_indicator);
 	model.Bind("rows", &m_rows);
 	model.Bind("capturing", &m_capturing);
+	model.Bind("key_prompt", &m_key_prompt);
 	model.Bind("focus", &m_focus);
 	model.Bind("focus_label", &m_focus_label);
 	model.Bind("focus_help", &m_focus_help);

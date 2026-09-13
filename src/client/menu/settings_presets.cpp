@@ -4,6 +4,7 @@
 
 #include "settings_presets.h"
 
+#include "gettext.h"
 #include "settings.h"
 #include "util/string.h"
 
@@ -43,7 +44,7 @@ const PresetGroup &qualityPresets()
 	// Что стоит в наборах, взято из замеров на арене матча: листва и тени —
 	// самое дорогое в кадре, остальное решает картинку.
 	static const PresetGroup group = {
-		{"Low", "Standard", "High", "Ultra", "Custom"},
+		{N_("Low"), N_("Standard"), N_("High"), N_("Ultra"), N_("Custom")},
 		{
 			{{{"leaves_style", "simple"}, {"leaves_detail_range", "16"},
 				{"foliage_range", "48"}, {"smooth_lighting", "false"},
@@ -97,7 +98,7 @@ const PresetGroup &shadowPresets()
 				{"shadow_map_color", color}}};
 	};
 	static const PresetGroup group = {
-		{"Very Low", "Low", "Medium", "High", "Very High", "Custom"},
+		{N_("Very Low"), N_("Low"), N_("Medium"), N_("High"), N_("Very High"), N_("Custom")},
 		{preset("62", "512", "false"), preset("93", "1024", "false"),
 			preset("140", "2048", "false"), preset("210", "4096", "true"),
 			preset("300", "8192", "true")},

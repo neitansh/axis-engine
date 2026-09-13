@@ -20,6 +20,10 @@ public:
 
 	double GetElapsedTime() override;
 	bool LogMessage(Rml::Log::Type type, const Rml::String &message) override;
+	// Переводится только текст в [[скобках]]. RmlUi зовёт этот метод и для
+	// текста, собранного из данных (имя мира, значение настройки), и без
+	// метки любое слово, совпавшее с ключом перевода, уехало бы на другой язык.
+	int TranslateString(Rml::String &translated, const Rml::String &input) override;
 	void JoinPath(Rml::String &translated_path, const Rml::String &document_path,
 			const Rml::String &path) override;
 	void SetMouseCursor(const Rml::String &cursor_name) override;
