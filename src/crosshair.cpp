@@ -178,12 +178,13 @@ std::vector<CrosshairStyle::Piece> CrosshairStyle::pieces(f32 scale) const
 	case SHAPE_SQUARE: {
 		const s32 r = std::max(1, len);
 		const s32 side = r * 2 + th;
-		const s32 near = -r - half;
-		const s32 far = r - half;
-		out.push_back({near, near, side, th});
-		out.push_back({near, far, side, th});
-		out.push_back({near, near, th, side});
-		out.push_back({far, near, th, side});
+		// Не near/far: у Windows это макросы из windef.h.
+		const s32 lo = -r - half;
+		const s32 hi = r - half;
+		out.push_back({lo, lo, side, th});
+		out.push_back({lo, hi, side, th});
+		out.push_back({lo, lo, th, side});
+		out.push_back({hi, lo, th, side});
 		break;
 	}
 	case SHAPE_BRACKETS: {
