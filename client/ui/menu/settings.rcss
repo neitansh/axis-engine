@@ -39,7 +39,7 @@ body.settings {
 
 .back {
 	position: absolute;
-	top: 62dp;
+	top: 74dp;
 	left: 80dp;
 	display: flex;
 	flex-direction: row;
@@ -115,6 +115,7 @@ body.settings {
 	left: 11dp;
 	width: 50dp;
 	height: 50dp;
+	box-sizing: border-box;
 	border-radius: 12dp;
 	background-color: #8B5CF633;
 	border: 1dp #A78BFA80;

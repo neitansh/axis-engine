@@ -40,15 +40,64 @@ void GlBindings::restore() const
 	GL.BindBuffer(GL.ARRAY_BUFFER, m_array_buffer);
 }
 
+Renderer::~Renderer()
+{
+	if (m_scene_quad)
+		ReleaseGeometry(m_scene_quad);
+	if (m_scene_texture)
+		GL.DeleteTextures(1, &m_scene_texture);
+}
+
 void Renderer::beginFrame(int width, int height)
 {
 	m_bindings.capture();
 	BeginFrame();
-	// BeginFrame() оставляет привязанным слой, в который пойдёт UI; кадр
-	// сцены переезжает в него из буфера, что был текущим до нас.
+	copyScene(width, height);
+}
+
+// Сцена снимается в текстуру и рисуется квадом в слой RmlUi. Блит был бы
+// проще, но слой многосэмпловый ради ровных скруглений, а блит из обычного
+// буфера в многосэмпловый OpenGL запрещает.
+void Renderer::copyScene(int width, int height)
+{
+	if (width <= 0 || height <= 0)
+		return;
+
+	if (!m_scene_texture)
+		GL.GenTextures(1, &m_scene_texture);
+	GL.BindTexture(GL.TEXTURE_2D, m_scene_texture);
+	if (width != m_scene_width || height != m_scene_height) {
+		GL.TexImage2D(GL.TEXTURE_2D, 0, GL.RGBA8, width, height, 0, GL.RGBA,
+				GL.UNSIGNED_BYTE, nullptr);
+		GL.TexParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR);
+		GL.TexParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR);
+		GL.TexParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE);
+		GL.TexParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE);
+		m_scene_width = width;
+		m_scene_height = height;
+
+		if (m_scene_quad)
+			ReleaseGeometry(m_scene_quad);
+		// Текстура из буфера кадра лежит снизу вверх, у RmlUi верх — ноль.
+		const float w = (float)width, h = (float)height;
+		const Rml::ColourbPremultiplied white(255, 255, 255, 255);
+		const Rml::Vertex vertices[4] = {
+			{Rml::Vector2f(0, 0), white, Rml::Vector2f(0, 1)},
+			{Rml::Vector2f(w, 0), white, Rml::Vector2f(1, 1)},
+			{Rml::Vector2f(w, h), white, Rml::Vector2f(1, 0)},
+			{Rml::Vector2f(0, h), white, Rml::Vector2f(0, 0)},
+		};
+		const int indices[6] = {0, 1, 2, 2, 3, 0};
+		m_scene_quad = CompileGeometry(Rml::Span<const Rml::Vertex>(vertices, 4),
+				Rml::Span<const int>(indices, 6));
+	}
+
+	// BeginFrame() оставил привязанным слой для UI; читаем из буфера, что
+	// был текущим до нас.
 	GL.BindFramebuffer(GL.READ_FRAMEBUFFER, m_bindings.framebuffer());
-	GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height,
-			GL.COLOR_BUFFER_BIT, GL.NEAREST);
+	GL.BindTexture(GL.TEXTURE_2D, m_scene_texture);
+	GL.CopyTexSubImage2D(GL.TEXTURE_2D, 0, 0, 0, 0, 0, width, height);
+	RenderGeometry(m_scene_quad, Rml::Vector2f(0, 0), (Rml::TextureHandle)m_scene_texture);
 }
 
 void Renderer::endFrame()

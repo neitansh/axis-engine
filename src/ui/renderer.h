@@ -56,6 +56,8 @@ class Renderer final : public RenderInterface_GL3
 public:
 	explicit Renderer(video::IVideoDriver *driver) : m_driver(driver) {}
 
+	~Renderer();
+
 	// Кадр UI начинается с копии того, что уже нарисовано под ним: иначе
 	// backdrop-filter видит пустой слой, а не сцену.
 	void beginFrame(int width, int height);
@@ -65,8 +67,15 @@ public:
 			const Rml::String &source) override;
 
 private:
+	void copyScene(int width, int height);
+
 	video::IVideoDriver *m_driver;
 	GlBindings m_bindings;
+	// Снимок сцены и квад на весь экран, которым он кладётся в слой RmlUi.
+	unsigned m_scene_texture = 0;
+	Rml::CompiledGeometryHandle m_scene_quad = 0;
+	int m_scene_width = 0;
+	int m_scene_height = 0;
 };
 
 }

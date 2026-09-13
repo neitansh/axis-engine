@@ -216,6 +216,7 @@ SettingsScreen::SettingsScreen(MainMenu &menu) : Screen(menu, "settings")
 		m_pages.push_back({page.id, strgettext(page.title)});
 	if (!m_pages.empty())
 		m_page = m_pages.front().id;
+	m_tab_indicator = "translateX(0dp)";
 }
 
 void SettingsScreen::bind(Rml::DataModelConstructor &model)
