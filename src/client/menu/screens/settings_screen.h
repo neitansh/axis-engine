@@ -53,6 +53,7 @@ private:
 		Rml::String kind;
 		Rml::String value;
 		Rml::String widget;
+		Rml::String enter;
 		bool changed = false;
 	};
 

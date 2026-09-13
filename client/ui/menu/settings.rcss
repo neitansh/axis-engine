@@ -14,6 +14,29 @@
 	to { opacity: 1; }
 }
 
+/* Вход: стекло наплывает, шапка опускается, строки поднимаются одна за
+   другой, описание проявляется последним */
+
+@keyframes veil-in {
+	from { backdrop-filter: blur(0dp); background-color: #06050A00; }
+	to { backdrop-filter: blur(26dp); background-color: #06050A73; }
+}
+
+@keyframes drop-in {
+	from { opacity: 0; transform: translateY(-16dp); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rise-in {
+	from { opacity: 0; transform: translateY(14dp); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in {
+	from { opacity: 0; transform: translateX(-18dp); }
+	to { opacity: 1; transform: translateX(0); }
+}
+
 body.settings {
 	position: absolute;
 	/* Размытие у RmlUi отступает от краёв элемента на свой радиус, поэтому
@@ -33,6 +56,7 @@ body.settings {
 	box-sizing: border-box;
 	padding: 62dp 88dp 40dp 88dp;
 	font-size: 16dp;
+	animation: 0.55s cubic-out veil-in;
 }
 
 /* Назад: стеклянная кнопка в левом верхнем углу; стрелка уезжает при наведении */
@@ -54,6 +78,7 @@ body.settings {
 	font-size: 15dp;
 	cursor: pointer;
 	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out, color 0.15s linear-in-out;
+	animation: 0.45s cubic-out 0.12s slide-in;
 }
 
 .back .arrow {
@@ -94,6 +119,7 @@ body.settings {
 	flex-direction: row;
 	justify-content: center;
 	margin-bottom: 48dp;
+	animation: 0.45s cubic-out 0.06s drop-in;
 }
 
 .tabs {
@@ -219,7 +245,6 @@ body.settings {
 	letter-spacing: 4dp;
 	color: #A78BFA;
 	margin: 34dp 0 14dp 0;
-	animation: 0.25s cubic-out fade-in;
 }
 
 .rows h3.group:first-child {
@@ -657,7 +682,7 @@ input.checkbox:checked {
 .info-body {
 	display: flex;
 	flex-direction: column;
-	animation: 0.2s cubic-out fade-in;
+	animation: 0.35s cubic-out rise-in;
 }
 
 .info h4 {
