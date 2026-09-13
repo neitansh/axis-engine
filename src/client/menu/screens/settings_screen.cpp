@@ -19,6 +19,7 @@
 #include <RmlUi/Core/StringUtilities.h>
 #include <algorithm>
 #include <cmath>
+#include <cwctype>
 
 namespace menu
 {
@@ -279,7 +280,12 @@ void SettingsScreen::appendItems(const std::vector<SettingsPage::Item> &items)
 		if (!item.heading.empty()) {
 			heading = Row();
 			heading.kind = "heading";
-			heading.label = strgettext(item.heading);
+			// Заголовки — капителью; text-transform у RmlUi знает только
+			// латиницу.
+			std::wstring upper = utf8_to_wide(strgettext(item.heading));
+			for (wchar_t &c : upper)
+				c = std::towupper(c);
+			heading.label = wide_to_utf8(upper);
 			pending_heading = &heading;
 			continue;
 		}
@@ -628,11 +634,20 @@ void SettingsScreen::focus(int index)
 	m_focus_options.clear();
 	if (!def)
 		return;
+	std::vector<std::string> options;
 	if (def->kind == SettingDef::Kind::Bool) {
-		m_focus_options = {strgettext("Disabled"), strgettext("Enabled")};
-		m_focus_value = is_yes(row.value) ? m_focus_options[1] : m_focus_options[0];
+		options = {strgettext("Disabled"), strgettext("Enabled")};
+		m_focus_value = is_yes(row.value) ? options[1] : options[0];
 	} else if (def->kind == SettingDef::Kind::Enum) {
-		m_focus_options.assign(def->values.begin(), def->values.end());
+		options = def->values;
+	}
+	// Список вариантов идёт готовой разметкой: data-for на нём при смене
+	// строки обновлял старые элементы по новому, уже короткому массиву.
+	for (const std::string &option : options) {
+		m_focus_options += "<div class=\"opt";
+		if (option == m_focus_value)
+			m_focus_options += " on";
+		m_focus_options += "\">" + Rml::StringUtilities::EncodeRml(option) + "</div>";
 	}
 	// Раздел слева подсвечивается по ближайшему заголовку сверху.
 	for (const Section &section : m_sections) {

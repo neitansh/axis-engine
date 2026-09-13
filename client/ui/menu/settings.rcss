@@ -9,44 +9,74 @@ body.settings {
 	flex-direction: column;
 	align-items: stretch;
 	justify-content: flex-start;
-	background-color: #0C0A12F2;
+	background-color: #06050A99;
+	backdrop-filter: blur(18dp);
 	box-sizing: border-box;
-	padding: 20dp 40dp 16dp 40dp;
+	padding: 16dp 40dp 16dp 40dp;
+}
+
+/* Вкладки: иконки в тёмной размытой полосе, подпись — только под открытой */
+
+.tabbar {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	justify-content: center;
+	margin-bottom: 14dp;
 }
 
 .tabs {
 	display: flex;
 	flex-direction: row;
+	align-items: flex-start;
+	padding: 6dp 8dp;
+	border-radius: 10dp;
+	background-color: #00000073;
+	backdrop-filter: blur(10dp);
+}
+
+.tabs .tab {
+	display: flex;
+	flex-direction: column;
 	align-items: center;
-	justify-content: center;
-	margin-bottom: 18dp;
+	width: 44dp;
+	margin: 0 3dp;
+	cursor: pointer;
 }
 
-.tabs button.tab {
-	background-color: transparent;
-	border-color: transparent;
-	color: #948C9E;
-	font-family: "Departure Mono";
-	font-size: 13dp;
-	white-space: nowrap;
-	padding: 8dp 12dp;
-	margin: 0 2dp;
-	border-radius: 6dp;
+.tabs .tab img {
+	width: 22dp;
+	height: 22dp;
+	margin: 6dp 0;
+	padding: 5dp 11dp;
+	border-radius: 8dp;
+	image-color: #FFFFFFA6;
 }
 
-.tabs button.tab:hover {
-	color: #E8E6ED;
-	background-color: #FFFFFF0C;
+.tabs .tab:hover img {
+	image-color: #FFFFFF;
+	background-color: #FFFFFF12;
 }
 
-.tabs button.tab.active {
+.tabs .tab.active img {
+	image-color: #FFFFFF;
+	background-color: #FFFFFF26;
+}
+
+.tabs .tab .caption {
+	font-size: 10dp;
+	font-weight: 600;
+	letter-spacing: 1dp;
+	text-transform: uppercase;
 	color: #FFFFFF;
-	background-color: #8B5CF6;
+	white-space: nowrap;
+	margin-bottom: 4dp;
 }
 
-.tabs input.text.search {
+.tabbar input.text.search {
 	width: 200dp;
 	margin-left: 24dp;
+	margin-top: 6dp;
 	padding: 6dp 12dp;
 }
 
@@ -57,50 +87,22 @@ body.settings {
 	min-height: 0;
 }
 
-.sections {
-	display: flex;
-	flex-direction: column;
-	width: 180dp;
-	margin-right: 24dp;
-	padding: 8dp;
-	border-radius: 8dp;
-	background-color: #17131F;
-}
-
-.sections button.section {
-	text-align: left;
-	background-color: transparent;
-	border-color: transparent;
-	color: #948C9E;
-	font-size: 13dp;
-	padding: 8dp 10dp;
-	margin-bottom: 2dp;
-}
-
-.sections button.section:hover {
-	color: #E8E6ED;
-	background-color: #FFFFFF0C;
-}
-
-.sections button.section.active {
-	color: #FFFFFF;
-	background-color: #FFFFFF14;
-	border-color: #A78BFA;
-}
-
 .rows {
 	display: block;
 	flex: 1;
 	overflow-y: auto;
 	padding-right: 12dp;
+	padding-left: 180dp;
 }
 
 .rows h3.group {
 	display: block;
-	font-family: "Departure Mono";
-	font-size: 17dp;
-	color: #E8E6ED;
-	margin: 14dp 0 8dp 0;
+	font-size: 14dp;
+	font-weight: 700;
+	letter-spacing: 1.5dp;
+	text-transform: uppercase;
+	color: #FFFFFF;
+	margin: 22dp 0 10dp 0;
 }
 
 .rows h3.group:first-child {
@@ -125,7 +127,8 @@ body.settings {
 .setting .label {
 	flex: 1;
 	min-width: 0;
-	color: #C8C3D1;
+	font-size: 14dp;
+	color: #B9B3C4;
 	padding-right: 12dp;
 }
 
@@ -262,14 +265,13 @@ body.settings {
 
 .setting .control input.range sliderprogress {
 	height: 30dp;
-	border-radius: 5dp;
+	border-radius: 5dp 0 0 5dp;
 	background-color: #8B5CF6;
 }
 
 .setting .control input.range sliderbar {
 	width: 6dp;
 	height: 30dp;
-	border-radius: 3dp;
 	background-color: #E8E6ED;
 	cursor: pointer;
 }
@@ -358,8 +360,8 @@ button.more {
 
 .info h4 {
 	display: block;
-	font-family: "Departure Mono";
-	font-size: 16dp;
+	font-size: 15dp;
+	font-weight: 600;
 	color: #FFFFFF;
 	margin: 0 0 10dp 0;
 }

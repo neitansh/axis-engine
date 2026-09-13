@@ -5,17 +5,18 @@
 	<link type="text/rcss" href="settings.rcss"/>
 </head>
 <body data-model="settings" class="settings">
-	<div class="tabs">
-		<button data-for="p : pages" class="tab" data-class-active="p.id == page && search == ''"
-				data-event-click="open(p.id)">{{ p.title }}</button>
+	<div class="tabbar">
+		<div class="tabs">
+			<div data-for="p : pages" class="tab" data-class-active="p.id == page && search == ''"
+					data-event-click="open(p.id)">
+				<img data-attr-src="'icons/' + p.id + '.png'"/>
+				<span class="caption" data-if="p.id == page && search == ''">{{ p.title }}</span>
+			</div>
+		</div>
 		<input type="text" class="search" placeholder="Поиск" data-value="search" data-event-change="search()"/>
 	</div>
 
 	<div class="settings-body">
-		<div class="sections" data-if="search == ''">
-			<button data-for="s : sections" class="section" data-class-active="s.row == section"
-					data-event-click="jump(s.row)">{{ s.title }}</button>
-		</div>
 
 		<div class="rows" id="rows">
 			<div data-for="r : rows">
@@ -40,9 +41,7 @@
 		<div class="info">
 			<h4>{{ focus_label }}</h4>
 			<p>{{ focus_help }}</p>
-			<div class="options">
-				<div data-for="o : focus_options" class="opt" data-class-on="o == focus_value">{{ o }}</div>
-			</div>
+			<div class="options" data-rml="focus_options"></div>
 		</div>
 	</div>
 

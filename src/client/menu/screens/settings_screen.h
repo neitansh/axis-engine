@@ -92,7 +92,7 @@ private:
 	Rml::String m_focus_label;
 	Rml::String m_focus_help;
 	Rml::String m_focus_value;
-	std::vector<Rml::String> m_focus_options;
+	Rml::String m_focus_options;
 	// Пока строки строятся, виджеты шлют change сами по себе; до первого
 	// обновления после rebuild() события не считаются.
 	bool m_armed = false;
