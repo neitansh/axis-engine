@@ -67,6 +67,7 @@ void Screen::show()
 	m_shown = true;
 	if (!m_document)
 		load();
+	entered();
 	refresh();
 	if (m_document)
 		m_document->Show();
@@ -75,6 +76,7 @@ void Screen::show()
 void Screen::hide()
 {
 	m_shown = false;
+	left();
 	if (m_document)
 		m_document->Hide();
 }

@@ -147,17 +147,26 @@ button.ghost:hover {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	max-width: 520dp;
+	/* Ширина твёрдая: у flex-элемента с max-width RmlUi считает высоту до
+	   того, как ужмёт ширину, и текст вылезает из рамки */
+	width: 520dp;
+	box-sizing: border-box;
 	margin-bottom: 24dp;
 	padding: 10dp 14dp;
-	border-radius: 6dp;
-	background-color: #C05B4D22;
-	border: 1dp #C05B4D66;
-	color: #E8E6ED;
+	border-radius: 8dp;
+	background-color: #C05B4D33;
+	border: 1dp #C05B4D80;
+	backdrop-filter: blur(8dp);
+	color: #FFFFFF;
+	font-size: 15dp;
+	line-height: 1.45;
 }
 
 .notice p {
+	display: block;
 	flex: 1;
+	width: 0;
+	min-width: 0;
 }
 
 .notice button {

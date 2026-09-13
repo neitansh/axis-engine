@@ -27,6 +27,7 @@
 #include "network/socket.h"
 #include "network/networkexceptions.h"
 #include "network/address.h"
+#include "network/serverping.h"
 #include "network/mtp/internal.h"
 #include "util/serialize.h"
 #include "content/mod_configuration.h"
@@ -1185,114 +1186,17 @@ int ModApiMainMenu::l_ping_server(lua_State *L)
 	int port = luaL_checkint(L, 2);
 	int timeout_ms = luaL_optint(L, 3, 2000);
 
-	if (port <= 0 || port > 65535)
-		return 0;
-
-	Address dest;
-	try {
-		dest.Resolve(address.c_str());
-	} catch (const ResolveError &) {
-		return 0;
-	}
-	dest.setPort(port);
-
-	UDPSocket socket;
-	if (!socket.init(dest.isIPv6(), true))
-		return 0;
-
-	try {
-		if (dest.isIPv6()) {
-			IPv6AddressBytes any;
-			socket.Bind(Address(&any, 0));
-		} else {
-			socket.Bind(Address((u32)0, (u16)0));
-		}
-	} catch (const SocketException &) {
-		// An ephemeral port is best effort; sending still works without it
-	}
-
-	// Ask how busy the server is. A server that does not know the query stays
-	// silent, so an empty reliable original follows as a plain reachability
-	// probe: every server answers that one by handing out a peer id.
-	u8 query[BASE_HEADER_SIZE + 2] = {};
-	writeU32(&query[0], PROTOCOL_ID);
-	writeU16(&query[4], PEER_ID_INEXISTENT);
-	query[6] = 0; // channel
-	query[7] = con::PACKET_TYPE_CONTROL;
-	query[8] = con::CONTROLTYPE_QUERY_INFO;
-
-	u8 probe[BASE_HEADER_SIZE + 3 + 1] = {};
-	writeU32(&probe[0], PROTOCOL_ID);
-	writeU16(&probe[4], PEER_ID_INEXISTENT);
-	probe[6] = 0; // channel
-	probe[7] = con::PACKET_TYPE_RELIABLE;
-	writeU16(&probe[8], SEQNUM_INITIAL);
-	probe[10] = con::PACKET_TYPE_ORIGINAL;
-
-	u64 sent_at = porting::getTimeMs();
-
-	try {
-		socket.Send(dest, query, sizeof(query));
-		socket.Send(dest, probe, sizeof(probe));
-	} catch (const SendFailedException &) {
-		return 0;
-	}
-
-	char buffer[1024];
-	Address sender;
-	u64 ping_ms = 0;
-	bool have_ping = false;
-	int clients = -1;
-	int clients_max = -1;
-
-	// Both packets are in flight; keep reading until the info reply shows up or
-	// the budget runs out, so the counts are not lost to ordering.
-	while (true) {
-		u64 elapsed = porting::getTimeMs() - sent_at;
-		if ((int)elapsed >= timeout_ms)
-			break;
-
-		// Меню закрывают — бросаем замер. Ответ уже некому показывать, а ждать
-		// его игрок будет стоя перед кнопкой: закрытие меню ждёт этот поток.
-		if (g_async_stopping)
-			break;
-
-		// Ждём порциями, а не одним куском: иначе просьбу закругляться мы
-		// заметили бы только по истечении всего срока.
-		const int slice = MYMIN(200, timeout_ms - (int)elapsed);
-		if (!socket.WaitData(slice))
-			continue;
-
-		int received = socket.Receive(sender, buffer, sizeof(buffer));
-		if (received < BASE_HEADER_SIZE)
-			continue;
-
-		const u8 *data = (const u8 *)buffer;
-		if (readU32(data) != PROTOCOL_ID || sender.getPort() != dest.getPort())
-			continue;
-
-		if (!have_ping) {
-			ping_ms = porting::getTimeMs() - sent_at;
-			have_ping = true;
-		}
-
-		if (received >= BASE_HEADER_SIZE + 6 &&
-				data[BASE_HEADER_SIZE] == con::PACKET_TYPE_CONTROL &&
-				data[BASE_HEADER_SIZE + 1] == con::CONTROLTYPE_SERVER_INFO) {
-			clients = readU16(data + BASE_HEADER_SIZE + 2);
-			clients_max = readU16(data + BASE_HEADER_SIZE + 4);
-			break;
-		}
-	}
-
-	if (!have_ping)
+	// Меню закрывают — бросаем замер. Ответ уже некому показывать, а ждать
+	// его игрок будет стоя перед кнопкой: закрытие меню ждёт этот поток.
+	ServerPing info;
+	if (!pingServer(address, port, timeout_ms, info, &g_async_stopping))
 		return 0;
 
 	lua_newtable(L);
-	setfloatfield(L, -1, "ping", (float)ping_ms);
-	if (clients >= 0) {
-		setintfield(L, -1, "clients", clients);
-		setintfield(L, -1, "clients_max", clients_max);
+	setfloatfield(L, -1, "ping", (float)info.ping_ms);
+	if (info.clients >= 0) {
+		setintfield(L, -1, "clients", info.clients);
+		setintfield(L, -1, "clients_max", info.clients_max);
 	}
 	return 1;
 }

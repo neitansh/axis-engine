@@ -1,0 +1,516 @@
+/*
+ * Сетевая игра: переключатель «Матчи / Серверы» под заголовком, ниже — либо
+ * арены плитками с карточкой подключения слева, либо список серверов с
+ * карточкой выбранного справа. Стекло, «Назад» и заголовки — в page.rcss.
+ */
+
+.title {
+	position: absolute;
+	top: 74dp;
+	left: 0;
+	right: 0;
+	height: 40dp;
+	line-height: 40dp;
+	text-align: center;
+	font-size: 14dp;
+	font-weight: 600;
+	letter-spacing: 3dp;
+	color: #FFFFFFB3;
+	pointer-events: none;
+}
+
+/* Переключатель: стеклянная капсула, подсветка скользит к открытому */
+
+.switch-bar {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	margin-top: 64dp;
+}
+
+.switch {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	padding: 4dp;
+	border-radius: 12dp;
+	background-color: #00000040;
+	border: 1dp #FFFFFF1A;
+	backdrop-filter: blur(8dp);
+	box-shadow: 0 10dp 30dp #00000059;
+}
+
+.switch .indicator {
+	position: absolute;
+	top: 4dp;
+	left: 4dp;
+	width: 160dp;
+	height: 36dp;
+	box-sizing: border-box;
+	border-radius: 9dp;
+	background-color: #8B5CF633;
+	border: 1dp #A78BFA80;
+	transition: transform 0.25s cubic-out;
+}
+
+.switch .option {
+	position: relative;
+	width: 160dp;
+	height: 36dp;
+	line-height: 36dp;
+	text-align: center;
+	font-size: 14dp;
+	font-weight: 600;
+	letter-spacing: 0.5dp;
+	color: #FFFFFF8C;
+	cursor: pointer;
+	transition: color 0.15s linear-in-out;
+}
+
+.switch .option:hover,
+.switch .option.active {
+	color: #FFFFFF;
+}
+
+.online-body {
+	display: flex;
+	flex-direction: row;
+	flex: 1;
+	min-height: 0;
+	margin-top: 8dp;
+	padding: 0 40dp 40dp 40dp;
+}
+
+.aside {
+	display: flex;
+	flex-direction: column;
+	width: 300dp;
+	margin-right: 28dp;
+}
+
+.main {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+/* Подключение */
+
+.connection {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 14dp 16dp;
+	border-radius: 10dp;
+	background-color: #FFFFFF0A;
+	border: 1dp #FFFFFF14;
+}
+
+.connection .dot {
+	width: 10dp;
+	height: 10dp;
+	margin-right: 12dp;
+	border-radius: 5dp;
+	background-color: #948C9E;
+}
+
+.connection.named .dot {
+	background-color: #8BD6A0;
+}
+
+.connection.checking .dot {
+	background-color: #F2C14E;
+}
+
+.connection.none .dot {
+	background-color: #FF8A75;
+}
+
+.connection .text {
+	display: block;
+	flex: 1;
+	font-size: 15dp;
+	color: #F2F0F5;
+}
+
+.aside p.note {
+	margin-top: 14dp;
+	font-size: 13dp;
+	line-height: 1.55;
+	color: #948C9E;
+}
+
+/* Арены */
+
+.arenas {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+.centered {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	text-align: center;
+}
+
+.centered p {
+	font-size: 15dp;
+	color: #C8C3D1;
+	margin-bottom: 16dp;
+}
+
+.spinner {
+	width: 22dp;
+	height: 22dp;
+	margin-bottom: 14dp;
+	border-radius: 11dp;
+	border: 3dp #FFFFFF24;
+	border-top-color: #A78BFA;
+	animation: 0.9s linear-in-out infinite spin;
+}
+
+.spinner.big {
+	width: 40dp;
+	height: 40dp;
+	border-radius: 20dp;
+	margin-bottom: 22dp;
+}
+
+@keyframes spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+.tiles {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	overflow-y: auto;
+	margin: 0 -6dp;
+}
+
+.tile {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 200dp;
+	height: 110dp;
+	margin: 6dp;
+	padding: 0 18dp;
+	box-sizing: border-box;
+	border-radius: 12dp;
+	background-color: #FFFFFF0A;
+	border: 1dp #FFFFFF14;
+	cursor: pointer;
+	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out, transform 0.15s cubic-out;
+}
+
+.tile:hover {
+	background-color: #8B5CF626;
+	border-color: #A78BFA;
+	transform: translateY(-2dp);
+}
+
+.tile .tile-title {
+	display: block;
+	font-size: 19dp;
+	font-weight: 600;
+	color: #FFFFFF;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.tile .tile-count {
+	display: block;
+	margin-top: 6dp;
+	font-size: 13dp;
+	letter-spacing: 1dp;
+	color: #A78BFA;
+}
+
+.arenas p.status {
+	margin-top: 12dp;
+	font-size: 14dp;
+	color: #E08A7E;
+}
+
+/* Ожидание */
+
+.waiting {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	text-align: center;
+}
+
+.queue-title {
+	display: block;
+	font-size: 30dp;
+	font-weight: 700;
+	letter-spacing: 2dp;
+	color: #FFFFFF;
+	margin-bottom: 14dp;
+}
+
+.queue-line {
+	display: block;
+	font-size: 17dp;
+	color: #F2F0F5;
+	margin-bottom: 6dp;
+}
+
+.queue-below {
+	display: block;
+	font-size: 14dp;
+	color: #948C9E;
+	margin-bottom: 28dp;
+}
+
+.waiting button {
+	padding: 10dp 28dp;
+}
+
+/* Список серверов */
+
+.server-list {
+	display: block;
+	flex: 1;
+	overflow-y: auto;
+	padding-right: 12dp;
+}
+
+.server-list scrollbarvertical {
+	width: 4dp;
+	margin: 0;
+}
+
+.server-list scrollbarvertical sliderbar {
+	border-radius: 2dp;
+	background-color: #FFFFFF33;
+}
+
+.section {
+	display: block;
+	margin: 14dp 0 6dp 14dp;
+	font-size: 11dp;
+	font-weight: 700;
+	letter-spacing: 2dp;
+	color: #948C9E;
+}
+
+.server {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 50dp;
+	padding: 0 14dp;
+	margin-bottom: 2dp;
+	border-radius: 6dp;
+	border: 1dp transparent;
+	cursor: pointer;
+	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out;
+}
+
+.server:hover {
+	background-color: #FFFFFF0A;
+}
+
+.server.active {
+	background-color: #FFFFFF0F;
+	border-color: #A78BFA;
+}
+
+.server .star {
+	width: 16dp;
+	height: 16dp;
+	margin-right: 10dp;
+	decorator: image(icons/star.png scale-none);
+	image-color: #F2C14E;
+}
+
+.server .name {
+	display: block;
+	flex: 1;
+	width: 0;
+	min-width: 0;
+	font-size: 16dp;
+	color: #F2F0F5;
+	white-space: nowrap;
+	overflow: hidden;
+	mask-image: linear-gradient(to right, #FFFFFF 85%, #FFFFFF00 100%);
+}
+
+.server .players {
+	width: 80dp;
+	text-align: right;
+	font-size: 13dp;
+	color: #C8C3D1;
+}
+
+.server .ping {
+	width: 80dp;
+	text-align: right;
+	font-size: 13dp;
+	color: #948C9E;
+}
+
+.server .ping.good { color: #8BD6A0; }
+.server .ping.fair { color: #F2C14E; }
+.server .ping.poor { color: #FF8A75; }
+
+.server-list .empty {
+	padding: 40dp 0;
+	text-align: center;
+	color: #948C9E;
+}
+
+.list-actions {
+	display: flex;
+	flex-direction: row;
+	margin-top: 12dp;
+}
+
+button.refresh {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	padding: 12dp;
+	background-color: #FFFFFF08;
+	border-color: #FFFFFF1F;
+	color: #C8C3D1;
+}
+
+button.refresh:hover {
+	background-color: #8B5CF626;
+	border-color: #A78BFA99;
+	color: #FFFFFF;
+}
+
+button.refresh .icon {
+	width: 18dp;
+	height: 18dp;
+	margin-right: 8dp;
+	decorator: image(icons/reset.png scale-none);
+}
+
+/* Правая колонка */
+
+.side {
+	display: flex;
+	flex-direction: column;
+	width: 340dp;
+	margin-left: 28dp;
+	padding-left: 28dp;
+	border-left: 1dp #FFFFFF14;
+}
+
+.side-body {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.side-body.direct {
+	margin-top: 32dp;
+	padding-top: 24dp;
+	border-top: 1dp #FFFFFF14;
+}
+
+.side h4 {
+	display: block;
+	font-size: 22dp;
+	font-weight: 600;
+	color: #FFFFFF;
+	margin: 0 0 14dp 0;
+	white-space: nowrap;
+	overflow: hidden;
+	mask-image: linear-gradient(to right, #FFFFFF 85%, #FFFFFF00 100%);
+}
+
+.side-body.direct h4 {
+	font-size: 13dp;
+	font-weight: 700;
+	letter-spacing: 2dp;
+	color: #948C9E;
+}
+
+.facts {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 8dp;
+}
+
+.fact {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	padding: 8dp 0;
+	border-bottom: 1dp #FFFFFF14;
+	font-size: 14dp;
+}
+
+.fact .k {
+	color: #948C9E;
+}
+
+.fact .v {
+	color: #E8E6ED;
+}
+
+.address-row {
+	display: flex;
+	flex-direction: row;
+}
+
+.side input.text {
+	box-sizing: border-box;
+	padding: 10dp 12dp;
+	background-color: #1B1626;
+	border-color: #FFFFFF1A;
+}
+
+.side input.text:focus {
+	border-color: #A78BFA;
+}
+
+.address-row input.address {
+	flex: 1;
+	margin-right: 8dp;
+}
+
+.address-row input.port {
+	width: 84dp;
+}
+
+.side .error {
+	margin-top: 12dp;
+	font-size: 14dp;
+}
+
+.side button {
+	width: 100%;
+	box-sizing: border-box;
+	margin-top: 8dp;
+}
+
+.side button.big {
+	margin-top: 20dp;
+	padding: 14dp 20dp;
+	font-size: 17dp;
+	font-weight: 600;
+}
+
+.side-body.direct button {
+	margin-top: 12dp;
+}

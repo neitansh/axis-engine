@@ -9,6 +9,7 @@ set(common_network_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/net_impairment.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/networkpacket.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/networkprotocol.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/serverping.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/socket.cpp
 	PARENT_SCOPE
 )

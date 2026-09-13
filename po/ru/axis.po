@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:23+0300\n"
+"POT-Creation-Date: 2026-09-13 06:44+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -2616,7 +2616,7 @@ msgstr ""
 #: builtin/mainmenu/dlg_delete_content.lua
 #: builtin/mainmenu/dlg_delete_world.lua
 #: builtin/mainmenu/dlg_rename_modpack.lua builtin/mainmenu/matchmaking.lua
-#: client/ui/menu/worlds.rml src/gui/guiOpenURL.cpp
+#: client/ui/menu/online.rml client/ui/menu/worlds.rml src/gui/guiOpenURL.cpp
 msgid "Cancel"
 msgstr "Отмена"
 
@@ -2821,8 +2821,9 @@ msgstr "Звук"
 #. TRANSLATORS: Button text to go back
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/mainmenu/content/dlg_contentdb.lua
-#: builtin/mainmenu/content/dlg_package.lua client/ui/menu/settings.rml
-#: client/ui/menu/worlds.rml src/gui/guiVolumeChange.cpp
+#: builtin/mainmenu/content/dlg_package.lua client/ui/menu/online.rml
+#: client/ui/menu/settings.rml client/ui/menu/worlds.rml
+#: src/gui/guiVolumeChange.cpp
 msgid "Back"
 msgstr "Назад"
 
@@ -3201,7 +3202,7 @@ msgstr "Рекомендуемое"
 #: builtin/mainmenu/content/dlg_contentdb.lua
 #: builtin/mainmenu/content/dlg_install.lua
 #: builtin/mainmenu/content/dlg_package.lua builtin/mainmenu/matchmaking.lua
-#: src/client/game.cpp
+#: client/ui/menu/online.rml src/client/game.cpp
 msgid "Loading..."
 msgstr "Загрузка"
 
@@ -3816,59 +3817,60 @@ msgstr "Сервер $1 использует следующие моды:"
 msgid "Debug build, expect worse performance"
 msgstr "Тестовая сборка, ожидайте низкую производительность"
 
-#: builtin/mainmenu/init.lua
+#: builtin/mainmenu/init.lua src/client/menu/main_menu.cpp
 msgid "The launcher is not answering. Is it still running?"
 msgstr "Лаунчер не отвечает. Он ещё запущен?"
 
-#: builtin/mainmenu/init.lua
+#: builtin/mainmenu/init.lua src/client/menu/main_menu.cpp
 msgid "The launcher refused to give a ticket."
 msgstr "Лаунчер отказал в билете."
 
-#: builtin/mainmenu/init.lua
+#: builtin/mainmenu/init.lua src/client/menu/main_menu.cpp
 msgid "This server is not in the registry, so no ticket can be issued for it."
 msgstr "Этого сервера нет в реестре — билет на него не выписать."
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Arenas"
 msgstr "Арены"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua client/ui/menu/online.rml
 msgid "Checking connection..."
 msgstr "Проверяем подключение…"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Checking..."
 msgstr "Проверяем…"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Connection"
 msgstr "Подключение"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Everyone is here. Preparing the arena"
 msgstr "Все в сборе, готовим арену"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/matchmaking.cpp
 msgid "Matchmaking is unavailable"
 msgstr "Матчмейкинг недоступен"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua client/ui/menu/online.rml
 msgid "No arenas available"
 msgstr "Арен пока нет"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "No servers"
 msgstr "Серверов нет"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Preparing the arena"
 msgstr "Готовим арену"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/matchmaking.cpp
+#: src/client/menu/screens/online_screen.cpp
 msgid "Start the game through the launcher to play online"
 msgstr "Чтобы играть по сети, запустите игру через лаунчер"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Starting"
 msgstr "Отправляемся"
 
@@ -3876,19 +3878,19 @@ msgstr "Отправляемся"
 msgid "Starts in $1 s"
 msgstr "Начало через $1 с"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/matchmaking.cpp
 msgid "The match you were invited to has already started"
 msgstr "Матч, куда вас позвали, уже начался"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua client/ui/menu/online.rml
 msgid "Try again"
 msgstr "Ещё раз"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Waiting for more players"
 msgstr "Ждём ещё игроков"
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Waiting for players"
 msgstr "Ждём игроков"
 
@@ -4031,23 +4033,26 @@ msgstr "Одиночная игра"
 msgid "You need to install a crate before you can create a world."
 msgstr "Прежде чем создавать мир, нужно установить крейт."
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Add favorite"
 msgstr "Добавить в избранное"
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Network address
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
+#: src/client/menu/screens/online_screen.cpp
 msgid "Address"
 msgstr "Адрес"
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
 msgid "Community Servers"
 msgstr "Серверы сообщества"
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Join a server
 #. Пока билет в пути, кнопка говорит об этом сама: нажатие уже принято, и
 #. второе ничего не ускорит (см. core.waiting_for_ticket).
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Connecting…"
 msgstr "Подключение…"
 
@@ -4055,7 +4060,7 @@ msgstr "Подключение…"
 msgid "Crate: $1"
 msgstr "Крейт: $1"
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
 msgid "Favorites"
 msgstr "Избранное"
 
@@ -4063,11 +4068,11 @@ msgstr "Избранное"
 msgid "Incompatible Servers"
 msgstr "Несовместимые сервера"
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Join"
 msgstr "Подключиться"
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Matches"
 msgstr "Матчи"
 
@@ -4075,7 +4080,7 @@ msgstr "Матчи"
 msgid "Number of mods: $1"
 msgstr "Количество модов: $1"
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
 msgid "Official Servers"
 msgstr "Официальные серверы"
 
@@ -4115,12 +4120,13 @@ msgstr "Порт"
 msgid "Possible filters"
 msgstr "Доступные фильтры"
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: As in 'reload'/'check again'
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Refresh"
 msgstr "Обновить"
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Remove favorite"
 msgstr "Убрать из избранного"
 
@@ -4128,9 +4134,18 @@ msgstr "Убрать из избранного"
 msgid "Server Description"
 msgstr "Описание сервера"
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
+#: src/client/menu/screens/online_screen.cpp
 msgid "Server List"
 msgstr "Серверы"
+
+#: client/ui/menu/online.rml
+msgid ""
+"The entrance is chosen by the launcher: it measures every route at start and "
+"picks the one that carries your traffic best."
+msgstr ""
+"Вход выбирает лаунчер: при запуске он меряет все дороги и берёт ту, по "
+"которой ваш трафик доходит лучше всего."
 
 #: client/ui/menu/settings.rml
 msgid "Nothing found"
@@ -4141,6 +4156,7 @@ msgid "Exit"
 msgstr "Выйти"
 
 #: client/ui/menu/start.rml src/client/game.cpp
+#: src/client/menu/screens/online_screen.cpp
 msgid "Multiplayer"
 msgstr "Сетевая игра"
 
@@ -5280,6 +5296,15 @@ msgstr "X (геймпад)"
 #: src/client/keycode.cpp
 msgid "Y (Pad)"
 msgstr "Y (геймпад)"
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "Address and port are required"
+msgstr "Нужны адрес и порт"
+
+#: src/client/menu/screens/online_screen.cpp
+#, c-format
+msgid "Starts in %d s"
+msgstr "Старт через %d с"
 
 #: src/client/menu/screens/settings_screen.cpp
 msgid "Copied"
@@ -11331,13 +11356,3 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
-
-#~ msgid ""
-#~ "A crate is a game that Axis runs. Install one, and you can create a world "
-#~ "here."
-#~ msgstr ""
-#~ "Крейт — это игра, которую запускает Axis. Установи крейт, и здесь можно "
-#~ "будет создать мир."
-
-#~ msgid "No crates installed"
-#~ msgstr "У тебя пока нет ни одного крейта"

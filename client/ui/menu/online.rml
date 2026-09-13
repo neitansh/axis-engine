@@ -1,0 +1,121 @@
+<rml>
+<head>
+	<title>online</title>
+	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="page.rcss"/>
+	<link type="text/rcss" href="online.rcss"/>
+</head>
+<body data-model="online" class="page online">
+	<div class="back" data-event-click="nav('start')">
+		<div class="arrow"/>
+		<span>[[Back]]</span>
+		<span class="hint">Esc</span>
+	</div>
+	<div class="title">{{ title }}</div>
+
+	<div class="switch-bar">
+		<div class="switch">
+			<div class="indicator" data-style-transform="tab_indicator"/>
+			<div class="option" data-class-active="mode == 'matches'" data-event-click="open('matches')">[[Matches]]</div>
+			<div class="option" data-class-active="mode == 'servers'" data-event-click="open('servers')">[[Server List]]</div>
+		</div>
+	</div>
+
+	<div class="online-body" data-if="mode == 'matches'">
+		<div class="aside">
+			<h3 class="group">{{ connection_heading }}</h3>
+			<div class="connection" data-class-named="connection_class == 'named'"
+					data-class-checking="connection_class == 'checking'"
+					data-class-none="connection_class == 'none'">
+				<div class="dot"/>
+				<div class="text">{{ connection }}</div>
+			</div>
+			<p class="note">[[The entrance is chosen by the launcher: it measures every route at start and picks the one that carries your traffic best.]]</p>
+		</div>
+
+		<div class="main">
+			<div class="arenas" data-if="!waiting">
+				<h3 class="group">{{ matches_heading }}</h3>
+				<div class="centered" data-if="!decided">
+					<div class="spinner"/>
+					<p>[[Checking connection...]]</p>
+				</div>
+				<div class="centered" data-if="decided && !modes_loaded">
+					<div class="spinner"/>
+					<p>[[Loading...]]</p>
+				</div>
+				<div class="centered" data-if="decided && modes_loaded && modes.size == 0">
+					<p data-if="status == ''">[[No arenas available]]</p>
+					<p data-if="status != ''">{{ status }}</p>
+					<button data-event-click="retry()">[[Try again]]</button>
+				</div>
+				<div class="tiles" data-if="decided && modes_loaded && modes.size > 0">
+					<div class="tile" data-for="m : modes" data-event-click="join_mode(m.id)">
+						<div class="tile-title">{{ m.title }}</div>
+						<div class="tile-count">{{ m.count }}</div>
+					</div>
+				</div>
+				<p class="status" data-if="modes.size > 0 && status != ''">{{ status }}</p>
+			</div>
+
+			<div class="waiting" data-if="waiting">
+				<div class="spinner big"/>
+				<div class="queue-title">{{ queue_title }}</div>
+				<div class="queue-line">{{ queue_line }}</div>
+				<div class="queue-below">{{ queue_below }}</div>
+				<button class="ghost" data-event-click="cancel()">[[Cancel]]</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="online-body" data-if="mode == 'servers'">
+		<div class="main">
+			<h3 class="group">{{ servers_heading }}</h3>
+			<div class="server-list">
+				<div data-for="r : servers">
+					<div class="section" data-if="r.kind == 'header'">{{ r.name }}</div>
+					<div class="server" data-if="r.kind == 'row'" data-class-active="r.index == selected"
+							data-event-click="select(r.index)" data-event-dblclick="play(r.index)">
+						<div class="star" data-if="r.favorite"/>
+						<div class="name">{{ r.name }}</div>
+						<div class="players">{{ r.players }}</div>
+						<div class="ping" data-class-good="r.ping_class == 'good'"
+								data-class-fair="r.ping_class == 'fair'"
+								data-class-poor="r.ping_class == 'poor'">{{ r.ping }}</div>
+					</div>
+				</div>
+				<div class="empty" data-if="hint != ''">{{ hint }}</div>
+				<div class="empty" data-if="hint == '' && !list_loaded">[[Loading...]]</div>
+			</div>
+			<div class="list-actions">
+				<button class="refresh" data-event-click="refresh()"><span class="icon"/><span>[[Refresh]]</span></button>
+			</div>
+		</div>
+
+		<div class="side">
+			<div class="side-body" data-if="selected >= 0">
+				<h4>{{ selected_name }}</h4>
+				<div class="facts">
+					<div class="fact"><span class="k">[[Address]]</span><span class="v">{{ selected_address }}</span></div>
+				</div>
+				<p class="error" data-if="join_error != ''">{{ join_error }}</p>
+				<button class="primary big" data-if="!joining" data-event-click="join_selected()">[[Join]]</button>
+				<button class="primary big" data-if="joining">[[Connecting…]]</button>
+				<button class="ghost" data-if="can_favorite && !is_favorite" data-event-click="favorite()">[[Add favorite]]</button>
+				<button class="ghost" data-if="can_favorite && is_favorite" data-event-click="favorite()">[[Remove favorite]]</button>
+			</div>
+
+			<div class="side-body direct">
+				<h4>{{ direct_heading }}</h4>
+				<div class="address-row">
+					<input type="text" class="address" data-value="address" maxlength="255"/>
+					<input type="text" class="port" data-value="port" maxlength="5"/>
+				</div>
+				<p class="error" data-if="selected < 0 && join_error != ''">{{ join_error }}</p>
+				<button data-if="!joining" data-event-click="connect()">[[Join]]</button>
+				<button data-if="joining">[[Connecting…]]</button>
+			</div>
+		</div>
+	</div>
+</body>
+</rml>

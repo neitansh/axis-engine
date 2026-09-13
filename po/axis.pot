@@ -9,7 +9,7 @@ msgstr ""
 "#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:23+0300\n"
+"POT-Creation-Date: 2026-09-13 06:44+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:31+0300\n"
+"POT-Creation-Date: 2026-09-13 06:50+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2486,7 +2486,7 @@ msgstr ""
 #: builtin/mainmenu/dlg_delete_content.lua
 #: builtin/mainmenu/dlg_delete_world.lua
 #: builtin/mainmenu/dlg_rename_modpack.lua builtin/mainmenu/matchmaking.lua
-#: src/gui/guiOpenURL.cpp client/ui/menu/worlds.rml
+#: src/gui/guiOpenURL.cpp client/ui/menu/online.rml client/ui/menu/worlds.rml
 msgid "Cancel"
 msgstr ""
 
@@ -2675,7 +2675,8 @@ msgstr ""
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/mainmenu/content/dlg_contentdb.lua
 #: builtin/mainmenu/content/dlg_package.lua src/gui/guiVolumeChange.cpp
-#: client/ui/menu/settings.rml client/ui/menu/worlds.rml
+#: client/ui/menu/online.rml client/ui/menu/settings.rml
+#: client/ui/menu/worlds.rml
 msgid "Back"
 msgstr ""
 
@@ -2869,7 +2870,7 @@ msgstr ""
 #: builtin/mainmenu/content/dlg_contentdb.lua
 #: builtin/mainmenu/content/dlg_install.lua
 #: builtin/mainmenu/content/dlg_package.lua builtin/mainmenu/matchmaking.lua
-#: src/client/game.cpp
+#: src/client/game.cpp client/ui/menu/online.rml
 msgid "Loading..."
 msgstr ""
 
@@ -3493,47 +3494,48 @@ msgstr ""
 msgid "Debug build, expect worse performance"
 msgstr ""
 
-#: builtin/mainmenu/init.lua
+#: builtin/mainmenu/init.lua src/client/menu/main_menu.cpp
 msgid "This server is not in the registry, so no ticket can be issued for it."
 msgstr ""
 
-#: builtin/mainmenu/init.lua
+#: builtin/mainmenu/init.lua src/client/menu/main_menu.cpp
 msgid "The launcher refused to give a ticket."
 msgstr ""
 
-#: builtin/mainmenu/init.lua
+#: builtin/mainmenu/init.lua src/client/menu/main_menu.cpp
 msgid "The launcher is not answering. Is it still running?"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/matchmaking.cpp
 msgid "Matchmaking is unavailable"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/matchmaking.cpp
 msgid "The match you were invited to has already started"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/matchmaking.cpp
+#: src/client/menu/screens/online_screen.cpp
 msgid "Start the game through the launcher to play online"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Connection"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Checking..."
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "No servers"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Everyone is here. Preparing the arena"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Waiting for players"
 msgstr ""
 
@@ -3541,31 +3543,31 @@ msgstr ""
 msgid "Starts in $1 s"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Waiting for more players"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Preparing the arena"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Starting"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua src/client/menu/screens/online_screen.cpp
 msgid "Arenas"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua client/ui/menu/online.rml
 msgid "Checking connection..."
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua client/ui/menu/online.rml
 msgid "No arenas available"
 msgstr ""
 
-#: builtin/mainmenu/matchmaking.lua
+#: builtin/mainmenu/matchmaking.lua client/ui/menu/online.rml
 msgid "Try again"
 msgstr ""
 
@@ -3706,11 +3708,12 @@ msgstr ""
 msgid "Singleplayer"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Matches"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
+#: client/ui/menu/online.rml
 msgid "Server List"
 msgstr ""
 
@@ -3718,13 +3721,16 @@ msgstr ""
 msgid "Possible filters"
 msgstr ""
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: As in 'reload'/'check again'
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Refresh"
 msgstr ""
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Network address
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
+#: client/ui/menu/online.rml
 msgid "Address"
 msgstr ""
 
@@ -3737,14 +3743,15 @@ msgstr ""
 msgid "Server Description"
 msgstr ""
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Join a server
 #. Пока билет в пути, кнопка говорит об этом сама: нажатие уже принято, и
 #. второе ничего не ускорит (см. core.waiting_for_ticket).
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Connecting…"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Join"
 msgstr ""
 
@@ -3767,11 +3774,11 @@ msgid ""
 "$1"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Remove favorite"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Add favorite"
 msgstr ""
 
@@ -3785,15 +3792,15 @@ msgstr ""
 msgid "Players"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
 msgid "Favorites"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
 msgid "Official Servers"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua
+#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
 msgid "Community Servers"
 msgstr ""
 
@@ -3911,7 +3918,8 @@ msgstr ""
 msgid "Connection failed for unknown reason"
 msgstr ""
 
-#: src/client/game.cpp client/ui/menu/start.rml
+#: src/client/game.cpp src/client/menu/screens/online_screen.cpp
+#: client/ui/menu/start.rml
 msgid "Multiplayer"
 msgstr ""
 
@@ -4880,6 +4888,15 @@ msgstr ""
 #: src/client/keycode.cpp
 #, c-format
 msgid "Axis %d-"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+#, c-format
+msgid "Starts in %d s"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "Address and port are required"
 msgstr ""
 
 #: src/client/menu/screens/settings_screen.cpp
@@ -10003,6 +10020,12 @@ msgstr ""
 #: src/util/screenshot.cpp
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
+msgstr ""
+
+#: client/ui/menu/online.rml
+msgid ""
+"The entrance is chosen by the launcher: it measures every route at start and "
+"picks the one that carries your traffic best."
 msgstr ""
 
 #: client/ui/menu/settings.rml

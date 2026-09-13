@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "launcher.h"
+#include "matchmaking.h"
+#include "net.h"
+#include "server_list.h"
 #include "ui/host.h"
 #include <IEventReceiver.h>
 #include <csignal>
@@ -48,6 +52,22 @@ public:
 	void navigate(const std::string &screen);
 	void quit();
 	void startSingleplayer(const WorldSpec &world);
+	// Вход на сервер по адресу. Билет спрашивается у лаунчера здесь же:
+	// дорог в игру несколько, а билет им нужен одинаково. match — название
+	// матча, если адрес выдал Диспетчер: лаунчер показывает матч и обычный
+	// сервер по-разному, а по адресу их не отличить.
+	void startJoin(const std::string &address, int port, const std::string &server_id,
+			const std::string &match);
+	// Пока билет в пути, кнопка входа говорит об этом сама.
+	bool joining() const { return m_joining; }
+	// Чем кончился последний вход, если не игрой; пусто — всё хорошо.
+	const std::string &joinError() const { return m_join_error; }
+	void clearJoinError() { m_join_error.clear(); }
+	void setJoinError(const std::string &error) { m_join_error = error; }
+
+	Launcher &launcher() { return m_launcher; }
+	ServerList &servers() { return m_servers; }
+	Matchmaking &matchmaking() { return m_matchmaking; }
 
 private:
 	bool OnEvent(const SEvent &event) override;
@@ -62,6 +82,10 @@ private:
 	volatile std::sig_atomic_t &m_kill;
 
 	ui::Host m_host;
+	Net m_net;
+	Launcher m_launcher;
+	ServerList m_servers;
+	Matchmaking m_matchmaking;
 	Rml::Context *m_context = nullptr;
 	std::vector<std::string> m_theme_dirs;
 	std::vector<std::unique_ptr<Screen>> m_screens;
@@ -71,6 +95,8 @@ private:
 	Rml::ElementDocument *m_chrome = nullptr;
 	Rml::String m_version;
 	bool m_start_game = false;
+	bool m_joining = false;
+	std::string m_join_error;
 };
 
 }
