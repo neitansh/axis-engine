@@ -7,6 +7,7 @@
 #include "client/keycode.h"
 #include "client/menu/main_menu.h"
 #include "client/menu/settings_presets.h"
+#include "client/menu/text.h"
 #include "client/renderingengine.h"
 #include "client/shadows/dynamicshadowsrender.h"
 #include "crosshair.h"
@@ -21,7 +22,6 @@
 #include <RmlUi/Core/StringUtilities.h>
 #include <algorithm>
 #include <cmath>
-#include <cwctype>
 
 namespace menu
 {
@@ -85,15 +85,6 @@ double sliderStep(const SettingDef &def)
 	if (span <= 20)
 		return 0.1;
 	return 1;
-}
-
-std::string uppercase(const std::string &s)
-{
-	// text-transform у RmlUi знает только латиницу.
-	std::wstring wide = utf8_to_wide(s);
-	for (wchar_t &c : wide)
-		c = std::towupper(c);
-	return wide_to_utf8(wide);
 }
 
 // Описание для игрока: своё из descriptions.lua, иначе подсказка движка со

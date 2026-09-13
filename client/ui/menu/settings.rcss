@@ -2,79 +2,8 @@
  * Экран настроек: вкладки-иконки сверху, строки в середине, описание строки
  * под курсором справа. Строка — подпись и один виджет одной высоты: ряд
  * значений листается стрелками, число тянется ползунком с заливкой.
+ * Стекло, «Назад» и заголовки разделов — в page.rcss.
  */
-
-body.settings {
-	position: absolute;
-	/* Размытие у RmlUi отступает от краёв элемента на свой радиус, поэтому
-	   тело выходит за экран, а поля возвращают содержимое на место. */
-	top: -40dp;
-	left: -40dp;
-	right: -40dp;
-	bottom: -40dp;
-	width: auto;
-	height: auto;
-	display: flex;
-	flex-direction: column;
-	align-items: stretch;
-	justify-content: flex-start;
-	background-color: #06050A73;
-	backdrop-filter: blur(26dp);
-	box-sizing: border-box;
-	padding: 62dp 88dp 40dp 88dp;
-	font-size: 16dp;
-}
-
-/* Назад: стеклянная кнопка в левом верхнем углу; стрелка уезжает при наведении */
-
-.back {
-	position: absolute;
-	top: 74dp;
-	left: 80dp;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	height: 40dp;
-	padding: 0 14dp 0 10dp;
-	border-radius: 20dp;
-	background-color: #00000040;
-	border: 1dp #FFFFFF1F;
-	backdrop-filter: blur(8dp);
-	color: #E8E6ED;
-	font-size: 15dp;
-	cursor: pointer;
-	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out, color 0.15s linear-in-out;
-}
-
-.back .arrow {
-	width: 20dp;
-	height: 20dp;
-	margin-right: 8dp;
-	decorator: image(icons/back.png scale-none);
-	image-color: #E8E6ED;
-	transition: transform 0.18s cubic-out, image-color 0.15s linear-in-out;
-}
-
-.back .hint {
-	margin-left: 10dp;
-	padding: 1dp 6dp;
-	border-radius: 4dp;
-	background-color: #FFFFFF14;
-	font-size: 11dp;
-	letter-spacing: 0.5dp;
-	color: #948C9E;
-}
-
-.back:hover {
-	color: #FFFFFF;
-	border-color: #A78BFA99;
-	background-color: #8B5CF626;
-}
-
-.back:hover .arrow {
-	image-color: #FFFFFF;
-	transform: translateX(-4dp);
-}
 
 /* Вкладки: стеклянная полоса, подсветка скользит к открытой иконке, подпись
    висит под ней */
@@ -202,14 +131,6 @@ body.settings {
 	background-color: #FFFFFF33;
 }
 
-.rows h3.group {
-	display: block;
-	font-size: 26dp;
-	font-weight: 700;
-	letter-spacing: 4dp;
-	color: #A78BFA;
-	margin: 26dp 0 14dp 0;
-}
 
 .setting {
 	display: flex;

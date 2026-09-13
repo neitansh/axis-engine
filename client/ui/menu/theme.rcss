@@ -129,61 +129,13 @@ button.ghost:hover {
 	background-color: #FFFFFF0C;
 }
 
-.card {
-	display: flex;
-	flex-direction: column;
-	width: 520dp;
-	max-height: 80%;
-	padding: 24dp;
-	border-radius: 10dp;
-	background-color: #120F19;
-	border: 1dp #FFFFFF14;
-}
 
-.card .toolbar {
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
-	align-items: center;
-	margin-top: 16dp;
-}
 
-.list {
-	display: block;
-	overflow-y: auto;
-	border-radius: 6dp;
-	background-color: #0C0A12;
-	border: 1dp #FFFFFF14;
-	max-height: 360dp;
-}
 
-.row {
-	display: flex;
-	flex-direction: row;
-	justify-content: space-between;
-	align-items: center;
-	padding: 10dp 14dp;
-	border-bottom: 1dp #FFFFFF0C;
-	cursor: pointer;
-	transition: background-color 0.1s;
-}
 
-.row:hover {
-	background-color: #FFFFFF0C;
-}
 
-.row:active {
-	background-color: #8B5CF633;
-}
 
-.row .name {
-	color: #E8E6ED;
-}
 
-.row .crate {
-	color: #726E7E;
-	font-size: 13dp;
-}
 
 .empty {
 	padding: 24dp;
@@ -237,23 +189,9 @@ scrollbarvertical sliderarrowinc {
 	height: 0;
 }
 
-.row.selected {
-	background-color: #8B5CF62E;
-}
 
-.row.selected .name {
-	color: #FFFFFF;
-}
 
-.actions {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-}
 
-.actions button {
-	margin-left: 8dp;
-}
 
 button.danger {
 	background-color: #C05B4D;
@@ -265,17 +203,7 @@ button.danger:hover {
 	background-color: #CE6C5E;
 }
 
-.form {
-	display: flex;
-	flex-direction: column;
-}
 
-.form label {
-	display: block;
-	margin: 10dp 0 4dp 0;
-	font-size: 13dp;
-	color: #948C9E;
-}
 
 input.text,
 select {

@@ -2,9 +2,10 @@
 <head>
 	<title>settings</title>
 	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="page.rcss"/>
 	<link type="text/rcss" href="settings.rcss"/>
 </head>
-<body data-model="settings" class="settings">
+<body data-model="settings" class="page settings">
 	<div class="back" data-event-click="nav('start')">
 		<div class="arrow"/>
 		<span>[[Back]]</span>

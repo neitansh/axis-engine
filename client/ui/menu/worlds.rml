@@ -2,57 +2,96 @@
 <head>
 	<title>worlds</title>
 	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="page.rcss"/>
+	<link type="text/rcss" href="worlds.rcss"/>
 </head>
-<body data-model="worlds">
-	<div class="card">
-		<h2>[[Local game]]</h2>
+<body data-model="worlds" class="page play">
+	<div class="back" data-event-click="nav('start')">
+		<div class="arrow"/>
+		<span>[[Back]]</span>
+		<span class="hint">Esc</span>
+	</div>
+	<div class="title">[[Singleplayer]]</div>
 
-		<div class="list" data-if="!creating">
-			<div class="row" data-for="w : worlds" data-class-selected="it_index == selected"
-					data-event-click="select(it_index)">
-				<span class="name">{{ w.name }}</span>
-				<span class="crate">{{ w.crate }}</span>
-			</div>
-			<div class="empty" data-if="worlds.size == 0">[[No worlds yet — create the first one]]</div>
-		</div>
+	<div class="no-crates" data-if="crates.size == 0">
+		<div class="mark"/>
+		<h4>[[Axis is a crate engine: it runs crates, and does not come with one.]]</h4>
+		<p>[[You need to install a crate before you can create a world.]]</p>
+		<button data-event-click="nav('start')">[[Back]]</button>
+	</div>
 
-		<div class="form" data-if="creating">
-			<label>[[Name]]</label>
-			<input type="text" data-value="new_name" maxlength="64"/>
-			<label>[[Crate]]</label>
-			<select data-value="new_crate">
-				<option data-for="c : crates" data-attr-value="c.id">{{ c.title }}</option>
-			</select>
-			<label>[[Map generator]]</label>
-			<select data-value="new_mapgen">
-				<option data-for="m : mapgens" data-attr-value="m">{{ m }}</option>
-			</select>
-			<label>[[Seed]]</label>
-			<input type="text" data-value="new_seed" maxlength="64"/>
-		</div>
-
-		<p class="error" data-if="error != ''">{{ error }}</p>
-
-		<div class="confirm" data-if="confirm_delete">
-			<p>{{ delete_question }}</p>
-			<div class="actions">
-				<button class="danger" data-event-click="delete()">[[Delete]]</button>
-				<button class="ghost" data-event-click="delete_cancel()">[[Keep]]</button>
+	<div class="play-body" data-if="crates.size > 0">
+		<div class="crates">
+			<h3 class="group">{{ crate_heading }}</h3>
+			<div class="crate" data-for="c : crates" data-class-active="it_index == crate"
+					data-event-click="select_crate(it_index)">
+				<img class="icon" data-if="c.icon != ''" data-attr-src="c.icon"/>
+				<div class="tile" data-if="c.icon == ''">{{ c.initial }}</div>
+				<div class="text">
+					<div class="name">{{ c.title }}</div>
+					<div class="meta" data-if="c.author != ''">{{ c.author }}</div>
+				</div>
+				<div class="count" data-if="c.worlds > 0">{{ c.worlds }}</div>
 			</div>
 		</div>
 
-		<div class="toolbar" data-if="!creating && !confirm_delete">
-			<button class="ghost" data-event-click="nav('start')">← [[Back]]</button>
-			<div class="actions">
-				<button data-event-click="create_begin()">[[New world]]</button>
-				<button data-event-click="delete_begin()" data-if="selected >= 0">[[Delete]]</button>
-				<button class="primary" data-event-click="play()" data-if="selected >= 0">[[Play]]</button>
+		<div class="worlds">
+			<h3 class="group">{{ worlds_heading }}</h3>
+			<div class="world-list">
+				<div class="world" data-for="w : worlds" data-class-active="it_index == selected"
+						data-event-click="select(it_index)" data-event-dblclick="play()">
+					<div class="name">{{ w.name }}</div>
+					<div class="meta" data-if="w.mapgen != ''">{{ w.mapgen }}</div>
+				</div>
+				<div class="empty" data-if="worlds.size == 0">[[No worlds yet — create the first one]]</div>
+			</div>
+			<div class="list-actions">
+				<button class="new" data-event-click="create_begin()"><span class="plus"/><span>[[New world]]</span></button>
 			</div>
 		</div>
 
-		<div class="toolbar" data-if="creating">
-			<button class="ghost" data-event-click="create_cancel()">[[Cancel]]</button>
-			<button class="primary" data-event-click="create()">[[Create]]</button>
+		<div class="side">
+			<div class="side-body" data-if="creating">
+				<h4>[[New world]]</h4>
+				<label>[[Name]]</label>
+				<input type="text" data-value="new_name" maxlength="64"/>
+				<label data-if="mapgens.size > 1">[[Map generator]]</label>
+				<select data-if="mapgens.size > 1" data-value="new_mapgen">
+					<option data-for="m : mapgens" data-attr-value="m">{{ m }}</option>
+				</select>
+				<label>[[Seed]]</label>
+				<input type="text" data-value="new_seed" maxlength="64"/>
+				<p class="hint">[[Leave the seed empty for a random world.]]</p>
+				<p class="error" data-if="error != ''">{{ error }}</p>
+				<button class="primary big" data-event-click="create()">[[Create]]</button>
+				<button class="ghost" data-event-click="create_cancel()">[[Cancel]]</button>
+			</div>
+
+			<div class="side-body" data-if="!creating && selected >= 0">
+				<h4>{{ selected_name }}</h4>
+				<div class="facts">
+					<div class="fact" data-if="selected_mapgen != ''">
+						<span class="k">[[Map generator]]</span><span class="v">{{ selected_mapgen }}</span>
+					</div>
+				</div>
+				<p class="error" data-if="error != ''">{{ error }}</p>
+				<div data-if="!confirm_delete">
+					<button class="primary big" data-event-click="play()">[[Play]]</button>
+					<button class="ghost" data-event-click="delete_begin()">[[Delete]]</button>
+				</div>
+				<div class="confirm" data-if="confirm_delete">
+					<p>{{ delete_question }}</p>
+					<button class="danger" data-event-click="delete()">[[Delete]]</button>
+					<button class="ghost" data-event-click="delete_cancel()">[[Keep]]</button>
+				</div>
+			</div>
+
+			<div class="side-body" data-if="!creating && selected < 0">
+				<h4>[[No world yet]]</h4>
+				<p class="hint">[[Create a world for this crate and it will show up here.]]</p>
+				<p class="error" data-if="error != ''">{{ error }}</p>
+				<button class="primary big" data-event-click="create_begin()">[[New world]]</button>
+			</div>
 		</div>
 	</div>
 </body>

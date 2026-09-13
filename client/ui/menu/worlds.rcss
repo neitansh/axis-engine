@@ -1,0 +1,361 @@
+/*
+ * Одиночная игра: слева крейты карточками, в середине миры выбранного крейта,
+ * справа — что делать с выбранным миром (играть, удалить) или форма нового.
+ * Стекло, «Назад» и заголовки разделов — в page.rcss.
+ */
+
+.title {
+	position: absolute;
+	top: 74dp;
+	left: 0;
+	right: 0;
+	height: 40dp;
+	line-height: 40dp;
+	text-align: center;
+	font-size: 14dp;
+	font-weight: 600;
+	letter-spacing: 3dp;
+	color: #FFFFFFB3;
+}
+
+.play-body {
+	display: flex;
+	flex-direction: row;
+	flex: 1;
+	min-height: 0;
+	margin-top: 64dp;
+	/* Тело страницы доходит до края экрана (см. page.rcss); список миров
+	   останавливается выше, чтобы кнопка под ним не легла на самый край. */
+	padding: 0 40dp 40dp 40dp;
+}
+
+/* Крейты */
+
+.crates {
+	display: flex;
+	flex-direction: column;
+	width: 300dp;
+}
+
+.crate {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 64dp;
+	padding: 0 12dp;
+	margin-bottom: 6dp;
+	border-radius: 10dp;
+	border: 1dp transparent;
+	cursor: pointer;
+	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out;
+}
+
+.crate:hover {
+	background-color: #FFFFFF0A;
+}
+
+.crate.active {
+	background-color: #8B5CF626;
+	border-color: #A78BFA;
+}
+
+.crate .icon,
+.crate .tile {
+	width: 40dp;
+	height: 40dp;
+	margin-right: 12dp;
+	border-radius: 8dp;
+}
+
+.crate .tile {
+	background-color: #8B5CF6;
+	line-height: 40dp;
+	text-align: center;
+	font-size: 18dp;
+	font-weight: 700;
+	color: #FFFFFF;
+}
+
+.crate .text {
+	display: block;
+	flex: 1;
+	width: 0;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	mask-image: linear-gradient(to right, #FFFFFF 85%, #FFFFFF00 100%);
+}
+
+.crate .name {
+	display: block;
+	font-size: 16dp;
+	font-weight: 600;
+	color: #F2F0F5;
+}
+
+.crate .meta {
+	display: block;
+	font-size: 12dp;
+	color: #948C9E;
+}
+
+.crate .count {
+	padding: 1dp 8dp;
+	border-radius: 10dp;
+	background-color: #FFFFFF14;
+	font-size: 12dp;
+	color: #C8C3D1;
+}
+
+.crate.active .count {
+	background-color: #8B5CF64D;
+	color: #FFFFFF;
+}
+
+/* Миры */
+
+.worlds {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	margin: 0 28dp;
+}
+
+.world-list {
+	display: block;
+	flex: 1;
+	overflow-y: auto;
+	padding-right: 12dp;
+}
+
+.world-list scrollbarvertical {
+	width: 4dp;
+	margin: 0;
+}
+
+.world-list scrollbarvertical sliderbar {
+	border-radius: 2dp;
+	background-color: #FFFFFF33;
+}
+
+.world {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 54dp;
+	padding: 0 14dp;
+	margin-bottom: 2dp;
+	border-radius: 6dp;
+	border: 1dp transparent;
+	cursor: pointer;
+	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out;
+}
+
+.world:hover {
+	background-color: #FFFFFF0A;
+}
+
+.world.active {
+	background-color: #FFFFFF0F;
+	border-color: #A78BFA;
+}
+
+.world .name {
+	display: block;
+	flex: 1;
+	width: 0;
+	min-width: 0;
+	font-size: 16dp;
+	color: #F2F0F5;
+	white-space: nowrap;
+	overflow: hidden;
+	mask-image: linear-gradient(to right, #FFFFFF 85%, #FFFFFF00 100%);
+}
+
+.world .meta {
+	margin-left: 12dp;
+	font-size: 13dp;
+	color: #948C9E;
+}
+
+.worlds .empty {
+	padding: 40dp 0;
+	text-align: center;
+	color: #948C9E;
+}
+
+.list-actions {
+	display: flex;
+	flex-direction: row;
+	margin-top: 12dp;
+}
+
+button.new {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	padding: 12dp;
+	background-color: #FFFFFF08;
+	border-color: #FFFFFF1F;
+	color: #C8C3D1;
+}
+
+button.new:hover {
+	background-color: #8B5CF626;
+	border-color: #A78BFA99;
+	color: #FFFFFF;
+}
+
+button.new .plus {
+	width: 16dp;
+	height: 16dp;
+	margin-right: 8dp;
+	decorator: image(icons/plus.png scale-none);
+}
+
+/* Правая колонка */
+
+.side {
+	display: flex;
+	flex-direction: column;
+	width: 340dp;
+	padding-left: 28dp;
+	border-left: 1dp #FFFFFF14;
+}
+
+.side-body {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.side h4 {
+	display: block;
+	font-size: 22dp;
+	font-weight: 600;
+	color: #FFFFFF;
+	margin: 0 0 14dp 0;
+	white-space: nowrap;
+	overflow: hidden;
+	mask-image: linear-gradient(to right, #FFFFFF 85%, #FFFFFF00 100%);
+}
+
+.side label {
+	display: block;
+	margin: 10dp 0 6dp 0;
+	font-size: 13dp;
+	color: #948C9E;
+}
+
+.side input.text,
+.side select {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 10dp 12dp;
+	background-color: #1B1626;
+	border-color: #FFFFFF1A;
+}
+
+.side input.text:focus,
+.side select:focus {
+	border-color: #A78BFA;
+}
+
+.side p.hint {
+	margin-top: 10dp;
+	font-size: 14dp;
+	line-height: 1.5;
+	color: #948C9E;
+}
+
+.side .error {
+	margin-top: 12dp;
+	font-size: 14dp;
+}
+
+.facts {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 8dp;
+}
+
+.fact {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	padding: 8dp 0;
+	border-bottom: 1dp #FFFFFF14;
+	font-size: 14dp;
+}
+
+.fact .k {
+	color: #948C9E;
+}
+
+.fact .v {
+	color: #E8E6ED;
+}
+
+.side button {
+	width: 100%;
+	box-sizing: border-box;
+	margin-top: 8dp;
+}
+
+.side button.big {
+	margin-top: 20dp;
+	padding: 14dp 20dp;
+	font-size: 17dp;
+	font-weight: 600;
+}
+
+.side .confirm {
+	margin-top: 20dp;
+}
+
+.side .confirm p {
+	margin-bottom: 4dp;
+}
+
+/* Крейтов нет */
+
+.no-crates {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	text-align: center;
+}
+
+.no-crates .mark {
+	width: 48dp;
+	height: 48dp;
+	margin-bottom: 20dp;
+	decorator: image(icons/package.png scale-none);
+	image-color: #A78BFA;
+}
+
+.no-crates h4 {
+	display: block;
+	width: 560dp;
+	font-size: 22dp;
+	font-weight: 600;
+	color: #FFFFFF;
+	margin: 0 0 10dp 0;
+}
+
+.no-crates p {
+	width: 480dp;
+	font-size: 15dp;
+	line-height: 1.55;
+	color: #C8C3D1;
+}
+
+.no-crates button {
+	margin-top: 28dp;
+	padding: 12dp 32dp;
+}

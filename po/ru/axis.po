@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 05:59+0300\n"
+"POT-Creation-Date: 2026-09-13 06:12+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -3986,7 +3986,7 @@ msgstr "Обновление недоступно?"
 msgid "Use Texture Pack"
 msgstr "Использовать набор текстур"
 
-#: builtin/mainmenu/tab_local.lua
+#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
 msgid "Axis is a crate engine: it runs crates, and does not come with one."
 msgstr "Axis — движок крейтов: он их запускает, а своего в комплекте не несёт."
 
@@ -4022,11 +4022,12 @@ msgstr "Выберите моды"
 msgid "Select World:"
 msgstr "Выберите мир:"
 
-#: builtin/mainmenu/tab_local.lua src/client/game.cpp
+#: builtin/mainmenu/tab_local.lua client/ui/menu/start.rml
+#: client/ui/menu/worlds.rml src/client/game.cpp
 msgid "Singleplayer"
 msgstr "Одиночная игра"
 
-#: builtin/mainmenu/tab_local.lua
+#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
 msgid "You need to install a crate before you can create a world."
 msgstr "Прежде чем создавать мир, нужно установить крейт."
 
@@ -4087,8 +4088,7 @@ msgstr "Открыть вебсайт сервера"
 msgid "Ping"
 msgstr "Задержка"
 
-#: builtin/mainmenu/tab_online.lua client/ui/menu/start.rml
-#: client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_online.lua client/ui/menu/worlds.rml
 msgid "Play"
 msgstr "Играть"
 
@@ -4140,13 +4140,21 @@ msgstr "Ничего не найдено"
 msgid "Exit"
 msgstr "Выйти"
 
+#: client/ui/menu/start.rml src/client/game.cpp
+msgid "Multiplayer"
+msgstr "Сетевая игра"
+
+#: client/ui/menu/worlds.rml
+msgid "Create a world for this crate and it will show up here."
+msgstr "Создай мир для этого крейта — он появится здесь."
+
 #: client/ui/menu/worlds.rml
 msgid "Keep"
 msgstr "Оставить"
 
 #: client/ui/menu/worlds.rml
-msgid "Local game"
-msgstr "Своя игра"
+msgid "Leave the seed empty for a random world."
+msgstr "Оставь сид пустым — мир будет случайным."
 
 #: client/ui/menu/worlds.rml
 msgid "Map generator"
@@ -4161,8 +4169,16 @@ msgid "New world"
 msgstr "Новый мир"
 
 #: client/ui/menu/worlds.rml
+msgid "No world yet"
+msgstr "Миров пока нет"
+
+#: client/ui/menu/worlds.rml
 msgid "No worlds yet — create the first one"
 msgstr "Миров пока нет — создай первый"
+
+#: client/ui/menu/worlds.rml
+msgid "Worlds"
+msgstr "Миры"
 
 #: src/chat.cpp
 msgid "Player names: "
@@ -4460,10 +4476,6 @@ msgstr "Двигаться вправо"
 #: src/client/game.cpp
 msgid "Moving to another server..."
 msgstr "Переход на другой сервер…"
-
-#: src/client/game.cpp
-msgid "Multiplayer"
-msgstr "Мультиплеер"
 
 #: src/client/game.cpp
 msgid "Next item"
@@ -11306,3 +11318,6 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
+
+#~ msgid "Local game"
+#~ msgstr "Своя игра"

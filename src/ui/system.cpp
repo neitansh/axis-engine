@@ -66,6 +66,12 @@ int System::TranslateString(Rml::String &translated, const Rml::String &input)
 void System::JoinPath(Rml::String &translated_path, const Rml::String &document_path,
 		const Rml::String &path)
 {
+	// RmlUi считает ведущую косую черту корнем своей файловой системы и
+	// срезает её; у нас это обычный абсолютный путь — иконка крейта.
+	if (fs::IsPathAbsolute(path)) {
+		translated_path = path;
+		return;
+	}
 	Rml::SystemInterface::JoinPath(translated_path, document_path, path);
 	if (fs::PathExists(translated_path))
 		return;

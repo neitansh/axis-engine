@@ -9,7 +9,7 @@ msgstr ""
 "#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 05:59+0300\n"
+"POT-Creation-Date: 2026-09-13 06:12+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:01+0300\n"
+"POT-Creation-Date: 2026-09-13 06:17+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3661,11 +3661,11 @@ msgstr ""
 msgid "Content [$1]"
 msgstr ""
 
-#: builtin/mainmenu/tab_local.lua
+#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
 msgid "Axis is a crate engine: it runs crates, and does not come with one."
 msgstr ""
 
-#: builtin/mainmenu/tab_local.lua
+#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
 msgid "You need to install a crate before you can create a world."
 msgstr ""
 
@@ -3701,7 +3701,8 @@ msgstr ""
 msgid "Play Crate"
 msgstr ""
 
-#: builtin/mainmenu/tab_local.lua src/client/game.cpp
+#: builtin/mainmenu/tab_local.lua src/client/game.cpp client/ui/menu/start.rml
+#: client/ui/menu/worlds.rml
 msgid "Singleplayer"
 msgstr ""
 
@@ -3800,8 +3801,7 @@ msgstr ""
 msgid "Incompatible Servers"
 msgstr ""
 
-#: builtin/mainmenu/tab_online.lua client/ui/menu/start.rml
-#: client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_online.lua client/ui/menu/worlds.rml
 msgid "Play"
 msgstr ""
 
@@ -3911,7 +3911,7 @@ msgstr ""
 msgid "Connection failed for unknown reason"
 msgstr ""
 
-#: src/client/game.cpp
+#: src/client/game.cpp client/ui/menu/start.rml
 msgid "Multiplayer"
 msgstr ""
 
@@ -10006,11 +10006,15 @@ msgid "Nothing found"
 msgstr ""
 
 #: client/ui/menu/worlds.rml
-msgid "Local game"
+msgid "Worlds"
 msgstr ""
 
 #: client/ui/menu/worlds.rml
 msgid "No worlds yet — create the first one"
+msgstr ""
+
+#: client/ui/menu/worlds.rml
+msgid "New world"
 msgstr ""
 
 #: client/ui/menu/worlds.rml
@@ -10022,9 +10026,17 @@ msgid "Map generator"
 msgstr ""
 
 #: client/ui/menu/worlds.rml
+msgid "Leave the seed empty for a random world."
+msgstr ""
+
+#: client/ui/menu/worlds.rml
 msgid "Keep"
 msgstr ""
 
 #: client/ui/menu/worlds.rml
-msgid "New world"
+msgid "No world yet"
+msgstr ""
+
+#: client/ui/menu/worlds.rml
+msgid "Create a world for this crate and it will show up here."
 msgstr ""

@@ -12,7 +12,8 @@
 		<img src="textures/base/pack/menu_header.png" rect="483 0 378 144"/>
 	</div>
 	<div class="stack">
-		<button class="primary" data-event-click="nav('worlds')">[[Play]]</button>
+		<button class="primary" data-event-click="nav('worlds')">[[Multiplayer]]</button>
+		<button data-event-click="nav('worlds')">[[Singleplayer]]</button>
 		<button data-event-click="nav('settings')">[[Settings]]</button>
 		<button data-event-click="quit()">[[Exit]]</button>
 	</div>
