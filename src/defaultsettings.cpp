@@ -116,9 +116,9 @@ void set_default_settings()
 	settings->setDefault("sound_volume_unfocused", "0.3");
 	settings->setDefault("mute_sound", "false");
 	settings->setDefault("menu_music", "true");
-	settings->setDefault("menu_music_volume", "0.2");
+	settings->setDefault("menu_music_volume", "0.05");
 	settings->setDefault("menu_ui_sounds", "true");
-	settings->setDefault("menu_ui_sound_volume", "0.35");
+	settings->setDefault("menu_ui_sound_volume", "0.15");
 	settings->setDefault("sound_extensions_blacklist", "");
 	settings->setDefault("mesh_generation_interval", "0");
 	settings->setDefault("mesh_generation_threads", "0");

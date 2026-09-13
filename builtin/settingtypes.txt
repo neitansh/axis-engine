@@ -930,13 +930,13 @@ mute_sound (Mute sound) bool false
 menu_music (Menu music) bool true
 
 #    Volume of the music under the main menu.
-menu_music_volume (Menu music volume) float 0.2 0.0 1.0
+menu_music_volume (Menu music volume) float 0.05 0.0 1.0
 
 #    Play a sound when a control in the main menu is hovered or pressed.
 menu_ui_sounds (Menu sounds) bool true
 
 #    Volume of the hover and click sounds in the main menu.
-menu_ui_sound_volume (Menu sound volume) float 0.35 0.0 1.0
+menu_ui_sound_volume (Menu sound volume) float 0.15 0.0 1.0
 
 [*User Interfaces]
 
