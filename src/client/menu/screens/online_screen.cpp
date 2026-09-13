@@ -18,7 +18,7 @@ OnlineScreen::OnlineScreen(MainMenu &menu) : Screen(menu, "online")
 	m_matches_heading = strgettext("Arenas");
 	m_servers_heading = strgettext("Server List");
 	m_connection_heading = strgettext("Connection");
-	m_direct_heading = strgettext("Address");
+	m_direct_heading = strgettext("Connect by address");
 	m_tab_indicator = "translateX(0dp)";
 
 	Matchmaking &mm = this->menu().matchmaking();

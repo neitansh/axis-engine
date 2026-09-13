@@ -22,8 +22,20 @@ body.page {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	height: 44dp;
-	margin-bottom: 24dp;
+	height: 52dp;
+	margin-bottom: 28dp;
+}
+
+/* Бока шапки равной ширины: то, что стоит между ними (вкладки), оказывается
+   ровно посередине экрана, а имя страницы — у левого края */
+
+.head-side {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 1;
+	width: 0;
+	min-width: 0;
 }
 
 /* Назад: значковая кнопка без рамки и заливки в покое; стрелка подаётся
@@ -60,8 +72,8 @@ body.page {
 	transform: translateX(-3dp);
 }
 
-.page-head h1 {
-	flex: 1;
+.page-head .kbd {
+	margin-left: 14dp;
 }
 
 /* Клавиша в подсказке: плитка, а не рамка */

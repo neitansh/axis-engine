@@ -9,7 +9,7 @@ msgstr ""
 "#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 07:13+0300\n"
+"POT-Creation-Date: 2026-09-13 07:33+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 07:19+0300\n"
+"POT-Creation-Date: 2026-09-13 07:37+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3726,8 +3726,7 @@ msgstr ""
 
 #. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Network address
-#: builtin/mainmenu/tab_online.lua src/client/menu/screens/online_screen.cpp
-#: client/ui/menu/online.rml
+#: builtin/mainmenu/tab_online.lua client/ui/menu/online.rml
 msgid "Address"
 msgstr ""
 
@@ -4885,6 +4884,10 @@ msgstr ""
 #: src/client/keycode.cpp
 #, c-format
 msgid "Axis %d-"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "Connect by address"
 msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
@@ -10023,6 +10026,10 @@ msgstr ""
 msgid ""
 "The entrance is chosen by the launcher: it measures every route at start and "
 "picks the one that carries your traffic best."
+msgstr ""
+
+#: client/ui/menu/online.rml
+msgid "From the list"
 msgstr ""
 
 #: client/ui/menu/settings.rml

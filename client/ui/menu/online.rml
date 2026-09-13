@@ -7,17 +7,17 @@
 </head>
 <body data-model="online" class="page online">
 	<div class="page-head">
-		<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
-		<h1>{{ title }}</h1>
-		<span class="kbd">Esc</span>
-	</div>
-
-	<div class="switch-bar">
+		<div class="head-side">
+			<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
+			<h1>{{ title }}</h1>
+			<span class="kbd">Esc</span>
+		</div>
 		<div class="switch">
 			<div class="indicator" data-style-transform="tab_indicator"/>
 			<div class="option" data-class-active="mode == 'matches'" data-event-click="open('matches')">[[Matches]]</div>
 			<div class="option" data-class-active="mode == 'servers'" data-event-click="open('servers')">[[Server List]]</div>
 		</div>
+		<div class="head-side"/>
 	</div>
 
 	<div class="online-body" data-if="mode == 'matches'">
@@ -92,7 +92,8 @@
 		</div>
 
 		<div class="side">
-			<div class="side-body" data-if="selected >= 0">
+			<div class="side-body panel" data-if="selected >= 0">
+				<div class="eyebrow">[[From the list]]</div>
 				<h4>{{ selected_name }}</h4>
 				<div class="facts">
 					<div class="fact"><span class="k">[[Address]]</span><span class="v">{{ selected_address }}</span></div>
@@ -104,7 +105,7 @@
 				<button class="ghost" data-if="can_favorite && is_favorite" data-event-click="favorite()">[[Remove favorite]]</button>
 			</div>
 
-			<div class="side-body direct">
+			<div class="side-body panel direct">
 				<h4>{{ direct_heading }}</h4>
 				<div class="address-row">
 					<input type="text" class="address" data-value="address" maxlength="255"/>

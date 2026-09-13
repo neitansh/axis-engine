@@ -18,6 +18,7 @@
 	flex-direction: column;
 	width: 280dp;
 	margin-right: 28dp;
+	padding-top: 18dp;
 }
 
 .crates .eyebrow {
@@ -214,8 +215,8 @@ button.new .plus {
 	display: flex;
 	flex-direction: column;
 	width: 320dp;
-	margin-left: 32dp;
-	padding-top: 6dp;
+	margin-left: 28dp;
+	padding: 16dp 24dp 24dp 24dp;
 }
 
 .side-body {

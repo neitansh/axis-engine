@@ -7,13 +7,6 @@
 
 /* Вкладки: дорожка цвета карточки, выбранная поднимается подсветкой акцента */
 
-.tabbar {
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	margin-bottom: 44dp;
-}
-
 .tabs {
 	position: relative;
 	display: flex;
@@ -98,18 +91,7 @@
 	display: block;
 	flex: 1;
 	overflow-y: auto;
-	padding: 6dp 16dp 48dp 24dp;
-}
-
-.rows-fade {
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	height: 60dp;
-	border-radius: 0 0 18dp 18dp;
-	decorator: linear-gradient(to bottom, #1C1C1E00 0%, #1C1C1E 100%);
-	pointer-events: none;
+	padding: 6dp 16dp 16dp 24dp;
 }
 
 .rows scrollbarvertical {
@@ -131,9 +113,9 @@
 	flex-direction: row;
 	align-items: center;
 	height: 56dp;
-	padding: 0 8dp 0 12dp;
-	margin: 0 0 2dp -12dp;
-	border-radius: 10dp;
+	padding: 0 12dp;
+	margin: 0 -12dp 2dp -12dp;
+	border-radius: 12dp;
 	transition: background-color 0.12s linear-in-out;
 }
 
@@ -145,7 +127,7 @@
 }
 
 .setting.focused {
-	background-color: #FFFFFF14;
+	background-color: #FFFFFF0A;
 }
 
 .setting .label {

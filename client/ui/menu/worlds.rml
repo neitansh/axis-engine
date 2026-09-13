@@ -7,9 +7,11 @@
 </head>
 <body data-model="worlds" class="page play">
 	<div class="page-head">
-		<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
-		<h1>[[Singleplayer]]</h1>
-		<span class="kbd">Esc</span>
+		<div class="head-side">
+			<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
+			<h1>[[Singleplayer]]</h1>
+			<span class="kbd">Esc</span>
+		</div>
 	</div>
 
 	<div class="no-crates" data-if="crates.size == 0">
@@ -48,7 +50,7 @@
 			</div>
 		</div>
 
-		<div class="side">
+		<div class="side panel">
 			<div class="side-body" data-if="creating">
 				<h4>[[New world]]</h4>
 				<label>[[Name]]</label>
