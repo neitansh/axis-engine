@@ -12,8 +12,8 @@
 namespace menu
 {
 
-Screen::Screen(MainMenu &menu, const std::string &name) :
-	m_menu(menu),
+Screen::Screen(ScreenHost &host, const std::string &name) :
+	m_host(host),
 	m_name(name)
 {
 }
@@ -25,7 +25,7 @@ Screen::~Screen()
 
 void Screen::load()
 {
-	Rml::Context &context = m_menu.context();
+	Rml::Context &context = m_host.context();
 
 	Rml::DataModelConstructor model = context.CreateDataModel(m_name);
 	if (!model) {
@@ -36,16 +36,16 @@ void Screen::load()
 	model.BindEventCallback("nav",
 			[this](Rml::DataModelHandle, Rml::Event &, const Rml::VariantList &args) {
 				if (!args.empty())
-					m_menu.navigate(args[0].Get<Rml::String>());
+					m_host.navigate(args[0].Get<Rml::String>());
 			});
 	model.BindEventCallback("quit",
 			[this](Rml::DataModelHandle, Rml::Event &, const Rml::VariantList &) {
-				m_menu.quit();
+				m_host.quit();
 			});
 	bind(model);
 	m_model = model.GetModelHandle();
 
-	m_document = ui::Host::loadDocument(context, m_menu.themeFile(m_name + ".rml"));
+	m_document = ui::Host::loadDocument(context, m_host.themeFile(m_name + ".rml"));
 	if (!m_document)
 		errorstream << "Screen \"" << m_name << "\": document failed to load" << std::endl;
 }
@@ -57,7 +57,7 @@ void Screen::unload()
 		m_document = nullptr;
 	}
 	if (m_model) {
-		m_menu.context().RemoveDataModel(m_name);
+		m_host.context().RemoveDataModel(m_name);
 		m_model = {};
 	}
 }
@@ -88,9 +88,14 @@ void Screen::settle()
 	afterUpdate();
 }
 
+MainMenu &Screen::menu()
+{
+	return dynamic_cast<MainMenu &>(m_host);
+}
+
 Rml::Element *Screen::focused() const
 {
-	return m_menu.context().GetFocusElement();
+	return m_host.context().GetFocusElement();
 }
 
 bool Screen::hop(const char *selector)
@@ -131,7 +136,7 @@ int Screen::arrowOf(const SEvent &event)
 
 bool Screen::typing() const
 {
-	Rml::Element *focused = m_menu.context().GetFocusElement();
+	Rml::Element *focused = m_host.context().GetFocusElement();
 	return focused && focused->GetTagName() == "input"
 			&& focused->GetAttribute<Rml::String>("type", "text") == "text";
 }

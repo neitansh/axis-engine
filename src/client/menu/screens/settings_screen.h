@@ -30,7 +30,10 @@ namespace menu
 class SettingsScreen final : public Screen
 {
 public:
-	explicit SettingsScreen(MainMenu &menu);
+	explicit SettingsScreen(ScreenHost &host);
+
+	// Куда ведёт Esc: в главном меню — на старт, поверх игры — в паузу.
+	void setBack(const std::string &screen) { m_back = screen; }
 
 	void entered() override;
 	void refresh() override;
@@ -88,6 +91,7 @@ private:
 	SettingsCatalog m_catalog;
 	std::vector<PageEntry> m_pages;
 	Rml::String m_page;
+	std::string m_back = "start";
 	Rml::String m_tab_indicator;
 	std::vector<Row> m_rows;
 	int m_capturing = -1;

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "client/menu/screen.h"
+#include "client/menu/main_menu.h"
 
 namespace menu
 {

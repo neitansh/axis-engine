@@ -34,7 +34,7 @@ namespace menu
 // движок несёт тему по умолчанию в client/ui/menu, крейт может положить
 // свою поверх и перерисовать меню, не трогая код. Экраны ходят к меню за
 // навигацией, запуском игры и путями темы.
-class MainMenu : private IEventReceiver
+class MainMenu : public ScreenHost, private IEventReceiver
 {
 public:
 	MainMenu(RenderingEngine *engine, ui::Host &host, MyEventReceiver *receiver,
@@ -44,14 +44,14 @@ public:
 	// Крутит меню, пока игрок не запустит игру или не выйдет.
 	void run();
 
-	Rml::Context &context() { return *m_context; }
+	Rml::Context &context() override { return *m_context; }
 
 	// Путь к файлу темы: первый найденный по списку каталогов темы.
-	std::string themeFile(const std::string &name) const;
+	std::string themeFile(const std::string &name) const override;
 
-	void navigate(const std::string &screen);
-	Screen *findScreen(const std::string &name);
-	void quit();
+	void navigate(const std::string &screen) override;
+	Screen *findScreen(const std::string &name) override;
+	void quit() override;
 	void startSingleplayer(const WorldSpec &world);
 	// Вход на сервер по адресу. Билет спрашивается у лаунчера здесь же:
 	// дорог в игру несколько, а билет им нужен одинаково. match — название
@@ -69,10 +69,10 @@ public:
 	Launcher &launcher() { return m_launcher; }
 	ServerList &servers() { return m_servers; }
 	Matchmaking &matchmaking() { return m_matchmaking; }
-	Sounds &sounds() { return *m_sounds; }
+	Sounds &sounds() override { return *m_sounds; }
 	// Рамка с версией поверх экранов; заставка прячет её, версия там своя.
 	void showChrome(bool show);
-	void showKeys(const std::vector<Screen::KeyHint> &keys);
+	void showKeys(const std::vector<KeyHint> &keys) override;
 
 private:
 	bool OnEvent(const SEvent &event) override;

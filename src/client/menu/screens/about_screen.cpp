@@ -61,7 +61,7 @@ AboutScreen::AboutScreen(MainMenu &menu) : Screen(menu, "about")
 void AboutScreen::loadMusic()
 {
 	m_music.clear();
-	std::ifstream in(menu().themeFile("sounds" DIR_DELIM "credits.json"));
+	std::ifstream in(host().themeFile("sounds" DIR_DELIM "credits.json"));
 	Json::Value tracks;
 	Json::CharReaderBuilder builder;
 	std::string errors;
@@ -186,7 +186,7 @@ bool AboutScreen::onEvent(const SEvent &event)
 	if (event.EventType != EET_KEY_INPUT_EVENT || !event.KeyInput.PressedDown
 			|| event.KeyInput.Key != KEY_ESCAPE)
 		return false;
-	menu().navigate("start");
+	host().navigate("start");
 	return true;
 }
 

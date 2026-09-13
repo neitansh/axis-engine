@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "screen_host.h"
 #include <IEventReceiver.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <string>
@@ -20,14 +21,15 @@ namespace menu
 
 class MainMenu;
 
-// Экран главного меню: один документ RmlUi и одна модель данных под ним.
-// Вид экрана — файл <имя>.rml в теме, логика — наследник этого класса.
-// Документ грузится при первом показе и переживает скрытие; reload()
-// перечитывает файл, чтобы вёрстку и стили можно было править вживую.
+// Экран меню: один документ RmlUi и одна модель данных под ним. Вид экрана —
+// файл <имя>.rml в теме, логика — наследник этого класса. Документ грузится
+// при первом показе и переживает скрытие; reload() перечитывает файл, чтобы
+// вёрстку и стили можно было править вживую. Хозяин экрана — главное меню
+// или меню поверх игры (ScreenHost).
 class Screen
 {
 public:
-	Screen(MainMenu &menu, const std::string &name);
+	Screen(ScreenHost &host, const std::string &name);
 	virtual ~Screen();
 
 	Screen(const Screen &) = delete;
@@ -64,12 +66,8 @@ public:
 	void settle();
 	virtual void afterUpdate() {}
 
-	// Подсказка по клавишам в нижней строке рамки: пары «клавиша — действие».
-	struct KeyHint
-	{
-		Rml::String key;
-		Rml::String label;
-	};
+	// Подсказка по клавишам в нижней строке рамки.
+	using KeyHint = menu::KeyHint;
 	virtual std::vector<KeyHint> keys() const { return {}; }
 
 protected:
@@ -77,7 +75,9 @@ protected:
 	// действия (nav, quit) уже стоят.
 	virtual void bind(Rml::DataModelConstructor &model) = 0;
 
-	MainMenu &menu() { return m_menu; }
+	ScreenHost &host() { return m_host; }
+	// Главное меню целиком — экранам, которые живут только в нём.
+	MainMenu &menu();
 	Rml::DataModelHandle model() { return m_model; }
 	Rml::ElementDocument *document() { return m_document; }
 
@@ -96,7 +96,7 @@ private:
 	void load();
 	void unload();
 
-	MainMenu &m_menu;
+	ScreenHost &m_host;
 	std::string m_name;
 	Rml::ElementDocument *m_document = nullptr;
 	Rml::DataModelHandle m_model;

@@ -201,7 +201,7 @@ bool parseHex(std::string in, unsigned &r, unsigned &g, unsigned &b)
 
 }
 
-SettingsScreen::SettingsScreen(MainMenu &menu) : Screen(menu, "settings")
+SettingsScreen::SettingsScreen(ScreenHost &host) : Screen(host, "settings")
 {
 	m_catalog.load();
 	for (const SettingsPage &page : m_catalog.pages())
@@ -425,12 +425,12 @@ bool SettingsScreen::onEvent(const SEvent &event)
 		if (event.KeyInput.Key == KEY_ESCAPE) {
 			// Из поля ввода Esc сначала возвращает фокус строке.
 			if (typing()) {
-				if (Rml::Element *inner = menu().context().GetFocusElement())
+				if (Rml::Element *inner = focused())
 					if (Rml::Element *row = inner->Closest(".setting"))
 						row->Focus(true);
 				return true;
 			}
-			menu().navigate("start");
+			host().navigate(m_back);
 			return true;
 		}
 		// Q и E листают вкладки, как бамперы на геймпаде; в поле ввода это буквы.

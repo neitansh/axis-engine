@@ -351,7 +351,7 @@ void MainMenu::loadChrome()
 	showChrome(!m_current || m_current->name() != "intro");
 }
 
-void MainMenu::showKeys(const std::vector<Screen::KeyHint> &keys)
+void MainMenu::showKeys(const std::vector<KeyHint> &keys)
 {
 	m_keys = keys;
 	if (m_chrome_model)
