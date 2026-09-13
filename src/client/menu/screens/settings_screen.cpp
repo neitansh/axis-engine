@@ -7,7 +7,6 @@
 #include "client/keycode.h"
 #include "client/menu/main_menu.h"
 #include "client/menu/settings_presets.h"
-#include "client/menu/text.h"
 #include "client/renderingengine.h"
 #include "client/shadows/dynamicshadowsrender.h"
 #include "crosshair.h"
@@ -378,7 +377,7 @@ void SettingsScreen::appendItems(const std::vector<SettingsPage::Item> &items)
 		if (!item.heading.empty()) {
 			heading = Row();
 			heading.kind = "heading";
-			heading.label = uppercase(strgettext(item.heading));
+			heading.label = strgettext(item.heading);
 			pending_heading = &heading;
 			continue;
 		}

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:44+0300\n"
+"POT-Creation-Date: 2026-09-13 07:13+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -2817,13 +2817,10 @@ msgstr "<пусто>"
 msgid "Audio"
 msgstr "Звук"
 
-#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Button text to go back
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/mainmenu/content/dlg_contentdb.lua
-#: builtin/mainmenu/content/dlg_package.lua client/ui/menu/online.rml
-#: client/ui/menu/settings.rml client/ui/menu/worlds.rml
-#: src/gui/guiVolumeChange.cpp
+#: builtin/mainmenu/content/dlg_package.lua src/gui/guiVolumeChange.cpp
 msgid "Back"
 msgstr "Назад"
 
@@ -2944,8 +2941,8 @@ msgstr "Найти"
 
 #. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Try to keep the translation short
-#: builtin/common/settings/dlg_settings.lua client/ui/menu/start.rml
-#: src/client/game_formspec.cpp
+#: builtin/common/settings/dlg_settings.lua client/ui/menu/settings.rml
+#: client/ui/menu/start.rml src/client/game_formspec.cpp
 msgid "Settings"
 msgstr "Настройки"
 

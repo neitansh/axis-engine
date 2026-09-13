@@ -1,18 +1,17 @@
 /*
- * Экран настроек: вкладки-иконки сверху, строки в середине, описание строки
- * под курсором справа. Строка — подпись и один виджет одной высоты: ряд
- * значений листается стрелками, число тянется ползунком с заливкой.
- * Стекло, «Назад» и заголовки разделов — в page.rcss.
+ * Экран настроек: вкладки-иконки сверху, строки в карточке, описание строки
+ * под курсором справа. Строка — подпись и один орган управления одной высоты:
+ * ряд значений листается стрелками, число тянется ползунком с заливкой.
+ * Страница, шапка и заголовки разделов — в page.rcss.
  */
 
-/* Вкладки: стеклянная полоса, подсветка скользит к открытой иконке, подпись
-   висит под ней */
+/* Вкладки: дорожка цвета карточки, выбранная поднимается подсветкой акцента */
 
 .tabbar {
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
-	margin-bottom: 48dp;
+	margin-bottom: 44dp;
 }
 
 .tabs {
@@ -20,78 +19,69 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	padding: 6dp 8dp;
-	border-radius: 16dp;
-	background-color: #00000040;
-	border: 1dp #FFFFFF1A;
-	backdrop-filter: blur(8dp);
-	box-shadow: 0 10dp 30dp #00000059;
+	padding: 4dp;
+	border-radius: 12dp;
+	background-color: #1C1C1E;
 }
 
 .tabs .indicator {
 	position: absolute;
-	top: 6dp;
-	left: 11dp;
+	top: 4dp;
+	left: 4dp;
 	width: 50dp;
-	height: 50dp;
-	box-sizing: border-box;
-	border-radius: 12dp;
-	background-color: #8B5CF633;
-	border: 1dp #A78BFA80;
+	height: 44dp;
+	border-radius: 9dp;
+	background-color: #221B36;
 	transition: transform 0.25s cubic-out;
 }
 
 .tabs .tab {
 	position: relative;
 	width: 50dp;
-	height: 50dp;
+	height: 44dp;
 	margin: 0 3dp;
 	cursor: pointer;
 }
 
 .tabs .tab img {
 	position: absolute;
-	top: 7dp;
+	top: 4dp;
 	left: 0;
 	width: 24dp;
 	height: 24dp;
 	padding: 6dp 13dp;
-	image-color: #FFFFFF8C;
-	transition: transform 0.15s cubic-out, image-color 0.15s linear-in-out;
+	image-color: #86868B;
+	transition: transform 0.15s cubic-out, image-color 0.12s linear-in-out;
 }
 
 .tabs .tab:hover img {
-	image-color: #FFFFFF;
+	image-color: #F5F5F7;
 	transform: translateY(-2dp);
 }
 
 .tabs .tab.active img {
-	image-color: #FFFFFF;
+	image-color: #A78BFA;
 	transform: translateY(0);
 }
 
 .tabs .tab .caption {
 	position: absolute;
-	top: 58dp;
+	top: 52dp;
 	left: -40dp;
 	right: -40dp;
 	text-align: center;
 	font-size: 12dp;
-	font-weight: 600;
-	letter-spacing: 1dp;
-	padding-left: 1dp;
-	color: #FFFFFF;
+	color: #86868B;
 	white-space: nowrap;
 }
 
-/* Тело: строки и описание */
+/* Тело: строки в карточке и описание на странице */
 
 .settings-body {
 	display: flex;
 	flex-direction: row;
 	flex: 1;
 	min-height: 0;
-	padding: 0 40dp;
 }
 
 .rows-frame {
@@ -100,48 +90,51 @@
 	flex-direction: column;
 	flex: 1;
 	min-height: 0;
+	border-radius: 18dp;
+	background-color: #1C1C1E;
 }
 
 .rows {
 	display: block;
 	flex: 1;
 	overflow-y: auto;
-	padding-right: 16dp;
-	padding-bottom: 48dp;
+	padding: 6dp 16dp 48dp 24dp;
 }
 
 .rows-fade {
 	position: absolute;
 	left: 0;
 	right: 0;
-	bottom: 40dp;
-	height: 80dp;
-	decorator: linear-gradient(to bottom, #0B0A1200 0%, #0B0A1299 100%);
+	bottom: 0;
+	height: 60dp;
+	border-radius: 0 0 18dp 18dp;
+	decorator: linear-gradient(to bottom, #1C1C1E00 0%, #1C1C1E 100%);
 	pointer-events: none;
 }
 
-
 .rows scrollbarvertical {
 	width: 4dp;
-	margin: 0;
+	margin: 8dp 4dp 8dp 0;
 }
 
 .rows scrollbarvertical sliderbar {
 	border-radius: 2dp;
-	background-color: #FFFFFF33;
+	background-color: #FFFFFF24;
 }
 
+.rows h3.group {
+	margin: 10dp 0 6dp 0;
+}
 
 .setting {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	height: 54dp;
-	padding: 0 10dp 0 14dp;
-	margin-bottom: 2dp;
-	border-radius: 6dp;
-	border: 1dp transparent;
-	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out;
+	height: 56dp;
+	padding: 0 8dp 0 12dp;
+	margin: 0 0 2dp -12dp;
+	border-radius: 10dp;
+	transition: background-color 0.12s linear-in-out;
 }
 
 .setting.tall {
@@ -152,8 +145,7 @@
 }
 
 .setting.focused {
-	background-color: #FFFFFF0F;
-	border-color: #A78BFA;
+	background-color: #FFFFFF14;
 }
 
 .setting .label {
@@ -161,9 +153,9 @@
 	flex: 1;
 	width: 0;
 	min-width: 0;
-	font-size: 16dp;
+	font-size: 15dp;
 	line-height: 24dp;
-	color: #F2F0F5;
+	color: #F5F5F7;
 	padding-right: 16dp;
 	white-space: nowrap;
 	overflow: hidden;
@@ -172,11 +164,11 @@
 }
 
 .setting .label.long {
-	font-size: 14dp;
+	font-size: 13dp;
 }
 
 .setting.tall .label {
-	padding-top: 8dp;
+	padding-top: 10dp;
 }
 
 .setting .control {
@@ -195,48 +187,49 @@
 	width: 500dp;
 }
 
-/* Клавиша: тёмная плашка, как ряд значений; ожидание ввода — акцентом */
+/* Клавиша: поле, как ряд значений; ожидание ввода — акцентом */
 
 .setting .key {
 	width: 300dp;
-	height: 40dp;
-	line-height: 38dp;
+	height: 44dp;
+	line-height: 42dp;
 	box-sizing: border-box;
 	text-align: center;
-	border-radius: 6dp;
-	background-color: #1B1626;
-	border: 1dp #FFFFFF14;
-	color: #F2F0F5;
+	border-radius: 12dp;
+	border: 1dp #38383A;
+	color: #F5F5F7;
 	font-size: 15dp;
 	cursor: pointer;
-	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out;
+	transition: border-color 0.12s linear-in-out, background-color 0.12s linear-in-out, color 0.12s linear-in-out;
 }
 
 .setting .key:hover {
-	border-color: #A78BFA;
+	border-color: #A78BFA3D;
+	background-color: #FFFFFF14;
 }
 
 .setting .key.waiting {
-	background-color: #8B5CF6;
+	background-color: #A78BFA;
 	border-color: #A78BFA;
-	color: #FFFFFF;
+	color: #1C1C1E;
+	font-weight: 600;
 }
 
-/* Откат к умолчанию */
+/* Откат к умолчанию: значковая кнопка */
 
 .setting .undo {
-	width: 32dp;
-	height: 40dp;
+	width: 36dp;
+	height: 36dp;
 	margin-left: 6dp;
-	border-radius: 6dp;
+	border-radius: 10dp;
 	decorator: image(icons/reset.png scale-none);
-	image-color: #948C9E;
+	image-color: #86868B;
 	cursor: pointer;
-	transition: image-color 0.15s linear-in-out, background-color 0.15s linear-in-out;
+	transition: image-color 0.12s linear-in-out, background-color 0.12s linear-in-out;
 }
 
 .setting .undo:hover {
-	image-color: #FFFFFF;
+	image-color: #F5F5F7;
 	background-color: #FFFFFF14;
 }
 
@@ -251,19 +244,19 @@
 	flex-direction: row;
 	align-items: center;
 	width: 300dp;
-	height: 40dp;
-	border-radius: 6dp;
-	background-color: #1B1626;
+	height: 44dp;
+	border-radius: 12dp;
+	border: 1dp #38383A;
 	box-sizing: border-box;
 }
 
 .stepper .arrow {
-	width: 34dp;
-	height: 40dp;
-	border-radius: 6dp;
+	width: 36dp;
+	height: 42dp;
+	border-radius: 11dp;
 	cursor: pointer;
 	decorator: image(icons/chevron.png scale-none);
-	image-color: #948C9E;
+	image-color: #86868B;
 	transition: image-color 0.12s linear-in-out, background-color 0.12s linear-in-out;
 }
 
@@ -272,7 +265,7 @@
 }
 
 .stepper .arrow:hover {
-	image-color: #FFFFFF;
+	image-color: #F5F5F7;
 	background-color: #FFFFFF14;
 }
 
@@ -285,7 +278,7 @@
 }
 
 .stepper .val {
-	color: #FFFFFF;
+	color: #F5F5F7;
 	font-size: 15dp;
 	line-height: 22dp;
 	white-space: nowrap;
@@ -307,8 +300,8 @@
 	height: 3dp;
 	margin: 0 1dp;
 	border-radius: 1dp;
-	background-color: #FFFFFF24;
-	transition: background-color 0.15s linear-in-out;
+	background-color: #38383A;
+	transition: background-color 0.12s linear-in-out;
 }
 
 .stepper .segments i.on {
@@ -319,29 +312,29 @@
 
 .setting .control input.range {
 	flex: 1;
-	height: 40dp;
-	border-radius: 6dp;
-	background-color: #1B1626;
+	height: 44dp;
+	border-radius: 12dp;
+	background-color: #2C2C2E;
 	margin-right: 6dp;
 	box-sizing: border-box;
 }
 
 .setting .control input.range slidertrack {
-	height: 40dp;
+	height: 44dp;
 	background-color: transparent;
 }
 
 .setting .control input.range sliderprogress {
-	height: 40dp;
-	border-radius: 6dp 0 0 6dp;
-	background-color: #8B5CF6;
+	height: 44dp;
+	border-radius: 12dp 0 0 12dp;
+	background-color: #A78BFA;
 }
 
 .setting .control input.range sliderbar {
 	width: 10dp;
-	height: 40dp;
-	border-radius: 3dp;
-	background-color: #FFFFFF;
+	height: 44dp;
+	border-radius: 4dp;
+	background-color: #F5F5F7;
 	cursor: pointer;
 }
 
@@ -352,27 +345,13 @@
 }
 
 .setting .control input.text {
-	height: 40dp;
-	line-height: 24dp;
-	padding: 7dp 12dp;
-	box-sizing: border-box;
-	border-radius: 6dp;
-	background-color: #1B1626;
-	border: 1dp transparent;
-	font-size: 15dp;
-	transition: border-color 0.15s linear-in-out;
-}
-
-.setting .control input.text:hover {
-	border-color: #FFFFFF24;
-}
-
-.setting .control input.text:focus {
-	border-color: #A78BFA;
+	background-color: transparent;
 }
 
 .setting .control input.text.num {
 	width: 80dp;
+	padding-left: 6dp;
+	padding-right: 6dp;
 	text-align: center;
 }
 
@@ -380,64 +359,14 @@
 	width: 300dp;
 }
 
-/* Список: для длинных рядов значений */
-
 .setting .control select {
 	width: 300dp;
-	height: 40dp;
-	line-height: 24dp;
-	padding: 7dp 12dp;
-	box-sizing: border-box;
-	border-radius: 6dp;
-	background-color: #1B1626;
-	border: 1dp transparent;
-	font-size: 15dp;
-	color: #FFFFFF;
-	cursor: pointer;
-	transition: border-color 0.15s linear-in-out;
-}
-
-.setting .control select:hover {
-	border-color: #FFFFFF24;
-}
-
-.setting .control select selectvalue {
-	padding-right: 24dp;
-}
-
-.setting .control select selectarrow {
-	width: 34dp;
-	height: 38dp;
-	margin: -7dp -12dp 0 -34dp;
-	decorator: image(icons/chevron.png scale-none);
-	image-color: #948C9E;
-	transform: rotate(-90deg);
+	background-color: transparent;
 }
 
 .setting .control select selectbox {
-	margin-top: 4dp;
-	padding: 4dp 0;
 	height: 260dp;
 	overflow-y: auto;
-	border-radius: 6dp;
-	background-color: #17131F;
-	border: 1dp #FFFFFF14;
-}
-
-.setting .control select selectbox option {
-	padding: 8dp 14dp;
-	font-size: 15dp;
-	color: #C8C3D1;
-	cursor: pointer;
-}
-
-.setting .control select selectbox option:hover {
-	background-color: #FFFFFF0C;
-	color: #FFFFFF;
-}
-
-.setting .control select selectbox option:checked {
-	color: #A78BFA;
 }
 
 .flags {
@@ -451,30 +380,9 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	margin-left: 10dp;
+	margin-left: 12dp;
 	font-size: 14dp;
-	color: #B9B3C4;
-}
-
-input.checkbox {
-	width: 18dp;
-	height: 18dp;
-	border-radius: 4dp;
-	background-color: #1B1626;
-	border: 1dp #FFFFFF3A;
-	cursor: pointer;
-	margin-right: 6dp;
-	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out;
-}
-
-input.checkbox:hover {
-	border-color: #A78BFA;
-}
-
-input.checkbox:checked {
-	background-color: #8B5CF6;
-	border-color: #A78BFA;
-	decorator: image(icons/check.png);
+	color: #A1A1A6;
 }
 
 /* Перекрестье: предпросмотр, набор, цвета, обмен */
@@ -490,8 +398,8 @@ input.checkbox:checked {
 	position: relative;
 	width: 120dp;
 	height: 120dp;
-	border-radius: 6dp;
-	background-color: #1B1626;
+	border-radius: 12dp;
+	background-color: #000000;
 	margin-right: 14dp;
 }
 
@@ -510,14 +418,14 @@ input.checkbox:checked {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	height: 40dp;
+	height: 44dp;
 	margin-bottom: 6dp;
 }
 
 .xhair-fields .field span {
 	width: 100dp;
 	font-size: 14dp;
-	color: #B9B3C4;
+	color: #A1A1A6;
 }
 
 .xhair-fields .field .stepper {
@@ -528,34 +436,34 @@ input.checkbox:checked {
 .xhair-fields .field input.text.color {
 	width: 110dp;
 	margin-right: 8dp;
+	background-color: transparent;
 }
 
 .xhair-fields .swatch {
 	display: block;
 	width: 22dp;
 	height: 22dp;
-	border-radius: 4dp;
-	border: 1dp #FFFFFF3A;
+	border-radius: 6dp;
+	border: 1dp #38383A;
 }
 
 .xhair-fields .field.share .button {
 	display: block;
-	height: 40dp;
-	line-height: 38dp;
+	height: 36dp;
+	line-height: 34dp;
 	box-sizing: border-box;
-	padding: 0 14dp;
+	padding: 0 16dp;
 	margin-right: 8dp;
-	border-radius: 6dp;
-	background-color: #1B1626;
-	border: 1dp #FFFFFF14;
-	color: #E8E6ED;
+	border-radius: 18dp;
+	border: 1dp #38383A;
+	color: #F5F5F7;
 	font-size: 14dp;
 	cursor: pointer;
-	transition: border-color 0.15s linear-in-out;
+	transition: background-color 0.12s linear-in-out;
 }
 
 .xhair-fields .field.share .button:hover {
-	border-color: #A78BFA;
+	background-color: #FFFFFF14;
 }
 
 /* Описание справа */
@@ -563,10 +471,9 @@ input.checkbox:checked {
 .info {
 	display: flex;
 	flex-direction: column;
-	width: 340dp;
-	margin-left: 28dp;
-	padding-left: 24dp;
-	border-left: 1dp #FFFFFF14;
+	width: 320dp;
+	margin-left: 32dp;
+	padding-top: 6dp;
 }
 
 .info-body {
@@ -576,15 +483,15 @@ input.checkbox:checked {
 
 .info h4 {
 	display: block;
-	font-size: 19dp;
-	font-weight: 600;
-	color: #FFFFFF;
-	margin: 0 0 10dp 0;
+	font-size: 18dp;
+	font-weight: 500;
+	color: #F5F5F7;
+	margin: 0 0 8dp 0;
 }
 
 .info p {
-	color: #C8C3D1;
-	font-size: 15dp;
+	color: #A1A1A6;
+	font-size: 14dp;
 	line-height: 1.55;
 	margin-bottom: 12dp;
 }
@@ -594,14 +501,14 @@ input.checkbox:checked {
 	flex-direction: row;
 	align-items: center;
 	margin-bottom: 14dp;
-	padding: 8dp 12dp;
-	border-radius: 8dp;
-	background-color: #FFFFFF0A;
+	padding: 10dp 14dp;
+	border-radius: 12dp;
+	background-color: #1C1C1E;
 }
 
 .cost .cost-label {
 	font-size: 13dp;
-	color: #948C9E;
+	color: #86868B;
 	margin-right: 10dp;
 }
 
@@ -618,32 +525,32 @@ input.checkbox:checked {
 	width: 6dp;
 	margin-right: 3dp;
 	border-radius: 2dp;
-	background-color: #FFFFFF24;
+	background-color: #38383A;
 }
 
 .cost .meter i.b1 { height: 8dp; }
 .cost .meter i.b2 { height: 12dp; }
 .cost .meter i.b3 { height: 16dp; }
 
-.cost.low .meter i.b1 { background-color: #8BD6A0; }
+.cost.low .meter i.b1 { background-color: #30D158; }
 .cost.medium .meter i.b1,
-.cost.medium .meter i.b2 { background-color: #F2C14E; }
+.cost.medium .meter i.b2 { background-color: #FF9F0A; }
 .cost.high .meter i.b1,
 .cost.high .meter i.b2,
-.cost.high .meter i.b3 { background-color: #FF8A75; }
+.cost.high .meter i.b3 { background-color: #FF453A; }
 
 .cost .cost-word {
 	font-size: 14dp;
 	font-weight: 600;
 }
 
-.cost.low .cost-word { color: #8BD6A0; }
-.cost.medium .cost-word { color: #F2C14E; }
-.cost.high .cost-word { color: #FF8A75; }
+.cost.low .cost-word { color: #30D158; }
+.cost.medium .cost-word { color: #FF9F0A; }
+.cost.high .cost-word { color: #FF453A; }
 
 .info p.note {
-	color: #948C9E;
-	font-size: 14dp;
+	color: #86868B;
+	font-size: 13dp;
 }
 
 .info p.status {

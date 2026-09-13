@@ -13,9 +13,9 @@
 	</div>
 	<div class="stack">
 		<button class="primary" data-event-click="nav('online')">[[Multiplayer]]</button>
-		<button data-event-click="nav('worlds')">[[Singleplayer]]</button>
-		<button data-event-click="nav('settings')">[[Settings]]</button>
-		<button data-event-click="quit()">[[Exit]]</button>
+		<button class="solid" data-event-click="nav('worlds')">[[Singleplayer]]</button>
+		<button class="solid" data-event-click="nav('settings')">[[Settings]]</button>
+		<button class="solid" data-event-click="quit()">[[Exit]]</button>
 	</div>
 </body>
 </rml>

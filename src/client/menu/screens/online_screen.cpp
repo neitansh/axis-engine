@@ -5,7 +5,6 @@
 #include "online_screen.h"
 
 #include "client/menu/main_menu.h"
-#include "client/menu/text.h"
 #include "gettext.h"
 #include "settings.h"
 #include "util/string.h"
@@ -16,10 +15,10 @@ namespace menu
 OnlineScreen::OnlineScreen(MainMenu &menu) : Screen(menu, "online")
 {
 	m_title = strgettext("Multiplayer");
-	m_matches_heading = uppercase(strgettext("Arenas"));
-	m_servers_heading = uppercase(strgettext("Server List"));
-	m_connection_heading = uppercase(strgettext("Connection"));
-	m_direct_heading = uppercase(strgettext("Address"));
+	m_matches_heading = strgettext("Arenas");
+	m_servers_heading = strgettext("Server List");
+	m_connection_heading = strgettext("Connection");
+	m_direct_heading = strgettext("Address");
 	m_tab_indicator = "translateX(0dp)";
 
 	Matchmaking &mm = this->menu().matchmaking();
@@ -303,7 +302,7 @@ void OnlineScreen::rebuildServers()
 			continue;
 		ServerRow header;
 		header.kind = "header";
-		header.name = uppercase(strgettext(section.title));
+		header.name = strgettext(section.title);
 		m_rows.push_back(header);
 		for (int index : section.rows) {
 			const ServerEntry &server = shown[index];

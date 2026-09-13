@@ -6,12 +6,11 @@
 	<link type="text/rcss" href="worlds.rcss"/>
 </head>
 <body data-model="worlds" class="page play">
-	<div class="back" data-event-click="nav('start')">
-		<div class="arrow"/>
-		<span>[[Back]]</span>
-		<span class="hint">Esc</span>
+	<div class="page-head">
+		<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
+		<h1>[[Singleplayer]]</h1>
+		<span class="kbd">Esc</span>
 	</div>
-	<div class="title">[[Singleplayer]]</div>
 
 	<div class="no-crates" data-if="crates.size == 0">
 		<div class="mark"/>
@@ -21,7 +20,7 @@
 
 	<div class="play-body" data-if="crates.size > 0">
 		<div class="crates">
-			<h3 class="group">{{ crate_heading }}</h3>
+			<div class="eyebrow">{{ crate_heading }}</div>
 			<div class="crate" data-for="c : crates" data-class-active="it_index == crate"
 					data-event-click="select_crate(it_index)">
 				<img class="icon" data-if="c.icon != ''" data-attr-src="c.icon"/>

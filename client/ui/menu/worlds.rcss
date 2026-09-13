@@ -1,42 +1,27 @@
 /*
- * Одиночная игра: слева крейты карточками, в середине миры выбранного крейта,
- * справа — что делать с выбранным миром (играть, удалить) или форма нового.
- * Стекло, «Назад» и заголовки разделов — в page.rcss.
+ * Одиночная игра: слева крейты списком разделов, в середине миры выбранного
+ * крейта в карточке, справа — что делать с выбранным миром (играть, удалить)
+ * или форма нового. Страница, шапка и заголовки — в page.rcss.
  */
-
-.title {
-	position: absolute;
-	top: 74dp;
-	left: 0;
-	right: 0;
-	height: 40dp;
-	line-height: 40dp;
-	text-align: center;
-	font-size: 14dp;
-	font-weight: 600;
-	letter-spacing: 3dp;
-	color: #FFFFFFB3;
-	/* Полоса во всю ширину лежит поверх «Назад» и перехватывала бы мышь */
-	pointer-events: none;
-}
 
 .play-body {
 	display: flex;
 	flex-direction: row;
 	flex: 1;
 	min-height: 0;
-	margin-top: 64dp;
-	/* Тело страницы доходит до края экрана (см. page.rcss); список миров
-	   останавливается выше, чтобы кнопка под ним не легла на самый край. */
-	padding: 0 40dp 40dp 40dp;
 }
 
-/* Крейты */
+/* Крейты: строки бокового списка, выбранная — цвета карточки */
 
 .crates {
 	display: flex;
 	flex-direction: column;
-	width: 300dp;
+	width: 280dp;
+	margin-right: 28dp;
+}
+
+.crates .eyebrow {
+	padding-left: 14dp;
 }
 
 .crate {
@@ -44,21 +29,19 @@
 	flex-direction: row;
 	align-items: center;
 	height: 64dp;
-	padding: 0 12dp;
-	margin-bottom: 6dp;
-	border-radius: 10dp;
-	border: 1dp transparent;
+	padding: 0 14dp;
+	margin-bottom: 4dp;
+	border-radius: 12dp;
 	cursor: pointer;
-	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out;
+	transition: background-color 0.12s linear-in-out;
 }
 
 .crate:hover {
-	background-color: #FFFFFF0A;
+	background-color: #FFFFFF14;
 }
 
 .crate.active {
-	background-color: #8B5CF626;
-	border-color: #A78BFA;
+	background-color: #1C1C1E;
 }
 
 .crate .icon,
@@ -66,16 +49,16 @@
 	width: 40dp;
 	height: 40dp;
 	margin-right: 12dp;
-	border-radius: 8dp;
+	border-radius: 10dp;
 }
 
 .crate .tile {
-	background-color: #8B5CF6;
+	background-color: #221B36;
 	line-height: 40dp;
 	text-align: center;
 	font-size: 18dp;
 	font-weight: 700;
-	color: #FFFFFF;
+	color: #A78BFA;
 }
 
 .crate .text {
@@ -90,47 +73,54 @@
 
 .crate .name {
 	display: block;
-	font-size: 16dp;
-	font-weight: 600;
-	color: #F2F0F5;
+	font-size: 15dp;
+	font-weight: 500;
+	color: #A1A1A6;
+	transition: color 0.12s linear-in-out;
+}
+
+.crate:hover .name,
+.crate.active .name {
+	color: #F5F5F7;
 }
 
 .crate .meta {
 	display: block;
 	font-size: 12dp;
-	color: #948C9E;
+	color: #86868B;
 }
 
 .crate .count {
 	padding: 1dp 8dp;
-	/* Полукруглые торцы RmlUi сшивает с просветом посередине, и сквозь
-	   полупрозрачную заливку виден шов; чуть меньший радиус шва не даёт */
 	border-radius: 6dp;
-	background-color: #FFFFFF14;
+	background-color: #2C2C2E;
 	font-size: 12dp;
-	color: #C8C3D1;
+	color: #A1A1A6;
 }
 
 .crate.active .count {
-	background-color: #8B5CF64D;
-	color: #FFFFFF;
+	background-color: #221B36;
+	color: #A78BFA;
 }
 
-/* Миры */
+/* Миры: карточка со строками */
 
 .worlds {
 	display: flex;
 	flex-direction: column;
 	flex: 1;
 	min-height: 0;
-	margin: 0 28dp;
+	padding: 0 24dp 16dp 24dp;
+	border-radius: 18dp;
+	background-color: #1C1C1E;
 }
 
 .world-list {
 	display: block;
 	flex: 1;
 	overflow-y: auto;
-	padding-right: 12dp;
+	margin-top: 6dp;
+	padding-right: 8dp;
 }
 
 .world-list scrollbarvertical {
@@ -140,29 +130,27 @@
 
 .world-list scrollbarvertical sliderbar {
 	border-radius: 2dp;
-	background-color: #FFFFFF33;
+	background-color: #FFFFFF24;
 }
 
 .world {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	height: 54dp;
-	padding: 0 14dp;
-	margin-bottom: 2dp;
-	border-radius: 6dp;
-	border: 1dp transparent;
+	height: 52dp;
+	padding: 0 12dp;
+	margin: 0 0 2dp -12dp;
+	border-radius: 10dp;
 	cursor: pointer;
-	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out;
+	transition: background-color 0.12s linear-in-out;
 }
 
 .world:hover {
-	background-color: #FFFFFF0A;
+	background-color: #FFFFFF14;
 }
 
 .world.active {
-	background-color: #FFFFFF0F;
-	border-color: #A78BFA;
+	background-color: #221B36;
 }
 
 .world .name {
@@ -170,29 +158,36 @@
 	flex: 1;
 	width: 0;
 	min-width: 0;
-	font-size: 16dp;
-	color: #F2F0F5;
+	font-size: 15dp;
+	color: #F5F5F7;
 	white-space: nowrap;
 	overflow: hidden;
 	mask-image: linear-gradient(to right, #FFFFFF 85%, #FFFFFF00 100%);
 }
 
+.world.active .name {
+	color: #A78BFA;
+}
+
 .world .meta {
 	margin-left: 12dp;
-	font-size: 13dp;
-	color: #948C9E;
+	font-family: "Departure Mono";
+	font-size: 12dp;
+	color: #86868B;
 }
 
 .worlds .empty {
 	padding: 40dp 0;
 	text-align: center;
-	color: #948C9E;
+	color: #86868B;
 }
 
 .list-actions {
 	display: flex;
 	flex-direction: row;
 	margin-top: 12dp;
+	padding-top: 12dp;
+	border-top: 1dp #2C2C2E;
 }
 
 button.new {
@@ -200,17 +195,10 @@ button.new {
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
-	flex: 1;
-	padding: 12dp;
-	background-color: #FFFFFF08;
-	border-color: #FFFFFF1F;
-	color: #C8C3D1;
-}
-
-button.new:hover {
-	background-color: #8B5CF626;
-	border-color: #A78BFA99;
-	color: #FFFFFF;
+	height: 40dp;
+	line-height: 38dp;
+	padding: 0 18dp;
+	font-size: 14dp;
 }
 
 button.new .plus {
@@ -220,14 +208,14 @@ button.new .plus {
 	decorator: image(icons/plus.png scale-none);
 }
 
-/* Правая колонка */
+/* Правая колонка на странице */
 
 .side {
 	display: flex;
 	flex-direction: column;
-	width: 340dp;
-	padding-left: 28dp;
-	border-left: 1dp #FFFFFF14;
+	width: 320dp;
+	margin-left: 32dp;
+	padding-top: 6dp;
 }
 
 .side-body {
@@ -240,7 +228,8 @@ button.new .plus {
 	display: block;
 	font-size: 22dp;
 	font-weight: 600;
-	color: #FFFFFF;
+	letter-spacing: -0.3dp;
+	color: #F5F5F7;
 	margin: 0 0 14dp 0;
 	white-space: nowrap;
 	overflow: hidden;
@@ -249,35 +238,21 @@ button.new .plus {
 
 .side label {
 	display: block;
-	margin: 10dp 0 6dp 0;
+	margin: 12dp 0 6dp 0;
 	font-size: 13dp;
-	color: #948C9E;
+	color: #86868B;
 }
 
 .side input.text,
 .side select {
 	width: 100%;
-	box-sizing: border-box;
-	padding: 10dp 12dp;
-	background-color: #1B1626;
-	border-color: #FFFFFF1A;
-}
-
-.side input.text:focus,
-.side select:focus {
-	border-color: #A78BFA;
 }
 
 .side p.hint {
 	margin-top: 10dp;
-	font-size: 14dp;
+	font-size: 13dp;
 	line-height: 1.5;
-	color: #948C9E;
-}
-
-.side .error {
-	margin-top: 12dp;
-	font-size: 14dp;
+	color: #86868B;
 }
 
 .facts {
@@ -290,30 +265,29 @@ button.new .plus {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
-	padding: 8dp 0;
-	border-bottom: 1dp #FFFFFF14;
+	padding: 10dp 0;
+	border-top: 1dp #2C2C2E;
 	font-size: 14dp;
 }
 
 .fact .k {
-	color: #948C9E;
+	color: #86868B;
 }
 
 .fact .v {
-	color: #E8E6ED;
+	font-family: "Departure Mono";
+	font-size: 13dp;
+	color: #F5F5F7;
 }
 
 .side button {
 	width: 100%;
-	box-sizing: border-box;
 	margin-top: 8dp;
 }
 
 .side button.big {
 	margin-top: 20dp;
-	padding: 14dp 20dp;
-	font-size: 17dp;
-	font-weight: 600;
+	font-size: 16dp;
 }
 
 .side .confirm {
@@ -348,7 +322,7 @@ button.new .plus {
 	width: 560dp;
 	font-size: 22dp;
 	font-weight: 600;
-	color: #FFFFFF;
+	color: #F5F5F7;
 	margin: 0 0 10dp 0;
 }
 
@@ -356,5 +330,5 @@ button.new .plus {
 	width: 480dp;
 	font-size: 15dp;
 	line-height: 1.55;
-	color: #C8C3D1;
+	color: #A1A1A6;
 }

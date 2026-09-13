@@ -1,7 +1,16 @@
 /*
- * Тема главного меню по умолчанию. Три уровня поверхностей (panel < surface
- * < inset), один фиолетовый акцент на главное действие экрана, остальное
- * нейтральное; те же цвета живут в лаунчере и на сайте.
+ * Тема главного меню — та же, что у сайта и лаунчера (packages/axis-shared/
+ * styles/theme.css, тёмная): плоскость, воздух и один акцент. Ни у чего, что
+ * лежит на странице, нет ни тени, ни стекла; карточка отделяется от страницы
+ * своим цветом, строки внутри неё — швом.
+ *
+ * У RCSS нет переменных, поэтому цвета записаны числами. Словарь:
+ *   страница   #000000     карточка #1C1C1E   кайма #38383A   шов #2C2C2E
+ *   акцент     #A78BFA     на акценте #1C1C1E  подсветка акцента #221B36
+ *   текст      #F5F5F7     тише #A1A1A6       подсказка #86868B
+ *   наведение  #FFFFFF14   в сети #30D158     тревога #FF9F0A   опасно #FF453A
+ *   скругления: орган управления 12dp, карточка 18dp, кнопка — пилюля
+ *   высота органа управления 44dp
  */
 
 body {
@@ -11,9 +20,9 @@ body {
 	width: 100%;
 	height: 100%;
 	font-family: "Inter Variable";
-	font-size: 16dp;
+	font-size: 15dp;
 	line-height: 1.4;
-	color: #E8E6ED;
+	color: #F5F5F7;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -22,18 +31,18 @@ body {
 
 h1 {
 	display: block;
-	font-family: "Departure Mono";
-	font-size: 56dp;
-	line-height: 1;
-	color: #A78BFA;
-	margin: 0 0 4dp 0;
+	font-size: 30dp;
+	font-weight: 700;
+	letter-spacing: -0.5dp;
+	line-height: 1.1;
+	color: #F5F5F7;
+	margin: 0;
 }
 
 h2 {
 	display: block;
-	font-family: "Departure Mono";
-	font-size: 22dp;
-	color: #A78BFA;
+	font-size: 18dp;
+	color: #F5F5F7;
 	margin: 0 0 16dp 0;
 }
 
@@ -43,11 +52,11 @@ p {
 }
 
 .muted {
-	color: #948C9E;
+	color: #A1A1A6;
 }
 
 .dim {
-	color: #726E7E;
+	color: #86868B;
 	font-size: 13dp;
 }
 
@@ -67,8 +76,8 @@ p {
 	position: absolute;
 	right: 14dp;
 	bottom: 10dp;
+	font-family: "Departure Mono";
 	font-size: 12dp;
-	letter-spacing: 0.5dp;
 	color: #FFFFFFB3;
 }
 
@@ -83,145 +92,102 @@ p {
 	margin-bottom: 10dp;
 }
 
+/* Кнопки — пилюли. Главное действие экрана заливается акцентом, остальные
+   держатся каймой; на небе стартового экрана кайма одна не видна, и там
+   второстепенная кнопка берёт цвет карточки. */
+
 button {
 	display: block;
-	padding: 12dp 20dp;
-	border-radius: 6dp;
-	background-color: #17131F;
-	border: 1dp #FFFFFF24;
-	color: #E8E6ED;
+	height: 44dp;
+	line-height: 42dp;
+	box-sizing: border-box;
+	padding: 0 20dp;
+	border-radius: 22dp;
+	background-color: transparent;
+	border: 1dp #38383A;
+	color: #F5F5F7;
+	font-size: 15dp;
 	text-align: center;
 	cursor: pointer;
-	transition: background-color 0.12s, border-color 0.12s;
+	transition: background-color 0.12s linear-in-out, border-color 0.12s linear-in-out, color 0.12s linear-in-out, opacity 0.12s linear-in-out;
 }
 
 button:hover {
-	background-color: #211B2E;
-	border-color: #FFFFFF3A;
+	background-color: #FFFFFF14;
 }
 
 button:active {
-	background-color: #120F19;
+	background-color: #FFFFFF1F;
 }
 
 button.primary {
-	background-color: #8B5CF6;
+	background-color: #A78BFA;
 	border-color: #A78BFA;
-	color: #FFFFFF;
+	color: #1C1C1E;
+	font-weight: 600;
 }
 
 button.primary:hover {
-	background-color: #9B72F8;
+	background-color: #B9A3FB;
+	border-color: #B9A3FB;
 }
 
 button.primary:active {
-	background-color: #7C4FE0;
+	background-color: #9C7DF5;
+}
+
+button.solid {
+	background-color: #1C1C1E;
+	border-color: #1C1C1E;
+}
+
+button.solid:hover {
+	background-color: #2C2C2E;
+	border-color: #2C2C2E;
 }
 
 button.ghost {
-	background-color: transparent;
 	border-color: transparent;
-	color: #948C9E;
+	color: #A1A1A6;
 }
 
 button.ghost:hover {
-	color: #E8E6ED;
-	background-color: #FFFFFF0C;
+	color: #F5F5F7;
+	background-color: #FFFFFF14;
 }
-
-
-
-
-
-
-
-
-
-.empty {
-	padding: 24dp;
-	text-align: center;
-	color: #726E7E;
-}
-
-.notice {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	/* Ширина твёрдая: у flex-элемента с max-width RmlUi считает высоту до
-	   того, как ужмёт ширину, и текст вылезает из рамки */
-	width: 520dp;
-	box-sizing: border-box;
-	margin-bottom: 24dp;
-	padding: 10dp 14dp;
-	border-radius: 8dp;
-	background-color: #C05B4D33;
-	border: 1dp #C05B4D80;
-	backdrop-filter: blur(8dp);
-	color: #FFFFFF;
-	font-size: 15dp;
-	line-height: 1.45;
-}
-
-.notice p {
-	display: block;
-	flex: 1;
-	width: 0;
-	min-width: 0;
-}
-
-.notice button {
-	padding: 4dp 10dp;
-	margin-left: 12dp;
-}
-
-scrollbarvertical {
-	width: 8dp;
-	margin: 2dp;
-}
-
-scrollbarvertical slidertrack {
-	background-color: transparent;
-}
-
-scrollbarvertical sliderbar {
-	border-radius: 4dp;
-	background-color: #FFFFFF24;
-}
-
-scrollbarvertical sliderbar:hover {
-	background-color: #FFFFFF3A;
-}
-
-scrollbarvertical sliderarrowdec,
-scrollbarvertical sliderarrowinc {
-	width: 0;
-	height: 0;
-}
-
-
-
-
 
 button.danger {
-	background-color: #C05B4D;
-	border-color: #D57365;
+	background-color: #FF453A;
+	border-color: #FF453A;
 	color: #FFFFFF;
+	font-weight: 600;
 }
 
 button.danger:hover {
-	background-color: #CE6C5E;
+	background-color: #FF5C52;
+	border-color: #FF5C52;
 }
 
-
+/* Поле ввода и список: кайма в один пиксель, фокус — её цвет */
 
 input.text,
 select {
 	display: block;
-	padding: 8dp 12dp;
-	border-radius: 6dp;
-	background-color: #0C0A12;
-	border: 1dp #FFFFFF24;
-	color: #E8E6ED;
+	height: 44dp;
+	line-height: 24dp;
+	padding: 9dp 14dp;
+	box-sizing: border-box;
+	border-radius: 12dp;
+	background-color: #1C1C1E;
+	border: 1dp #38383A;
+	color: #F5F5F7;
+	font-size: 15dp;
+	transition: border-color 0.12s linear-in-out;
+}
+
+input.text:hover,
+select:hover {
+	border-color: #A78BFA3D;
 }
 
 input.text:focus,
@@ -243,51 +209,146 @@ select selectvalue {
 }
 
 select selectarrow {
-	width: 12dp;
-	height: 12dp;
-	margin: 3dp 0 0 -18dp;
-	decorator: text("▼");
-	font-size: 10dp;
-	color: #948C9E;
+	width: 34dp;
+	height: 42dp;
+	margin: -9dp -14dp 0 -34dp;
+	decorator: image(icons/chevron.png scale-none);
+	image-color: #86868B;
+	transform: rotate(-90deg);
 }
+
+/* Выпадающий список висит над страницей, потому тень у него есть */
 
 select selectbox {
 	margin-top: 4dp;
-	padding: 4dp 0;
-	border-radius: 6dp;
-	background-color: #17131F;
-	border: 1dp #FFFFFF24;
+	padding: 4dp;
+	border-radius: 12dp;
+	background-color: #1C1C1E;
+	border: 1dp #38383A;
+	box-shadow: 0 4dp 12dp #00000073, 0 16dp 40dp -12dp #000000A6;
 }
 
 select selectbox option {
-	padding: 6dp 12dp;
+	padding: 7dp 10dp;
+	border-radius: 8dp;
+	color: #A1A1A6;
 	cursor: pointer;
 }
 
 select selectbox option:hover {
-	background-color: #FFFFFF0C;
+	background-color: #FFFFFF14;
+	color: #F5F5F7;
 }
 
 select selectbox option:checked {
+	background-color: #221B36;
 	color: #A78BFA;
+}
+
+input.checkbox {
+	width: 18dp;
+	height: 18dp;
+	border-radius: 5dp;
+	background-color: #1C1C1E;
+	border: 1dp #38383A;
+	cursor: pointer;
+	margin-right: 8dp;
+	transition: border-color 0.12s linear-in-out, background-color 0.12s linear-in-out;
+}
+
+input.checkbox:hover {
+	border-color: #A78BFA;
+}
+
+input.checkbox:checked {
+	background-color: #A78BFA;
+	border-color: #A78BFA;
+	decorator: image(icons/check.png);
+	image-color: #1C1C1E;
+}
+
+.empty {
+	padding: 24dp;
+	text-align: center;
+	color: #86868B;
 }
 
 .error {
 	margin-top: 12dp;
-	color: #E08A7E;
+	font-size: 14dp;
+	color: #FF453A;
 }
+
+/* Уведомление о прошлом заходе на стартовом экране */
+
+.notice {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	/* Ширина твёрдая: у flex-элемента с max-width RmlUi считает высоту до
+	   того, как ужмёт ширину, и текст вылезает из рамки */
+	width: 520dp;
+	box-sizing: border-box;
+	margin-bottom: 24dp;
+	padding: 12dp 16dp;
+	border-radius: 12dp;
+	background-color: #1C1C1E;
+	border: 1dp #FF453A4D;
+	color: #F5F5F7;
+	font-size: 15dp;
+	line-height: 1.45;
+}
+
+.notice p {
+	display: block;
+	flex: 1;
+	width: 0;
+	min-width: 0;
+}
+
+.notice button {
+	height: 32dp;
+	line-height: 30dp;
+	padding: 0 10dp;
+	margin-left: 12dp;
+}
+
+/* Подтверждение опасного действия — врезка в карточке, а не окно */
 
 .confirm {
 	display: flex;
 	flex-direction: column;
 	margin-top: 16dp;
-	padding: 12dp 14dp;
-	border-radius: 6dp;
-	background-color: #C05B4D1A;
-	border: 1dp #C05B4D66;
+	padding: 14dp 16dp;
+	border-radius: 12dp;
+	background-color: #1C1C1E;
+	border: 1dp #FF453A4D;
 }
 
 .confirm p {
 	margin-bottom: 10dp;
 }
 
+scrollbarvertical {
+	width: 6dp;
+	margin: 2dp;
+}
+
+scrollbarvertical slidertrack {
+	background-color: transparent;
+}
+
+scrollbarvertical sliderbar {
+	border-radius: 3dp;
+	background-color: #FFFFFF24;
+}
+
+scrollbarvertical sliderbar:hover {
+	background-color: #FFFFFF3A;
+}
+
+scrollbarvertical sliderarrowdec,
+scrollbarvertical sliderarrowinc {
+	width: 0;
+	height: 0;
+}

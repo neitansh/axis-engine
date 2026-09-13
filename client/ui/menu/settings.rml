@@ -6,10 +6,10 @@
 	<link type="text/rcss" href="settings.rcss"/>
 </head>
 <body data-model="settings" class="page settings">
-	<div class="back" data-event-click="nav('start')">
-		<div class="arrow"/>
-		<span>[[Back]]</span>
-		<span class="hint">Esc</span>
+	<div class="page-head">
+		<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
+		<h1>[[Settings]]</h1>
+		<span class="kbd">Esc</span>
 	</div>
 
 	<div class="tabbar">

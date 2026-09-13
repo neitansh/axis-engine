@@ -9,7 +9,7 @@ msgstr ""
 "#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:44+0300\n"
+"POT-Creation-Date: 2026-09-13 07:13+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:50+0300\n"
+"POT-Creation-Date: 2026-09-13 07:19+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2657,7 +2657,7 @@ msgstr ""
 #. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Try to keep the translation short
 #: builtin/common/settings/dlg_settings.lua src/client/game_formspec.cpp
-#: client/ui/menu/start.rml
+#: client/ui/menu/settings.rml client/ui/menu/start.rml
 msgid "Settings"
 msgstr ""
 
@@ -2670,13 +2670,10 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
-#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Button text to go back
 #: builtin/common/settings/dlg_settings.lua
 #: builtin/mainmenu/content/dlg_contentdb.lua
 #: builtin/mainmenu/content/dlg_package.lua src/gui/guiVolumeChange.cpp
-#: client/ui/menu/online.rml client/ui/menu/settings.rml
-#: client/ui/menu/worlds.rml
 msgid "Back"
 msgstr ""
 

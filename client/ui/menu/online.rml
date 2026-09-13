@@ -6,12 +6,11 @@
 	<link type="text/rcss" href="online.rcss"/>
 </head>
 <body data-model="online" class="page online">
-	<div class="back" data-event-click="nav('start')">
-		<div class="arrow"/>
-		<span>[[Back]]</span>
-		<span class="hint">Esc</span>
+	<div class="page-head">
+		<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
+		<h1>{{ title }}</h1>
+		<span class="kbd">Esc</span>
 	</div>
-	<div class="title">{{ title }}</div>
 
 	<div class="switch-bar">
 		<div class="switch">
@@ -23,7 +22,7 @@
 
 	<div class="online-body" data-if="mode == 'matches'">
 		<div class="aside">
-			<h3 class="group">{{ connection_heading }}</h3>
+			<div class="eyebrow">{{ connection_heading }}</div>
 			<div class="connection" data-class-named="connection_class == 'named'"
 					data-class-checking="connection_class == 'checking'"
 					data-class-none="connection_class == 'none'">
@@ -35,7 +34,7 @@
 
 		<div class="main">
 			<div class="arenas" data-if="!waiting">
-				<h3 class="group">{{ matches_heading }}</h3>
+				<div class="eyebrow">{{ matches_heading }}</div>
 				<div class="centered" data-if="!decided">
 					<div class="spinner"/>
 					<p>[[Checking connection...]]</p>
@@ -69,7 +68,7 @@
 	</div>
 
 	<div class="online-body" data-if="mode == 'servers'">
-		<div class="main">
+		<div class="main servers-card">
 			<h3 class="group">{{ servers_heading }}</h3>
 			<div class="server-list">
 				<div data-for="r : servers">

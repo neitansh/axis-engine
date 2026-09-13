@@ -1,85 +1,109 @@
 /*
- * Общее для полноэкранных страниц (настройки, одиночная игра): стекло поверх
- * сцены, «Назад» в левом верхнем углу, заголовки разделов.
+ * Общее для полноэкранных страниц (настройки, одиночная и сетевая игра):
+ * чёрная страница, шапка «стрелка назад и имя страницы» в одной строке, как
+ * в настройках лаунчера и кабинета, карточки на странице и заголовки
+ * разделов.
  */
 
 body.page {
-	position: absolute;
-	/* Размытие у RmlUi отступает от краёв элемента на свой радиус, поэтому
-	   тело выходит за экран, а поля возвращают содержимое на место. */
-	top: -40dp;
-	left: -40dp;
-	right: -40dp;
-	bottom: -40dp;
-	width: auto;
-	height: auto;
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
 	justify-content: flex-start;
-	background-color: #06050A73;
-	backdrop-filter: blur(26dp);
+	background-color: #000000;
 	box-sizing: border-box;
-	padding: 62dp 88dp 40dp 88dp;
-	font-size: 16dp;
+	padding: 40dp 88dp 40dp 88dp;
+	font-size: 15dp;
 }
 
-/* Назад: стеклянная кнопка в левом верхнем углу; стрелка уезжает при наведении */
-
-.back {
-	position: absolute;
-	top: 74dp;
-	left: 80dp;
+.page-head {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	height: 40dp;
-	padding: 0 14dp 0 10dp;
-	border-radius: 20dp;
-	background-color: #00000040;
-	border: 1dp #FFFFFF1F;
-	backdrop-filter: blur(8dp);
-	color: #E8E6ED;
-	font-size: 15dp;
+	height: 44dp;
+	margin-bottom: 24dp;
+}
+
+/* Назад: значковая кнопка без рамки и заливки в покое; стрелка подаётся
+   влево при наведении */
+
+.back {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 44dp;
+	height: 44dp;
+	margin-left: -12dp;
+	margin-right: 6dp;
+	border-radius: 12dp;
 	cursor: pointer;
-	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out, color 0.15s linear-in-out;
+	transition: background-color 0.12s linear-in-out;
 }
 
 .back .arrow {
 	width: 20dp;
 	height: 20dp;
-	margin-right: 8dp;
 	decorator: image(icons/back.png scale-none);
-	image-color: #E8E6ED;
-	transition: transform 0.18s cubic-out, image-color 0.15s linear-in-out;
-}
-
-.back .hint {
-	margin-left: 10dp;
-	padding: 1dp 6dp;
-	border-radius: 4dp;
-	background-color: #FFFFFF14;
-	font-size: 11dp;
-	letter-spacing: 0.5dp;
-	color: #948C9E;
+	image-color: #A1A1A6;
+	transition: transform 0.18s cubic-out, image-color 0.12s linear-in-out;
 }
 
 .back:hover {
-	color: #FFFFFF;
-	border-color: #A78BFA99;
-	background-color: #8B5CF626;
+	background-color: #FFFFFF14;
 }
 
 .back:hover .arrow {
-	image-color: #FFFFFF;
-	transform: translateX(-4dp);
+	image-color: #F5F5F7;
+	transform: translateX(-3dp);
 }
+
+.page-head h1 {
+	flex: 1;
+}
+
+/* Клавиша в подсказке: плитка, а не рамка */
+
+.kbd {
+	display: block;
+	min-width: 22dp;
+	padding: 2dp 6dp;
+	border-radius: 6dp;
+	background-color: #2C2C2E;
+	font-family: "Departure Mono";
+	font-size: 11dp;
+	line-height: 14dp;
+	text-align: center;
+	color: #86868B;
+}
+
+/* Карточка: единственная поверхность страницы; без рамки и тени — от
+   страницы её отделяет собственный цвет */
+
+.panel {
+	display: flex;
+	flex-direction: column;
+	border-radius: 18dp;
+	background-color: #1C1C1E;
+}
+
+/* Заголовок раздела в карточке: строка, отделённая швом от того, что ниже */
 
 h3.group {
 	display: block;
-	font-size: 26dp;
-	font-weight: 700;
-	letter-spacing: 4dp;
-	color: #A78BFA;
-	margin: 26dp 0 14dp 0;
+	font-size: 18dp;
+	font-weight: 500;
+	color: #F5F5F7;
+	margin: 0;
+	padding: 18dp 0 12dp 0;
+	border-bottom: 1dp #2C2C2E;
+}
+
+/* Надпись над группой: подпись к списку, а не заголовок */
+
+.eyebrow {
+	display: block;
+	font-size: 13dp;
+	color: #86868B;
+	margin-bottom: 8dp;
 }

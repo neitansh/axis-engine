@@ -53,8 +53,8 @@ void WorldsScreen::bind(Rml::DataModelConstructor &model)
 	model.RegisterArray<std::vector<WorldEntry>>();
 	model.RegisterArray<std::vector<Rml::String>>();
 
-	m_crate_heading = uppercase(strgettext("Crate"));
-	m_worlds_heading = uppercase(strgettext("Worlds"));
+	m_crate_heading = strgettext("Crate");
+	m_worlds_heading = strgettext("Worlds");
 	model.Bind("crate_heading", &m_crate_heading);
 	model.Bind("worlds_heading", &m_worlds_heading);
 	model.Bind("crates", &m_crates);
