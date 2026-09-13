@@ -15,9 +15,8 @@
 
 	<div class="no-crates" data-if="crates.size == 0">
 		<div class="mark"/>
-		<h4>[[Axis is a crate engine: it runs crates, and does not come with one.]]</h4>
-		<p>[[You need to install a crate before you can create a world.]]</p>
-		<button data-event-click="nav('start')">[[Back]]</button>
+		<h4>[[No crates installed]]</h4>
+		<p>[[A crate is a game that Axis runs. Install one, and you can create a world here.]]</p>
 	</div>
 
 	<div class="play-body" data-if="crates.size > 0">

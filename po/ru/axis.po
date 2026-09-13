@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:12+0300\n"
+"POT-Creation-Date: 2026-09-13 06:23+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -3986,11 +3986,11 @@ msgstr "Обновление недоступно?"
 msgid "Use Texture Pack"
 msgstr "Использовать набор текстур"
 
-#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_local.lua
 msgid "Axis is a crate engine: it runs crates, and does not come with one."
 msgstr "Axis — движок крейтов: он их запускает, а своего в комплекте не несёт."
 
-#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_local.lua src/client/menu/screens/worlds_screen.cpp
 msgid "Crate"
 msgstr "Крейт"
 
@@ -4027,7 +4027,7 @@ msgstr "Выберите мир:"
 msgid "Singleplayer"
 msgstr "Одиночная игра"
 
-#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_local.lua
 msgid "You need to install a crate before you can create a world."
 msgstr "Прежде чем создавать мир, нужно установить крейт."
 
@@ -4145,6 +4145,14 @@ msgid "Multiplayer"
 msgstr "Сетевая игра"
 
 #: client/ui/menu/worlds.rml
+msgid ""
+"A crate is a game that Axis runs. Install one, and you can create a world "
+"here."
+msgstr ""
+"Крейт — это игра, которую запускает Axis. Установи крейт, и здесь можно "
+"будет создать мир."
+
+#: client/ui/menu/worlds.rml
 msgid "Create a world for this crate and it will show up here."
 msgstr "Создай мир для этого крейта — он появится здесь."
 
@@ -4169,16 +4177,16 @@ msgid "New world"
 msgstr "Новый мир"
 
 #: client/ui/menu/worlds.rml
+msgid "No crates installed"
+msgstr "У тебя пока нет ни одного крейта"
+
+#: client/ui/menu/worlds.rml
 msgid "No world yet"
 msgstr "Миров пока нет"
 
 #: client/ui/menu/worlds.rml
 msgid "No worlds yet — create the first one"
 msgstr "Миров пока нет — создай первый"
-
-#: client/ui/menu/worlds.rml
-msgid "Worlds"
-msgstr "Миры"
 
 #: src/chat.cpp
 msgid "Player names: "
@@ -5297,6 +5305,10 @@ msgstr "Мир с названием «%s» уже существует"
 #, c-format
 msgid "Delete the world \"%s\" for good?"
 msgstr "Удалить мир «%s» безвозвратно?"
+
+#: src/client/menu/screens/worlds_screen.cpp
+msgid "Worlds"
+msgstr "Миры"
 
 #: src/client/minimap.cpp
 msgid "Minimap hidden"
@@ -11318,6 +11330,3 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
-
-#~ msgid "Local game"
-#~ msgstr "Своя игра"

@@ -358,8 +358,3 @@ button.new .plus {
 	line-height: 1.55;
 	color: #C8C3D1;
 }
-
-.no-crates button {
-	margin-top: 28dp;
-	padding: 12dp 32dp;
-}

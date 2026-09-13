@@ -9,7 +9,7 @@ msgstr ""
 "#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:12+0300\n"
+"POT-Creation-Date: 2026-09-13 06:23+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 06:17+0300\n"
+"POT-Creation-Date: 2026-09-13 06:29+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3661,11 +3661,11 @@ msgstr ""
 msgid "Content [$1]"
 msgstr ""
 
-#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_local.lua
 msgid "Axis is a crate engine: it runs crates, and does not come with one."
 msgstr ""
 
-#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_local.lua
 msgid "You need to install a crate before you can create a world."
 msgstr ""
 
@@ -3681,7 +3681,7 @@ msgstr ""
 msgid "Enable Damage"
 msgstr ""
 
-#: builtin/mainmenu/tab_local.lua client/ui/menu/worlds.rml
+#: builtin/mainmenu/tab_local.lua src/client/menu/screens/worlds_screen.cpp
 msgid "Crate"
 msgstr ""
 
@@ -4894,6 +4894,10 @@ msgstr ""
 
 #: src/client/menu/screens/settings_screen.h
 msgid "Press a key…"
+msgstr ""
+
+#: src/client/menu/screens/worlds_screen.cpp
+msgid "Worlds"
 msgstr ""
 
 #: src/client/menu/screens/worlds_screen.cpp
@@ -10006,7 +10010,13 @@ msgid "Nothing found"
 msgstr ""
 
 #: client/ui/menu/worlds.rml
-msgid "Worlds"
+msgid "No crates installed"
+msgstr ""
+
+#: client/ui/menu/worlds.rml
+msgid ""
+"A crate is a game that Axis runs. Install one, and you can create a world "
+"here."
 msgstr ""
 
 #: client/ui/menu/worlds.rml
