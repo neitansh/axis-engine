@@ -31,7 +31,16 @@ private:
 		Rml::String note;
 	};
 
+	struct Track
+	{
+		Rml::String title;
+		Rml::String author;
+		Rml::String license;
+		Rml::String url;
+	};
+
 	void loadCredits();
+	void loadMusic();
 	std::string report() const;
 
 	Rml::String m_version;
@@ -41,6 +50,7 @@ private:
 	Rml::String m_user_path;
 	Rml::String m_copied;
 	std::vector<CreditLine> m_credits;
+	std::vector<Track> m_music;
 };
 
 }

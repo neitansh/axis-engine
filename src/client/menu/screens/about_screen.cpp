@@ -52,6 +52,28 @@ AboutScreen::AboutScreen(MainMenu &menu) : Screen(menu, "about")
 	m_platform = porting::get_sysinfo();
 
 	loadCredits();
+	loadMusic();
+}
+
+// Музыка под меню — чужие треки на свободных лицензиях, и CC BY требует
+// назвать автора; список лежит в теме рядом с файлами (sounds/credits.json),
+// чтобы крейт со своей музыкой принёс и свои подписи.
+void AboutScreen::loadMusic()
+{
+	m_music.clear();
+	std::ifstream in(menu().themeFile("sounds" DIR_DELIM "credits.json"));
+	Json::Value tracks;
+	Json::CharReaderBuilder builder;
+	std::string errors;
+	if (!in.good() || !Json::parseFromStream(builder, in, &tracks, &errors)
+			|| !tracks.isArray())
+		return;
+	for (const Json::Value &t : tracks) {
+		if (!t.isObject())
+			continue;
+		m_music.push_back({t["title"].asString(), t["author"].asString(),
+				t["license"].asString(), t["url"].asString()});
+	}
 }
 
 // Списки — авторы Luanti, движка, из которого Axis вырос. Без заголовка об
@@ -118,8 +140,16 @@ void AboutScreen::bind(Rml::DataModelConstructor &model)
 		line.RegisterMember("note", &CreditLine::note);
 	}
 	model.RegisterArray<std::vector<CreditLine>>();
+	if (auto track = model.RegisterStruct<Track>()) {
+		track.RegisterMember("title", &Track::title);
+		track.RegisterMember("author", &Track::author);
+		track.RegisterMember("license", &Track::license);
+		track.RegisterMember("url", &Track::url);
+	}
+	model.RegisterArray<std::vector<Track>>();
 
 	model.Bind("version", &m_version);
+	model.Bind("music", &m_music);
 	model.Bind("build", &m_build);
 	model.Bind("renderer", &m_renderer);
 	model.Bind("platform", &m_platform);

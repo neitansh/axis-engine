@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 19:27+0300\n"
+"POT-Creation-Date: 2026-09-13 19:39+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -1036,7 +1036,8 @@ msgstr "Насколько громко игра звучит, когда вы �
 msgid ""
 "How loud the hover and click sounds in the menu are, on top of the overall "
 "volume."
-msgstr "Насколько громко звучат наведение и нажатие в меню — поверх общей громкости."
+msgstr ""
+"Насколько громко звучат наведение и нажатие в меню — поверх общей громкости."
 
 #: builtin/common/settings/descriptions.lua
 msgid "How loud the menu music is, on top of the overall volume."
@@ -1703,7 +1704,9 @@ msgstr "Приблизить даль, как в бинокль. Сервер м
 #: builtin/common/settings/descriptions.lua
 msgid ""
 "Make a soft sound when you hover over or press something in the main menu."
-msgstr "Тихо откликаться звуком, когда вы наводите на что-то в главном меню или нажимаете."
+msgstr ""
+"Тихо откликаться звуком, когда вы наводите на что-то в главном меню или "
+"нажимаете."
 
 #: builtin/common/settings/descriptions.lua
 msgid ""
@@ -4168,6 +4171,10 @@ msgid "Copy for a bug report"
 msgstr "Скопировать для сообщения об ошибке"
 
 #: client/ui/menu/about.rml
+msgid "Music"
+msgstr "Музыка"
+
+#: client/ui/menu/about.rml
 msgid "Open the data folder"
 msgstr "Открыть папку с данными"
 
@@ -4178,6 +4185,10 @@ msgstr "Рендер"
 #: client/ui/menu/about.rml
 msgid "System"
 msgstr "Система"
+
+#: client/ui/menu/about.rml
+msgid "The tracks under the menu — click to open the source:"
+msgstr "Треки под меню — нажмите, чтобы открыть источник:"
 
 #: client/ui/menu/online.rml
 msgid "From the list"

@@ -121,6 +121,44 @@
 	color: #A1A1A6;
 }
 
+/* Музыка — в две колонки, чтобы авторам Luanti осталось место */
+
+.tracks {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin: 0 -8dp 8dp -8dp;
+}
+
+.track {
+	display: flex;
+	flex-direction: column;
+	width: 50%;
+	box-sizing: border-box;
+	padding: 6dp 8dp;
+	border-radius: 8dp;
+	cursor: pointer;
+	transition: background-color 0.12s linear-in-out;
+}
+
+.track:hover {
+	background-color: #FFFFFF14;
+}
+
+.track .name {
+	font-size: 14dp;
+	color: #F5F5F7;
+}
+
+.track .note {
+	font-size: 12dp;
+	color: #86868B;
+}
+
+.track:hover .name {
+	color: #A78BFA;
+}
+
 .credit-list {
 	display: block;
 	flex: 1;

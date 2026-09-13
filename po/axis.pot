@@ -6,9 +6,21 @@
 #, fuzzy
 msgid ""
 msgstr ""
+"#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 19:27+0300\n"
+"POT-Creation-Date: 2026-09-13 19:39+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
+"Project-Id-Version: axis\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-13 19:41+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -10082,6 +10094,14 @@ msgstr ""
 
 #: client/ui/menu/about.rml
 msgid "Open the data folder"
+msgstr ""
+
+#: client/ui/menu/about.rml
+msgid "Music"
+msgstr ""
+
+#: client/ui/menu/about.rml
+msgid "The tracks under the menu — click to open the source:"
 msgstr ""
 
 #: client/ui/menu/about.rml

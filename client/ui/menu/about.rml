@@ -33,6 +33,15 @@
 		</div>
 
 		<div class="credits panel">
+			<h3 class="group" data-if="music.size > 0">[[Music]]</h3>
+			<p class="lead" data-if="music.size > 0">[[The tracks under the menu — click to open the source:]]</p>
+			<div class="tracks" data-if="music.size > 0">
+				<div class="track" data-for="t : music" data-event-click="open_url(t.url)">
+					<span class="name">{{ t.title }}</span>
+					<span class="note">{{ t.author }} · {{ t.license }}</span>
+				</div>
+			</div>
+
 			<h3 class="group">[[Authors]]</h3>
 			<p class="lead">[[Axis is a fork of Luanti. The engine below was written by:]]</p>
 			<div class="credit-list">
