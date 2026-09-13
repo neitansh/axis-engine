@@ -37,8 +37,12 @@ if(RMLUI_GL3_LOADER)
 	add_library(RmlUi::GL3 ALIAS rmlui_gl3)
 	target_include_directories(rmlui_gl3 SYSTEM PUBLIC
 		"${CMAKE_CURRENT_SOURCE_DIR}/Backends")
+	# Слои без MSAA: кадр сцены копируется в слой RmlUi блитом, а блит из
+	# обычного буфера в многосэмпловый OpenGL запрещает. Без этой копии
+	# backdrop-filter размывал бы пустоту — сцена рисуется не через RmlUi.
 	target_compile_definitions(rmlui_gl3 PRIVATE
-		"RMLUI_GL3_CUSTOM_LOADER=\"${RMLUI_GL3_LOADER}\"")
+		"RMLUI_GL3_CUSTOM_LOADER=\"${RMLUI_GL3_LOADER}\""
+		RMLUI_NUM_MSAA_SAMPLES=0)
 	target_link_libraries(rmlui_gl3
 		PUBLIC rmlui
 		PRIVATE ${RMLUI_GL3_LOADER_LIBRARIES})

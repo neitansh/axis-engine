@@ -238,7 +238,6 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 
 	model.Bind("pages", &m_pages);
 	model.Bind("page", &m_page);
-	model.Bind("search", &m_search);
 	model.Bind("rows", &m_rows);
 	model.Bind("capturing", &m_capturing);
 	model.Bind("focus", &m_focus);
@@ -258,12 +257,6 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 				if (args.empty())
 					return;
 				m_page = args[0].Get<Rml::String>();
-				m_search.clear();
-				rebuild();
-				handle.DirtyAllVariables();
-			});
-	model.BindEventCallback("search",
-			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
 				rebuild();
 				handle.DirtyAllVariables();
 			});
@@ -340,9 +333,8 @@ void SettingsScreen::rebuild()
 	m_armed = false;
 	m_rows.clear();
 
-	const bool searching = !trim(m_search).empty();
 	for (const SettingsPage &page : m_catalog.pages()) {
-		if (!searching && page.id != m_page)
+		if (page.id != m_page)
 			continue;
 		appendItems(page.basic);
 		// Расширенные идут следом под своим заголовком, без раскрытия; у
@@ -350,7 +342,7 @@ void SettingsScreen::rebuild()
 		bool has_basic = false;
 		for (const SettingsPage::Item &item : page.basic)
 			has_basic = has_basic || !item.setting.empty();
-		if (has_basic && !searching) {
+		if (has_basic) {
 			std::vector<SettingsPage::Item> advanced = page.advanced;
 			advanced.insert(advanced.begin(), {"Advanced settings", ""});
 			appendItems(advanced);
@@ -365,7 +357,6 @@ void SettingsScreen::rebuild()
 
 void SettingsScreen::appendItems(const std::vector<SettingsPage::Item> &items)
 {
-	const bool searching = !trim(m_search).empty();
 	const Row *pending_heading = nullptr;
 	Row heading;
 	for (const SettingsPage::Item &item : items) {
@@ -379,8 +370,6 @@ void SettingsScreen::appendItems(const std::vector<SettingsPage::Item> &items)
 
 		Row row;
 		if (!item.setting.empty() && item.setting[0] == '@') {
-			if (searching)
-				continue;
 			row = makeSpecialRow(item.setting);
 			if (row.kind.empty())
 				continue;
@@ -388,28 +377,15 @@ void SettingsScreen::appendItems(const std::vector<SettingsPage::Item> &items)
 			const SettingDef *def = m_catalog.find(item.setting);
 			if (!def || !isShown(*def))
 				continue;
-			if (searching && !matchesSearch(*def))
-				continue;
 			row = makeRow(*def);
 		}
-		// Заголовок ставится только перед первой видимой строкой под ним;
-		// при поиске заголовки не нужны.
-		if (pending_heading && !searching) {
+		// Заголовок ставится только перед первой видимой строкой под ним.
+		if (pending_heading) {
 			m_rows.push_back(*pending_heading);
 			pending_heading = nullptr;
 		}
 		m_rows.push_back(std::move(row));
 	}
-}
-
-bool SettingsScreen::matchesSearch(const SettingDef &def) const
-{
-	const std::string needle = lowercase(std::string(trim(m_search)));
-	if (needle.empty())
-		return true;
-	return lowercase(def.name).find(needle) != std::string::npos
-			|| lowercase(strgettext(def.readable)).find(needle) != std::string::npos
-			|| lowercase(def.readable).find(needle) != std::string::npos;
 }
 
 bool SettingsScreen::isShown(const SettingDef &def) const

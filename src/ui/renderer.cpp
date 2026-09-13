@@ -40,10 +40,15 @@ void GlBindings::restore() const
 	GL.BindBuffer(GL.ARRAY_BUFFER, m_array_buffer);
 }
 
-void Renderer::beginFrame()
+void Renderer::beginFrame(int width, int height)
 {
 	m_bindings.capture();
 	BeginFrame();
+	// BeginFrame() оставляет привязанным слой, в который пойдёт UI; кадр
+	// сцены переезжает в него из буфера, что был текущим до нас.
+	GL.BindFramebuffer(GL.READ_FRAMEBUFFER, m_bindings.framebuffer());
+	GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height,
+			GL.COLOR_BUFFER_BIT, GL.NEAREST);
 }
 
 void Renderer::endFrame()

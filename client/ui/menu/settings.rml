@@ -12,10 +12,10 @@
 
 	<div class="tabbar">
 		<div class="tabs">
-			<div data-for="p : pages" class="tab" data-class-active="p.id == page && search == ''"
+			<div data-for="p : pages" class="tab" data-class-active="p.id == page"
 					data-event-click="open(p.id)">
 				<img data-attr-src="'icons/' + p.id + '.png'"/>
-				<span class="caption" data-if="p.id == page && search == ''">{{ p.title }}</span>
+				<span class="caption" data-if="p.id == page">{{ p.title }}</span>
 			</div>
 		</div>
 	</div>
@@ -39,11 +39,9 @@
 				</div>
 				<div class="empty" data-if="rows.size == 0">Ничего не найдено</div>
 			</div>
-			<div class="rows-fade"/>
 		</div>
 
 		<div class="info">
-			<input type="text" class="search" placeholder="Поиск" data-value="search" data-event-change="search()"/>
 			<div class="info-body" data-if="focus >= 0">
 				<h4>{{ focus_label }}</h4>
 				<p>{{ focus_help }}</p>
@@ -54,5 +52,6 @@
 			</div>
 		</div>
 	</div>
+	<div class="rows-fade"/>
 </body>
 </rml>

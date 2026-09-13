@@ -58,7 +58,6 @@ private:
 
 	void rebuild();
 	void appendItems(const std::vector<SettingsPage::Item> &items);
-	bool matchesSearch(const SettingDef &def) const;
 	bool isShown(const SettingDef &def) const;
 	Row makeRow(const SettingDef &def) const;
 	Row makeSpecialRow(const std::string &name) const;
@@ -81,7 +80,6 @@ private:
 	SettingsCatalog m_catalog;
 	std::vector<PageEntry> m_pages;
 	Rml::String m_page;
-	Rml::String m_search;
 	std::vector<Row> m_rows;
 	int m_capturing = -1;
 	int m_focus = -1;

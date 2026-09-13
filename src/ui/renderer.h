@@ -24,6 +24,7 @@ class GlBindings
 public:
 	void capture();
 	void restore() const;
+	int framebuffer() const { return m_framebuffer; }
 
 private:
 	int m_vertex_array = 0;
@@ -55,7 +56,9 @@ class Renderer final : public RenderInterface_GL3
 public:
 	explicit Renderer(video::IVideoDriver *driver) : m_driver(driver) {}
 
-	void beginFrame();
+	// Кадр UI начинается с копии того, что уже нарисовано под ним: иначе
+	// backdrop-filter видит пустой слой, а не сцену.
+	void beginFrame(int width, int height);
 	void endFrame();
 
 	Rml::TextureHandle LoadTexture(Rml::Vector2i &texture_dimensions,
