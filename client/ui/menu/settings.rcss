@@ -4,39 +4,6 @@
  * значений листается стрелками, число тянется ползунком с заливкой.
  */
 
-@keyframes caption-in {
-	from { opacity: 0; transform: translateY(-6dp); }
-	to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fade-in {
-	from { opacity: 0; }
-	to { opacity: 1; }
-}
-
-/* Вход: стекло наплывает, шапка опускается, строки поднимаются одна за
-   другой, описание проявляется последним */
-
-@keyframes veil-in {
-	from { backdrop-filter: blur(0dp); background-color: #06050A00; }
-	to { backdrop-filter: blur(26dp); background-color: #06050A73; }
-}
-
-@keyframes drop-in {
-	from { opacity: 0; transform: translateY(-16dp); }
-	to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes rise-in {
-	from { opacity: 0; transform: translateY(14dp); }
-	to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slide-in {
-	from { opacity: 0; transform: translateX(-18dp); }
-	to { opacity: 1; transform: translateX(0); }
-}
-
 body.settings {
 	position: absolute;
 	/* Размытие у RmlUi отступает от краёв элемента на свой радиус, поэтому
@@ -58,10 +25,6 @@ body.settings {
 	font-size: 16dp;
 }
 
-body.settings.enter {
-	animation: 0.55s cubic-out veil-in;
-}
-
 /* Назад: стеклянная кнопка в левом верхнем углу; стрелка уезжает при наведении */
 
 .back {
@@ -81,10 +44,6 @@ body.settings.enter {
 	font-size: 15dp;
 	cursor: pointer;
 	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out, color 0.15s linear-in-out;
-}
-
-.enter .back {
-	animation: 0.45s cubic-out 0.12s slide-in;
 }
 
 .back .arrow {
@@ -125,10 +84,6 @@ body.settings.enter {
 	flex-direction: row;
 	justify-content: center;
 	margin-bottom: 48dp;
-}
-
-.enter .tabbar {
-	animation: 0.45s cubic-out 0.06s drop-in;
 }
 
 .tabs {
@@ -198,7 +153,6 @@ body.settings.enter {
 	padding-left: 1dp;
 	color: #FFFFFF;
 	white-space: nowrap;
-	animation: 0.2s cubic-out caption-in;
 }
 
 /* Тело: строки и описание */
@@ -690,10 +644,6 @@ input.checkbox:checked {
 	flex-direction: column;
 }
 
-.enter .info-body {
-	animation: 0.35s cubic-out rise-in;
-}
-
 .info h4 {
 	display: block;
 	font-size: 19dp;
@@ -717,7 +667,6 @@ input.checkbox:checked {
 	padding: 8dp 12dp;
 	border-radius: 8dp;
 	background-color: #FFFFFF0A;
-	animation: 0.2s cubic-out fade-in;
 }
 
 .cost .cost-label {

@@ -51,25 +51,11 @@ p {
 	font-size: 13dp;
 }
 
-@keyframes menu-drop-in {
-	from { opacity: 0; transform: translateY(-16dp); }
-	to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes menu-rise-in {
-	from { opacity: 0; transform: translateY(12dp); }
-	to { opacity: 1; transform: translateY(0); }
-}
-
 .brand {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	margin-bottom: 36dp;
-}
-
-.enter .brand {
-	animation: 0.5s cubic-out menu-drop-in;
 }
 
 .brand img {
@@ -95,18 +81,6 @@ p {
 
 .stack button {
 	margin-bottom: 10dp;
-}
-
-.enter .stack button {
-	animation: 0.4s cubic-out 0.1s menu-rise-in;
-}
-
-.enter .stack button:nth-child(2) {
-	animation: 0.4s cubic-out 0.17s menu-rise-in;
-}
-
-.enter .stack button:nth-child(3) {
-	animation: 0.4s cubic-out 0.24s menu-rise-in;
 }
 
 button {

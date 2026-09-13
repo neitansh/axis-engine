@@ -68,22 +68,15 @@ void Screen::show()
 	if (!m_document)
 		load();
 	refresh();
-	if (m_document) {
-		// Класс enter снимается при скрытии и ставится при показе: RmlUi
-		// запускает анимацию, когда свойство появляется, и без этого
-		// вход играл бы только при первом открытии документа.
-		m_document->SetClass("enter", true);
+	if (m_document)
 		m_document->Show();
-	}
 }
 
 void Screen::hide()
 {
 	m_shown = false;
-	if (m_document) {
-		m_document->SetClass("enter", false);
+	if (m_document)
 		m_document->Hide();
-	}
 }
 
 void Screen::reload()

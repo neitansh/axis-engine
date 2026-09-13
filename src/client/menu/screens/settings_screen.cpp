@@ -293,40 +293,6 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 void SettingsScreen::afterUpdate()
 {
 	m_armed = true;
-	animateNewRows();
-}
-
-// Строки поднимаются одна за другой. Вход сделан переходом, а не keyframes:
-// анимацию по свойству animation RmlUi перезапускает при любом пересчёте
-// стиля, и список мигал не переставая. Переход же играет один раз — когда
-// начальные opacity и transform снимаются со строки кадром позже.
-void SettingsScreen::animateNewRows()
-{
-	Rml::Element *rows = document() ? document()->GetElementById("rows") : nullptr;
-	if (!rows)
-		return;
-	int order = 0;
-	for (int i = 0; i < rows->GetNumChildren(); i++) {
-		Rml::Element *row = rows->GetChild(i);
-		const Rml::String state = row->GetAttribute<Rml::String>("data-entered", "");
-		if (state == "done")
-			continue;
-		if (state == "pending") {
-			row->SetAttribute("data-entered", "done");
-			row->RemoveProperty("opacity");
-			row->RemoveProperty("transform");
-			continue;
-		}
-		row->SetAttribute("data-entered", "pending");
-		// Дальше первого экрана задержка не растёт — тех строк всё равно не видно.
-		const int delay = 60 + std::min(order, 14) * 30;
-		const std::string ms = std::to_string(delay) + "ms";
-		row->SetProperty("opacity", "0");
-		row->SetProperty("transform", "translateY(14dp)");
-		row->SetProperty("transition", "opacity 0.4s cubic-out " + ms
-				+ ", transform 0.4s cubic-out " + ms);
-		order++;
-	}
 }
 
 void SettingsScreen::refresh()

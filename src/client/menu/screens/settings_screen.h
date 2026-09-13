@@ -76,7 +76,6 @@ private:
 	void crosshairClicked(Rml::Element *target);
 	void reset(int index);
 	void focus(int index);
-	void animateNewRows();
 
 	SettingsCatalog m_catalog;
 	std::vector<PageEntry> m_pages;
