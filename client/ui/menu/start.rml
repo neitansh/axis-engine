@@ -10,10 +10,10 @@
 			<img src="textures/base/pack/menu_header.png" rect="483 0 378 144"/>
 		</div>
 		<div class="menu">
-			<div class="item" data-event-click="nav('online')"><i class="mark"/><span>[[Multiplayer]]</span></div>
-			<div class="item" data-event-click="nav('worlds')"><i class="mark"/><span>[[Worlds]]</span></div>
-			<div class="item" data-event-click="nav('settings')"><i class="mark"/><span>[[Settings]]</span></div>
-			<div class="item" data-event-click="quit_begin()"><i class="mark"/><span>[[Exit]]</span></div>
+			<div class="item" data-event-click="nav('online')"><i class="glow"/><span class="word">[[Multiplayer]]</span></div>
+			<div class="item" data-event-click="nav('worlds')"><i class="glow"/><span class="word">[[Worlds]]</span></div>
+			<div class="item" data-event-click="nav('settings')"><i class="glow"/><span class="word">[[Settings]]</span></div>
+			<div class="item" data-event-click="quit_begin()"><i class="glow"/><span class="word">[[Exit]]</span></div>
 		</div>
 	</div>
 	<div class="about-link" data-event-click="nav('about')">[[About]]</div>
