@@ -310,9 +310,9 @@
 
 /* Число: ползунок с заливкой и поле для точного значения */
 
-/* Заливка и маркер — прямоугольные, а скругляет их сама дорожка, обрезая
-   по своим углам: у скруглённых по отдельности между белым и фиолетовым
-   оставались щели */
+/* Заливка заходит под маркер (поле справа сверх ширины, которую ставит
+   RmlUi), чтобы в скруглённых углах маркера просвечивала она, а не дорожка;
+   у краёв обоих обрезает сама дорожка по своим углам */
 .setting .control input.range {
 	flex: 1;
 	height: 44dp;
@@ -330,12 +330,14 @@
 
 .setting .control input.range sliderprogress {
 	height: 44dp;
+	padding-right: 7dp;
 	background-color: #A78BFA;
 }
 
 .setting .control input.range sliderbar {
 	width: 10dp;
 	height: 44dp;
+	border-radius: 5dp;
 	background-color: #F5F5F7;
 	cursor: pointer;
 }
