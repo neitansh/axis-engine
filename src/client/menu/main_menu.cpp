@@ -49,6 +49,8 @@ MainMenu::MainMenu(RenderingEngine *engine, ui::Host &host, MyEventReceiver *rec
 
 	m_context = m_host.createContext("menu");
 	m_receiver->setUiReceiver(this);
+	m_sounds = std::make_unique<Sounds>(m_theme_dirs);
+	m_sounds->attach(*m_context);
 
 	addScreen(std::make_unique<StartScreen>(*this));
 	addScreen(std::make_unique<WorldsScreen>(*this));
@@ -91,6 +93,7 @@ MainMenu::~MainMenu()
 		m_chrome->Close();
 	if (m_context)
 		m_host.removeContext("menu");
+	m_sounds.reset();
 }
 
 void MainMenu::run()
@@ -127,6 +130,7 @@ void MainMenu::run()
 		m_net.poll();
 		if (m_servers.poll() && m_current)
 			m_current->refresh();
+		m_sounds->step(dtime, device->isWindowActive());
 
 		m_host.setPixelRatio(RenderingEngine::getDisplayDensity() *
 				g_settings->getFloat("gui_scaling", 0.5f, 20.0f));
@@ -336,6 +340,7 @@ void MainMenu::reloadTheme()
 	for (auto &screen : m_screens)
 		screen->reload();
 	loadChrome();
+	m_sounds->forgetHover();
 }
 
 }

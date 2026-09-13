@@ -8,6 +8,7 @@
 #include "matchmaking.h"
 #include "net.h"
 #include "server_list.h"
+#include "sounds.h"
 #include "ui/host.h"
 #include <IEventReceiver.h>
 #include <csignal>
@@ -87,6 +88,7 @@ private:
 	ServerList m_servers;
 	Matchmaking m_matchmaking;
 	Rml::Context *m_context = nullptr;
+	std::unique_ptr<Sounds> m_sounds;
 	std::vector<std::string> m_theme_dirs;
 	std::vector<std::unique_ptr<Screen>> m_screens;
 	Screen *m_current = nullptr;
