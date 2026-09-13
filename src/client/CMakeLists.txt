@@ -93,6 +93,7 @@ set(client_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/net.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/server_list.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/about_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/online_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/settings_catalog.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/settings_presets.cpp

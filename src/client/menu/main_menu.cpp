@@ -13,6 +13,7 @@
 #include "log.h"
 #include "porting.h"
 #include "gettext.h"
+#include "screens/about_screen.h"
 #include "screens/online_screen.h"
 #include "screens/settings_screen.h"
 #include "screens/start_screen.h"
@@ -49,13 +50,11 @@ MainMenu::MainMenu(RenderingEngine *engine, ui::Host &host, MyEventReceiver *rec
 	m_context = m_host.createContext("menu");
 	m_receiver->setUiReceiver(this);
 
-	// Ошибка прошлого захода показывается один раз и здесь же забывается:
-	// иначе она вернётся с игроком в меню после следующей, удачной игры.
-	addScreen(std::make_unique<StartScreen>(*this, m_data->script_data.message));
-	m_data->script_data.message.clear();
+	addScreen(std::make_unique<StartScreen>(*this));
 	addScreen(std::make_unique<WorldsScreen>(*this));
 	addScreen(std::make_unique<OnlineScreen>(*this));
 	addScreen(std::make_unique<SettingsScreen>(*this));
+	addScreen(std::make_unique<AboutScreen>(*this));
 	loadChrome();
 	navigate(findScreen(m_data->screen) ? m_data->screen : "start");
 	m_data->screen.clear();

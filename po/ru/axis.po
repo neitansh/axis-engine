@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 08:09+0300\n"
+"POT-Creation-Date: 2026-09-13 08:24+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -2616,7 +2616,8 @@ msgstr ""
 #: builtin/mainmenu/dlg_delete_content.lua
 #: builtin/mainmenu/dlg_delete_world.lua
 #: builtin/mainmenu/dlg_rename_modpack.lua builtin/mainmenu/matchmaking.lua
-#: client/ui/menu/online.rml client/ui/menu/worlds.rml src/gui/guiOpenURL.cpp
+#: client/ui/menu/online.rml client/ui/menu/start.rml client/ui/menu/worlds.rml
+#: src/gui/guiOpenURL.cpp
 msgid "Cancel"
 msgstr "Отмена"
 
@@ -3512,9 +3513,9 @@ msgstr "Всегда показывать это диалоговое окно."
 msgid "Are you sure you want to quit?"
 msgstr "Вы уверены, что хотите уйти?"
 
-#: builtin/mainmenu/dlg_confirm_exit.lua
+#: builtin/mainmenu/dlg_confirm_exit.lua client/ui/menu/start.rml
 msgid "Quit"
-msgstr "Уйти"
+msgstr "Выйти"
 
 #: builtin/mainmenu/dlg_create_world.lua
 msgid "A world named \"$1\" already exists"
@@ -3894,11 +3895,12 @@ msgstr "Ждём ещё игроков"
 msgid "Waiting for players"
 msgstr "Ждём игроков"
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua client/ui/menu/about.rml
+#: client/ui/menu/start.rml
 msgid "About"
 msgstr "Об Axis"
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Active Contributors"
 msgstr "Активные участники"
 
@@ -3906,15 +3908,15 @@ msgstr "Активные участники"
 msgid "Active renderer:"
 msgstr "Активный рендер:"
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua client/ui/menu/about.rml
 msgid "Axis is a fork of Luanti. The engine below was written by:"
 msgstr "Axis — форк Luanti. Движок под ним написали:"
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Core Developers"
 msgstr "Основные разработчики"
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Core Team"
 msgstr "Основная команда"
 
@@ -3930,11 +3932,11 @@ msgstr ""
 "Открывает в проводнике папку, где лежат ваши миры, крейты, моды\n"
 "и наборы текстур."
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Previous Contributors"
 msgstr "Прошлые участники"
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Previous Core Developers"
 msgstr "Прошлые основные разработчики"
 
@@ -4138,6 +4140,26 @@ msgstr "Описание сервера"
 msgid "Server List"
 msgstr "Серверы"
 
+#: client/ui/menu/about.rml
+msgid "Authors"
+msgstr "Авторы"
+
+#: client/ui/menu/about.rml
+msgid "Copy for a bug report"
+msgstr "Скопировать для сообщения об ошибке"
+
+#: client/ui/menu/about.rml
+msgid "Open the data folder"
+msgstr "Открыть папку с данными"
+
+#: client/ui/menu/about.rml
+msgid "Renderer"
+msgstr "Рендер"
+
+#: client/ui/menu/about.rml
+msgid "System"
+msgstr "Система"
+
 #: client/ui/menu/online.rml
 msgid "From the list"
 msgstr "Из списка"
@@ -4154,6 +4176,10 @@ msgstr ""
 msgid "Nothing found"
 msgstr "Ничего не найдено"
 
+#: client/ui/menu/start.rml
+msgid "Always ask before quitting"
+msgstr "Всегда спрашивать перед выходом"
+
 #: client/ui/menu/start.rml src/gui/touchscreenlayout.cpp
 msgid "Exit"
 msgstr "Выйти"
@@ -4162,6 +4188,10 @@ msgstr "Выйти"
 #: src/client/menu/screens/online_screen.cpp
 msgid "Multiplayer"
 msgstr "Сетевая игра"
+
+#: client/ui/menu/start.rml
+msgid "Quit the game?"
+msgstr "Выйти из игры?"
 
 #: client/ui/menu/worlds.rml
 msgid "Create a world for this crate and it will show up here."
@@ -5300,6 +5330,11 @@ msgstr "X (геймпад)"
 msgid "Y (Pad)"
 msgstr "Y (геймпад)"
 
+#: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Copied"
+msgstr "Скопировано"
+
 #: src/client/menu/screens/online_screen.cpp
 msgid "Address and port are required"
 msgstr "Нужны адрес и порт"
@@ -5312,10 +5347,6 @@ msgstr "Подключиться по адресу"
 #, c-format
 msgid "Starts in %d s"
 msgstr "Старт через %d с"
-
-#: src/client/menu/screens/settings_screen.cpp
-msgid "Copied"
-msgstr "Скопировано"
 
 #: src/client/menu/screens/settings_screen.cpp
 msgid ""
@@ -11364,9 +11395,5 @@ msgstr "Адрес прокси для cURL"
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
 
-#~ msgid ""
-#~ "The entrance is chosen by the launcher: it measures every route at start "
-#~ "and picks the one that carries your traffic best."
-#~ msgstr ""
-#~ "Вход выбирает лаунчер: при запуске он меряет все дороги и берёт ту, по "
-#~ "которой ваш трафик доходит лучше всего."
+#~ msgid "Build"
+#~ msgstr "Сборка"

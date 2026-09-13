@@ -1,0 +1,76 @@
+/*
+ * Стартовый экран: логотип и столбик кнопок на небе, ссылка «О программе»
+ * под ними, подтверждение выхода — окно поверх страницы.
+ */
+
+.about-link {
+	margin-top: 8dp;
+	padding: 6dp 12dp;
+	border-radius: 8dp;
+	font-size: 13dp;
+	color: #1C1C1EB3;
+	cursor: pointer;
+	transition: color 0.12s linear-in-out, background-color 0.12s linear-in-out;
+}
+
+.about-link:hover {
+	color: #1C1C1E;
+	background-color: #FFFFFF33;
+}
+
+/* Окно поверх страницы: подложка размывается, а не только темнеет — за окном
+   остаётся тот же экран, и размытие отнимает у него буквы, оставляя место,
+   куда вернёшься. Тень у окна есть: оно висит над страницей. */
+
+.scrim {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #00000099;
+	backdrop-filter: blur(8dp);
+}
+
+.modal {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 420dp;
+	box-sizing: border-box;
+	margin: -90dp 0 0 -210dp;
+	padding: 24dp;
+	border-radius: 18dp;
+	background-color: #1C1C1E;
+	box-shadow: 0 4dp 12dp #00000073, 0 16dp 40dp -12dp #000000A6;
+	display: flex;
+	flex-direction: column;
+}
+
+.modal h2 {
+	margin-bottom: 18dp;
+}
+
+.modal .check {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 24dp;
+	font-size: 14dp;
+	color: #A1A1A6;
+}
+
+.modal .check span {
+	cursor: pointer;
+}
+
+.modal-actions {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+}
+
+.modal-actions button {
+	margin-left: 10dp;
+	padding: 0 24dp;
+}

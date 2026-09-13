@@ -9,7 +9,7 @@ msgstr ""
 "#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 08:09+0300\n"
+"POT-Creation-Date: 2026-09-13 08:24+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 08:11+0300\n"
+"POT-Creation-Date: 2026-09-13 08:31+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2486,7 +2486,8 @@ msgstr ""
 #: builtin/mainmenu/dlg_delete_content.lua
 #: builtin/mainmenu/dlg_delete_world.lua
 #: builtin/mainmenu/dlg_rename_modpack.lua builtin/mainmenu/matchmaking.lua
-#: src/gui/guiOpenURL.cpp client/ui/menu/online.rml client/ui/menu/worlds.rml
+#: src/gui/guiOpenURL.cpp client/ui/menu/online.rml client/ui/menu/start.rml
+#: client/ui/menu/worlds.rml
 msgid "Cancel"
 msgstr ""
 
@@ -3200,7 +3201,7 @@ msgstr ""
 msgid "Always show this dialog."
 msgstr ""
 
-#: builtin/mainmenu/dlg_confirm_exit.lua
+#: builtin/mainmenu/dlg_confirm_exit.lua client/ui/menu/start.rml
 msgid "Quit"
 msgstr ""
 
@@ -3571,31 +3572,32 @@ msgstr ""
 msgid "Try again"
 msgstr ""
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua client/ui/menu/about.rml
+#: client/ui/menu/start.rml
 msgid "About"
 msgstr ""
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua client/ui/menu/about.rml
 msgid "Axis is a fork of Luanti. The engine below was written by:"
 msgstr ""
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Core Developers"
 msgstr ""
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Core Team"
 msgstr ""
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Active Contributors"
 msgstr ""
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Previous Core Developers"
 msgstr ""
 
-#: builtin/mainmenu/tab_about.lua
+#: builtin/mainmenu/tab_about.lua src/client/menu/screens/about_screen.cpp
 msgid "Previous Contributors"
 msgstr ""
 
@@ -4889,6 +4891,11 @@ msgstr ""
 msgid "Axis %d-"
 msgstr ""
 
+#: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/settings_screen.cpp
+msgid "Copied"
+msgstr ""
+
 #: src/client/menu/screens/online_screen.cpp
 msgid "Connect by address"
 msgstr ""
@@ -4900,10 +4907,6 @@ msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
 msgid "Address and port are required"
-msgstr ""
-
-#: src/client/menu/screens/settings_screen.cpp
-msgid "Copied"
 msgstr ""
 
 #: src/client/menu/screens/settings_screen.cpp
@@ -10025,6 +10028,26 @@ msgstr ""
 msgid "Failed to save screenshot to \"%s\""
 msgstr ""
 
+#: client/ui/menu/about.rml
+msgid "Renderer"
+msgstr ""
+
+#: client/ui/menu/about.rml
+msgid "System"
+msgstr ""
+
+#: client/ui/menu/about.rml
+msgid "Copy for a bug report"
+msgstr ""
+
+#: client/ui/menu/about.rml
+msgid "Open the data folder"
+msgstr ""
+
+#: client/ui/menu/about.rml
+msgid "Authors"
+msgstr ""
+
 #: client/ui/menu/online.rml
 msgid ""
 "This is where you will play. The game picks the closest server on its own — "
@@ -10037,6 +10060,14 @@ msgstr ""
 
 #: client/ui/menu/settings.rml
 msgid "Nothing found"
+msgstr ""
+
+#: client/ui/menu/start.rml
+msgid "Quit the game?"
+msgstr ""
+
+#: client/ui/menu/start.rml
+msgid "Always ask before quitting"
 msgstr ""
 
 #: client/ui/menu/worlds.rml

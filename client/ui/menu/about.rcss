@@ -1,0 +1,164 @@
+/*
+ * О программе: слева карточка сборки — версия, рендер, система, папка данных
+ * и ссылки; справа карточка с авторами Luanti. Страница и шапка — в page.rcss.
+ */
+
+.about-body {
+	display: flex;
+	flex-direction: row;
+	flex: 1;
+	min-height: 0;
+}
+
+.build {
+	width: 380dp;
+	margin-right: 28dp;
+	padding: 24dp;
+	align-items: stretch;
+	/* Карточка сборки по содержимому, а не во всю высоту: ниже кнопок в ней
+	   пусто, и растянутая она выглядела бы недописанной */
+	align-self: flex-start;
+}
+
+.build .logo {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	margin: 6dp 0 14dp 0;
+}
+
+.build .logo img {
+	width: 189dp;
+	height: 72dp;
+}
+
+.build .stamp {
+	display: block;
+	text-align: center;
+	font-family: "Departure Mono";
+	font-size: 14dp;
+	color: #A78BFA;
+	margin-bottom: 18dp;
+}
+
+.facts {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 18dp;
+}
+
+.fact {
+	display: flex;
+	flex-direction: row;
+	padding: 9dp 0;
+	border-top: 1dp #2C2C2E;
+	font-size: 13dp;
+}
+
+.fact .k {
+	width: 90dp;
+	color: #86868B;
+}
+
+.fact .v {
+	display: block;
+	flex: 1;
+	width: 0;
+	min-width: 0;
+	font-family: "Departure Mono";
+	font-size: 12dp;
+	line-height: 1.5;
+	color: #F5F5F7;
+}
+
+.build button {
+	width: 100%;
+	margin-top: 8dp;
+}
+
+.build p.path {
+	margin-top: 8dp;
+	font-family: "Departure Mono";
+	font-size: 11dp;
+	color: #86868B;
+	white-space: nowrap;
+	overflow: hidden;
+	mask-image: linear-gradient(to right, #FFFFFF 85%, #FFFFFF00 100%);
+}
+
+.links {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	margin-top: 18dp;
+}
+
+.link {
+	margin: 0 8dp;
+	padding: 6dp 12dp;
+	border-radius: 8dp;
+	font-size: 14dp;
+	color: #A78BFA;
+	cursor: pointer;
+	transition: background-color 0.12s linear-in-out;
+}
+
+.link:hover {
+	background-color: #221B36;
+}
+
+/* Авторы */
+
+.credits {
+	flex: 1;
+	min-height: 0;
+	padding: 0 24dp 16dp 24dp;
+}
+
+.credits p.lead {
+	margin: 14dp 0 4dp 0;
+	font-size: 14dp;
+	color: #A1A1A6;
+}
+
+.credit-list {
+	display: block;
+	flex: 1;
+	overflow-y: auto;
+	padding-right: 8dp;
+}
+
+.credit-list scrollbarvertical {
+	width: 4dp;
+	margin: 0;
+}
+
+.credit-list scrollbarvertical sliderbar {
+	border-radius: 2dp;
+	background-color: #FFFFFF24;
+}
+
+.credit-heading {
+	display: block;
+	margin: 18dp 0 6dp 0;
+	font-size: 13dp;
+	color: #86868B;
+}
+
+.credit {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	padding: 5dp 0;
+	font-size: 14dp;
+}
+
+.credit .name {
+	color: #F5F5F7;
+}
+
+.credit .note {
+	margin-left: 10dp;
+	font-size: 12dp;
+	color: #86868B;
+}

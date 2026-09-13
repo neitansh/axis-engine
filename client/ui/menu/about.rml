@@ -1,0 +1,50 @@
+<rml>
+<head>
+	<title>about</title>
+	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="page.rcss"/>
+	<link type="text/rcss" href="about.rcss"/>
+</head>
+<body data-model="about" class="page about">
+	<div class="page-head">
+		<div class="head-side">
+			<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
+			<h1>[[About]]</h1>
+			<span class="kbd">Esc</span>
+		</div>
+	</div>
+
+	<div class="about-body">
+		<div class="build panel">
+			<div class="logo"><img src="textures/base/pack/menu_header.png" rect="483 0 378 144"/></div>
+			<div class="stamp">{{ version }}</div>
+			<div class="facts">
+				<div class="fact"><span class="k">[[Renderer]]</span><span class="v">{{ renderer }}</span></div>
+				<div class="fact"><span class="k">[[System]]</span><span class="v">{{ platform }}</span></div>
+			</div>
+			<button data-if="copied == ''" data-event-click="copy()">[[Copy for a bug report]]</button>
+			<button data-if="copied != ''" data-event-click="copy()">{{ copied }}</button>
+			<button data-event-click="open_data()">[[Open the data folder]]</button>
+			<p class="path">{{ user_path }}</p>
+			<div class="links">
+				<div class="link" data-event-click="open_url('https://github.com/neitansh/axis-engine')">axis-engine</div>
+				<div class="link" data-event-click="open_url('https://www.luanti.org/')">luanti.org</div>
+			</div>
+		</div>
+
+		<div class="credits panel">
+			<h3 class="group">[[Authors]]</h3>
+			<p class="lead">[[Axis is a fork of Luanti. The engine below was written by:]]</p>
+			<div class="credit-list">
+				<div data-for="c : credits">
+					<div class="credit-heading" data-if="c.kind == 'heading'">{{ c.name }}</div>
+					<div class="credit" data-if="c.kind == 'name'">
+						<span class="name">{{ c.name }}</span>
+						<span class="note" data-if="c.note != ''">{{ c.note }}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</rml>

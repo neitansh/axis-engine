@@ -9,20 +9,23 @@
 namespace menu
 {
 
-// Стартовый экран: вход в остальные и сообщение о том, чем кончился
-// прошлый заход, если он кончился ошибкой.
+// Стартовый экран: вход в остальные экраны и выход с подтверждением.
 class StartScreen final : public Screen
 {
 public:
-	StartScreen(MainMenu &menu, const std::string &notice);
+	explicit StartScreen(MainMenu &menu) : Screen(menu, "start") {}
 
 	void refresh() override;
+	bool onEvent(const SEvent &event) override;
 
 protected:
 	void bind(Rml::DataModelConstructor &model) override;
 
 private:
-	Rml::String m_notice;
+	void askToQuit();
+
+	bool m_confirm_exit = false;
+	bool m_ask_always = true;
 };
 
 }
