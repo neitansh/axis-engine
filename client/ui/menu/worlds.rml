@@ -9,7 +9,7 @@
 	<div class="page-head">
 		<div class="head-side">
 			<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
-			<h1>[[Singleplayer]]</h1>
+			<h1>[[Worlds]]</h1>
 			<span class="kbd">Esc</span>
 		</div>
 	</div>

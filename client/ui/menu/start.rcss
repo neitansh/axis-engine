@@ -4,12 +4,15 @@
  * нижнем углу, подтверждение выхода — окно поверх страницы.
  */
 
+/* Тень лежит только под текстом: плотная у левого края, к середине экрана
+   растворяется, и небо справа остаётся нетронутым */
+
 body {
 	align-items: flex-start;
 	justify-content: center;
-	background-color: #000000B8;
+	decorator: linear-gradient(to right, #000000E0 0%, #000000C4 28%, #00000000 68%);
 	box-sizing: border-box;
-	padding: 40dp 88dp 40dp 88dp;
+	padding: 40dp 56dp 40dp 56dp;
 }
 
 .hero {
@@ -48,7 +51,7 @@ body {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	height: 78dp;
+	height: 70dp;
 	cursor: pointer;
 }
 
@@ -67,10 +70,11 @@ body {
 .item span {
 	display: block;
 	margin-left: 18dp;
-	font-size: 64dp;
+	font-size: 56dp;
 	font-weight: 700;
-	letter-spacing: -2.5dp;
+	letter-spacing: 0dp;
 	line-height: 1;
+	text-transform: uppercase;
 	color: #F5F5F7;
 	transform: translateX(-24dp);
 	transition: color 0.2s linear-in-out, transform 0.26s cubic-out;
@@ -97,7 +101,7 @@ body {
 
 .about-link {
 	position: absolute;
-	left: 88dp;
+	left: 56dp;
 	bottom: 36dp;
 	padding: 6dp 0;
 	font-size: 13dp;

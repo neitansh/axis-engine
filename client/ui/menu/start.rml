@@ -11,7 +11,7 @@
 		</div>
 		<div class="menu">
 			<div class="item" data-event-click="nav('online')"><i class="mark"/><span>[[Multiplayer]]</span></div>
-			<div class="item" data-event-click="nav('worlds')"><i class="mark"/><span>[[Singleplayer]]</span></div>
+			<div class="item" data-event-click="nav('worlds')"><i class="mark"/><span>[[Worlds]]</span></div>
 			<div class="item" data-event-click="nav('settings')"><i class="mark"/><span>[[Settings]]</span></div>
 			<div class="item" data-event-click="quit_begin()"><i class="mark"/><span>[[Exit]]</span></div>
 		</div>
