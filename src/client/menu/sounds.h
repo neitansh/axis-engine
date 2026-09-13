@@ -26,7 +26,8 @@ namespace menu
 class Sounds : public Rml::EventListener
 {
 public:
-	explicit Sounds(const std::vector<std::string> &theme_dirs);
+	// Без музыки — для меню поверх игры: там звучит мир, а не меню.
+	Sounds(const std::vector<std::string> &theme_dirs, bool music);
 	~Sounds() override;
 
 	Sounds(const Sounds &) = delete;
@@ -58,6 +59,7 @@ private:
 	bool m_hold_music = false;
 	Rml::Element *m_hovered = nullptr;
 	Rml::Context *m_context = nullptr;
+	u64 m_last_move_ms = 0;
 };
 
 }

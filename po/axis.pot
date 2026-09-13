@@ -9,7 +9,7 @@ msgstr ""
 "#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 21:54+0300\n"
+"POT-Creation-Date: 2026-09-13 22:28+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 21:57+0300\n"
+"POT-Creation-Date: 2026-09-13 22:32+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2684,7 +2684,8 @@ msgstr ""
 #. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Try to keep the translation short
 #: builtin/common/settings/dlg_settings.lua src/client/game_formspec.cpp
-#: client/ui/menu/settings.rml client/ui/menu/start.rml
+#: client/ui/menu/pause.rml client/ui/menu/settings.rml
+#: client/ui/menu/start.rml
 msgid "Settings"
 msgstr ""
 
@@ -4338,8 +4339,10 @@ msgstr ""
 msgid "Game paused"
 msgstr ""
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Pause menu button, try to keep the translation short
-#: src/client/game_formspec.cpp
+#: src/client/game_formspec.cpp src/client/menu/screens/pause_screen.cpp
+#: client/ui/menu/pause.rml
 msgid "Continue"
 msgstr ""
 
@@ -4935,6 +4938,7 @@ msgid "Next"
 msgstr ""
 
 #: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/pause_screen.cpp
 #: src/client/menu/screens/start_screen.cpp src/gui/guiOpenURL.cpp
 msgid "Open"
 msgstr ""
@@ -4944,6 +4948,7 @@ msgid "Connect by address"
 msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/pause_screen.cpp
 #: src/client/menu/screens/start_screen.cpp
 #: src/client/menu/screens/worlds_screen.cpp
 msgid "Choose"
@@ -10173,6 +10178,18 @@ msgstr ""
 
 #: client/ui/menu/online.rml
 msgid "From the list"
+msgstr ""
+
+#: client/ui/menu/pause.rml
+msgid "Paused"
+msgstr ""
+
+#: client/ui/menu/pause.rml
+msgid "Exit to menu"
+msgstr ""
+
+#: client/ui/menu/pause.rml
+msgid "Exit game"
 msgstr ""
 
 #: client/ui/menu/settings.rml

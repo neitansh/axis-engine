@@ -115,10 +115,13 @@ private:
 };
 
 extern MainMenuManager g_menumgr;
+// Меню на RmlUi поверх игры (menu::GameMenu) в стеке Irrlicht не стоит, но
+// для игры оно такое же модальное окно: ввод не её, курсор свободен.
+extern bool g_rml_menu_open;
 
 static inline bool isMenuActive()
 {
-	return g_menumgr.menuCount() != 0;
+	return g_menumgr.menuCount() != 0 || g_rml_menu_open;
 }
 
 class MainGameCallback : public IGameCallback

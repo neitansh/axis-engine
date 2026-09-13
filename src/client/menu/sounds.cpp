@@ -6,6 +6,7 @@
 
 #include "client/sound/sound_openal.h"
 #include "filesys.h"
+#include "porting.h"
 #include "settings.h"
 #include "sound_spec.h"
 #include "util/string.h"
@@ -42,7 +43,8 @@ Rml::Element *pointerTarget(Rml::Element *element)
 
 }
 
-Sounds::Sounds(const std::vector<std::string> &theme_dirs)
+Sounds::Sounds(const std::vector<std::string> &theme_dirs, bool music) :
+	m_hold_music(!music)
 {
 #if USE_SOUND
 	if (g_sound_manager_singleton)
@@ -59,7 +61,7 @@ Sounds::Sounds(const std::vector<std::string> &theme_dirs)
 					sounds + DIR_DELIM + effect + ".ogg"))
 				m_manager->addSoundToGroup(effect, effect);
 		}
-		if (!m_music.empty())
+		if (!music || !m_music.empty())
 			continue;
 		for (const fs::DirListNode &node : fs::GetDirListing(sounds)) {
 			if (node.dir || node.name.rfind("music", 0) != 0
@@ -85,6 +87,7 @@ Sounds::~Sounds()
 void Sounds::attach(Rml::Context &context)
 {
 	m_context = &context;
+	context.AddEventListener("mousemove", this);
 	context.AddEventListener("mouseover", this);
 	context.AddEventListener("mousedown", this);
 	context.AddEventListener("focus", this, true);
@@ -116,13 +119,18 @@ void Sounds::step(f32 dtime, bool window_active)
 
 // Мышь ведёт фокус за собой: подсветка у пункта одна, что под курсором, что
 // под стрелками, и Enter жмёт то, на что смотришь. Поле ввода фокус держит:
-// пока набирают текст, курсор над кнопкой его не отнимает.
+// пока набирают текст, курсор над кнопкой его не отнимает. Наведение без
+// движения мыши — экран появился под стоящим курсором — не считается: иначе
+// фокус с клавиатуры улетал бы туда, где случайно лежит курсор.
 void Sounds::ProcessEvent(Rml::Event &event)
 {
 	Rml::Element *target = pointerTarget(event.GetTargetElement());
 	switch (event.GetId()) {
+	case Rml::EventId::Mousemove:
+		m_last_move_ms = porting::getTimeMs();
+		break;
 	case Rml::EventId::Mouseover: {
-		if (!target)
+		if (!target || porting::getTimeMs() - m_last_move_ms > 150)
 			break;
 		const bool focusable = target->GetComputedValues().tab_index() == Rml::Style::TabIndex::Auto;
 		Rml::Element *focused = m_context ? m_context->GetFocusElement() : nullptr;

@@ -50,7 +50,7 @@ MainMenu::MainMenu(RenderingEngine *engine, ui::Host &host, MyEventReceiver *rec
 
 	m_context = m_host.createContext("menu");
 	m_receiver->setUiReceiver(this);
-	m_sounds = std::make_unique<Sounds>(m_theme_dirs);
+	m_sounds = std::make_unique<Sounds>(m_theme_dirs, true);
 	m_sounds->attach(*m_context);
 
 	addScreen(std::make_unique<StartScreen>(*this));

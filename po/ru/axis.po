@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 21:54+0300\n"
+"POT-Creation-Date: 2026-09-13 22:28+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -2978,8 +2978,9 @@ msgstr "Найти"
 
 #. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
 #. TRANSLATORS: Try to keep the translation short
-#: builtin/common/settings/dlg_settings.lua client/ui/menu/settings.rml
-#: client/ui/menu/start.rml src/client/game_formspec.cpp
+#: builtin/common/settings/dlg_settings.lua client/ui/menu/pause.rml
+#: client/ui/menu/settings.rml client/ui/menu/start.rml
+#: src/client/game_formspec.cpp
 msgid "Settings"
 msgstr "Настройки"
 
@@ -4225,6 +4226,25 @@ msgstr ""
 "Здесь вы будете играть. Игра сама выбирает ближайший сервер — выбирать "
 "ничего не нужно."
 
+#. #-#-#-#-#  axis.pot (axis)  #-#-#-#-#
+#. TRANSLATORS: Pause menu button, try to keep the translation short
+#: client/ui/menu/pause.rml src/client/game_formspec.cpp
+#: src/client/menu/screens/pause_screen.cpp
+msgid "Continue"
+msgstr "Продолжить"
+
+#: client/ui/menu/pause.rml
+msgid "Exit game"
+msgstr "Выйти из игры"
+
+#: client/ui/menu/pause.rml
+msgid "Exit to menu"
+msgstr "Выйти в меню"
+
+#: client/ui/menu/pause.rml
+msgid "Paused"
+msgstr "Пауза"
+
 #: client/ui/menu/settings.rml
 msgid "Nothing found"
 msgstr "Ничего не найдено"
@@ -4765,11 +4785,6 @@ msgstr "Приближение на данный момент отключено
 #: src/client/game.cpp
 msgid "not bound"
 msgstr "не назначено"
-
-#. TRANSLATORS: Pause menu button, try to keep the translation short
-#: src/client/game_formspec.cpp
-msgid "Continue"
-msgstr "Продолжить"
 
 #: src/client/game_formspec.cpp
 msgid ""
@@ -5395,6 +5410,7 @@ msgid "Next"
 msgstr "Дальше"
 
 #: src/client/menu/screens/about_screen.cpp
+#: src/client/menu/screens/pause_screen.cpp
 #: src/client/menu/screens/start_screen.cpp src/gui/guiOpenURL.cpp
 msgid "Open"
 msgstr "Открыть"
@@ -5404,6 +5420,7 @@ msgid "Address and port are required"
 msgstr "Нужны адрес и порт"
 
 #: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/pause_screen.cpp
 #: src/client/menu/screens/start_screen.cpp
 #: src/client/menu/screens/worlds_screen.cpp
 msgid "Choose"
@@ -11515,6 +11532,3 @@ msgstr "Адрес прокси для cURL"
 #, c-format
 msgid "Failed to save screenshot to \"%s\""
 msgstr "Не удалось сохранить снимок экрана в \"%s\""
-
-#~ msgid "Keep"
-#~ msgstr "Оставить"

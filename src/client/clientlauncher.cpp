@@ -40,6 +40,7 @@
 gui::IGUIEnvironment *guienv = nullptr;
 gui::IGUIStaticText *guiroot = nullptr;
 MainMenuManager g_menumgr;
+bool g_rml_menu_open = false;
 
 // Passed to menus to allow disconnecting and exiting
 MainGameCallback *g_gamecallback = nullptr;
@@ -269,6 +270,7 @@ bool ClientLauncher::run(const GameParams &game_params, const Settings &cmd_args
 				kill,
 				input,
 				m_rendering_engine,
+				m_ui.get(),
 				start_data,
 				errordata,
 				chat_backend);

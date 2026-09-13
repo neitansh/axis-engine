@@ -37,9 +37,12 @@ struct CameraOrientation {
 #define GAME_FALLBACK_TIMEOUT 1.8f
 #define GAME_CONNECTION_TIMEOUT 10.0f
 
+namespace ui { class Host; }
+
 void the_game(volatile std::sig_atomic_t *kill,
 		InputHandler *input,
 		RenderingEngine *rendering_engine,
+		ui::Host *ui,
 		const GameStartData &start_data,
 		GameErrorData &errordata,
 		ChatBackend &chat_backend);

@@ -741,6 +741,7 @@ Game::~Game()
 bool Game::startup(volatile std::sig_atomic_t *kill,
 				   InputHandler *input,
 				   RenderingEngine *rendering_engine,
+				   ui::Host *ui,
 				   const GameStartData &start_data,
 				   GameErrorData &errordata,
 				   ChatBackend *chat_backend)
@@ -748,6 +749,7 @@ bool Game::startup(volatile std::sig_atomic_t *kill,
 
 	// "cache"
 	m_rendering_engine = rendering_engine;
+	m_ui = ui;
 	device = m_rendering_engine->get_raw_device();
 	this->kill = kill;
 	this->errordata = &errordata;
@@ -787,6 +789,9 @@ bool Game::startup(volatile std::sig_atomic_t *kill,
 	m_rendering_engine->initialize(client, hud);
 
 	m_game_formspec.init(client, m_rendering_engine, input);
+	if (m_ui && m_ui->ok() && input->eventReceiver())
+		m_game_menu = std::make_unique<menu::GameMenu>(*m_ui, input->eventReceiver(),
+				g_gamecallback, simple_singleplayer_mode);
 
 	return true;
 }
@@ -902,6 +907,10 @@ void Game::run()
 		}
 		updatePlayerControl(cam_view);
 
+		// Меню поверх игры живёт на настоящем времени и когда мир стоит.
+		if (m_game_menu)
+			m_game_menu->step(dtime, device->isWindowActive());
+
 		updatePauseState();
 		if (m_is_paused)
 			dtime = 0.0f;
@@ -931,7 +940,7 @@ void Game::run()
 
 		if (m_does_lost_focus_pause_game && !device->isWindowFocused() && !isMenuActive())
 		{
-			m_game_formspec.showPauseMenu();
+			showPauseMenu();
 		}
 	}
 
@@ -948,6 +957,7 @@ void Game::shutdown()
 {
 	// Delete text and menus first
 	m_game_ui->clearText();
+	m_game_menu.reset();
 	m_game_formspec.reset();
 	while (g_menumgr.menuCount() > 0)
 	{
@@ -2229,7 +2239,7 @@ void Game::processKeyInput()
 #endif
 		if (!gui_chat_console->isOpenInhibited())
 		{
-			m_game_formspec.showPauseMenu();
+			showPauseMenu();
 		}
 	}
 	else if (wasKeyDown(KeyType::CHAT))
@@ -3025,10 +3035,20 @@ void Game::updatePlayerControl(const CameraOrientation &cam)
 	// tt.stop();
 }
 
+void Game::showPauseMenu()
+{
+	if (m_game_menu && m_game_menu->ok()) {
+		m_game_menu->open();
+		return;
+	}
+	m_game_formspec.showPauseMenu();
+}
+
 void Game::updatePauseState()
 {
 	bool was_paused = this->m_is_paused;
-	this->m_is_paused = this->simple_singleplayer_mode && g_menumgr.pausesGame();
+	this->m_is_paused = this->simple_singleplayer_mode
+			&& (g_menumgr.pausesGame() || (m_game_menu && m_game_menu->isOpen()));
 
 	if (!was_paused && this->m_is_paused)
 	{
@@ -4868,6 +4888,9 @@ void Game::drawScene(ProfilerGraph *graph, RunStats *stats)
 	 * когда та переполнена, — то есть когда видеокарта не поспевает. Большое
 	 * время здесь и означает «процессор ждёт видеокарту», и наоборот.
 	 */
+	if (m_game_menu)
+		m_game_menu->render();
+
 	TimeTaker tt_present("Present", nullptr, PRECISION_MICRO);
 	this->driver->endScene();
 	u32 present_time = tt_present.stop(true);
@@ -5043,6 +5066,7 @@ void Game::readSettings()
 void the_game(volatile std::sig_atomic_t *kill,
 			  InputHandler *input,
 			  RenderingEngine *rendering_engine,
+			  ui::Host *ui,
 			  const GameStartData &start_data,
 			  GameErrorData &errordata,
 			  ChatBackend &chat_backend)
@@ -5053,7 +5077,7 @@ void the_game(volatile std::sig_atomic_t *kill,
 	try
 	{
 
-		if (game.startup(kill, input, rendering_engine, start_data,
+		if (game.startup(kill, input, rendering_engine, ui, start_data,
 						 errordata, &chat_backend))
 		{
 			game.run();

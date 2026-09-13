@@ -188,6 +188,9 @@ public:
 		return false;
 	}
 
+	// Приёмник событий Irrlicht за этим вводом; у случайного ввода его нет.
+	virtual MyEventReceiver *eventReceiver() { return nullptr; }
+
 	static inline s16 analogToInt(float value)
 	{
 		return value > 0 ? std::min(1.0f, value) * INT16_MAX : 0;
@@ -240,6 +243,8 @@ public:
 	{
 		m_receiver->reloadKeybindings();
 	}
+
+	MyEventReceiver *eventReceiver() override { return m_receiver; }
 
 	virtual float getAxisValue(GameKeyType k)
 	{

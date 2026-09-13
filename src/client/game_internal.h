@@ -13,6 +13,7 @@
 #include "client.h"
 #include "client/clientevent.h"
 #include "client/game_formspec.h"
+#include "client/menu/game_menu.h"
 #include "client/renderingengine.h"
 #include "clientdynamicinfo.h"
 #include "clouds.h"
@@ -110,6 +111,7 @@ public:
 	bool startup(volatile std::sig_atomic_t *kill,
 			InputHandler *input,
 			RenderingEngine *rendering_engine,
+			ui::Host *ui,
 			const GameStartData &game_params,
 			GameErrorData &errordata,
 			ChatBackend *chat_backend);
@@ -373,6 +375,10 @@ private:
 	Hud *hud = nullptr;
 	Minimap *mapper = nullptr;
 	GameFormSpec m_game_formspec;
+	// Пауза и настройки на RmlUi; без хоста RmlUi остаётся formspec.
+	ui::Host *m_ui = nullptr;
+	std::unique_ptr<menu::GameMenu> m_game_menu;
+	void showPauseMenu();
 
 	// Map server hud ids to client hud ids
 	std::unordered_map<u32, u32> m_hud_server_to_client;
