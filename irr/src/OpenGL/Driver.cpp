@@ -964,6 +964,10 @@ void COpenGL3DriverBase::drawBuffers(const scene::IVertexBuffer *vb,
 		return;
 	}
 
+	// Буферы привязываются уже при VAO по умолчанию: буфер индексов —
+	// состояние VAO, и привязанный при VAO пула он в него бы и лёг.
+	useDefaultVao();
+
 	const void *vertices = vb->getData();
 	if (hwvert) {
 		assert(hwvert->Vbo.exists());
@@ -1260,6 +1264,10 @@ void COpenGL3DriverBase::draw2DImageBatch(const video::ITexture *texture,
 				tcoords.UpperLeftCorner.X, tcoords.LowerRightCorner.Y);
 	}
 
+	// Буфер индексов — состояние VAO: привязанный, пока текущим стоит VAO
+	// пула геометрии мира, он остался бы в нём, а рисование с VAO 0 ушло бы
+	// по нулевому указателю. Поэтому сначала VAO по умолчанию, потом буфер.
+	useDefaultVao();
 	GL.BindBuffer(GL_ELEMENT_ARRAY_BUFFER, QuadIndexVBO.getName());
 	drawElements(GL_TRIANGLES, vt2DImage, vtx.data(), vtx.size(), 0, 6 * drawCount);
 	GL.BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
