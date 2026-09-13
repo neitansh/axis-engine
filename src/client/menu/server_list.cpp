@@ -29,18 +29,33 @@ struct ServerList::PingJob
 	};
 	std::vector<Target> targets;
 	std::vector<ServerPing> results;
-	std::vector<bool> answered;
+	std::vector<char> answered;
 	std::atomic<bool> stop{false};
-	std::atomic<bool> done{false};
-	std::thread thread;
+	std::atomic<size_t> finished{0};
+	std::vector<std::thread> threads;
 
-	void run()
+	bool done() const { return finished >= targets.size(); }
+
+	// Каждому серверу свой поток: молчащий отвечает только по сроку, и
+	// по очереди четыре молчуна держали бы список восемь секунд.
+	void start()
 	{
 		results.resize(targets.size());
-		answered.assign(targets.size(), false);
-		for (size_t i = 0; i < targets.size() && !stop; i++)
-			answered[i] = pingServer(targets[i].address, targets[i].port, 2000, results[i], &stop);
-		done = true;
+		answered.assign(targets.size(), 0);
+		for (size_t i = 0; i < targets.size(); i++) {
+			threads.emplace_back([this, i]() {
+				answered[i] = pingServer(targets[i].address, targets[i].port, 2000, results[i], &stop);
+				finished++;
+			});
+		}
+	}
+
+	void join()
+	{
+		for (std::thread &thread : threads) {
+			if (thread.joinable())
+				thread.join();
+		}
 	}
 };
 
@@ -52,8 +67,7 @@ ServerList::~ServerList()
 {
 	if (m_ping) {
 		m_ping->stop = true;
-		if (m_ping->thread.joinable())
-			m_ping->thread.join();
+		m_ping->join();
 	}
 }
 
@@ -90,6 +104,7 @@ void ServerList::sync()
 		}
 		unfold(answer.servers);
 		m_loaded = true;
+		m_measured = false;
 		measure();
 		if (m_on_change)
 			m_on_change();
@@ -135,10 +150,10 @@ void ServerList::unfold(const Json::Value &servers)
 
 void ServerList::measure()
 {
-	if (m_ping && !m_ping->done)
+	if (m_ping && !m_ping->done())
 		return;
-	if (m_ping && m_ping->thread.joinable())
-		m_ping->thread.join();
+	if (m_ping)
+		m_ping->join();
 	m_ping = std::make_shared<PingJob>();
 	for (const ServerEntry &server : m_shown)
 		m_ping->targets.push_back({server.address, server.probe_port > 0 ? server.probe_port : server.port});
@@ -146,16 +161,14 @@ void ServerList::measure()
 		m_ping.reset();
 		return;
 	}
-	std::shared_ptr<PingJob> job = m_ping;
-	m_ping->thread = std::thread([job]() { job->run(); });
+	m_ping->start();
 }
 
 bool ServerList::poll()
 {
-	if (!m_ping || !m_ping->done)
+	if (!m_ping || !m_ping->done())
 		return false;
-	if (m_ping->thread.joinable())
-		m_ping->thread.join();
+	m_ping->join();
 	std::shared_ptr<PingJob> job = std::move(m_ping);
 	m_ping.reset();
 
@@ -166,6 +179,7 @@ bool ServerList::poll()
 	}
 	if (!same)
 		return false;
+	m_measured = true;
 	for (size_t i = 0; i < m_shown.size(); i++) {
 		if (!job->answered[i])
 			continue;

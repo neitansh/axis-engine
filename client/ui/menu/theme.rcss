@@ -329,6 +329,322 @@ input.checkbox:checked {
 	margin-bottom: 10dp;
 }
 
+/* Кольцо ожидания — то же, что крутится в лаунчере и на сайте: двенадцать
+   квадратов по кругу, по ним бежит хвост яркости. У всех одна анимация,
+   i-й отстаёт на i шагов; ступени хвоста взяты из лаунчера, плавное
+   затухание читалось бы вращающимся пятном. */
+
+.ring {
+	position: relative;
+	display: block;
+	width: 40dp;
+	height: 40dp;
+}
+
+.ring i {
+	position: absolute;
+	display: block;
+	top: 17.5dp;
+	left: 17.5dp;
+	width: 5dp;
+	height: 5dp;
+	border-radius: 1dp;
+	background-color: #A78BFA;
+}
+
+.ring.big {
+	width: 64dp;
+	height: 64dp;
+}
+
+.ring.big i {
+	top: 28dp;
+	left: 28dp;
+	width: 8dp;
+	height: 8dp;
+	border-radius: 2dp;
+}
+
+/* Хвост задан не задержкой, а своим набором кадров на каждый квадрат:
+   RmlUi отрицательную задержку не понимает, а с положительной кольцо
+   секунду стояло бы ровно светлым. Кадры одни и те же, сдвинутые на шаг. */
+
+.ring i:nth-child(1) {
+	transform: rotate(0deg) translateY(-15dp) rotate(0deg);
+	animation: 0.96s linear infinite ring-tail-0;
+}
+.ring.big i:nth-child(1) {
+	transform: rotate(0deg) translateY(-24dp) rotate(0deg);
+}
+@keyframes ring-tail-0 {
+	0.00% { opacity: 1; }
+	8.33% { opacity: 0.7; }
+	16.67% { opacity: 0.48; }
+	25.00% { opacity: 0.3; }
+	33.33% { opacity: 0.18; }
+	41.67% { opacity: 0.09; }
+	50.00% { opacity: 0.09; }
+	58.33% { opacity: 0.09; }
+	66.67% { opacity: 0.09; }
+	75.00% { opacity: 0.09; }
+	83.33% { opacity: 0.09; }
+	91.67% { opacity: 0.09; }
+	100.00% { opacity: 1; }
+}
+
+.ring i:nth-child(2) {
+	transform: rotate(30deg) translateY(-15dp) rotate(-30deg);
+	animation: 0.96s linear infinite ring-tail-1;
+}
+.ring.big i:nth-child(2) {
+	transform: rotate(30deg) translateY(-24dp) rotate(-30deg);
+}
+@keyframes ring-tail-1 {
+	0.00% { opacity: 0.09; }
+	8.33% { opacity: 1; }
+	16.67% { opacity: 0.7; }
+	25.00% { opacity: 0.48; }
+	33.33% { opacity: 0.3; }
+	41.67% { opacity: 0.18; }
+	50.00% { opacity: 0.09; }
+	58.33% { opacity: 0.09; }
+	66.67% { opacity: 0.09; }
+	75.00% { opacity: 0.09; }
+	83.33% { opacity: 0.09; }
+	91.67% { opacity: 0.09; }
+	100.00% { opacity: 0.09; }
+}
+
+.ring i:nth-child(3) {
+	transform: rotate(60deg) translateY(-15dp) rotate(-60deg);
+	animation: 0.96s linear infinite ring-tail-2;
+}
+.ring.big i:nth-child(3) {
+	transform: rotate(60deg) translateY(-24dp) rotate(-60deg);
+}
+@keyframes ring-tail-2 {
+	0.00% { opacity: 0.09; }
+	8.33% { opacity: 0.09; }
+	16.67% { opacity: 1; }
+	25.00% { opacity: 0.7; }
+	33.33% { opacity: 0.48; }
+	41.67% { opacity: 0.3; }
+	50.00% { opacity: 0.18; }
+	58.33% { opacity: 0.09; }
+	66.67% { opacity: 0.09; }
+	75.00% { opacity: 0.09; }
+	83.33% { opacity: 0.09; }
+	91.67% { opacity: 0.09; }
+	100.00% { opacity: 0.09; }
+}
+
+.ring i:nth-child(4) {
+	transform: rotate(90deg) translateY(-15dp) rotate(-90deg);
+	animation: 0.96s linear infinite ring-tail-3;
+}
+.ring.big i:nth-child(4) {
+	transform: rotate(90deg) translateY(-24dp) rotate(-90deg);
+}
+@keyframes ring-tail-3 {
+	0.00% { opacity: 0.09; }
+	8.33% { opacity: 0.09; }
+	16.67% { opacity: 0.09; }
+	25.00% { opacity: 1; }
+	33.33% { opacity: 0.7; }
+	41.67% { opacity: 0.48; }
+	50.00% { opacity: 0.3; }
+	58.33% { opacity: 0.18; }
+	66.67% { opacity: 0.09; }
+	75.00% { opacity: 0.09; }
+	83.33% { opacity: 0.09; }
+	91.67% { opacity: 0.09; }
+	100.00% { opacity: 0.09; }
+}
+
+.ring i:nth-child(5) {
+	transform: rotate(120deg) translateY(-15dp) rotate(-120deg);
+	animation: 0.96s linear infinite ring-tail-4;
+}
+.ring.big i:nth-child(5) {
+	transform: rotate(120deg) translateY(-24dp) rotate(-120deg);
+}
+@keyframes ring-tail-4 {
+	0.00% { opacity: 0.09; }
+	8.33% { opacity: 0.09; }
+	16.67% { opacity: 0.09; }
+	25.00% { opacity: 0.09; }
+	33.33% { opacity: 1; }
+	41.67% { opacity: 0.7; }
+	50.00% { opacity: 0.48; }
+	58.33% { opacity: 0.3; }
+	66.67% { opacity: 0.18; }
+	75.00% { opacity: 0.09; }
+	83.33% { opacity: 0.09; }
+	91.67% { opacity: 0.09; }
+	100.00% { opacity: 0.09; }
+}
+
+.ring i:nth-child(6) {
+	transform: rotate(150deg) translateY(-15dp) rotate(-150deg);
+	animation: 0.96s linear infinite ring-tail-5;
+}
+.ring.big i:nth-child(6) {
+	transform: rotate(150deg) translateY(-24dp) rotate(-150deg);
+}
+@keyframes ring-tail-5 {
+	0.00% { opacity: 0.09; }
+	8.33% { opacity: 0.09; }
+	16.67% { opacity: 0.09; }
+	25.00% { opacity: 0.09; }
+	33.33% { opacity: 0.09; }
+	41.67% { opacity: 1; }
+	50.00% { opacity: 0.7; }
+	58.33% { opacity: 0.48; }
+	66.67% { opacity: 0.3; }
+	75.00% { opacity: 0.18; }
+	83.33% { opacity: 0.09; }
+	91.67% { opacity: 0.09; }
+	100.00% { opacity: 0.09; }
+}
+
+.ring i:nth-child(7) {
+	transform: rotate(180deg) translateY(-15dp) rotate(-180deg);
+	animation: 0.96s linear infinite ring-tail-6;
+}
+.ring.big i:nth-child(7) {
+	transform: rotate(180deg) translateY(-24dp) rotate(-180deg);
+}
+@keyframes ring-tail-6 {
+	0.00% { opacity: 0.09; }
+	8.33% { opacity: 0.09; }
+	16.67% { opacity: 0.09; }
+	25.00% { opacity: 0.09; }
+	33.33% { opacity: 0.09; }
+	41.67% { opacity: 0.09; }
+	50.00% { opacity: 1; }
+	58.33% { opacity: 0.7; }
+	66.67% { opacity: 0.48; }
+	75.00% { opacity: 0.3; }
+	83.33% { opacity: 0.18; }
+	91.67% { opacity: 0.09; }
+	100.00% { opacity: 0.09; }
+}
+
+.ring i:nth-child(8) {
+	transform: rotate(210deg) translateY(-15dp) rotate(-210deg);
+	animation: 0.96s linear infinite ring-tail-7;
+}
+.ring.big i:nth-child(8) {
+	transform: rotate(210deg) translateY(-24dp) rotate(-210deg);
+}
+@keyframes ring-tail-7 {
+	0.00% { opacity: 0.09; }
+	8.33% { opacity: 0.09; }
+	16.67% { opacity: 0.09; }
+	25.00% { opacity: 0.09; }
+	33.33% { opacity: 0.09; }
+	41.67% { opacity: 0.09; }
+	50.00% { opacity: 0.09; }
+	58.33% { opacity: 1; }
+	66.67% { opacity: 0.7; }
+	75.00% { opacity: 0.48; }
+	83.33% { opacity: 0.3; }
+	91.67% { opacity: 0.18; }
+	100.00% { opacity: 0.09; }
+}
+
+.ring i:nth-child(9) {
+	transform: rotate(240deg) translateY(-15dp) rotate(-240deg);
+	animation: 0.96s linear infinite ring-tail-8;
+}
+.ring.big i:nth-child(9) {
+	transform: rotate(240deg) translateY(-24dp) rotate(-240deg);
+}
+@keyframes ring-tail-8 {
+	0.00% { opacity: 0.18; }
+	8.33% { opacity: 0.09; }
+	16.67% { opacity: 0.09; }
+	25.00% { opacity: 0.09; }
+	33.33% { opacity: 0.09; }
+	41.67% { opacity: 0.09; }
+	50.00% { opacity: 0.09; }
+	58.33% { opacity: 0.09; }
+	66.67% { opacity: 1; }
+	75.00% { opacity: 0.7; }
+	83.33% { opacity: 0.48; }
+	91.67% { opacity: 0.3; }
+	100.00% { opacity: 0.18; }
+}
+
+.ring i:nth-child(10) {
+	transform: rotate(270deg) translateY(-15dp) rotate(-270deg);
+	animation: 0.96s linear infinite ring-tail-9;
+}
+.ring.big i:nth-child(10) {
+	transform: rotate(270deg) translateY(-24dp) rotate(-270deg);
+}
+@keyframes ring-tail-9 {
+	0.00% { opacity: 0.3; }
+	8.33% { opacity: 0.18; }
+	16.67% { opacity: 0.09; }
+	25.00% { opacity: 0.09; }
+	33.33% { opacity: 0.09; }
+	41.67% { opacity: 0.09; }
+	50.00% { opacity: 0.09; }
+	58.33% { opacity: 0.09; }
+	66.67% { opacity: 0.09; }
+	75.00% { opacity: 1; }
+	83.33% { opacity: 0.7; }
+	91.67% { opacity: 0.48; }
+	100.00% { opacity: 0.3; }
+}
+
+.ring i:nth-child(11) {
+	transform: rotate(300deg) translateY(-15dp) rotate(-300deg);
+	animation: 0.96s linear infinite ring-tail-10;
+}
+.ring.big i:nth-child(11) {
+	transform: rotate(300deg) translateY(-24dp) rotate(-300deg);
+}
+@keyframes ring-tail-10 {
+	0.00% { opacity: 0.48; }
+	8.33% { opacity: 0.3; }
+	16.67% { opacity: 0.18; }
+	25.00% { opacity: 0.09; }
+	33.33% { opacity: 0.09; }
+	41.67% { opacity: 0.09; }
+	50.00% { opacity: 0.09; }
+	58.33% { opacity: 0.09; }
+	66.67% { opacity: 0.09; }
+	75.00% { opacity: 0.09; }
+	83.33% { opacity: 1; }
+	91.67% { opacity: 0.7; }
+	100.00% { opacity: 0.48; }
+}
+
+.ring i:nth-child(12) {
+	transform: rotate(330deg) translateY(-15dp) rotate(-330deg);
+	animation: 0.96s linear infinite ring-tail-11;
+}
+.ring.big i:nth-child(12) {
+	transform: rotate(330deg) translateY(-24dp) rotate(-330deg);
+}
+@keyframes ring-tail-11 {
+	0.00% { opacity: 0.7; }
+	8.33% { opacity: 0.48; }
+	16.67% { opacity: 0.3; }
+	25.00% { opacity: 0.18; }
+	33.33% { opacity: 0.09; }
+	41.67% { opacity: 0.09; }
+	50.00% { opacity: 0.09; }
+	58.33% { opacity: 0.09; }
+	66.67% { opacity: 0.09; }
+	75.00% { opacity: 0.09; }
+	83.33% { opacity: 0.09; }
+	91.67% { opacity: 1; }
+	100.00% { opacity: 0.7; }
+}
+
 scrollbarvertical {
 	width: 6dp;
 	margin: 2dp;

@@ -55,6 +55,8 @@ public:
 	void sync();
 	// Пришли ли замеры откликов; true — строки изменились.
 	bool poll();
+	// Замер по нынешнему списку уже прошёл.
+	bool measured() const { return m_measured; }
 
 	// nullptr — список ещё не спрашивали или он не приехал.
 	bool loaded() const { return m_loaded; }
@@ -87,6 +89,7 @@ private:
 
 	Launcher &m_launcher;
 	bool m_loaded = false;
+	bool m_measured = false;
 	bool m_in_flight = false;
 	std::vector<ServerEntry> m_servers;
 	std::vector<ServerEntry> m_shown;

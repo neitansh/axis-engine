@@ -29,18 +29,18 @@
 				<div class="dot"/>
 				<div class="text">{{ connection }}</div>
 			</div>
-			<p class="note">[[The entrance is chosen by the launcher: it measures every route at start and picks the one that carries your traffic best.]]</p>
+			<p class="note">[[This is where you will play. The game picks the closest server on its own — nothing to choose here.]]</p>
 		</div>
 
 		<div class="main">
 			<div class="arenas" data-if="!waiting">
 				<div class="eyebrow">{{ matches_heading }}</div>
 				<div class="centered" data-if="!decided">
-					<div class="spinner"/>
+					<div class="ring"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
 					<p>[[Checking connection...]]</p>
 				</div>
 				<div class="centered" data-if="decided && !modes_loaded">
-					<div class="spinner"/>
+					<div class="ring"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
 					<p>[[Loading...]]</p>
 				</div>
 				<div class="centered" data-if="decided && modes_loaded && modes.size == 0">
@@ -58,7 +58,7 @@
 			</div>
 
 			<div class="waiting" data-if="waiting">
-				<div class="spinner big"/>
+				<div class="ring big"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
 				<div class="queue-title">{{ queue_title }}</div>
 				<div class="queue-line">{{ queue_line }}</div>
 				<div class="queue-below">{{ queue_below }}</div>

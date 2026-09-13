@@ -140,26 +140,9 @@
 	margin-bottom: 16dp;
 }
 
-.spinner {
-	width: 22dp;
-	height: 22dp;
-	margin-bottom: 14dp;
-	border-radius: 11dp;
-	border: 3dp #2C2C2E;
-	border-top-color: #A78BFA;
-	animation: 0.9s linear-in-out infinite spin;
-}
-
-.spinner.big {
-	width: 40dp;
-	height: 40dp;
-	border-radius: 20dp;
-	margin-bottom: 22dp;
-}
-
-@keyframes spin {
-	from { transform: rotate(0deg); }
-	to { transform: rotate(360deg); }
+.centered .ring,
+.waiting .ring {
+	margin-bottom: 18dp;
 }
 
 .tiles {

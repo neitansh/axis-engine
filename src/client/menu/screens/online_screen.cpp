@@ -324,7 +324,10 @@ void OnlineScreen::rebuildServers()
 			if (server.ping_ms >= 0) {
 				row.ping = std::to_string(server.ping_ms) + " ms";
 				row.ping_class = server.ping_ms < 80 ? "good" : (server.ping_ms < 200 ? "fair" : "poor");
-			} else {
+			} else if (list.measured()) {
+				// Замер прошёл, а сервер промолчал: он выключен или не
+				// достижим, и пустая клетка сказала бы меньше прочерка.
+				row.ping = "—";
 				row.ping_class = "none";
 			}
 			m_rows.push_back(row);
