@@ -56,6 +56,9 @@ body.settings {
 	box-sizing: border-box;
 	padding: 62dp 88dp 40dp 88dp;
 	font-size: 16dp;
+}
+
+body.settings.enter {
 	animation: 0.55s cubic-out veil-in;
 }
 
@@ -78,6 +81,9 @@ body.settings {
 	font-size: 15dp;
 	cursor: pointer;
 	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out, color 0.15s linear-in-out;
+}
+
+.enter .back {
 	animation: 0.45s cubic-out 0.12s slide-in;
 }
 
@@ -119,6 +125,9 @@ body.settings {
 	flex-direction: row;
 	justify-content: center;
 	margin-bottom: 48dp;
+}
+
+.enter .tabbar {
 	animation: 0.45s cubic-out 0.06s drop-in;
 }
 
@@ -227,6 +236,7 @@ body.settings {
 	decorator: linear-gradient(to bottom, #0B0A1200 0%, #0B0A1299 100%);
 	pointer-events: none;
 }
+
 
 .rows scrollbarvertical {
 	width: 4dp;
@@ -682,6 +692,9 @@ input.checkbox:checked {
 .info-body {
 	display: flex;
 	flex-direction: column;
+}
+
+.enter .info-body {
 	animation: 0.35s cubic-out rise-in;
 }
 

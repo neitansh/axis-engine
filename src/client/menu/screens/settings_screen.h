@@ -33,7 +33,7 @@ public:
 
 	void refresh() override;
 	bool onEvent(const SEvent &event) override;
-	void afterUpdate() override { m_armed = true; }
+	void afterUpdate() override;
 
 protected:
 	void bind(Rml::DataModelConstructor &model) override;
@@ -53,7 +53,6 @@ private:
 		Rml::String kind;
 		Rml::String value;
 		Rml::String widget;
-		Rml::String enter;
 		bool changed = false;
 	};
 
@@ -77,6 +76,7 @@ private:
 	void crosshairClicked(Rml::Element *target);
 	void reset(int index);
 	void focus(int index);
+	void animateNewRows();
 
 	SettingsCatalog m_catalog;
 	std::vector<PageEntry> m_pages;

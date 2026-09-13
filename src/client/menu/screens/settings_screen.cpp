@@ -232,7 +232,6 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 		row.RegisterMember("kind", &Row::kind);
 		row.RegisterMember("value", &Row::value);
 		row.RegisterMember("widget", &Row::widget);
-		row.RegisterMember("enter", &Row::enter);
 		row.RegisterMember("changed", &Row::changed);
 	}
 	model.RegisterArray<std::vector<PageEntry>>();
@@ -289,6 +288,33 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 				m_capturing = index_arg(args);
 				handle.DirtyVariable("capturing");
 			});
+}
+
+void SettingsScreen::afterUpdate()
+{
+	m_armed = true;
+	animateNewRows();
+}
+
+// Строки поднимаются одна за другой. Анимация ставится свойством прямо на
+// новые элементы, а не правилом темы: правило с nth-child или привязка
+// data-style перезапускали её при каждом обновлении модели, и список мигал.
+// Дальше первого экрана задержка не растёт — тех строк всё равно не видно.
+void SettingsScreen::animateNewRows()
+{
+	Rml::Element *rows = document() ? document()->GetElementById("rows") : nullptr;
+	if (!rows)
+		return;
+	int order = 0;
+	for (int i = 0; i < rows->GetNumChildren(); i++) {
+		Rml::Element *row = rows->GetChild(i);
+		if (row->HasAttribute("data-entered"))
+			continue;
+		row->SetAttribute("data-entered", "1");
+		const int delay = 120 + std::min(order, 14) * 30;
+		row->SetProperty("animation", "0.4s cubic-out " + std::to_string(delay) + "ms rise-in");
+		order++;
+	}
 }
 
 void SettingsScreen::refresh()
@@ -368,13 +394,8 @@ void SettingsScreen::rebuild()
 			appendItems(page.advanced);
 		}
 	}
-	for (size_t i = 0; i < m_rows.size(); i++) {
+	for (size_t i = 0; i < m_rows.size(); i++)
 		m_rows[i].index = (int)i;
-		// Строки поднимаются одна за другой; дальше первого экрана
-		// задержка не растёт — их всё равно не видно.
-		const int delay = 120 + (int)std::min<size_t>(i, 14) * 30;
-		m_rows[i].enter = "0.4s cubic-out " + std::to_string(delay) + "ms rise-in";
-	}
 	focus(m_focus);
 }
 
@@ -673,13 +694,11 @@ void SettingsScreen::write(Row &row, const std::string &value, bool refresh_widg
 void SettingsScreen::refreshRow(Row &row)
 {
 	const int index = row.index;
-	const Rml::String enter = row.enter;
 	if (!row.name.empty() && row.name[0] == '@')
 		row = makeSpecialRow(row.name);
 	else if (const SettingDef *def = m_catalog.find(row.name))
 		row = makeRow(*def);
 	row.index = index;
-	row.enter = enter;
 }
 
 // Одна настройка меняет другие строки: наборы качества сравнивают себя с

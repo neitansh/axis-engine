@@ -66,6 +66,9 @@ p {
 	flex-direction: column;
 	align-items: center;
 	margin-bottom: 36dp;
+}
+
+.enter .brand {
 	animation: 0.5s cubic-out menu-drop-in;
 }
 
@@ -92,14 +95,17 @@ p {
 
 .stack button {
 	margin-bottom: 10dp;
+}
+
+.enter .stack button {
 	animation: 0.4s cubic-out 0.1s menu-rise-in;
 }
 
-.stack button:nth-child(2) {
+.enter .stack button:nth-child(2) {
 	animation: 0.4s cubic-out 0.17s menu-rise-in;
 }
 
-.stack button:nth-child(3) {
+.enter .stack button:nth-child(3) {
 	animation: 0.4s cubic-out 0.24s menu-rise-in;
 }
 
