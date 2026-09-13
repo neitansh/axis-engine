@@ -51,6 +51,8 @@
 .load-card p.detail {
 	margin-top: 14dp;
 	text-align: center;
+	/* Подробности приходят в две строки: файлы и размер */
+	white-space: pre-line;
 	font-family: "Departure Mono";
 	font-size: 12dp;
 	line-height: 1.6;
