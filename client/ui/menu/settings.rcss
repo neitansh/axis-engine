@@ -16,6 +16,14 @@
 
 body.settings {
 	position: absolute;
+	/* Размытие у RmlUi отступает от краёв элемента на свой радиус, поэтому
+	   тело выходит за экран, а поля возвращают содержимое на место. */
+	top: -40dp;
+	left: -40dp;
+	right: -40dp;
+	bottom: -40dp;
+	width: auto;
+	height: auto;
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
@@ -23,28 +31,29 @@ body.settings {
 	background-color: #06050A73;
 	backdrop-filter: blur(26dp);
 	box-sizing: border-box;
-	padding: 22dp 48dp 0 48dp;
+	padding: 62dp 88dp 40dp 88dp;
+	font-size: 16dp;
 }
 
 /* Назад: текст со стрелкой в левом верхнем углу */
 
 .back {
 	position: absolute;
-	top: 30dp;
-	left: 40dp;
+	top: 70dp;
+	left: 80dp;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	padding: 6dp 10dp 6dp 6dp;
 	color: #B9B3C4;
-	font-size: 14dp;
+	font-size: 16dp;
 	cursor: pointer;
 	transition: color 0.15s linear-in-out;
 }
 
 .back .arrow {
-	width: 18dp;
-	height: 18dp;
+	width: 20dp;
+	height: 20dp;
 	margin-right: 6dp;
 	decorator: image(icons/back.png scale-none);
 	image-color: #B9B3C4;
@@ -66,7 +75,7 @@ body.settings {
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
-	margin-bottom: 40dp;
+	margin-bottom: 48dp;
 }
 
 .tabs {
@@ -81,19 +90,19 @@ body.settings {
 
 .tabs .tab {
 	position: relative;
-	width: 44dp;
-	height: 44dp;
+	width: 50dp;
+	height: 50dp;
 	margin: 0 3dp;
 	cursor: pointer;
 }
 
 .tabs .tab img {
 	position: absolute;
-	top: 6dp;
+	top: 7dp;
 	left: 0;
-	width: 22dp;
-	height: 22dp;
-	padding: 5dp 11dp;
+	width: 24dp;
+	height: 24dp;
+	padding: 6dp 13dp;
 	border-radius: 8dp;
 	image-color: #FFFFFFA6;
 	transition: transform 0.15s cubic-out, background-color 0.15s linear-in-out, image-color 0.15s linear-in-out;
@@ -112,11 +121,11 @@ body.settings {
 
 .tabs .tab .caption {
 	position: absolute;
-	top: 52dp;
+	top: 58dp;
 	left: -40dp;
 	right: -40dp;
 	text-align: center;
-	font-size: 10dp;
+	font-size: 12dp;
 	font-weight: 600;
 	letter-spacing: 1dp;
 	padding-left: 1dp;
@@ -155,8 +164,8 @@ body.settings {
 	position: absolute;
 	left: 0;
 	right: 0;
-	bottom: 0;
-	height: 72dp;
+	bottom: 40dp;
+	height: 80dp;
 	decorator: linear-gradient(to bottom, #0B0A1200 0%, #0B0A1299 100%);
 	pointer-events: none;
 }
@@ -173,11 +182,11 @@ body.settings {
 
 .rows h3.group {
 	display: block;
-	font-size: 22dp;
+	font-size: 26dp;
 	font-weight: 700;
-	letter-spacing: 3dp;
+	letter-spacing: 4dp;
 	color: #A78BFA;
-	margin: 30dp 0 12dp 0;
+	margin: 34dp 0 14dp 0;
 	animation: 0.25s cubic-out fade-in;
 }
 
@@ -189,8 +198,8 @@ body.settings {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	height: 46dp;
-	padding: 0 10dp 0 12dp;
+	height: 54dp;
+	padding: 0 10dp 0 14dp;
 	margin-bottom: 2dp;
 	border-radius: 6dp;
 	border: 1dp transparent;
@@ -212,8 +221,8 @@ body.settings {
 .setting .label {
 	flex: 1;
 	min-width: 0;
-	font-size: 14dp;
-	color: #E8E6ED;
+	font-size: 16dp;
+	color: #F2F0F5;
 	padding-right: 16dp;
 	white-space: nowrap;
 	overflow: hidden;
@@ -228,7 +237,7 @@ body.settings {
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-end;
-	width: 260dp;
+	width: 300dp;
 }
 
 .setting.keyrow .control {
@@ -236,22 +245,22 @@ body.settings {
 }
 
 .setting.tall .control {
-	width: 460dp;
+	width: 500dp;
 }
 
 /* Клавиша: тёмная плашка, как ряд значений; ожидание ввода — акцентом */
 
 .setting .key {
-	width: 260dp;
-	height: 34dp;
-	line-height: 32dp;
+	width: 300dp;
+	height: 40dp;
+	line-height: 38dp;
 	box-sizing: border-box;
 	text-align: center;
 	border-radius: 6dp;
 	background-color: #1B1626;
 	border: 1dp #FFFFFF14;
-	color: #E8E6ED;
-	font-size: 13dp;
+	color: #F2F0F5;
+	font-size: 15dp;
 	cursor: pointer;
 	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out;
 }
@@ -269,8 +278,8 @@ body.settings {
 /* Откат к умолчанию */
 
 .setting .undo {
-	width: 30dp;
-	height: 34dp;
+	width: 32dp;
+	height: 40dp;
 	margin-left: 6dp;
 	border-radius: 6dp;
 	decorator: image(icons/reset.png scale-none);
@@ -294,16 +303,16 @@ body.settings {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	width: 260dp;
-	height: 34dp;
+	width: 300dp;
+	height: 40dp;
 	border-radius: 6dp;
 	background-color: #1B1626;
 	box-sizing: border-box;
 }
 
 .stepper .arrow {
-	width: 30dp;
-	height: 34dp;
+	width: 34dp;
+	height: 40dp;
 	border-radius: 6dp;
 	cursor: pointer;
 	decorator: image(icons/chevron.png scale-none);
@@ -330,8 +339,8 @@ body.settings {
 
 .stepper .val {
 	color: #FFFFFF;
-	font-size: 13dp;
-	line-height: 18dp;
+	font-size: 15dp;
+	line-height: 22dp;
 	white-space: nowrap;
 	overflow: hidden;
 }
@@ -363,7 +372,7 @@ body.settings {
 
 .setting .control input.range {
 	flex: 1;
-	height: 34dp;
+	height: 40dp;
 	border-radius: 6dp;
 	background-color: #1B1626;
 	margin-right: 6dp;
@@ -371,19 +380,19 @@ body.settings {
 }
 
 .setting .control input.range slidertrack {
-	height: 34dp;
+	height: 40dp;
 	background-color: transparent;
 }
 
 .setting .control input.range sliderprogress {
-	height: 34dp;
+	height: 40dp;
 	border-radius: 6dp 0 0 6dp;
 	background-color: #8B5CF6;
 }
 
 .setting .control input.range sliderbar {
 	width: 4dp;
-	height: 34dp;
+	height: 40dp;
 	border-radius: 2dp;
 	background-color: #FFFFFF;
 	cursor: pointer;
@@ -396,14 +405,14 @@ body.settings {
 }
 
 .setting .control input.text {
-	height: 34dp;
-	line-height: 22dp;
-	padding: 5dp 10dp;
+	height: 40dp;
+	line-height: 24dp;
+	padding: 7dp 12dp;
 	box-sizing: border-box;
 	border-radius: 6dp;
 	background-color: #1B1626;
 	border: 1dp transparent;
-	font-size: 13dp;
+	font-size: 15dp;
 	transition: border-color 0.15s linear-in-out;
 }
 
@@ -416,26 +425,26 @@ body.settings {
 }
 
 .setting .control input.text.num {
-	width: 72dp;
+	width: 80dp;
 	text-align: center;
 }
 
 .setting .control input.text.wide {
-	width: 260dp;
+	width: 300dp;
 }
 
 /* Список: для длинных рядов значений */
 
 .setting .control select {
-	width: 260dp;
-	height: 34dp;
-	line-height: 22dp;
-	padding: 5dp 10dp;
+	width: 300dp;
+	height: 40dp;
+	line-height: 24dp;
+	padding: 7dp 12dp;
 	box-sizing: border-box;
 	border-radius: 6dp;
 	background-color: #1B1626;
 	border: 1dp transparent;
-	font-size: 13dp;
+	font-size: 15dp;
 	color: #FFFFFF;
 	cursor: pointer;
 	transition: border-color 0.15s linear-in-out;
@@ -450,9 +459,9 @@ body.settings {
 }
 
 .setting .control select selectarrow {
-	width: 30dp;
-	height: 32dp;
-	margin: -5dp -10dp 0 -30dp;
+	width: 34dp;
+	height: 38dp;
+	margin: -7dp -12dp 0 -34dp;
 	decorator: image(icons/chevron.png scale-none);
 	image-color: #948C9E;
 	transform: rotate(-90deg);
@@ -469,8 +478,8 @@ body.settings {
 }
 
 .setting .control select selectbox option {
-	padding: 6dp 12dp;
-	font-size: 13dp;
+	padding: 8dp 14dp;
+	font-size: 15dp;
 	color: #C8C3D1;
 	cursor: pointer;
 }
@@ -496,7 +505,7 @@ body.settings {
 	flex-direction: row;
 	align-items: center;
 	margin-left: 10dp;
-	font-size: 12dp;
+	font-size: 14dp;
 	color: #B9B3C4;
 }
 
@@ -527,13 +536,13 @@ input.checkbox:checked {
 	display: flex;
 	flex-direction: row;
 	align-items: flex-start;
-	width: 460dp;
+	width: 500dp;
 }
 
 .xhair-preview {
 	position: relative;
-	width: 96dp;
-	height: 96dp;
+	width: 120dp;
+	height: 120dp;
 	border-radius: 6dp;
 	background-color: #1B1626;
 	margin-right: 14dp;
@@ -554,13 +563,13 @@ input.checkbox:checked {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	height: 34dp;
+	height: 40dp;
 	margin-bottom: 6dp;
 }
 
 .xhair-fields .field span {
-	width: 90dp;
-	font-size: 12dp;
+	width: 100dp;
+	font-size: 14dp;
 	color: #B9B3C4;
 }
 
@@ -584,8 +593,8 @@ input.checkbox:checked {
 
 .xhair-fields .field.share .button {
 	display: block;
-	height: 34dp;
-	line-height: 32dp;
+	height: 40dp;
+	line-height: 38dp;
 	box-sizing: border-box;
 	padding: 0 14dp;
 	margin-right: 8dp;
@@ -593,7 +602,7 @@ input.checkbox:checked {
 	background-color: #1B1626;
 	border: 1dp #FFFFFF14;
 	color: #E8E6ED;
-	font-size: 12dp;
+	font-size: 14dp;
 	cursor: pointer;
 	transition: border-color 0.15s linear-in-out;
 }
@@ -607,7 +616,7 @@ input.checkbox:checked {
 .info {
 	display: flex;
 	flex-direction: column;
-	width: 320dp;
+	width: 340dp;
 	margin-left: 28dp;
 	padding-left: 24dp;
 	border-left: 1dp #FFFFFF14;
@@ -621,21 +630,21 @@ input.checkbox:checked {
 
 .info h4 {
 	display: block;
-	font-size: 15dp;
+	font-size: 19dp;
 	font-weight: 600;
 	color: #FFFFFF;
 	margin: 0 0 10dp 0;
 }
 
 .info p {
-	color: #B9B3C4;
-	font-size: 13dp;
-	line-height: 1.5;
+	color: #C8C3D1;
+	font-size: 15dp;
+	line-height: 1.55;
 	margin-bottom: 12dp;
 }
 
 .info p.load {
-	font-size: 12dp;
+	font-size: 14dp;
 	font-weight: 600;
 }
 
@@ -653,10 +662,10 @@ input.checkbox:checked {
 
 .info p.note {
 	color: #948C9E;
-	font-size: 12dp;
+	font-size: 14dp;
 }
 
 .info p.status {
 	color: #A78BFA;
-	font-size: 12dp;
+	font-size: 14dp;
 }

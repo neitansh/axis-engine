@@ -523,7 +523,7 @@ std::string SettingsScreen::makeCrosshairWidget() const
 
 	// Предпросмотр крупнее настоящего перекрестья: его разглядывают, а не
 	// целятся им. Рисуется теми же прямоугольниками, что и на экране.
-	const int box = 96;
+	const int box = 120;
 	const int px = 3;
 	std::string rml = "<div class=\"xhair\"><div class=\"xhair-preview\">";
 	auto pieces = [&](const std::vector<CrosshairStyle::Piece> &list, video::SColor color) {
