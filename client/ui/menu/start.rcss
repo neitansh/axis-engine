@@ -56,6 +56,15 @@ body {
 	cursor: pointer;
 }
 
+/* Мышь видит только сам пункт: слово и дымка едут при наведении, и щелчок,
+   начатый на слове, кончался бы уже мимо него — RmlUi такой щелчок не
+   засчитывает */
+
+.item .glow,
+.item .word {
+	pointer-events: none;
+}
+
 .item.apart {
 	margin-top: 28dp;
 }

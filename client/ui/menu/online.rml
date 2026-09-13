@@ -70,7 +70,7 @@
 	<div class="online-body" data-if="mode == 'servers'">
 		<div class="main servers-card">
 			<h3 class="group">{{ servers_heading }}</h3>
-			<div class="server-list">
+			<div class="server-list" data-if="hint == '' && list_loaded">
 				<div data-for="r : servers">
 					<div class="section" data-if="r.kind == 'header'">{{ r.name }}</div>
 					<div class="server" data-if="r.kind == 'row'" data-class-active="r.index == selected"
@@ -83,8 +83,11 @@
 								data-class-poor="r.ping_class == 'poor'">{{ r.ping }}</div>
 					</div>
 				</div>
-				<div class="empty" data-if="hint != ''">{{ hint }}</div>
-				<div class="empty" data-if="hint == '' && !list_loaded">[[Loading...]]</div>
+			</div>
+			<div class="empty" data-if="hint != ''"><div class="mark"/><p>{{ hint }}</p></div>
+			<div class="empty" data-if="hint == '' && !list_loaded">
+				<div class="ring"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
+				<p>[[Loading...]]</p>
 			</div>
 			<div class="list-actions">
 				<button class="refresh" data-event-click="refresh()"><span class="icon"/><span>[[Refresh]]</span></button>
