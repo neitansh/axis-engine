@@ -45,8 +45,12 @@
 			<div class="info-body" data-if="focus >= 0">
 				<h4>{{ focus_label }}</h4>
 				<p>{{ focus_help }}</p>
-				<p class="load" data-if="focus_load != ''" data-class-high="focus_load_class == 'high'"
-						data-class-medium="focus_load_class == 'medium'" data-class-low="focus_load_class == 'low'">{{ focus_load }}</p>
+				<div class="cost" data-if="focus_load != ''" data-class-high="focus_load_class == 'high'"
+						data-class-medium="focus_load_class == 'medium'" data-class-low="focus_load_class == 'low'">
+					<span class="cost-label">{{ focus_load_label }}</span>
+					<div class="meter"><i class="b1"/><i class="b2"/><i class="b3"/></div>
+					<span class="cost-word">{{ focus_load }}</span>
+				</div>
 				<p class="note" data-if="focus_note != ''">{{ focus_note }}</p>
 				<p class="status" data-if="crosshair_status != ''">{{ crosshair_status }}</p>
 			</div>

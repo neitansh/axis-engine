@@ -86,6 +86,7 @@ private:
 	Rml::String m_focus_label;
 	Rml::String m_focus_help;
 	Rml::String m_focus_load;
+	Rml::String m_focus_load_label;
 	Rml::String m_focus_load_class;
 	Rml::String m_focus_note;
 	Rml::String m_crosshair_status;

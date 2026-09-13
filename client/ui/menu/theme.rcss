@@ -65,10 +65,11 @@ p {
 
 .version {
 	position: absolute;
-	right: 12dp;
+	right: 14dp;
 	bottom: 10dp;
 	font-size: 12dp;
-	color: #E8E6ED99;
+	letter-spacing: 0.5dp;
+	color: #FFFFFFB3;
 }
 
 .stack {

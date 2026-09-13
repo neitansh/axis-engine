@@ -643,22 +643,58 @@ input.checkbox:checked {
 	margin-bottom: 12dp;
 }
 
-.info p.load {
+.cost {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 14dp;
+	padding: 8dp 12dp;
+	border-radius: 8dp;
+	background-color: #FFFFFF0A;
+	animation: 0.2s cubic-out fade-in;
+}
+
+.cost .cost-label {
+	font-size: 13dp;
+	color: #948C9E;
+	margin-right: 10dp;
+}
+
+.cost .meter {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-end;
+	height: 16dp;
+	margin-right: 10dp;
+}
+
+.cost .meter i {
+	display: block;
+	width: 6dp;
+	margin-right: 3dp;
+	border-radius: 2dp;
+	background-color: #FFFFFF24;
+}
+
+.cost .meter i.b1 { height: 8dp; }
+.cost .meter i.b2 { height: 12dp; }
+.cost .meter i.b3 { height: 16dp; }
+
+.cost.low .meter i.b1 { background-color: #8BD6A0; }
+.cost.medium .meter i.b1,
+.cost.medium .meter i.b2 { background-color: #F2C14E; }
+.cost.high .meter i.b1,
+.cost.high .meter i.b2,
+.cost.high .meter i.b3 { background-color: #FF8A75; }
+
+.cost .cost-word {
 	font-size: 14dp;
 	font-weight: 600;
 }
 
-.info p.load.high {
-	color: #FF8A75;
-}
-
-.info p.load.medium {
-	color: #F2C14E;
-}
-
-.info p.load.low {
-	color: #8BD6A0;
-}
+.cost.low .cost-word { color: #8BD6A0; }
+.cost.medium .cost-word { color: #F2C14E; }
+.cost.high .cost-word { color: #FF8A75; }
 
 .info p.note {
 	color: #948C9E;

@@ -6,6 +6,7 @@
 		body {
 			display: block;
 			pointer-events: none;
+			z-index: 100;
 		}
 	</style>
 </head>

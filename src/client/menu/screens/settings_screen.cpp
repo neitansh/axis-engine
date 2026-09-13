@@ -244,6 +244,7 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 	model.Bind("focus_label", &m_focus_label);
 	model.Bind("focus_help", &m_focus_help);
 	model.Bind("focus_load", &m_focus_load);
+	model.Bind("focus_load_label", &m_focus_load_label);
 	model.Bind("focus_load_class", &m_focus_load_class);
 	model.Bind("focus_note", &m_focus_note);
 	model.Bind("crosshair_status", &m_crosshair_status);
@@ -909,7 +910,11 @@ void SettingsScreen::focus(int index)
 		return;
 	m_focus_help = describe(*def);
 	if (!def->load.empty()) {
-		m_focus_load = strgettext("Cost:") + " " + strgettext(loadWord(def->load));
+		m_focus_load = strgettext(loadWord(def->load));
+		// Подпись переведена с двоеточием — для строки, а не для плашки.
+		m_focus_load_label = strgettext("Cost:");
+		if (!m_focus_load_label.empty() && m_focus_load_label.back() == ':')
+			m_focus_load_label.pop_back();
 		m_focus_load_class = def->load;
 	}
 	if (!def->note.empty())
