@@ -368,8 +368,10 @@ jobs:
           # Был zip; brotli жмёт заметно плотнее, а игру качает каждый игрок и
           # каждый раз целиком — обновление приносит сборку, а не разницу. Tar
           # вдобавок несёт права на файл, поэтому клиент приезжает исполняемым.
-          # -q 11 — самое плотное: пакуем раз, качают многие.
-          ( cd axis_linux && tar -cf - . | brotli -q 11 > "../axis-$version-linux.tar.br" )
+          # -q 9, а не самое плотное 11: одиннадцатый уровень на раннере жал
+          # пакет под три минуты в один поток, девятый — за полминуты, а архив
+          # тяжелее на десятую часть. Сама отправка на раздачу — секунды.
+          ( cd axis_linux && tar -cf - . | brotli -q 9 > "../axis-$version-linux.tar.br" )
 
           # depot/ и mods/ приезжают пустыми, а держится пустой каталог в
           # архиве одной своей записью — потерять её легко и незаметно.
@@ -572,7 +574,7 @@ jobs:
           # Тот же tar с brotli, что и под linux, и по тем же доводам.
           rm -f axis_client_windows.tar.br
 
-          ( cd axis_windows && tar -cf - . | brotli -q 11 > ../axis_client_windows.tar.br )
+          ( cd axis_windows && tar -cf - . | brotli -q 9 > ../axis_client_windows.tar.br )
 
           echo "Package size:"
           du -h axis_client_windows.tar.br
