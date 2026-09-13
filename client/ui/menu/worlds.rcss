@@ -103,7 +103,9 @@
 
 .crate .count {
 	padding: 1dp 8dp;
-	border-radius: 10dp;
+	/* Полукруглые торцы RmlUi сшивает с просветом посередине, и сквозь
+	   полупрозрачную заливку виден шов; чуть меньший радиус шва не даёт */
+	border-radius: 6dp;
 	background-color: #FFFFFF14;
 	font-size: 12dp;
 	color: #C8C3D1;
