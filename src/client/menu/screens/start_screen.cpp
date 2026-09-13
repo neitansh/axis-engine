@@ -24,25 +24,33 @@ void StartScreen::bind(Rml::DataModelConstructor &model)
 			});
 	model.BindEventCallback("quit_cancel",
 			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
-				m_confirm_exit = false;
+				closeQuitDialog();
 				handle.DirtyAllVariables();
 			});
 	model.BindEventCallback("quit_confirm",
 			[this](Rml::DataModelHandle, Rml::Event &, const Rml::VariantList &) {
-				g_settings->setBool("enable_esc_dialog", m_ask_always);
+				closeQuitDialog();
 				menu().quit();
 			});
+	// Галка пишется в настройку не здесь, а когда окно закрывают: change у
+	// флажка приходит и от самой привязки данных — при первой синхронизации
+	// с моделью, — и записывал бы значение по умолчанию поверх сохранённого.
 	model.BindEventCallback("ask_toggle",
-			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
-				g_settings->setBool("enable_esc_dialog", m_ask_always);
+			[](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
 				handle.DirtyVariable("ask_always");
 			});
 	model.BindEventCallback("ask_flip",
 			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
 				m_ask_always = !m_ask_always;
-				g_settings->setBool("enable_esc_dialog", m_ask_always);
 				handle.DirtyVariable("ask_always");
 			});
+}
+
+void StartScreen::closeQuitDialog()
+{
+	if (m_confirm_exit)
+		g_settings->setBool("enable_esc_dialog", m_ask_always);
+	m_confirm_exit = false;
 }
 
 void StartScreen::refresh()
@@ -89,14 +97,14 @@ bool StartScreen::onEvent(const SEvent &event)
 		return false;
 	if (event.KeyInput.Key == KEY_ESCAPE) {
 		if (m_confirm_exit)
-			m_confirm_exit = false;
+			closeQuitDialog();
 		else
 			askToQuit();
 		model().DirtyAllVariables();
 		return true;
 	}
 	if (m_confirm_exit && event.KeyInput.Key == KEY_RETURN) {
-		g_settings->setBool("enable_esc_dialog", m_ask_always);
+		closeQuitDialog();
 		menu().quit();
 		return true;
 	}

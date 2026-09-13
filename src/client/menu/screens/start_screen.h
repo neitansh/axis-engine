@@ -30,6 +30,7 @@ protected:
 
 private:
 	void askToQuit();
+	void closeQuitDialog();
 
 	bool m_confirm_exit = false;
 	bool m_ask_always = true;
