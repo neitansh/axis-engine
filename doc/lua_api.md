@@ -6715,6 +6715,15 @@ Call these functions only at load time!
     * Called when a player leaves the game
     * Does not get executed for connected players on shutdown.
     * `timed_out`: True for timeout, false for other reasons.
+* `core.register_on_player_avatar_change(function(ObjectRef))`
+    * Called when the look the engine dresses a player in changes after they
+      joined: their own skin has arrived from the account service, or the
+      look was swapped while they play. Never called while avatars are off.
+    * The join itself is not a change: a player comes in already dressed in
+      whatever is at hand, and `on_joinplayer` sees that.
+    * `core.get_player_avatar_texture(name)` already returns the new texture
+      inside the callback. Anything the game dressed like the player — the
+      arms in front of their eyes — is the game's to redress here.
 * `core.register_on_authplayer(function(name, ip, is_success))`
     * Called when a client attempts to log into an account.
     * `name`: The name of the account being authenticated.

@@ -606,6 +606,7 @@ core.registered_on_respawnplayers, core.register_on_respawnplayer = make_registr
 core.registered_on_prejoinplayers, core.register_on_prejoinplayer = make_registration()
 core.registered_on_joinplayers, core.register_on_joinplayer = make_registration()
 core.registered_on_leaveplayers, core.register_on_leaveplayer = make_registration()
+core.registered_on_player_avatar_changes, core.register_on_player_avatar_change = make_registration()
 core.registered_on_player_receive_fields, core.register_on_player_receive_fields = make_registration_reverse()
 core.registered_on_cheats, core.register_on_cheat = make_registration()
 core.registered_on_crafts, core.register_on_craft = make_registration()

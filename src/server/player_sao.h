@@ -323,6 +323,9 @@ private:
 	// Extra variable because during shutdown m_player is unavailable, but we still need to know.
 	std::string m_player_name; ///< used as GUID
 	AvatarLook m_avatar;
+	/// Облик уже назначался: следующая перемена — событие для игры, а первое
+	/// назначение при входе — нет, игрок в этот момент ещё не вошёл.
+	bool m_avatar_worn = false;
 	/// Самая высокая коробка, какую игра давала этому игроку: рост фигуры.
 	/// Коробка ниже неё — поза (присед), а не человек поменьше.
 	float m_avatar_height = 0.0f;

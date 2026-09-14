@@ -241,6 +241,11 @@ void PlayerSAO::enforceAvatar()
 		// and this does not. It rides the object's own channel, which no mod
 		// can write to.
 		m_messages_out.emplace(getId(), true, generateSetAvatarCommand());
+		// Игре — тоже: у неё бывают вещи, одетые как игрок (руки перед
+		// глазами), и переодеть их может только она.
+		if (m_avatar_worn)
+			m_env->getScriptIface()->on_player_avatar_change(this);
+		m_avatar_worn = true;
 	}
 
 	m_prop.visual = OBJECTVISUAL_MESH;

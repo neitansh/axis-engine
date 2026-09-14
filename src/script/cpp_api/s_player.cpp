@@ -182,6 +182,16 @@ void ScriptApiPlayer::on_leaveplayer(ServerActiveObject *player,
 	runCallbacks(2, RUN_CALLBACKS_MODE_FIRST);
 }
 
+void ScriptApiPlayer::on_player_avatar_change(ServerActiveObject *player)
+{
+	SCRIPTAPI_PRECHECKHEADER
+
+	lua_getglobal(L, "core");
+	lua_getfield(L, -1, "registered_on_player_avatar_changes");
+	objectrefGetOrCreate(L, player);
+	runCallbacks(1, RUN_CALLBACKS_MODE_FIRST);
+}
+
 void ScriptApiPlayer::on_cheat(ServerActiveObject *player,
 		const std::string &cheat_type)
 {
