@@ -310,8 +310,8 @@ root
 
 Настоящего непрозрачного режима (`TILE_MATERIAL_OPAQUE`, без `discard`) у
 объектов нет. Здесь он и не нужен; когда движок будет приводить объекты и ноды
-к одним словам (`doc/breakages.md`, «harmonize use_texture_alpha between
-entities & nodes»), это ничего в образе не меняет.
+к одним словам (в планах Luanti на следующую мажорную версию: «harmonize
+use_texture_alpha between entities & nodes»), это ничего в образе не меняет.
 
 ### Сборка
 

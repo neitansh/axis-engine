@@ -56,10 +56,5 @@ Here is a list with descriptions of relevant files:
     Note: [developing/profiling.md](developing/profiling.md) can be useful for
     modders and server owners!
 - [android.md](android.md): Android quirks.
-- [direction.md](direction.md): Luanti's roadmap document, inherited from
-    upstream. Axis has no roadmap of its own; this describes where *Luanti* is
-    going, which matters here only for what Axis will eventually merge.
-- [breakages.md](breakages.md): List of planned breakages for the next major
-    release, i.e. 6.0.0.
 - [docker_server.md](docker_server.md): Information about our Docker server
     images in the ghcr.
