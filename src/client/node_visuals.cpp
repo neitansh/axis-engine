@@ -502,9 +502,14 @@ void NodeVisuals::updateMesh(Client *client, const TextureSettings &tsettings)
 		if (auto *skinned_mesh = dynamic_cast<scene::SkinnedMesh *>(src_mesh)) {
 			// Compatibility: Animated meshes, as well as static gltf meshes, are not scaled by BS.
 			// See https://github.com/luanti-org/luanti/pull/16112#issuecomment-2881860329
-			bool is_gltf = skinned_mesh->getSourceFormat() ==
-					scene::SkinnedMesh::SourceFormat::GLTF;
-			apply_bs = skinned_mesh->isStatic() && !is_gltf;
+			// Bedrock тоже приходит уже в единицах движка (16 пикселей = нода,
+			// bedrock/convert.h), и куб 16×16×16 из Blockbench должен занять
+			// ровно ноду — как у сущности при visual_size = 1.
+			using SourceFormat = scene::SkinnedMesh::SourceFormat;
+			const SourceFormat format = skinned_mesh->getSourceFormat();
+			const bool in_engine_units = format == SourceFormat::GLTF
+					|| format == SourceFormat::BEDROCK;
+			apply_bs = skinned_mesh->isStatic() && !in_engine_units;
 			// Nodes do not support mesh animation, so we clone the static pose.
 			// This simplifies working with the mesh: We can just scale the vertices
 			// as transformations have already been applied.

@@ -362,7 +362,7 @@ scene::SkinnedMesh *GeometryLoader::build(const std::string &json,
 		bone.parent_index = it->second;
 	}
 
-	scene::SkinnedMeshBuilder builder(scene::SkinnedMesh::SourceFormat::OTHER);
+	scene::SkinnedMeshBuilder builder(scene::SkinnedMesh::SourceFormat::BEDROCK);
 
 	/*
 	 * Скелет. Точка вращения кости в Bedrock задана в общих координатах

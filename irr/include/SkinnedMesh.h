@@ -36,6 +36,7 @@ public:
 		B3D,
 		X,
 		GLTF,
+		BEDROCK,
 		OTHER,
 	};
 
