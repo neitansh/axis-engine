@@ -231,6 +231,7 @@ constexpr SettingDomainEntry SETTING_DOMAIN_TABLE[] = {
 	{"keymap_quicktune_next", ConfigDomain::ClientKeybindings},
 	{"keymap_quicktune_prev", ConfigDomain::ClientKeybindings},
 	{"keymap_rangeselect", ConfigDomain::ClientKeybindings},
+	{"keymap_reload", ConfigDomain::ClientKeybindings},
 	{"keymap_right", ConfigDomain::ClientKeybindings},
 	{"keymap_screenshot", ConfigDomain::ClientKeybindings},
 	{"keymap_slot1", ConfigDomain::ClientKeybindings},

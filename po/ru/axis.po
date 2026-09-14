@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 23:33+0300\n"
+"POT-Creation-Date: 2026-09-14 06:32+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -1879,6 +1879,10 @@ msgstr ""
 #: builtin/common/settings/descriptions.lua
 msgid "Reflect the sky and the shore in the water."
 msgstr "Отражать небо и берег в воде."
+
+#: builtin/common/settings/descriptions.lua
+msgid "Reload the weapon in your hands."
+msgstr "Перезарядить оружие в руках."
 
 #: builtin/common/settings/descriptions.lua
 msgid ""
@@ -4641,6 +4645,10 @@ msgstr "График профилировщика отображён"
 #: src/client/game.cpp
 msgid "Reconnecting to the server..."
 msgstr "Переподключение к серверу…"
+
+#: src/client/game.cpp src/settings_translation_file.cpp
+msgid "Reload"
+msgstr "Перезарядка"
 
 #: src/client/game.cpp
 msgid "Resolving address..."
@@ -8438,6 +8446,14 @@ msgid ""
 msgstr ""
 "Клавиша для размещения предмета/блока или для использования чего-либо.\n"
 "(Примечание: фактическое значение может меняться от крейта к крейту.)"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Key for reloading the weapon in hand. The engine only reports it;\n"
+"what reloading means is up to the crate."
+msgstr ""
+"Клавиша перезарядки оружия в руках. Движок только сообщает о ней; что "
+"значит перезарядка — решает крейт."
 
 #: src/settings_translation_file.cpp
 msgid "Key for sprinting (speeding up walking and flying)."

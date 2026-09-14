@@ -69,6 +69,45 @@ std::string text(const std::string &value)
 	return Rml::StringUtilities::EncodeRml(value);
 }
 
+// Привязка — список через «|»: клавиатура с мышью и геймпад рядом. Экран
+// показывает и меняет только первое; геймпадная часть переживает
+// переназначение нетронутой, а на экране её нет — привязать геймпад здесь
+// всё равно нечем.
+bool fromGamepad(KeyPress key)
+{
+	return key.getSourceType() == KeyPress::InputSourceType::GAMEPAD;
+}
+
+std::string keyLabel(const std::string &value)
+{
+	std::string label;
+	for (const std::string &sym : str_split(value, '|')) {
+		const KeyPress key(sym);
+		if (!key || fromGamepad(key))
+			continue;
+		if (!label.empty())
+			label += " / ";
+		label += key.name();
+	}
+	return label;
+}
+
+std::string rebound(const std::string &value, KeyPress key)
+{
+	std::string result = key.sym();
+	for (const std::string &sym : str_split(value, '|')) {
+		const KeyPress old(sym);
+		if (old && fromGamepad(old))
+			result += "|" + old.sym();
+	}
+	return result;
+}
+
+bool primaryButton(const Rml::Event &event)
+{
+	return event.GetParameter<int>("button", 0) == 0;
+}
+
 // Ползунок только для диапазона, по которому им реально попасть: порт с
 // верхней границей 65535 ползунком не выставить.
 bool isRanged(const SettingDef &def)
@@ -264,13 +303,22 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 				changed(index_arg(args), event);
 				handle.DirtyAllVariables();
 			});
+	// Щелчки внутри строки приходят как mousedown, а не click. Фокус внутри
+	// строки отнят у всего (theme.rcss, `.focusable > *`, а focus в RmlUi
+	// наследуется), чтобы клавиатура шла строке; click же RmlUi шлёт тому,
+	// кто взял фокус, — строке, и до стрелок, клавиши и отката он не
+	// доходит. mousedown идёт элементу под курсором.
 	model.BindEventCallback("clicked",
 			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &event, const Rml::VariantList &args) {
+				if (!primaryButton(event))
+					return;
 				clicked(index_arg(args), event);
 				handle.DirtyAllVariables();
 			});
 	model.BindEventCallback("reset",
-			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &args) {
+			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &event, const Rml::VariantList &args) {
+				if (!primaryButton(event))
+					return;
 				reset(index_arg(args));
 				handle.DirtyAllVariables();
 			});
@@ -280,7 +328,9 @@ void SettingsScreen::bind(Rml::DataModelConstructor &model)
 				handle.DirtyAllVariables();
 			});
 	model.BindEventCallback("capture",
-			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &args) {
+			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &event, const Rml::VariantList &args) {
+				if (!primaryButton(event))
+					return;
 				m_capturing = index_arg(args);
 				handle.DirtyVariable("capturing");
 			});
@@ -454,9 +504,15 @@ bool SettingsScreen::onEvent(const SEvent &event)
 		key = KeyPress(event.KeyInput);
 	} else if (event.EventType == EET_MOUSE_INPUT_EVENT) {
 		const auto e = event.MouseInput.Event;
-		if (e != EMIE_LMOUSE_PRESSED_DOWN && e != EMIE_RMOUSE_PRESSED_DOWN
-				&& e != EMIE_MMOUSE_PRESSED_DOWN && e != EMIE_XMOUSE_PRESSED_DOWN)
-			return e != EMIE_MOUSE_MOVED;
+		const bool pressed = e == EMIE_LMOUSE_PRESSED_DOWN || e == EMIE_RMOUSE_PRESSED_DOWN
+				|| e == EMIE_MMOUSE_PRESSED_DOWN || e == EMIE_XMOUSE_PRESSED_DOWN;
+		if (!pressed) {
+			// Отпускание кнопки идёт в RmlUi: ожидание включает mousedown, и
+			// без своего mouseup RmlUi считает кнопку зажатой дальше.
+			const bool released = e == EMIE_LMOUSE_LEFT_UP || e == EMIE_RMOUSE_LEFT_UP
+					|| e == EMIE_MMOUSE_LEFT_UP || e == EMIE_XMOUSE_LEFT_UP;
+			return !released && e != EMIE_MOUSE_MOVED;
+		}
 		key = KeyPress(event.MouseInput);
 	} else {
 		return false;
@@ -464,8 +520,10 @@ bool SettingsScreen::onEvent(const SEvent &event)
 
 	Row &row = m_rows[m_capturing];
 	m_capturing = -1;
-	if (key)
-		write(row, key.sym(), true);
+	if (key) {
+		if (const SettingDef *def = m_catalog.find(row.name))
+			write(row, rebound(readSetting(*def), key), true);
+	}
 	model().DirtyAllVariables();
 	return true;
 }
@@ -742,7 +800,7 @@ SettingsScreen::Row SettingsScreen::makeRow(const SettingDef &def) const
 	case SettingDef::Kind::Flags: row.kind = "flags"; break;
 	case SettingDef::Kind::Key:
 		row.kind = "key";
-		row.value = KeyPress(row.value).name();
+		row.value = keyLabel(row.value);
 		break;
 	default: row.kind = "text"; break;
 	}

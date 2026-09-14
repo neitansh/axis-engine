@@ -174,7 +174,8 @@ void set_default_settings()
 	settings->setDefault("keymap_pickitem", "MOUSE_BUTTON_2"); // MMB
 	settings->setDefault("keymap_inventory", "SYSTEM_SCANCODE_8|GAMEPAD_BUTTON_3"); // KEY_KEY_E|Gamepad North
 	settings->setDefault("keymap_pause", "GAMEPAD_BUTTON_6"); // Gamepad Start
-	settings->setDefault("keymap_aux1", "SYSTEM_SCANCODE_21|GAMEPAD_BUTTON_2"); // KEY_KEY_R|Gamepad West
+	settings->setDefault("keymap_aux1", "SYSTEM_SCANCODE_9"); // KEY_KEY_F
+	settings->setDefault("keymap_reload", "SYSTEM_SCANCODE_21|GAMEPAD_BUTTON_2"); // KEY_KEY_R|Gamepad West
 	settings->setDefault("keymap_chat", "SYSTEM_SCANCODE_23"); // KEY_KEY_T
 	settings->setDefault("keymap_cmd", "SYSTEM_SCANCODE_56"); // /
 	settings->setDefault("keymap_cmd_local", "SYSTEM_SCANCODE_55"); // .

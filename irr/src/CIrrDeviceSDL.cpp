@@ -325,13 +325,19 @@ u32 CIrrDeviceSDL::getScancodeFromKey(const Keycode &key) const
 
 Keycode CIrrDeviceSDL::getKeyFromScancode(const u32 scancode) const
 {
+	// Клавиша зовётся по своему месту в раскладке US, а не по текущей:
+	// SDL_GetKeyFromScancode под русской раскладкой отдаёт за W букву «ц»,
+	// и список клавиш в настройках читался бы по-разному в зависимости от
+	// раскладки в момент открытия. Имя сканкода у SDL всегда из раскладки
+	// US, а разбор имени возвращает keycode этой же раскладки.
+	auto keycode = SDL_GetKeyFromName(SDL_GetScancodeName((SDL_Scancode)scancode));
+	if (keycode == SDLK_UNKNOWN) {
 #ifdef _IRR_USE_SDL3_
-	// TODO: SDL_HINT_KEYCODE_OPTIONS ?
-	auto keycode = SDL_GetKeyFromScancode((SDL_Scancode)scancode, SDL_KMOD_NONE, true);
+		keycode = SDL_GetKeyFromScancode((SDL_Scancode)scancode, SDL_KMOD_NONE, true);
 #else
-	// Modifiers not supported
-	auto keycode = SDL_GetKeyFromScancode((SDL_Scancode)scancode);
+		keycode = SDL_GetKeyFromScancode((SDL_Scancode)scancode);
 #endif
+	}
 	const auto &keyentry = KeyMap.find(keycode);
 	auto irrcode = keyentry != KeyMap.end() ? keyentry->second : KEY_UNKNOWN;
 	wchar_t keychar = findCharToPassToIrrlicht(keycode, irrcode, false);

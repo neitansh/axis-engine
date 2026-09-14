@@ -53,7 +53,7 @@ struct PlayerControl
 	PlayerControl(
 		float a_up, float a_down, float a_left, float a_right,
 		bool a_jump, bool a_aux1, bool a_sneak,
-		bool a_zoom, bool a_pickitem,
+		bool a_zoom, bool a_pickitem, bool a_reload,
 		bool a_dig, bool a_place,
 		float a_pitch, float a_yaw,
 		bool a_sprint
@@ -68,6 +68,7 @@ struct PlayerControl
 		sneak = a_sneak;
 		zoom = a_zoom;
 		pickitem = a_pickitem;
+		reload = a_reload;
 		dig = a_dig;
 		place = a_place;
 		sprint = a_sprint;
@@ -97,6 +98,7 @@ struct PlayerControl
 	bool sneak = false;
 	bool zoom = false;
 	bool pickitem = false;
+	bool reload = false;
 	bool dig = false;
 	bool place = false;
 	bool sprint = false;

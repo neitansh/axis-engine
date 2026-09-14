@@ -35,10 +35,10 @@
 							data-event-keydown="row_key(r.index)">
 						<div class="label" data-class-long="r.long_label">{{ r.label }}</div>
 						<div class="control" data-rml="r.widget" data-event-change="changed(r.index)"
-								data-event-click="clicked(r.index)"></div>
+								data-event-mousedown="clicked(r.index)"></div>
 						<div class="key" data-if="r.kind == 'key'" data-class-waiting="capturing == r.index"
-								data-event-click="capture(r.index)">{{ capturing == r.index ? key_prompt : r.value }}</div>
-						<div class="undo" data-class-hidden="!r.changed" data-event-click="reset(r.index)"/>
+								data-event-mousedown="capture(r.index)">{{ capturing == r.index ? key_prompt : r.value }}</div>
+						<div class="undo" data-class-hidden="!r.changed" data-event-mousedown="reset(r.index)"/>
 					</div>
 				</div>
 				<div class="empty" data-if="rows.size == 0">[[Nothing found]]</div>

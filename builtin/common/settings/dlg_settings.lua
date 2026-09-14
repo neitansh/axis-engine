@@ -134,9 +134,10 @@ local PAGES = {
 		basic = {
 			{ heading = N_("Movement") },
 			"keymap_forward", "keymap_backward", "keymap_left", "keymap_right",
-			"keymap_jump", "keymap_sneak", "keymap_sprint", "keymap_aux1",
+			"keymap_jump", "keymap_sneak", "keymap_sprint",
 			{ heading = N_("Interaction") },
-			"keymap_dig", "keymap_place", "keymap_drop", "keymap_inventory",
+			"keymap_dig", "keymap_place", "keymap_reload", "keymap_aux1",
+			"keymap_drop", "keymap_inventory",
 			{ heading = N_("Interface") },
 			"keymap_chat", "keymap_cmd", "keymap_zoom", "keymap_pickitem",
 			"keymap_help", "keymap_screenshot",

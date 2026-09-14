@@ -50,6 +50,8 @@ fake_function() {
 	gettext("Key for opening the pause menu in-game.\nPressing the escape key always opens the pause menu.");
 	gettext("Use");
 	gettext("Key for moving fast in fast mode.\nKey for using something: leaving a vehicle, opening a hatch, and\nwhatever else the crate hangs on it.");
+	gettext("Reload");
+	gettext("Key for reloading the weapon in hand. The engine only reports it;\nwhat reloading means is up to the crate.");
 	gettext("Open chat");
 	gettext("Command");
 	gettext("Key for opening the chat window to type commands.");

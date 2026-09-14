@@ -2057,6 +2057,8 @@ int ObjectRef::l_get_player_control(lua_State *L)
 	lua_setfield(L, -2, "zoom");
 	lua_pushboolean(L, control.pickitem);
 	lua_setfield(L, -2, "pickitem");
+	lua_pushboolean(L, control.reload);
+	lua_setfield(L, -2, "reload");
 	return 1;
 }
 
@@ -2086,7 +2088,10 @@ int ObjectRef::l_get_player_control_bits(lua_State *L)
 		((u32)(c.sneak & 1) << 6) |
 		((u32)(c.dig & 1) << 7) |
 		((u32)(c.place & 1) << 8) |
-		((u32)(c.zoom & 1) << 9);
+		((u32)(c.zoom & 1) << 9) |
+		((u32)(c.sprint & 1) << 10) |
+		((u32)(c.pickitem & 1) << 11) |
+		((u32)(c.reload & 1) << 12);
 
 	lua_pushinteger(L, keypress_bits);
 	return 1;

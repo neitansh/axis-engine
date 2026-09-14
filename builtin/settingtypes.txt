@@ -200,7 +200,11 @@ keymap_pause (Open pause menu) key GAMEPAD_BUTTON_6
 #    Key for moving fast in fast mode.
 #    Key for using something: leaving a vehicle, opening a hatch, and
 #    whatever else the crate hangs on it.
-keymap_aux1 (Use) key SYSTEM_SCANCODE_21|GAMEPAD_BUTTON_2
+keymap_aux1 (Use) key SYSTEM_SCANCODE_9
+
+#    Key for reloading the weapon in hand. The engine only reports it;
+#    what reloading means is up to the crate.
+keymap_reload (Reload) key SYSTEM_SCANCODE_21|GAMEPAD_BUTTON_2
 
 keymap_chat (Open chat) key SYSTEM_SCANCODE_23
 

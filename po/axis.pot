@@ -6,21 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"#-#-#-#-#  axis.pot (axis)  #-#-#-#-#\n"
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 23:33+0300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"#-#-#-#-#  theme.pot (axis)  #-#-#-#-#\n"
-"Project-Id-Version: axis\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 23:37+0300\n"
+"POT-Creation-Date: 2026-09-14 06:32+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1065,6 +1053,10 @@ msgstr ""
 
 #: builtin/common/settings/descriptions.lua
 msgid "Fly in the direction you are looking, rather than straight ahead."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid "Reload the weapon in your hands."
 msgstr ""
 
 #: builtin/common/settings/descriptions.lua
@@ -4177,6 +4169,10 @@ msgid "Use"
 msgstr ""
 
 #: src/client/game.cpp src/settings_translation_file.cpp
+msgid "Reload"
+msgstr ""
+
+#: src/client/game.cpp src/settings_translation_file.cpp
 msgid "Open inventory"
 msgstr ""
 
@@ -5467,6 +5463,12 @@ msgid ""
 "Key for moving fast in fast mode.\n"
 "Key for using something: leaving a vehicle, opening a hatch, and\n"
 "whatever else the crate hangs on it."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Key for reloading the weapon in hand. The engine only reports it;\n"
+"what reloading means is up to the crate."
 msgstr ""
 
 #: src/settings_translation_file.cpp
