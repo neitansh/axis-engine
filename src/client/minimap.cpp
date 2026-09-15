@@ -726,21 +726,29 @@ void Minimap::rebuildTexture(const MinimapScan &scan, const View &view,
 
 // Квадрат с текстурой в пикселях области place.rect; повёрнут вокруг центра
 // области, если карта круглая.
+// Точка области (до поворота, в пикселях от угла rect) — на экран.
+static v2f rotateInRect(const core::rect<s32> &rect, f32 angle, f32 px, f32 py)
+{
+	const f32 w = rect.getWidth(), h = rect.getHeight();
+	const f32 s = std::sin(angle * core::DEGTORAD);
+	const f32 c = std::cos(angle * core::DEGTORAD);
+	const f32 dx = px - w / 2.0f, dy = py - h / 2.0f;
+	return v2f(dx * c + dy * s + w / 2.0f, -dx * s + dy * c + h / 2.0f);
+}
+
 void Minimap::drawMapQuad(const Placement &place, video::ITexture *texture,
-		f32 quad_w, f32 quad_h, f32 left, f32 top, bool nearest)
+		f32 quad_w, f32 quad_h, bool nearest)
 {
 	const s32 w = place.rect.getWidth(), h = place.rect.getHeight();
 	auto &v = m_meshbuffer->Vertices->Data;
 	static const video::SColor white(255, 255, 255, 255);
-	const f32 s = std::sin(place.angle * core::DEGTORAD);
-	const f32 c = std::cos(place.angle * core::DEGTORAD);
 	auto put = [&](int i, f32 px, f32 py, f32 u, f32 tv) {
-		f32 dx = px - w / 2.0f, dy = py - h / 2.0f;
-		f32 rx = dx * c + dy * s, ry = -dx * s + dy * c;
-		f32 x = (rx + w / 2.0f) / w * 2.0f - 1.0f;
-		f32 y = 1.0f - (ry + h / 2.0f) / h * 2.0f;
+		v2f r = rotateInRect(place.rect, place.angle, px, py);
+		f32 x = r.X / w * 2.0f - 1.0f;
+		f32 y = 1.0f - r.Y / h * 2.0f;
 		v[i] = video::S3DVertex(x, y, 0, 0, 0, 1, white, u, tv);
 	};
+	const f32 left = place.quad_left, top = place.quad_top;
 	put(0, left, top + quad_h, 0, 1);
 	put(1, left, top, 0, 0);
 	put(2, left + quad_w, top, 1, 0);
@@ -780,22 +788,13 @@ void Minimap::drawMapQuad(const Placement &place, video::ITexture *texture,
 bool Minimap::toScreen(const Placement &place, v3f pos, v2f &out) const
 {
 	const f32 w = place.rect.getWidth(), h = place.rect.getHeight();
-	f32 dx = (pos.X - place.node_left) * place.k;
-	f32 dy = (place.node_top - pos.Z) * place.k;
-	if (place.round) {
-		// Круг вращается вокруг игрока, он же — центр панели.
-		dx -= w / 2.0f;
-		dy -= h / 2.0f;
-		const f32 sa = std::sin(-place.angle * core::DEGTORAD);
-		const f32 ca = std::cos(-place.angle * core::DEGTORAD);
-		f32 rx = dx * ca + dy * sa, ry = -dx * sa + dy * ca;
-		dx = rx + w / 2.0f;
-		dy = ry + h / 2.0f;
-	}
-	out = v2f(place.rect.UpperLeftCorner.X + dx, place.rect.UpperLeftCorner.Y + dy);
-	return dx >= 0 && dx <= w && dy >= 0 && dy <= h
-		&& (!place.round || (dx - w / 2) * (dx - w / 2) + (dy - h / 2) * (dy - h / 2)
-			<= (w / 2) * (w / 2));
+	v2f r = rotateInRect(place.rect, place.angle,
+		place.quad_left + (pos.X - place.node_left) * place.k,
+		place.quad_top + (place.node_top - pos.Z) * place.k);
+	out = v2f(place.rect.UpperLeftCorner.X + r.X, place.rect.UpperLeftCorner.Y + r.Y);
+	if (place.round)
+		return (r.X - w / 2) * (r.X - w / 2) + (r.Y - h / 2) * (r.Y - h / 2) <= (w / 2) * (w / 2);
+	return r.X >= 0 && r.X <= w && r.Y >= 0 && r.Y <= h;
 }
 
 void Minimap::drawMinimap(core::rect<s32> rect, const std::vector<MinimapMapMarker> &markers)
@@ -849,31 +848,30 @@ void Minimap::drawMinimap(core::rect<s32> rect, const std::vector<MinimapMapMark
 		Placement place;
 		place.rect = rect;
 		place.round = round;
-		place.angle = round ? m_angle : 0.0f;
+		// Круг поворачивается так, чтобы взгляд игрока смотрел вверх.
+		place.angle = round ? -m_angle : 0.0f;
 
 		if (m_scan_valid && data->texture) {
 			const View &tv = m_texture_view;
 			const f32 k = tv.px_per_texel / tv.nodes_per_texel;
 			// Левый край текселя 0 и верхний край строки 0 в нодах: нода с
 			// целой координатой n занимает [n - 0.5, n + 0.5).
-			const f32 left_node = m_scan.min.X + 1 - 0.5f;
-			const f32 top_node = m_scan.min.Z + 1 + (f32)tv.texels_z * tv.nodes_per_texel - 0.5f;
-			f32 left = panel / 2.0f + (left_node - m_player_pos.X) * k;
-			f32 top = panel / 2.0f - (top_node - m_player_pos.Z) * k;
-			if (!round) {
-				left = std::round(left);
-				top = std::round(top);
-			}
 			place.k = k;
-			place.node_left = left_node - left / k;
-			place.node_top = top_node + top / k;
+			place.node_left = m_scan.min.X + 1 - 0.5f;
+			place.node_top = m_scan.min.Z + 1 + (f32)tv.texels_z * tv.nodes_per_texel - 0.5f;
+			place.quad_left = panel / 2.0f + (place.node_left - m_player_pos.X) * k;
+			place.quad_top = panel / 2.0f - (place.node_top - m_player_pos.Z) * k;
+			if (!round) {
+				place.quad_left = std::round(place.quad_left);
+				place.quad_top = std::round(place.quad_top);
+			}
 			drawMapQuad(place, data->texture, tv.texels_x * tv.px_per_texel,
-				tv.texels_z * tv.px_per_texel, left, top, !round);
+				tv.texels_z * tv.px_per_texel, !round);
 
 			if (round) {
-				Placement flat = place;
-				flat.angle = 0;
-				drawMapQuad(flat, data->minimap_overlay_round, panel, panel, 0, 0, false);
+				Placement flat;
+				flat.rect = rect;
+				drawMapQuad(flat, data->minimap_overlay_round, panel, panel, false);
 			}
 
 			drawMarkers(place, markers, true, false);
@@ -887,11 +885,12 @@ void Minimap::drawMinimap(core::rect<s32> rect, const std::vector<MinimapMapMark
 		std::max(6.0f, std::round(panel * 0.045f)), round ? 0.0f : m_angle);
 }
 
-void Minimap::setArea(bool set, v2s16 min, v2s16 max)
+void Minimap::setArea(bool set, v2s16 min, v2s16 max, u8 up)
 {
 	m_area_set = set && max.X >= min.X && max.Y >= min.Y;
 	m_area_min = min;
 	m_area_max = max;
+	m_area_up = up % 4;
 	m_big_valid = false;
 }
 
@@ -941,7 +940,12 @@ void Minimap::drawBigMap(const core::rect<s32> &screen,
 	if (avail_w <= 0 || avail_h <= 0)
 		return;
 
-	View view = computeBigView(amax.X - amin.X + 1, amax.Y - amin.Y + 1, avail_w, avail_h);
+	// Карта повёрнута так, что сверху — заданная сторона света; на четверть
+	// оборота она ложится на экран боком, и вписывать её надо боком же.
+	const u8 up = m_area_set ? m_area_up : 0;
+	const bool sideways = up % 2 == 1;
+	View view = computeBigView(amax.X - amin.X + 1, amax.Y - amin.Y + 1,
+		sideways ? avail_h : avail_w, sideways ? avail_w : avail_h);
 	u32 generation;
 	{
 		MutexAutoLock lock(m_mutex);
@@ -978,23 +982,29 @@ void Minimap::drawBigMap(const core::rect<s32> &screen,
 		return;
 
 	const View &tv = m_big_view;
-	const s32 w = (s32)std::round(tv.texels_x * tv.px_per_texel);
-	const s32 h = (s32)std::round(tv.texels_z * tv.px_per_texel);
+	const s32 quad_w = (s32)std::round(tv.texels_x * tv.px_per_texel);
+	const s32 quad_h = (s32)std::round(tv.texels_z * tv.px_per_texel);
+	const s32 w = sideways ? quad_h : quad_w;
+	const s32 h = sideways ? quad_w : quad_h;
 	Placement place;
 	place.rect = core::rect<s32>(0, 0, w, h);
 	place.rect += v2s32(screen.UpperLeftCorner.X + margin + (avail_w - w) / 2,
 		screen.UpperLeftCorner.Y + margin + (avail_h - h) / 2);
+	place.angle = up * 90.0f;
+	place.quad_left = (w - quad_w) / 2.0f;
+	place.quad_top = (h - quad_h) / 2.0f;
 	place.k = tv.px_per_texel / tv.nodes_per_texel;
 	place.node_left = m_big_scan.min.X + 1 - 0.5f;
 	place.node_top = m_big_scan.min.Z + 1 + (f32)tv.texels_z * tv.nodes_per_texel - 0.5f;
 
-	drawMapQuad(place, data->big_texture, w, h, 0, 0, tv.px_per_texel >= 1.0f);
+	drawMapQuad(place, data->big_texture, quad_w, quad_h, tv.px_per_texel >= 1.0f);
 	drawFrame(place.rect);
 	drawMarkers(place, markers, false, true);
 
 	v2f me;
 	if (toScreen(place, m_player_pos, me))
-		drawPlayerArrow(me, std::max(8.0f, std::round(place.rect.getHeight() * 0.02f)), m_angle);
+		drawPlayerArrow(me, std::max(8.0f, std::round(std::min(w, h) * 0.03f)),
+			m_angle + place.angle);
 }
 
 void Minimap::drawTextureMode(const core::rect<s32> &rect)
@@ -1049,26 +1059,47 @@ void Minimap::drawTextureMode(const core::rect<s32> &rect)
 	driver->setViewPort(oldViewPort);
 }
 
-static void drawOutline(video::IVideoDriver *driver, const core::rect<s32> &r,
-		video::SColor color)
+// Кольцо толщиной t снаружи прямоугольника r: верх и лево одним цветом,
+// низ и право — другим. Так рисуется фаска.
+static void drawRing(video::IVideoDriver *driver, const core::rect<s32> &r, s32 t,
+		video::SColor top_left, video::SColor bottom_right)
 {
-	const s32 x0 = r.UpperLeftCorner.X, y0 = r.UpperLeftCorner.Y;
-	const s32 x1 = r.LowerRightCorner.X, y1 = r.LowerRightCorner.Y;
-	driver->draw2DRectangle(color, core::rect<s32>(x0, y0, x1, y0 + 1));
-	driver->draw2DRectangle(color, core::rect<s32>(x0, y1 - 1, x1, y1));
-	driver->draw2DRectangle(color, core::rect<s32>(x0, y0 + 1, x0 + 1, y1 - 1));
-	driver->draw2DRectangle(color, core::rect<s32>(x1 - 1, y0 + 1, x1, y1 - 1));
+	const s32 x0 = r.UpperLeftCorner.X - t, y0 = r.UpperLeftCorner.Y - t;
+	const s32 x1 = r.LowerRightCorner.X + t, y1 = r.LowerRightCorner.Y + t;
+	driver->draw2DRectangle(top_left, core::rect<s32>(x0, y0, x1 - t, y0 + t));
+	driver->draw2DRectangle(top_left, core::rect<s32>(x0, y0 + t, x0 + t, y1 - t));
+	driver->draw2DRectangle(bottom_right, core::rect<s32>(x0 + t, y1 - t, x1, y1));
+	driver->draw2DRectangle(bottom_right, core::rect<s32>(x1 - t, y0, x1, y1 - t));
 }
 
+// Толщина одной линии рамки: пиксель на 720 строк экрана, чтобы рамка не
+// терялась на больших экранах и не толстела на маленьких.
+s32 Minimap::frameUnit() const
+{
+	return std::max(1, (int)std::lround(driver->getScreenSize().Height / 720.0f));
+}
+
+// Рамка в четыре линии, как у Xaero: чёрная снаружи, светлая и тёмная фаской
+// — на нижней и правой сторонах они меняются местами, — и почти чёрная у
+// самой карты.
 void Minimap::drawFrame(const core::rect<s32> &rect)
 {
-	static const video::SColor outer(220, 0, 0, 0);
-	static const video::SColor inner(70, 255, 255, 255);
+	static const video::SColor black(255, 0, 0, 0);
+	static const video::SColor light(255, 147, 147, 147);
+	static const video::SColor dark(255, 93, 93, 93);
+	static const video::SColor inner(255, 16, 16, 16);
+	const s32 t = frameUnit();
 	core::rect<s32> r = rect;
-	r.UpperLeftCorner -= v2s32(1, 1);
-	r.LowerRightCorner += v2s32(1, 1);
-	drawOutline(driver, r, outer);
-	drawOutline(driver, rect, inner);
+	drawRing(driver, r, t, inner, inner);
+	r.UpperLeftCorner -= v2s32(t, t);
+	r.LowerRightCorner += v2s32(t, t);
+	drawRing(driver, r, t, dark, light);
+	r.UpperLeftCorner -= v2s32(t, t);
+	r.LowerRightCorner += v2s32(t, t);
+	drawRing(driver, r, t, light, dark);
+	r.UpperLeftCorner -= v2s32(t, t);
+	r.LowerRightCorner += v2s32(t, t);
+	drawRing(driver, r, t, black, black);
 }
 
 void Minimap::drawPlayerArrow(v2f center, f32 s, f32 angle)

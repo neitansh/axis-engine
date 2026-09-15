@@ -9703,8 +9703,11 @@ You **must not** mix names and track numbers to refer to the same animation.
     * Returns `false` if the client is too old to understand it.
 * `set_minimap_area(area)`
     * What the map key (`keymap_map`) shows whole: `area` is
-      `{minp = {x=, z=}, maxp = {x=, z=}}`, inclusive. `nil` goes back to the
-      default, 512 nodes around the player.
+      `{minp = {x=, z=}, maxp = {x=, z=}, up = "north"}`, inclusive. `nil`
+      goes back to the default, 512 nodes around the player.
+    * `up` is the compass direction at the top of the map: `"north"` (the
+      default), `"east"`, `"south"` or `"west"`. A team fighting eastward
+      wants east up: its own side at the bottom, the enemy across the top.
     * The map is drawn from the same data as the minimap, so an area the
       client has no mapblocks for is only as complete as what
       `set_minimap_surface` sent. Put what the player should see on it with

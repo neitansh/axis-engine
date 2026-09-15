@@ -3134,7 +3134,7 @@ int ObjectRef::l_set_minimap_area(lua_State *L)
 
 	if (lua_isnoneornil(L, 2)) {
 		lua_pushboolean(L, getServer(L)->SendMinimapArea(player->getPeerId(),
-				false, v2s16(), v2s16()));
+				false, v2s16(), v2s16(), 0));
 		return 1;
 	}
 
@@ -3148,7 +3148,17 @@ int ObjectRef::l_set_minimap_area(lua_State *L)
 	if (maxp.X < minp.X || maxp.Y < minp.Y)
 		throw LuaError("set_minimap_area: maxp is below minp");
 
-	lua_pushboolean(L, getServer(L)->SendMinimapArea(player->getPeerId(), true, minp, maxp));
+	static const char *const sides[] = {"north", "east", "south", "west"};
+	std::string up_name = getstringfield_default(L, 2, "up", "north");
+	u8 up = 0;
+	for (; up < 4; up++) {
+		if (up_name == sides[up])
+			break;
+	}
+	if (up == 4)
+		throw LuaError("set_minimap_area: up must be north, east, south or west");
+
+	lua_pushboolean(L, getServer(L)->SendMinimapArea(player->getPeerId(), true, minp, maxp, up));
 	return 1;
 }
 

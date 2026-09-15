@@ -257,7 +257,8 @@ public:
 	void removeMarker(MinimapMarker **marker);
 
 	// Область большой карты от сервера; без неё — 512 нод вокруг игрока.
-	void setArea(bool set, v2s16 min, v2s16 max);
+	// up — какая сторона света сверху: 0 север, 1 восток, 2 юг, 3 запад.
+	void setArea(bool set, v2s16 min, v2s16 max, u8 up);
 	void toggleBigMap();
 	bool isBigMapOpen() const { return m_big_open; }
 
@@ -283,13 +284,18 @@ private:
 		u16 scan_z = 0;
 	};
 	// Как положить скан на экран: пиксель = origin + (нода − node_origin) * k.
+	// Текстура лежит квадратом quad_w на quad_h с углом (quad_left, quad_top)
+	// внутри области rect, север вверх; вся область повёрнута на angle
+	// (против часовой на экране) вокруг своего центра.
 	struct Placement {
 		core::rect<s32> rect;    // куда рисуется карта
+		f32 quad_left = 0;
+		f32 quad_top = 0;
 		f32 node_left = 0;       // нода у левого края текстуры
 		f32 node_top = 0;        // нода у верхнего края текстуры (+z)
 		f32 k = 1;               // пикселей на ноду
 		bool round = false;
-		f32 angle = 0;           // поворот круглой карты
+		f32 angle = 0;
 	};
 	View computeView(s32 panel) const;
 	View computeBigView(u16 nodes_x, u16 nodes_z, s32 avail_w, s32 avail_h) const;
@@ -297,8 +303,9 @@ private:
 			video::ITexture *&texture, bool round, bool mipmaps);
 	video::SColor columnColor(const MinimapColumn &c) const;
 	void drawMapQuad(const Placement &place, video::ITexture *texture, f32 quad_w, f32 quad_h,
-			f32 left, f32 top, bool nearest);
+			bool nearest);
 	void drawFrame(const core::rect<s32> &rect);
+	s32 frameUnit() const;
 	void drawPlayerArrow(v2f center, f32 size, f32 angle);
 	void drawMarkers(const Placement &place, const std::vector<MinimapMapMarker> &markers,
 			bool clamp_to_edge, bool labels);
@@ -322,6 +329,7 @@ private:
 	bool m_big_open = false;
 	bool m_area_set = false;
 	v2s16 m_area_min, m_area_max;
+	u8 m_area_up = 0;
 	MinimapScan m_big_scan;
 	bool m_big_valid = false;
 	View m_big_view;

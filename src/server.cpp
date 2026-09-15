@@ -3524,7 +3524,7 @@ bool Server::SendMinimapSurface(session_t peer_id, const MinimapSurface &surface
 	return true;
 }
 
-bool Server::SendMinimapArea(session_t peer_id, bool set, v2s16 min, v2s16 max)
+bool Server::SendMinimapArea(session_t peer_id, bool set, v2s16 min, v2s16 max, u8 up)
 {
 	{
 		ClientInterface::AutoLock clientlock(m_clients);
@@ -3534,7 +3534,7 @@ bool Server::SendMinimapArea(session_t peer_id, bool set, v2s16 min, v2s16 max)
 	}
 
 	NetworkPacket pkt(TOCLIENT_MINIMAP_AREA, 0, peer_id);
-	pkt << (u8)set << min.X << min.Y << max.X << max.Y;
+	pkt << (u8)set << min.X << min.Y << max.X << max.Y << up;
 	Send(&pkt);
 	return true;
 }

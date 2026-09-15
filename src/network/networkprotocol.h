@@ -859,6 +859,8 @@ enum ToClientCommand : u16
 		u8 set                 // 0 — области нет
 		s16 min_x, min_z
 		s16 max_x, max_z
+		u8 up                  // какая сторона света сверху: 0 север,
+		                       // 1 восток, 2 юг, 3 запад
 	*/
 
 	TOCLIENT_NUM_MSG_TYPES = 0x6b,
