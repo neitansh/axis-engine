@@ -3123,6 +3123,35 @@ int ObjectRef::l_set_minimap_surface(lua_State *L)
 	return 1;
 }
 
+// set_minimap_area(self, area)
+int ObjectRef::l_set_minimap_area(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	ObjectRef *ref = checkObject<ObjectRef>(L, 1);
+	RemotePlayer *player = getplayer(ref);
+	if (player == nullptr)
+		return 0;
+
+	if (lua_isnoneornil(L, 2)) {
+		lua_pushboolean(L, getServer(L)->SendMinimapArea(player->getPeerId(),
+				false, v2s16(), v2s16()));
+		return 1;
+	}
+
+	luaL_checktype(L, 2, LUA_TTABLE);
+	lua_getfield(L, 2, "minp");
+	v2s16 minp(getintfield_default(L, -1, "x", 0), getintfield_default(L, -1, "z", 0));
+	lua_pop(L, 1);
+	lua_getfield(L, 2, "maxp");
+	v2s16 maxp(getintfield_default(L, -1, "x", 0), getintfield_default(L, -1, "z", 0));
+	lua_pop(L, 1);
+	if (maxp.X < minp.X || maxp.Y < minp.Y)
+		throw LuaError("set_minimap_area: maxp is below minp");
+
+	lua_pushboolean(L, getServer(L)->SendMinimapArea(player->getPeerId(), true, minp, maxp));
+	return 1;
+}
+
 // set_minimap_modes(self, modes, selected_mode)
 int ObjectRef::l_set_minimap_modes(lua_State *L)
 {
@@ -3472,6 +3501,7 @@ luaL_Reg ObjectRef::methods[] = {
 	luamethod(ObjectRef, send_mapblock),
 	luamethod(ObjectRef, set_minimap_modes),
 	luamethod(ObjectRef, set_minimap_surface),
+	luamethod(ObjectRef, set_minimap_area),
 	luamethod(ObjectRef, set_lighting),
 	luamethod(ObjectRef, get_lighting),
 	luamethod(ObjectRef, respawn),

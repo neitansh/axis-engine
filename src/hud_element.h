@@ -54,6 +54,7 @@ enum HudElementType {
 	HUD_ELEM_COMPASS   = 6,
 	HUD_ELEM_MINIMAP   = 7,
 	HUD_ELEM_HOTBAR    = 8,
+	HUD_ELEM_MAP_MARKER = 9,
 };
 
 enum HudElementStat : u8 {

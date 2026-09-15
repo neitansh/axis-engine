@@ -228,7 +228,12 @@ keymap_hotbar_next (Hotbar: select next item) key SYSTEM_SCANCODE_17|GAMEPAD_BUT
 
 keymap_hotbar_previous (Hotbar: select previous item) key SYSTEM_SCANCODE_5|GAMEPAD_BUTTON_9
 
-keymap_mute (Mute) key SYSTEM_SCANCODE_16
+#    Key for the map of the area the game marks out (the whole arena, say),
+#    with whatever the game puts on it. Opens over the picture, closes with
+#    the same key.
+keymap_map (Map) key SYSTEM_SCANCODE_16
+
+keymap_mute (Mute) key
 
 keymap_increase_volume (Increase volume) key
 

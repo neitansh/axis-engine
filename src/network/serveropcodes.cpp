@@ -218,4 +218,5 @@ const ClientCommandFactory clientCommandFactoryTable[TOCLIENT_NUM_MSG_TYPES] =
 	{ "TOCLIENT_CAMERA_IMPULSE",           0, true }, // 0x67
 	{ "TOCLIENT_EYELIDS",            0, true }, // 0x68
 	{ "TOCLIENT_MINIMAP_SURFACE",          0, true }, // 0x69
+	{ "TOCLIENT_MINIMAP_AREA",             0, true }, // 0x6a
 };

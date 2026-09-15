@@ -191,7 +191,8 @@ void set_default_settings()
 	settings->setDefault("keymap_noclip", "SYSTEM_SCANCODE_11"); // KEY_KEY_H
 	settings->setDefault("keymap_hotbar_next", "SYSTEM_SCANCODE_17|GAMEPAD_BUTTON_10"); // KEY_KEY_N|Gamepad RB
 	settings->setDefault("keymap_hotbar_previous", "SYSTEM_SCANCODE_5|GAMEPAD_BUTTON_9"); // KEY_KEY_B|Gamepad LB
-	settings->setDefault("keymap_mute", "SYSTEM_SCANCODE_16"); // KEY_KEY_M
+	settings->setDefault("keymap_map", "SYSTEM_SCANCODE_16"); // KEY_KEY_M
+	settings->setDefault("keymap_mute", "");
 	settings->setDefault("keymap_increase_volume", "");
 	settings->setDefault("keymap_decrease_volume", "");
 	settings->setDefault("keymap_cinematic", "");

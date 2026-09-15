@@ -2238,6 +2238,21 @@ Displays a minimap on the HUD.
 * `alignment`: The alignment of the minimap.
 * `offset`: offset in pixels from position.
 
+### `map_marker`
+
+A mark on the maps: drawn on the minimap and on the map the map key opens,
+never in the world. Say, where the other team starts.
+
+* `world_pos`: World position of the mark.
+* `name`: Label next to the mark on the big map. The minimap shows the mark
+  only.
+* `text`: Texture of the mark; empty uses the engine's dot.
+* `number`: Color of the mark and the label, `0xRRGGBB`.
+* `scale`: `x` scales the mark relative to the size the map picks for it.
+* `z_index`: order among the marks.
+* A mark outside the minimap is pressed against its frame, so the direction
+  is visible without opening the big map.
+
 Representations of simple things
 ================================
 
@@ -9685,6 +9700,15 @@ You **must not** mix names and track numbers to refer to the same animation.
     * `set_minimap_surface(nil)` drops everything sent before.
     * Areas are limited to 4 million columns per call. Split a bigger map into
       strips; sending it as it is built is the natural way.
+    * Returns `false` if the client is too old to understand it.
+* `set_minimap_area(area)`
+    * What the map key (`keymap_map`) shows whole: `area` is
+      `{minp = {x=, z=}, maxp = {x=, z=}}`, inclusive. `nil` goes back to the
+      default, 512 nodes around the player.
+    * The map is drawn from the same data as the minimap, so an area the
+      client has no mapblocks for is only as complete as what
+      `set_minimap_surface` sent. Put what the player should see on it with
+      `map_marker` HUD elements.
     * Returns `false` if the client is too old to understand it.
 * `set_sky(sky_parameters)`
     * The presence of the function `set_sun`, `set_moon` or `set_stars` indicates

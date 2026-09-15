@@ -82,7 +82,7 @@ const std::vector<PageSpec> PAGE_SPECS = {
 		"#Interaction", "keymap_dig", "keymap_place", "keymap_reload", "keymap_aux1",
 			"keymap_drop", "keymap_inventory",
 		"#Interface", "keymap_chat", "keymap_cmd", "keymap_zoom", "keymap_pickitem",
-			"keymap_help", "keymap_screenshot", "keymap_fullscreen", "keymap_pause"}},
+			"keymap_minimap", "keymap_map", "keymap_help", "keymap_screenshot", "keymap_fullscreen", "keymap_pause"}},
 	{"multiplayer", "Game and network",
 		{"Client and Server|Client", "Client and Server|Server",
 			"Client and Server|Server Security", "Client and Server|Server Gameplay"},

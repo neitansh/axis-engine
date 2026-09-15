@@ -321,6 +321,15 @@ void Hud::drawItems(v2s32 screen_pos, v2s32 screen_offset, s32 itemcount, v2f al
 	}
 }
 
+void Hud::drawBigMap()
+{
+	Minimap *minimap = client->getMinimap();
+	if (!minimap || !minimap->isBigMapOpen())
+		return;
+	minimap->drawBigMap(core::rect<s32>(0, 0, m_screensize.X, m_screensize.Y),
+		m_map_markers);
+}
+
 bool Hud::hasElementOfType(HudElementType type)
 {
 	for (auto const &e : player->hud.getElements()) {
@@ -391,6 +400,21 @@ void Hud::drawLuaElements(const v3s16 &camera_offset, bool only_unhidable)
 	std::stable_sort(elems.begin(), elems.end(), [] (HudElement *l, HudElement *r) {
 		return l->z_index < r->z_index;
 	});
+
+	// Отметки для карт рисуют сами карты; здесь они только собираются.
+	m_map_markers.clear();
+	for (HudElement *e : elems) {
+		if (e->type != HUD_ELEM_MAP_MARKER || (only_unhidable && e->hideable))
+			continue;
+		MinimapMapMarker m;
+		m.pos = e->world_pos;
+		m.label = unescape_translate(utf8_to_wide(e->name));
+		m.texture = e->text;
+		m.color = video::SColor(255, (e->number >> 16) & 0xFF,
+			(e->number >> 8) & 0xFF, e->number & 0xFF);
+		m.scale = e->scale.X > 0 ? e->scale.X : 1.0f;
+		m_map_markers.push_back(std::move(m));
+	}
 
 	for (HudElement *e : elems) {
 		if (only_unhidable && e->hideable)
@@ -591,11 +615,13 @@ void Hud::drawLuaElements(const v3s16 &camera_offset, bool only_unhidable)
 				core::rect<s32> rect(0, 0, dstsize.X, dstsize.Y);
 				rect += pos + offset + v2s32(e->offset.X * m_scale_factor,
 				                             e->offset.Y * m_scale_factor);
-				client->getMinimap()->drawMinimap(rect);
+				client->getMinimap()->drawMinimap(rect, m_map_markers);
 				break; }
 			case HUD_ELEM_HOTBAR: {
 				drawHotbar(pos, e->offset, e->dir, e->align);
 				break; }
+			case HUD_ELEM_MAP_MARKER:
+				break;
 			default:
 				infostream << "Hud::drawLuaElements: ignoring drawform " << e->type
 					<< " due to unrecognized type" << std::endl;

@@ -850,7 +850,18 @@ enum ToClientCommand : u16
 		                       // по строкам z, внутри строки — по x
 	*/
 
-	TOCLIENT_NUM_MSG_TYPES = 0x6a,
+	TOCLIENT_MINIMAP_AREA = 0x6a,
+	/*
+		Область большой карты (клавиша карты): что показывать целиком —
+		арену, скажем. Без области клиент показывает окрестность игрока.
+		Отправляется только клиенту версии протокола 57 и новее.
+
+		u8 set                 // 0 — области нет
+		s16 min_x, min_z
+		s16 max_x, max_z
+	*/
+
+	TOCLIENT_NUM_MSG_TYPES = 0x6b,
 };
 
 enum ToServerCommand : u16

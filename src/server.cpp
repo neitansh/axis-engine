@@ -3524,6 +3524,21 @@ bool Server::SendMinimapSurface(session_t peer_id, const MinimapSurface &surface
 	return true;
 }
 
+bool Server::SendMinimapArea(session_t peer_id, bool set, v2s16 min, v2s16 max)
+{
+	{
+		ClientInterface::AutoLock clientlock(m_clients);
+		RemoteClient *client = m_clients.lockedGetClientNoEx(peer_id, CS_Created);
+		if (!client || client->net_proto_version < 57)
+			return false;
+	}
+
+	NetworkPacket pkt(TOCLIENT_MINIMAP_AREA, 0, peer_id);
+	pkt << (u8)set << min.X << min.Y << max.X << max.Y;
+	Send(&pkt);
+	return true;
+}
+
 void Server::sendDetachedInventory(Inventory *inventory, const std::string &name, session_t peer_id)
 {
 	NetworkPacket pkt(TOCLIENT_DETACHED_INVENTORY, 0, peer_id);

@@ -13,6 +13,7 @@
 #include "irr_ptr.h"
 #include "irr_aabb3d.h"
 #include "hud_element.h"
+#include "client/minimap.h"
 
 class Client;
 class ITextureSource;
@@ -107,8 +108,12 @@ public:
 	bool hasElementOfType(HudElementType type);
 
 	void drawLuaElements(const v3s16 &camera_offset, bool only_unhidable);
+	// Большая карта поверх всего: после остальных элементов.
+	void drawBigMap();
 
 private:
+	std::vector<MinimapMapMarker> m_map_markers;
+
 	bool calculateScreenPos(const v3s16 &camera_offset, HudElement *e, v2s32 *pos);
 	void drawStatbar(v2s32 pos, u16 corner, u16 drawdir,
 			const std::string &texture, const std::string& bgtexture,

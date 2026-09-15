@@ -12,6 +12,9 @@
 #include "client/renderingengine.h"
 #include "client/texturesource.h"
 #include "gettext.h"
+#include "porting.h"
+#include "client/fontengine.h"
+#include <IGUIFont.h>
 #include "voxel.h"
 
 ////
@@ -104,14 +107,28 @@ void MinimapUpdateThread::invalidate()
 	deferUpdate();
 }
 
-bool MinimapUpdateThread::takeScan(MinimapScan &out)
+bool MinimapUpdateThread::takeScan(MinimapScanKind kind, MinimapScan &out)
 {
 	MutexAutoLock lock(m_scan_mutex);
-	if (!m_ready_fresh)
+	if (!m_ready_fresh[kind])
 		return false;
-	std::swap(out, m_ready);
-	m_ready_fresh = false;
+	std::swap(out, m_ready[kind]);
+	m_ready_fresh[kind] = false;
 	return true;
+}
+
+void MinimapUpdateThread::scan(MinimapScanKind kind, const MinimapScanRequest &req)
+{
+	MinimapScan scan = std::move(m_spare[kind]);
+	getMap(req, scan);
+	scan.generation = req.generation;
+
+	{
+		MutexAutoLock lock(m_scan_mutex);
+		std::swap(m_ready[kind], scan);
+		m_ready_fresh[kind] = true;
+	}
+	m_spare[kind] = std::move(scan);
 }
 
 void MinimapUpdateThread::doUpdate()
@@ -150,31 +167,30 @@ void MinimapUpdateThread::doUpdate()
 
 	// Флаг сбрасывается до скана: всё, что придёт во время него, снова
 	// поднимет флаг и разбудит поток, и ни одно обновление не потеряется.
-	if (!m_dirty.exchange(false))
-		return;
+	const bool dirty = m_dirty.exchange(false);
+	if (dirty)
+		m_big_pending = true;
 
 	v3s16 pos;
-	s16 size, height;
-	u32 generation;
+	MinimapScanRequest mini, big;
 	MinimapType type;
 	{
 		MutexAutoLock lock(*data_mutex);
 		pos = data->pos;
-		size = data->scan_size;
-		height = data->mode.scan_height;
+		mini = data->requests[MINIMAP_SCAN_MINI];
+		big = data->requests[MINIMAP_SCAN_BIG];
 		type = data->mode.type;
-		generation = data->generation;
 	}
 
-	if (size <= 0 || (type != MINIMAP_TYPE_RADAR && type != MINIMAP_TYPE_SURFACE))
+	if (type != MINIMAP_TYPE_RADAR && type != MINIMAP_TYPE_SURFACE)
 		return;
 
 	// Кэш мапблоков растёт с каждым замешенным блоком; далёкие от игрока в
 	// скан не попадут, а память держат. Чистится по порогу, не на каждом
 	// обходе: обход всего кэша дороже одного скана.
-	if (m_blocks_cache.size() > m_evict_at) {
+	if (dirty && m_blocks_cache.size() > m_evict_at) {
 		const v3s16 center = getNodeBlockPos(pos);
-		const s16 reach = std::max<s16>(size, 512) / MAP_BLOCKSIZE + 1;
+		const s16 reach = MINIMAP_MAX_SIZE / MAP_BLOCKSIZE + 1;
 		for (auto it = m_blocks_cache.begin(); it != m_blocks_cache.end();) {
 			v3s16 d = it->first - center;
 			if (std::abs(d.X) > reach || std::abs(d.Z) > reach
@@ -190,28 +206,36 @@ void MinimapUpdateThread::doUpdate()
 		m_evict_at = std::max<size_t>(4096, m_blocks_cache.size() * 2);
 	}
 
-	MinimapScan scan = std::move(m_spare);
-	getMap(pos, size, height, scan);
-	scan.generation = generation;
+	if (dirty && mini.active)
+		scan(MINIMAP_SCAN_MINI, mini);
 
-	{
+	if (!big.active) {
+		// Закрытая карта не держит свои буферы: это десятки мегабайт.
 		MutexAutoLock lock(m_scan_mutex);
-		std::swap(m_ready, scan);
-		m_ready_fresh = true;
+		m_ready[MINIMAP_SCAN_BIG] = MinimapScan();
+		m_spare[MINIMAP_SCAN_BIG] = MinimapScan();
+	} else if (m_big_pending) {
+		const u64 now = porting::getTimeMs();
+		if (now - m_big_scanned_at >= 1000) {
+			scan(MINIMAP_SCAN_BIG, big);
+			m_big_scanned_at = now;
+			m_big_pending = false;
+		}
 	}
-	m_spare = std::move(scan);
 }
 
-void MinimapUpdateThread::getMap(v3s16 pos, s16 size, s16 height, MinimapScan &scan)
+void MinimapUpdateThread::getMap(const MinimapScanRequest &req, MinimapScan &scan)
 {
-	v3s16 pos_min(pos.X - size / 2, pos.Y - height / 2, pos.Z - size / 2);
-	v3s16 pos_max(pos_min.X + size - 1, pos.Y + height / 2, pos_min.Z + size - 1);
+	const s16 size_x = req.size_x, size_z = req.size_z;
+	v3s16 pos_min(req.min.X, req.min.Y - req.height / 2, req.min.Z);
+	v3s16 pos_max(pos_min.X + size_x - 1, req.min.Y + req.height / 2, pos_min.Z + size_z - 1);
 	v3s16 blockpos_min = getNodeBlockPos(pos_min);
 	v3s16 blockpos_max = getNodeBlockPos(pos_max);
 
 	scan.min = pos_min;
-	scan.size = size;
-	scan.columns.assign((size_t)size * size, MinimapColumn());
+	scan.size_x = size_x;
+	scan.size_z = size_z;
+	scan.columns.assign((size_t)size_x * size_z, MinimapColumn());
 
 	v3s16 blockpos;
 	for (blockpos.Z = blockpos_min.Z; blockpos.Z <= blockpos_max.Z; ++blockpos.Z)
@@ -237,15 +261,14 @@ void MinimapUpdateThread::getMap(v3s16 pos, s16 size, s16 height, MinimapScan &s
 					block.data[inblock_pos.Z * MAP_BLOCKSIZE + inblock_pos.X];
 
 				v2s16 inmap_pos(p.X - pos_min.X, p.Z - pos_min.Z);
-				MinimapColumn &out = scan.columns[inmap_pos.X + inmap_pos.Y * size];
+				MinimapColumn &out = scan.columns[inmap_pos.X + inmap_pos.Y * size_x];
 
 				out.air_count = std::min<int>(255, out.air_count + in_pixel.air_count);
-				if (out.known || in_pixel.n.param0 == CONTENT_AIR)
+				if (out.known() || in_pixel.n.param0 == CONTENT_AIR)
 					continue;
 				out.n = in_pixel.n;
 				out.y = block_node_min.Y + in_pixel.height;
 				out.liquid_depth = in_pixel.liquid_depth;
-				out.known = true;
 			}
 		}
 	}
@@ -269,8 +292,8 @@ void MinimapUpdateThread::getMap(v3s16 pos, s16 size, s16 height, MinimapScan &s
 				std::min<s16>(tile_node_min.Y + MAP_BLOCKSIZE - 1, pos_max.Z));
 		for (s16 z = range_min.Y; z <= range_max.Y; ++z)
 		for (s16 x = range_min.X; x <= range_max.X; ++x) {
-			MinimapColumn &out = scan.columns[(x - pos_min.X) + (z - pos_min.Z) * size];
-			if (out.known)
+			MinimapColumn &out = scan.columns[(x - pos_min.X) + (z - pos_min.Z) * size_x];
+			if (out.known())
 				continue;
 			const MinimapSurfaceColumn &in = tile.data[(z - tile_node_min.Y) * MAP_BLOCKSIZE
 					+ (x - tile_node_min.X)];
@@ -278,7 +301,6 @@ void MinimapUpdateThread::getMap(v3s16 pos, s16 size, s16 height, MinimapScan &s
 				continue;
 			out.n = MapNode(in.n);
 			out.y = in.y;
-			out.known = true;
 		}
 	}
 }
@@ -426,11 +448,14 @@ void Minimap::setModeIndex(size_t index)
 		default:
 			data->minimap_shape_round = g_settings->getBool("minimap_shape_round");
 		}
-		data->scan_size = 0;
-		data->generation++;
+		for (auto &req : data->requests) {
+			req.active = false;
+			req.generation++;
+		}
 	}
 
 	m_scan_valid = false;
+	m_big_valid = false;
 	if (m_minimap_update_thread)
 		m_minimap_update_thread->invalidate();
 }
@@ -550,20 +575,33 @@ Minimap::View Minimap::computeView(s32 panel) const
 	// вниз, уменьшение — вверх.
 	u16 wanted = data->mode.map_size > 0 ? data->mode.map_size : panel;
 	float scale = (float)panel / wanted;
+	u16 ppt = 1;
 	if (scale >= 1.0f)
-		v.px_per_texel = std::max(1, (int)std::floor(scale));
+		ppt = std::max(1, (int)std::floor(scale));
 	else
 		v.nodes_per_texel = std::max(1, (int)std::ceil(1.0f / scale));
+	v.px_per_texel = ppt;
 	// Тексель запаса с каждой стороны: дробный сдвиг под положение игрока
 	// никогда не откроет край текстуры.
-	v.texels = (panel + v.px_per_texel - 1) / v.px_per_texel + 2;
+	u32 texels = (panel + ppt - 1) / ppt + 2;
 	// Нода запаса с каждой стороны — соседи для затенения крайних текселей.
-	u32 scan = (u32)v.texels * v.nodes_per_texel + 2;
-	if (scan > MINIMAP_MAX_SIZE) {
-		scan = MINIMAP_MAX_SIZE;
-		v.texels = (scan - 2) / v.nodes_per_texel;
-	}
-	v.scan_size = scan;
+	texels = std::min<u32>(texels, MINIMAP_MAX_SIZE);
+	v.texels_x = v.texels_z = texels;
+	v.scan_x = v.scan_z = texels * v.nodes_per_texel + 2;
+	return v;
+}
+
+Minimap::View Minimap::computeBigView(u16 nodes_x, u16 nodes_z, s32 avail_w, s32 avail_h) const
+{
+	View v;
+	const u16 largest = std::max(nodes_x, nodes_z);
+	v.nodes_per_texel = (largest + MINIMAP_MAX_SIZE - 1) / MINIMAP_MAX_SIZE;
+	v.texels_x = (nodes_x + v.nodes_per_texel - 1) / v.nodes_per_texel;
+	v.texels_z = (nodes_z + v.nodes_per_texel - 1) / v.nodes_per_texel;
+	v.scan_x = v.texels_x * v.nodes_per_texel + 2;
+	v.scan_z = v.texels_z * v.nodes_per_texel + 2;
+	f32 scale = std::min((f32)avail_w / v.texels_x, (f32)avail_h / v.texels_z);
+	v.px_per_texel = scale >= 1.0f ? std::floor(scale) : scale;
 	return v;
 }
 
@@ -596,13 +634,13 @@ static inline video::SColor scaleColor(video::SColor c, float k)
 		core::clamp((int)std::lround(c.getBlue() * k), 0, 255));
 }
 
-void Minimap::rebuildTexture(const MinimapScan &scan, const View &view)
+void Minimap::rebuildTexture(const MinimapScan &scan, const View &view,
+		video::ITexture *&texture, bool round, bool mipmaps)
 {
-	const u16 T = view.texels;
+	const u16 TX = view.texels_x, TZ = view.texels_z;
 	const u16 npp = view.nodes_per_texel;
-	const s16 S = scan.size;
+	const s16 SX = scan.size_x, SZ = scan.size_z;
 	const bool radar = data->mode.type == MINIMAP_TYPE_RADAR;
-	const bool round = data->minimap_shape_round;
 
 	static const video::SColor unknown(255, 10, 11, 13);
 	// Свет с северо-запада: склон к нему светлее, от него темнее. Пять
@@ -610,26 +648,26 @@ void Minimap::rebuildTexture(const MinimapScan &scan, const View &view)
 	static const float relief[5] = {0.66f, 0.82f, 1.0f, 1.12f, 1.25f};
 
 	auto column = [&](s32 x, s32 z) -> const MinimapColumn & {
-		return scan.columns[x + z * S];
+		return scan.columns[x + z * SX];
 	};
 
 	auto nodeColor = [&](s32 x, s32 z, bool &known) -> video::SColor {
 		const MinimapColumn &c = column(x, z);
-		known = c.known;
+		known = c.known();
 		if (radar) {
 			int g = c.air_count > 0
 				? core::clamp(core::round32(32 + c.air_count * 8), 0, 255) : 0;
 			return video::SColor(255, 0, g, 0);
 		}
-		if (!c.known)
+		if (!c.known())
 			return unknown;
 		video::SColor base = columnColor(c);
 		int slope = 2;
 		const MinimapColumn &north = column(x, z + 1);
 		const MinimapColumn &west = column(x - 1, z);
-		if (north.known)
+		if (north.known())
 			slope += (c.y > north.y) - (c.y < north.y);
-		if (west.known)
+		if (west.known())
 			slope += (c.y > west.y) - (c.y < west.y);
 		float k = relief[slope];
 		if (c.liquid_depth > 0)
@@ -637,17 +675,19 @@ void Minimap::rebuildTexture(const MinimapScan &scan, const View &view)
 		return scaleColor(base, k);
 	};
 
-	core::dimension2d<u32> dim(T, T);
+	core::dimension2d<u32> dim(TX, TZ);
 	video::IImage *image = driver->createImage(video::ECF_A8R8G8B8, dim);
+	u32 *pixels = static_cast<u32 *>(image->getData());
+	const u32 pitch = image->getPitch() / sizeof(u32);
 
 	// Центр круга — тексель игрока; радиус — половина панели.
-	const float cx = (float)(S / 2 - 1) / npp + 0.5f;
+	const float cx = (float)(SX / 2 - 1) / npp + 0.5f;
 	const float radius = (float)view.panel / (2.0f * view.px_per_texel) + 0.5f;
 
-	for (u16 ty = 0; ty < T; ty++)
-	for (u16 tx = 0; tx < T; tx++) {
+	for (u16 ty = 0; ty < TZ; ty++)
+	for (u16 tx = 0; tx < TX; tx++) {
 		s32 x0 = 1 + tx * npp;
-		s32 z0 = 1 + (T - 1 - ty) * npp;
+		s32 z0 = 1 + (TZ - 1 - ty) * npp;
 		video::SColor col;
 		if (npp == 1) {
 			bool known;
@@ -657,7 +697,7 @@ void Minimap::rebuildTexture(const MinimapScan &scan, const View &view)
 			for (s32 dz = 0; dz < npp; dz++)
 			for (s32 dx = 0; dx < npp; dx++) {
 				s32 x = x0 + dx, z = z0 + dz;
-				if (x + 1 >= S || z + 1 >= S)
+				if (x + 1 >= SX || z + 1 >= SZ)
 					continue;
 				bool known;
 				video::SColor c = nodeColor(x, z, known);
@@ -668,46 +708,97 @@ void Minimap::rebuildTexture(const MinimapScan &scan, const View &view)
 			col = n ? video::SColor(255, r / n, g / n, b / n) : unknown;
 		}
 		if (round) {
-			float dx = tx + 0.5f - cx, dy = (T - 1 - ty) + 0.5f - cx;
+			float dx = tx + 0.5f - cx, dy = (TZ - 1 - ty) + 0.5f - cx;
 			if (dx * dx + dy * dy > radius * radius)
 				col = video::SColor(0, 0, 0, 0);
 		}
-		image->setPixel(tx, ty, col);
+		pixels[tx + ty * pitch] = col.color;
 	}
 
-	if (data->texture)
-		driver->removeTexture(data->texture);
-	bool mipmaps = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
-	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, false);
-	data->texture = driver->addTexture("minimap__", image);
+	if (texture)
+		driver->removeTexture(texture);
+	bool had_mipmaps = driver->getTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS);
 	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, mipmaps);
+	texture = driver->addTexture(round || !mipmaps ? "minimap__" : "minimap_big__", image);
+	driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, had_mipmaps);
 	image->drop();
-	m_texture_view = view;
 }
 
-// Вершины квадрата в NDC панели; повёрнутого вокруг центра, если круг.
-static void setQuad(scene::SMeshBuffer *buf, s32 panel, f32 left, f32 top,
-		f32 size, f32 rotate_deg)
+// Квадрат с текстурой в пикселях области place.rect; повёрнут вокруг центра
+// области, если карта круглая.
+void Minimap::drawMapQuad(const Placement &place, video::ITexture *texture,
+		f32 quad_w, f32 quad_h, f32 left, f32 top, bool nearest)
 {
-	auto &v = buf->Vertices->Data;
+	const s32 w = place.rect.getWidth(), h = place.rect.getHeight();
+	auto &v = m_meshbuffer->Vertices->Data;
 	static const video::SColor white(255, 255, 255, 255);
-	const f32 s = std::sin(rotate_deg * core::DEGTORAD);
-	const f32 c = std::cos(rotate_deg * core::DEGTORAD);
+	const f32 s = std::sin(place.angle * core::DEGTORAD);
+	const f32 c = std::cos(place.angle * core::DEGTORAD);
 	auto put = [&](int i, f32 px, f32 py, f32 u, f32 tv) {
-		f32 dx = px - panel / 2.0f, dy = py - panel / 2.0f;
+		f32 dx = px - w / 2.0f, dy = py - h / 2.0f;
 		f32 rx = dx * c + dy * s, ry = -dx * s + dy * c;
-		f32 x = (rx + panel / 2.0f) / panel * 2.0f - 1.0f;
-		f32 y = 1.0f - (ry + panel / 2.0f) / panel * 2.0f;
+		f32 x = (rx + w / 2.0f) / w * 2.0f - 1.0f;
+		f32 y = 1.0f - (ry + h / 2.0f) / h * 2.0f;
 		v[i] = video::S3DVertex(x, y, 0, 0, 0, 1, white, u, tv);
 	};
-	put(0, left, top + size, 0, 1);
+	put(0, left, top + quad_h, 0, 1);
 	put(1, left, top, 0, 0);
-	put(2, left + size, top, 1, 0);
-	put(3, left + size, top + size, 1, 1);
-	buf->setDirty(scene::EBT_VERTEX);
+	put(2, left + quad_w, top, 1, 0);
+	put(3, left + quad_w, top + quad_h, 1, 1);
+	m_meshbuffer->setDirty(scene::EBT_VERTEX);
+
+	core::rect<s32> oldViewPort = driver->getViewPort();
+	core::matrix4 oldProjMat = driver->getTransform(video::ETS_PROJECTION);
+	core::matrix4 oldViewMat = driver->getTransform(video::ETS_VIEW);
+
+	driver->setViewPort(place.rect);
+	driver->setTransform(video::ETS_PROJECTION, core::matrix4());
+	driver->setTransform(video::ETS_VIEW, core::matrix4());
+	driver->setTransform(video::ETS_WORLD, core::matrix4());
+
+	video::SMaterial &material = m_meshbuffer->getMaterial();
+	material.forEachTexture([&] (auto &tex) {
+		tex.MinFilter = nearest ? video::ETMINF_NEAREST_MIPMAP_NEAREST
+			: video::ETMINF_LINEAR_MIPMAP_LINEAR;
+		tex.MagFilter = nearest ? video::ETMAGF_NEAREST : video::ETMAGF_LINEAR;
+		tex.TextureWrapU = video::ETC_CLAMP_TO_EDGE;
+		tex.TextureWrapV = video::ETC_CLAMP_TO_EDGE;
+	});
+	material.TextureLayers[0].Texture = texture;
+	material.MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
+	material.ZWriteEnable = video::EZW_OFF;
+	material.ZBuffer = video::ECFN_DISABLED;
+	material.BackfaceCulling = false;
+	driver->setMaterial(material);
+	driver->drawMeshBuffer(m_meshbuffer.get());
+
+	driver->setTransform(video::ETS_VIEW, oldViewMat);
+	driver->setTransform(video::ETS_PROJECTION, oldProjMat);
+	driver->setViewPort(oldViewPort);
 }
 
-void Minimap::drawMinimap(core::rect<s32> rect)
+bool Minimap::toScreen(const Placement &place, v3f pos, v2f &out) const
+{
+	const f32 w = place.rect.getWidth(), h = place.rect.getHeight();
+	f32 dx = (pos.X - place.node_left) * place.k;
+	f32 dy = (place.node_top - pos.Z) * place.k;
+	if (place.round) {
+		// Круг вращается вокруг игрока, он же — центр панели.
+		dx -= w / 2.0f;
+		dy -= h / 2.0f;
+		const f32 sa = std::sin(-place.angle * core::DEGTORAD);
+		const f32 ca = std::cos(-place.angle * core::DEGTORAD);
+		f32 rx = dx * ca + dy * sa, ry = -dx * sa + dy * ca;
+		dx = rx + w / 2.0f;
+		dy = ry + h / 2.0f;
+	}
+	out = v2f(place.rect.UpperLeftCorner.X + dx, place.rect.UpperLeftCorner.Y + dy);
+	return dx >= 0 && dx <= w && dy >= 0 && dy <= h
+		&& (!place.round || (dx - w / 2) * (dx - w / 2) + (dy - h / 2) * (dy - h / 2)
+			<= (w / 2) * (w / 2));
+}
+
+void Minimap::drawMinimap(core::rect<s32> rect, const std::vector<MinimapMapMarker> &markers)
 {
 	if (data->mode.type == MINIMAP_TYPE_OFF)
 		return;
@@ -731,79 +822,179 @@ void Minimap::drawMinimap(core::rect<s32> rect)
 		u32 generation;
 		{
 			MutexAutoLock lock(m_mutex);
-			if (data->scan_size != view.scan_size) {
-				data->scan_size = view.scan_size;
-				data->generation++;
+			MinimapScanRequest &req = data->requests[MINIMAP_SCAN_MINI];
+			v3s16 min(data->pos.X - view.scan_x / 2, data->pos.Y, data->pos.Z - view.scan_z / 2);
+			if (!req.active || req.size_x != view.scan_x || req.size_z != view.scan_z) {
+				req.generation++;
 				m_minimap_update_thread->invalidate();
 			}
-			generation = data->generation;
+			if (req.min != min || req.height != data->mode.scan_height)
+				m_minimap_update_thread->invalidate();
+			req.active = true;
+			req.min = min;
+			req.size_x = view.scan_x;
+			req.size_z = view.scan_z;
+			req.height = data->mode.scan_height;
+			generation = req.generation;
 		}
-		if (m_minimap_update_thread->takeScan(m_scan)) {
+		if (m_minimap_update_thread->takeScan(MINIMAP_SCAN_MINI, m_scan)) {
 			m_scan_valid = m_scan.generation == generation
-				&& m_scan.size == view.scan_size;
-			if (m_scan_valid)
-				rebuildTexture(m_scan, view);
+				&& m_scan.size_x == view.scan_x && m_scan.size_z == view.scan_z;
+			if (m_scan_valid) {
+				rebuildTexture(m_scan, view, data->texture, round, false);
+				m_texture_view = view;
+			}
 		}
+
+		Placement place;
+		place.rect = rect;
+		place.round = round;
+		place.angle = round ? m_angle : 0.0f;
 
 		if (m_scan_valid && data->texture) {
 			const View &tv = m_texture_view;
-			const f32 k = (f32)tv.px_per_texel / tv.nodes_per_texel;
+			const f32 k = tv.px_per_texel / tv.nodes_per_texel;
 			// Левый край текселя 0 и верхний край строки 0 в нодах: нода с
 			// целой координатой n занимает [n - 0.5, n + 0.5).
 			const f32 left_node = m_scan.min.X + 1 - 0.5f;
-			const f32 top_node = m_scan.min.Z + 1 + (f32)tv.texels * tv.nodes_per_texel - 0.5f;
+			const f32 top_node = m_scan.min.Z + 1 + (f32)tv.texels_z * tv.nodes_per_texel - 0.5f;
 			f32 left = panel / 2.0f + (left_node - m_player_pos.X) * k;
 			f32 top = panel / 2.0f - (top_node - m_player_pos.Z) * k;
 			if (!round) {
 				left = std::round(left);
 				top = std::round(top);
 			}
-			setQuad(m_meshbuffer.get(), panel, left, top,
-				(f32)tv.texels * tv.px_per_texel, round ? -m_angle : 0.0f);
-
-			core::rect<s32> oldViewPort = driver->getViewPort();
-			core::matrix4 oldProjMat = driver->getTransform(video::ETS_PROJECTION);
-			core::matrix4 oldViewMat = driver->getTransform(video::ETS_VIEW);
-
-			driver->setViewPort(rect);
-			driver->setTransform(video::ETS_PROJECTION, core::matrix4());
-			driver->setTransform(video::ETS_VIEW, core::matrix4());
-			driver->setTransform(video::ETS_WORLD, core::matrix4());
-
-			video::SMaterial &material = m_meshbuffer->getMaterial();
-			material.forEachTexture([&] (auto &tex) {
-				tex.MinFilter = round ? video::ETMINF_LINEAR_MIPMAP_NEAREST
-					: video::ETMINF_NEAREST_MIPMAP_NEAREST;
-				tex.MagFilter = round ? video::ETMAGF_LINEAR : video::ETMAGF_NEAREST;
-				tex.TextureWrapU = video::ETC_CLAMP_TO_EDGE;
-				tex.TextureWrapV = video::ETC_CLAMP_TO_EDGE;
-			});
-			material.TextureLayers[0].Texture = data->texture;
-			material.MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
-			material.ZWriteEnable = video::EZW_OFF;
-			material.ZBuffer = video::ECFN_DISABLED;
-			material.BackfaceCulling = false;
-			driver->setMaterial(material);
-			driver->drawMeshBuffer(m_meshbuffer.get());
+			place.k = k;
+			place.node_left = left_node - left / k;
+			place.node_top = top_node + top / k;
+			drawMapQuad(place, data->texture, tv.texels_x * tv.px_per_texel,
+				tv.texels_z * tv.px_per_texel, left, top, !round);
 
 			if (round) {
-				setQuad(m_meshbuffer.get(), panel, 0, 0, (f32)panel, 0.0f);
-				material.TextureLayers[0].Texture = data->minimap_overlay_round;
-				driver->setMaterial(material);
-				driver->drawMeshBuffer(m_meshbuffer.get());
+				Placement flat = place;
+				flat.angle = 0;
+				drawMapQuad(flat, data->minimap_overlay_round, panel, panel, 0, 0, false);
 			}
 
-			driver->setTransform(video::ETS_VIEW, oldViewMat);
-			driver->setTransform(video::ETS_PROJECTION, oldProjMat);
-			driver->setViewPort(oldViewPort);
+			drawMarkers(place, markers, true, false);
 		}
-
-		drawMarkers(rect, view);
 	}
 
 	if (!round)
 		drawFrame(rect);
-	drawPlayerArrow(rect, round ? 0.0f : m_angle);
+	drawPlayerArrow(v2f(rect.UpperLeftCorner.X + panel / 2.0f,
+		rect.UpperLeftCorner.Y + panel / 2.0f),
+		std::max(6.0f, std::round(panel * 0.045f)), round ? 0.0f : m_angle);
+}
+
+void Minimap::setArea(bool set, v2s16 min, v2s16 max)
+{
+	m_area_set = set && max.X >= min.X && max.Y >= min.Y;
+	m_area_min = min;
+	m_area_max = max;
+	m_big_valid = false;
+}
+
+void Minimap::toggleBigMap()
+{
+	m_big_open = !m_big_open;
+	if (m_big_open)
+		return;
+	{
+		MutexAutoLock lock(m_mutex);
+		data->requests[MINIMAP_SCAN_BIG].active = false;
+	}
+	m_big_valid = false;
+	m_big_scan = MinimapScan();
+	if (data->big_texture) {
+		driver->removeTexture(data->big_texture);
+		data->big_texture = nullptr;
+	}
+	m_minimap_update_thread->deferUpdate();
+}
+
+void Minimap::drawBigMap(const core::rect<s32> &screen,
+		const std::vector<MinimapMapMarker> &markers)
+{
+	if (!m_big_open || data->mode.type == MINIMAP_TYPE_OFF
+			|| data->mode.type == MINIMAP_TYPE_TEXTURE)
+		return;
+
+	if (!data->textures_initialised) {
+		data->minimap_overlay_round = m_tsrc->getTexture("minimap_overlay_round.png");
+		data->marker_default = m_tsrc->getTexture("minimap_marker.png");
+		data->textures_initialised = true;
+	}
+
+	// Область: от сервера или полкилометра вокруг игрока.
+	v2s16 amin, amax;
+	if (m_area_set) {
+		amin = m_area_min;
+		amax = m_area_max;
+	} else {
+		amin = v2s16(data->pos.X - 256, data->pos.Z - 256);
+		amax = v2s16(data->pos.X + 255, data->pos.Z + 255);
+	}
+	const s32 margin = std::max(16, screen.getHeight() / 24);
+	const s32 avail_w = screen.getWidth() - 2 * margin;
+	const s32 avail_h = screen.getHeight() - 2 * margin;
+	if (avail_w <= 0 || avail_h <= 0)
+		return;
+
+	View view = computeBigView(amax.X - amin.X + 1, amax.Y - amin.Y + 1, avail_w, avail_h);
+	u32 generation;
+	{
+		MutexAutoLock lock(m_mutex);
+		MinimapScanRequest &req = data->requests[MINIMAP_SCAN_BIG];
+		v3s16 min(amin.X - 1, data->pos.Y, amin.Y - 1);
+		if (!req.active || req.size_x != view.scan_x || req.size_z != view.scan_z
+				|| req.min != min) {
+			req.generation++;
+			m_minimap_update_thread->invalidate();
+		}
+		req.active = true;
+		req.min = min;
+		req.size_x = view.scan_x;
+		req.size_z = view.scan_z;
+		req.height = data->mode.scan_height;
+		generation = req.generation;
+	}
+	// Поток сам не просыпается по таймеру: пока карта открыта, его будит
+	// каждый кадр, а он уже решает, пора ли пересчитывать.
+	m_minimap_update_thread->deferUpdate();
+
+	if (m_minimap_update_thread->takeScan(MINIMAP_SCAN_BIG, m_big_scan)) {
+		m_big_valid = m_big_scan.generation == generation
+			&& m_big_scan.size_x == view.scan_x && m_big_scan.size_z == view.scan_z;
+		if (m_big_valid) {
+			rebuildTexture(m_big_scan, view, data->big_texture, false, true);
+			m_big_view = view;
+		}
+	}
+
+	driver->draw2DRectangle(video::SColor(150, 0, 0, 0), screen);
+
+	if (!m_big_valid || !data->big_texture)
+		return;
+
+	const View &tv = m_big_view;
+	const s32 w = (s32)std::round(tv.texels_x * tv.px_per_texel);
+	const s32 h = (s32)std::round(tv.texels_z * tv.px_per_texel);
+	Placement place;
+	place.rect = core::rect<s32>(0, 0, w, h);
+	place.rect += v2s32(screen.UpperLeftCorner.X + margin + (avail_w - w) / 2,
+		screen.UpperLeftCorner.Y + margin + (avail_h - h) / 2);
+	place.k = tv.px_per_texel / tv.nodes_per_texel;
+	place.node_left = m_big_scan.min.X + 1 - 0.5f;
+	place.node_top = m_big_scan.min.Z + 1 + (f32)tv.texels_z * tv.nodes_per_texel - 0.5f;
+
+	drawMapQuad(place, data->big_texture, w, h, 0, 0, tv.px_per_texel >= 1.0f);
+	drawFrame(place.rect);
+	drawMarkers(place, markers, false, true);
+
+	v2f me;
+	if (toScreen(place, m_player_pos, me))
+		drawPlayerArrow(me, std::max(8.0f, std::round(place.rect.getHeight() * 0.02f)), m_angle);
 }
 
 void Minimap::drawTextureMode(const core::rect<s32> &rect)
@@ -849,6 +1040,7 @@ void Minimap::drawTextureMode(const core::rect<s32> &rect)
 	material.MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
 	material.ZWriteEnable = video::EZW_OFF;
 	material.ZBuffer = video::ECFN_DISABLED;
+	material.BackfaceCulling = false;
 	driver->setMaterial(material);
 	driver->drawMeshBuffer(m_meshbuffer.get());
 
@@ -879,12 +1071,9 @@ void Minimap::drawFrame(const core::rect<s32> &rect)
 	drawOutline(driver, rect, inner);
 }
 
-void Minimap::drawPlayerArrow(const core::rect<s32> &rect, f32 angle)
+void Minimap::drawPlayerArrow(v2f center, f32 s, f32 angle)
 {
-	const s32 panel = rect.getWidth();
-	const f32 s = std::max(6.0f, std::round(panel * 0.045f));
-	const f32 cx = rect.UpperLeftCorner.X + panel / 2.0f;
-	const f32 cy = rect.UpperLeftCorner.Y + panel / 2.0f;
+	const f32 cx = center.X, cy = center.Y;
 	// Стрелка: остриё, левое крыло, вырез, правое крыло. Yaw растёт против
 	// часовой (от +Z к -X), на экране с осью Y вниз — тоже против часовой.
 	const f32 sa = std::sin(angle * core::DEGTORAD);
@@ -912,49 +1101,98 @@ void Minimap::drawPlayerArrow(const core::rect<s32> &rect, f32 angle)
 	draw(1.0f, video::SColor(255, 255, 255, 255));
 }
 
-void Minimap::drawMarkers(const core::rect<s32> &rect, const View &view)
+// Подпись с тёмной обводкой: карта пёстрая, и без обводки текст тонет.
+static void drawLabel(gui::IGUIFont *font, const std::wstring &text, v2s32 pos,
+		video::SColor color, const core::rect<s32> &clip)
 {
-	if (m_markers.empty())
-		return;
+	core::dimension2du dim = font->getDimension(text.c_str());
+	core::rect<s32> r(pos, core::dimension2di(dim.Width, dim.Height));
+	static const video::SColor shadow(200, 0, 0, 0);
+	static const v2s32 offsets[4] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+	for (const v2s32 &o : offsets)
+		font->draw(text.c_str(), r + o, shadow, false, false, &clip);
+	font->draw(text.c_str(), r, color, false, false, &clip);
+}
 
-	const s32 panel = rect.getWidth();
-	const f32 k = (f32)view.px_per_texel / view.nodes_per_texel;
-	const bool round = data->minimap_shape_round;
-	const f32 sa = std::sin(-m_angle * core::DEGTORAD);
-	const f32 ca = std::cos(-m_angle * core::DEGTORAD);
-	const s32 size = std::max(5, (s32)std::round(panel * 0.035f));
-	const s32 half = size / 2;
-	const f32 limit = panel / 2.0f;
+void Minimap::drawMarkers(const Placement &place,
+		const std::vector<MinimapMapMarker> &markers, bool clamp_to_edge, bool labels)
+{
+	const core::rect<s32> &rect = place.rect;
+	const s32 panel = std::min(rect.getWidth(), rect.getHeight());
+	const s32 base = std::max(5, (s32)std::round(panel * (labels ? 0.02f : 0.035f)));
 	const s16 dy_limit = data->mode.scan_height / 2;
-	v3f cam_offset = intToFloat(client->getCamera()->getOffset(), BS);
+	const v2f center(rect.UpperLeftCorner.X + rect.getWidth() / 2.0f,
+		rect.UpperLeftCorner.Y + rect.getHeight() / 2.0f);
+	gui::IGUIFont *font = labels ? g_fontengine->getFont() : nullptr;
 
+	auto drawDot = [&](v2f at, const std::string &texture, video::SColor color, s32 size) {
+		video::ITexture *tex = texture.empty()
+			? data->marker_default : m_tsrc->getTexture(texture);
+		if (!tex)
+			return;
+		const s32 half = size / 2;
+		const s32 px = (s32)std::round(at.X), py = (s32)std::round(at.Y);
+		core::dimension2di imgsize(tex->getOriginalSize());
+		core::rect<s32> src(0, 0, imgsize.Width, imgsize.Height);
+		core::rect<s32> dst(px - half, py - half, px - half + size, py - half + size);
+		const video::SColor c[4] = {color, color, color, color};
+		driver->draw2DImage(tex, dst, src, &rect, c, true);
+	};
+
+	// Что за краем панели, прижимается к нему: по точке у рамки видно, в
+	// какую сторону бежать, — ради этого карта и нужна.
+	auto clamp = [&](v2f at, s32 size) -> v2f {
+		v2f d = at - center;
+		const f32 inset = size / 2.0f + 2.0f;
+		if (place.round) {
+			const f32 r = panel / 2.0f - inset;
+			const f32 len = d.getLength();
+			if (len > r)
+				d *= r / len;
+		} else {
+			const f32 rx = rect.getWidth() / 2.0f - inset;
+			const f32 ry = rect.getHeight() / 2.0f - inset;
+			const f32 f = std::max(std::abs(d.X) / rx, std::abs(d.Y) / ry);
+			if (f > 1.0f)
+				d /= f;
+		}
+		return center + d;
+	};
+
+	v3f cam_offset = intToFloat(client->getCamera()->getOffset(), BS);
 	for (auto &&marker : m_markers) {
 		v3f p = (marker->parent_node->getAbsolutePosition() + cam_offset) / BS;
 		if (std::abs(p.Y - m_player_pos.Y) > dy_limit)
 			continue;
-		f32 dx = (p.X - m_player_pos.X) * k;
-		f32 dy = -(p.Z - m_player_pos.Z) * k;
-		if (round) {
-			f32 rx = dx * ca + dy * sa, ry = -dx * sa + dy * ca;
-			dx = rx; dy = ry;
-			if (dx * dx + dy * dy > limit * limit)
+		v2f at;
+		if (!toScreen(place, p, at))
+			continue;
+		drawDot(at, marker->texture, marker->color, base);
+	}
+
+	for (const MinimapMapMarker &m : markers) {
+		const s32 size = std::max(4, (s32)std::round(base * m.scale));
+		v2f at;
+		bool inside = toScreen(place, m.pos, at);
+		if (!inside) {
+			if (!clamp_to_edge)
 				continue;
-		} else if (std::abs(dx) > limit || std::abs(dy) > limit) {
-			continue;
+			at = clamp(at, size);
 		}
-		s32 px = rect.UpperLeftCorner.X + (s32)std::round(panel / 2.0f + dx);
-		s32 py = rect.UpperLeftCorner.Y + (s32)std::round(panel / 2.0f + dy);
-		video::ITexture *tex = marker->texture.empty()
-			? data->marker_default : m_tsrc->getTexture(marker->texture);
-		if (!tex)
-			continue;
-		core::dimension2di imgsize(tex->getOriginalSize());
-		core::rect<s32> src(0, 0, imgsize.Width, imgsize.Height);
-		core::rect<s32> dst(px - half, py - half, px - half + size, py - half + size);
-		const video::SColor c[4] = {marker->color, marker->color, marker->color, marker->color};
-		driver->draw2DImage(tex, dst, src, &rect, c, true);
+		drawDot(at, m.texture, m.color, inside ? size : std::max(4, size * 3 / 4));
+		if (labels && font && !m.label.empty()) {
+			core::dimension2du dim = font->getDimension(m.label.c_str());
+			// Подпись справа от отметки; у правого края — слева, иначе её
+			// срезала бы рамка.
+			s32 x = (s32)std::round(at.X) + size / 2 + 3;
+			if (x + (s32)dim.Width > rect.LowerRightCorner.X)
+				x = (s32)std::round(at.X) - size / 2 - 3 - (s32)dim.Width;
+			drawLabel(font, m.label, v2s32(x, (s32)std::round(at.Y) - (s32)dim.Height / 2),
+				m.color, rect);
+		}
 	}
 }
+
 
 MinimapMarker *Minimap::addMarker(scene::ISceneNode *parent_node)
 {

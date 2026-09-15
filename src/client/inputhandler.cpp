@@ -82,6 +82,7 @@ void MyEventReceiver::reloadKeybindings()
 	keybindings[KeyType::ZOOM] = getKeySetting("keymap_zoom");
 	keybindings[KeyType::PICKITEM] = getKeySetting("keymap_pickitem");
 	keybindings[KeyType::RELOAD] = getKeySetting("keymap_reload");
+	keybindings[KeyType::MAP] = getKeySetting("keymap_map");
 
 	keybindings[KeyType::CAMERA_YAW_LEFT] = getKeySetting("keymap_camera_yaw_left");
 	keybindings[KeyType::CAMERA_YAW_RIGHT] = getKeySetting("keymap_camera_yaw_right");

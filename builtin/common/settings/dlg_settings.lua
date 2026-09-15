@@ -140,6 +140,7 @@ local PAGES = {
 			"keymap_drop", "keymap_inventory",
 			{ heading = N_("Interface") },
 			"keymap_chat", "keymap_cmd", "keymap_zoom", "keymap_pickitem",
+			"keymap_minimap", "keymap_map",
 			"keymap_help", "keymap_screenshot",
 			"keymap_fullscreen", "keymap_pause",
 		},

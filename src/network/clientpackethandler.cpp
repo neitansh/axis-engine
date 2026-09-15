@@ -1973,6 +1973,15 @@ void Client::handleCommand_MinimapSurface(NetworkPacket *pkt)
 		replace != 0);
 }
 
+void Client::handleCommand_MinimapArea(NetworkPacket *pkt)
+{
+	u8 set;
+	s16 min_x, min_z, max_x, max_z;
+	*pkt >> set >> min_x >> min_z >> max_x >> max_z;
+	if (m_minimap)
+		m_minimap->setArea(set != 0, v2s16(min_x, min_z), v2s16(max_x, max_z));
+}
+
 void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 {
 	Lighting& lighting = m_env.getLocalPlayer()->getLighting();

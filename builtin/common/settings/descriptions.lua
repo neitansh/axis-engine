@@ -214,6 +214,7 @@ return {
 	["keymap_quicktune_prev"] = { text = N_("Which key does this. Click the setting and press the key you want.") },
 	["keymap_rangeselect"] = { text = N_("Which key does this. Click the setting and press the key you want.") },
 	["keymap_reload"] = { text = N_("Reload the weapon in your hands.") },
+	["keymap_map"] = { text = N_("Open and close the map of the area the game marks out: the whole arena, with what the game puts on it.") },
 	["keymap_right"] = { text = N_("Which key does this. Click the setting and press the key you want.") },
 	["keymap_screenshot"] = { text = N_("Take a picture of the screen and save it to the screenshots folder.") },
 	["keymap_slot1"] = { text = N_("Which key does this. Click the setting and press the key you want.") },

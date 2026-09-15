@@ -15,6 +15,7 @@ const struct EnumString es_HudElementType[] =
 	{HUD_ELEM_COMPASS,   "compass"},
 	{HUD_ELEM_MINIMAP,   "minimap"},
 	{HUD_ELEM_HOTBAR,    "hotbar"},
+	{HUD_ELEM_MAP_MARKER, "map_marker"},
 	{0, NULL},
 };
 

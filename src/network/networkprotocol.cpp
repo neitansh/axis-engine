@@ -93,6 +93,7 @@
 		Added TOCLIENT_MINIMAP_SURFACE: surface columns the client shows on
 		the minimap before its mapblocks arrive
 		Added "shape" to every mode of TOCLIENT_MINIMAP_MODES
+		Added TOCLIENT_MINIMAP_AREA: what the map key shows whole
 */
 
 // Note: Also update core.protocol_versions in builtin when bumping

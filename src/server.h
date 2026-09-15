@@ -508,6 +508,7 @@ public:
 			std::vector<MinimapMode> &modes,
 			size_t wanted_mode);
 	bool SendMinimapSurface(session_t peer_id, const MinimapSurface &surface);
+	bool SendMinimapArea(session_t peer_id, bool set, v2s16 min, v2s16 max);
 
 	void sendDetachedInventories(session_t peer_id, bool incremental);
 

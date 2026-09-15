@@ -2324,6 +2324,11 @@ void Game::processKeyInput()
 	{
 		toggleMinimap(isKeyDown(KeyType::SNEAK));
 	}
+	else if (wasKeyPressed(KeyType::MAP))
+	{
+		if (mapper && m_game_ui->m_flags.show_hud)
+			mapper->toggleBigMap();
+	}
 	else if (wasKeyPressed(KeyType::TOGGLE_CHAT))
 	{
 		m_game_ui->toggleChat(client);
@@ -2660,6 +2665,7 @@ void Game::showHelpMenu()
 		{"keymap_chat", N_("Chat")},
 		{"keymap_cmd", N_("Command")},
 		{"keymap_minimap", N_("Minimap")},
+		{"keymap_map", N_("Map")},
 		{"keymap_screenshot", N_("Screenshot")},
 		{"keymap_fullscreen", N_("Fullscreen")},
 	};

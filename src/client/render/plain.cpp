@@ -57,6 +57,7 @@ void DrawHUD::run(PipelineContext &context)
 
 	if (context.show_hud) {
 		context.client->getCamera()->drawNametags();
+		context.hud->drawBigMap();
 	}
 
 	{

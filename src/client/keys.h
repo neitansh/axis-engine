@@ -63,6 +63,7 @@ public:
 		ZOOM,
 		PICKITEM,
 		RELOAD,
+		MAP,
 
 		QUICKTUNE_NEXT,
 		QUICKTUNE_PREV,
