@@ -295,7 +295,7 @@ void push_item_definition_full(lua_State *L, const ItemDefinition &i)
 }
 
 /******************************************************************************/
-const std::array<const char *, 42> object_property_keys = {
+const std::array<const char *, 44> object_property_keys = {
 	"hp_max",
 	"breath_max",
 	"physical",
@@ -332,6 +332,8 @@ const std::array<const char *, 42> object_property_keys = {
 	"batched",
 	"damage_texture_modifier",
 	"show_on_minimap",
+	"minimap_marker",
+	"minimap_marker_color",
 	// "node" is intentionally not here as it's gated behind `fallback` below!
 	"nametag_fontsize",
 	"nametag_scale_z",
@@ -585,6 +587,14 @@ void read_object_properties(lua_State *L, int index,
 	getboolfield(L, -1, "casts_shadow", prop->casts_shadow);
 	getboolfield(L, -1, "batched", prop->batched);
 	getboolfield(L, -1, "show_on_minimap", prop->show_on_minimap);
+	getstringfield(L, -1, "minimap_marker", prop->minimap_marker);
+	lua_getfield(L, -1, "minimap_marker_color");
+	if (!lua_isnil(L, -1)) {
+		video::SColor color = prop->minimap_marker_color;
+		if (read_color(L, -1, &color))
+			prop->minimap_marker_color = color;
+	}
+	lua_pop(L, 1);
 
 	// Don't set if nil
 	std::string step_up_mode;
@@ -758,6 +768,10 @@ void push_object_properties(lua_State *L, const ObjectProperties *prop)
 	lua_setfield(L, -2, "damage_texture_modifier");
 	lua_pushboolean(L, prop->show_on_minimap);
 	lua_setfield(L, -2, "show_on_minimap");
+	lua_pushlstring(L, prop->minimap_marker.c_str(), prop->minimap_marker.size());
+	lua_setfield(L, -2, "minimap_marker");
+	push_ARGB8(L, prop->minimap_marker_color);
+	lua_setfield(L, -2, "minimap_marker_color");
 	lua_pushstring(L, enum_to_string(es_StepUpMode, prop->step_up_mode));
 	lua_setfield(L, -2, "step_up_mode");
 

@@ -1372,13 +1372,14 @@ void GenericCAO::updateMarker()
 		return;
 	}
 
-	if (m_marker)
-		return;
-
-	scene::ISceneNode *node = getSceneNode();
-	if (!node)
-		return;
-	m_marker = m_client->getMinimap()->addMarker(node);
+	if (!m_marker) {
+		scene::ISceneNode *node = getSceneNode();
+		if (!node)
+			return;
+		m_marker = m_client->getMinimap()->addMarker(node);
+	}
+	m_marker->texture = m_prop.minimap_marker;
+	m_marker->color = m_prop.minimap_marker_color;
 }
 
 void GenericCAO::updateNametag()

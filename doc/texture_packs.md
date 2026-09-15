@@ -97,12 +97,9 @@ by texture packs. All existing fallback textures can be found in the directory
 * `heart_gone.png`: like `heart.png`, but denotes lack of health points
                     (transparent by default, same size as heart.png)
 
-* `minimap_mask_round.png`: round minimap mask, white gets replaced by the map
-* `minimap_mask_square.png`: mask used for the square minimap
 * `minimap_overlay_round.png`: overlay texture for the round minimap
-* `minimap_overlay_square.png`: overlay texture for the square minimap
-* `object_marker_red.png`: texture for players on the minimap
-* `player_marker.png`: texture for the own player on the square minimap
+* `minimap_marker.png`: default marker for objects on the minimap, tinted by
+                        the object's `minimap_marker_color`
 * `no_texture_airlike.png`: fallback inventory image for airlike nodes
 * `no_texture.png`: fallback image for unspecified textures
 

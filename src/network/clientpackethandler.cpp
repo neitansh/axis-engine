@@ -1925,15 +1925,52 @@ void Client::handleCommand_MinimapModes(NetworkPacket *pkt)
 		u16 size;
 		std::string texture;
 		u16 scale;
+		u8 shape = MINIMAP_SHAPE_FREE;
 
 		*pkt >> type >> label >> size >> texture >> scale;
+		if (m_proto_ver >= 57)
+			*pkt >> shape;
 
 		if (m_minimap)
-			m_minimap->addMode(MinimapType(type), size, label, texture, scale);
+			m_minimap->addMode(MinimapType(type), size, label, texture, scale,
+				MinimapShapeLock(std::min<u8>(shape, MINIMAP_SHAPE_LOCK_ROUND)));
 	}
 
 	if (m_minimap)
 		m_minimap->setModeIndex(mode);
+}
+
+void Client::handleCommand_MinimapSurface(NetworkPacket *pkt)
+{
+	u8 replace;
+	s16 min_x, min_z, max_x, max_z;
+	*pkt >> replace >> min_x >> min_z >> max_x >> max_z;
+	std::string packed = pkt->readLongString();
+
+	if (!m_minimap)
+		return;
+	if (max_x < min_x || max_z < min_z) {
+		if (replace)
+			m_minimap->clearSurface();
+		return;
+	}
+
+	const size_t count = (size_t)(max_x - min_x + 1) * (max_z - min_z + 1);
+	std::istringstream is(packed, std::ios::binary);
+	std::ostringstream os(std::ios::binary);
+	decompressZlib(is, os, count * 4);
+	std::string raw = os.str();
+	if (raw.size() != count * 4)
+		throw SerializationError("TOCLIENT_MINIMAP_SURFACE: wrong data size");
+
+	std::vector<content_t> content(count);
+	std::vector<s16> height(count);
+	for (size_t i = 0; i < count; i++) {
+		content[i] = readU16((const u8 *)raw.data() + i * 4);
+		height[i] = readS16((const u8 *)raw.data() + i * 4 + 2);
+	}
+	m_minimap->addSurface(v2s16(min_x, min_z), v2s16(max_x, max_z), content, height,
+		replace != 0);
 }
 
 void Client::handleCommand_SetLighting(NetworkPacket *pkt)

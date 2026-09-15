@@ -3050,7 +3050,77 @@ static std::optional<MinimapMode> read_minimap_mode(lua_State *L, int index)
 	// Size is limited to 512. Performance gets poor if size too large, and
 	// segfaults have been experienced.
 	mode.size = rangelim(getintfield_default(L, index, "size", 0), 1, 512);
+
+	std::string shape = getstringfield_default(L, index, "shape", "");
+	if (shape == "square")
+		mode.shape = 1;
+	else if (shape == "round")
+		mode.shape = 2;
+	else if (!shape.empty())
+		warningstream << "Minimap mode shape \"" << shape << "\" ignored." << std::endl;
 	return mode;
+}
+
+// set_minimap_surface(self, surface)
+int ObjectRef::l_set_minimap_surface(lua_State *L)
+{
+	NO_MAP_LOCK_REQUIRED;
+	ObjectRef *ref = checkObject<ObjectRef>(L, 1);
+	RemotePlayer *player = getplayer(ref);
+	if (player == nullptr)
+		return 0;
+
+	MinimapSurface surface;
+	if (lua_isnoneornil(L, 2)) {
+		surface.replace = true;
+		surface.max = v2s16(-1, -1);
+		lua_pushboolean(L, getServer(L)->SendMinimapSurface(player->getPeerId(), surface));
+		return 1;
+	}
+
+	luaL_checktype(L, 2, LUA_TTABLE);
+	lua_getfield(L, 2, "minp");
+	v2s16 minp(getintfield_default(L, -1, "x", 0), getintfield_default(L, -1, "z", 0));
+	lua_pop(L, 1);
+	lua_getfield(L, 2, "maxp");
+	v2s16 maxp(getintfield_default(L, -1, "x", 0), getintfield_default(L, -1, "z", 0));
+	lua_pop(L, 1);
+	if (maxp.X < minp.X || maxp.Y < minp.Y)
+		throw LuaError("set_minimap_surface: maxp is below minp");
+	const size_t count = (size_t)(maxp.X - minp.X + 1) * (maxp.Y - minp.Y + 1);
+	if (count > 4u * 1024 * 1024)
+		throw LuaError("set_minimap_surface: area is too large");
+
+	surface.min = minp;
+	surface.max = maxp;
+	surface.replace = getboolfield_default(L, 2, "replace", false);
+
+	// content и height — либо число на всю область, либо таблица по столбцу.
+	auto read_array = [&](const char *name, auto &out, auto convert) {
+		lua_getfield(L, 2, name);
+		if (lua_isnumber(L, -1)) {
+			out.assign(count, convert(lua_tonumber(L, -1)));
+		} else if (lua_istable(L, -1)) {
+			out.resize(count);
+			for (size_t i = 0; i < count; i++) {
+				lua_rawgeti(L, -1, i + 1);
+				if (!lua_isnumber(L, -1))
+					throw LuaError(std::string("set_minimap_surface: ") + name
+						+ "[" + std::to_string(i + 1) + "] is not a number");
+				out[i] = convert(lua_tonumber(L, -1));
+				lua_pop(L, 1);
+			}
+		} else {
+			throw LuaError(std::string("set_minimap_surface: ") + name
+				+ " must be a number or a table");
+		}
+		lua_pop(L, 1);
+	};
+	read_array("content", surface.content, [](lua_Number n) { return (content_t)n; });
+	read_array("height", surface.height, [](lua_Number n) { return (s16)n; });
+
+	lua_pushboolean(L, getServer(L)->SendMinimapSurface(player->getPeerId(), surface));
+	return 1;
 }
 
 // set_minimap_modes(self, modes, selected_mode)
@@ -3401,6 +3471,7 @@ luaL_Reg ObjectRef::methods[] = {
 	luamethod(ObjectRef, get_eye_offset),
 	luamethod(ObjectRef, send_mapblock),
 	luamethod(ObjectRef, set_minimap_modes),
+	luamethod(ObjectRef, set_minimap_surface),
 	luamethod(ObjectRef, set_lighting),
 	luamethod(ObjectRef, get_lighting),
 	luamethod(ObjectRef, respawn),

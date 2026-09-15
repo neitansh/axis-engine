@@ -13,7 +13,10 @@
 #include "hud_element.h"
 #include "mapnode.h"
 #include "util/thread.h"
+#include <atomic>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -30,24 +33,34 @@ namespace scene {
 class Client;
 class NodeDefManager;
 class ITextureSource;
-class IShaderSource;
 class VoxelManipulator;
 
-#define MINIMAP_MAX_SX 512
-#define MINIMAP_MAX_SY 512
+// Предел стороны области сканирования в нодах. Ограничивает и размер
+// текстуры, и работу потока: на панели в четверть экрана больше нод не
+// поместится ни при каком масштабе.
+#define MINIMAP_MAX_SIZE 1024
 
 enum MinimapShape {
 	MINIMAP_SHAPE_SQUARE,
 	MINIMAP_SHAPE_ROUND,
 };
 
+// Форма, назначенная режиму сервером: FREE — как у клиента в настройках,
+// остальные фиксируют форму и отключают её переключение с клавиатуры.
+enum MinimapShapeLock : u8 {
+	MINIMAP_SHAPE_FREE = 0,
+	MINIMAP_SHAPE_LOCK_SQUARE = 1,
+	MINIMAP_SHAPE_LOCK_ROUND = 2,
+};
+
 struct MinimapModeDef {
-	MinimapType type;
+	MinimapType type = MINIMAP_TYPE_OFF;
 	std::string label;
-	u16 scan_height;
-	u16 map_size;
+	u16 scan_height = 0;
+	u16 map_size = 0;
 	std::string texture;
-	u16 scale;
+	u16 scale = 1;
+	MinimapShapeLock shape = MINIMAP_SHAPE_FREE;
 };
 
 struct MinimapMarker {
@@ -56,13 +69,17 @@ struct MinimapMarker {
 	{}
 
 	scene::ISceneNode *parent_node;
+	std::string texture;
+	video::SColor color = video::SColor(255, 255, 255, 255);
 };
 
+// Верхняя нода столбца внутри одного мапблока.
 struct MinimapPixel {
-	//! The topmost node that the minimap displays.
 	MapNode n;
-	u16 height;
-	u16 air_count;
+	u8 height;
+	u8 air_count;
+	// Сколько нод жидкости подряд под поверхностью: чем глубже, тем темнее вода.
+	u8 liquid_depth;
 };
 
 struct MinimapMapblock {
@@ -71,22 +88,53 @@ struct MinimapMapblock {
 	MinimapPixel data[MAP_BLOCKSIZE * MAP_BLOCKSIZE];
 };
 
+// Столбец поверхности, присланный сервером заранее. Показывается там, где
+// клиент ещё не получил мапблоки; живые данные всегда его перекрывают.
+// n == CONTENT_IGNORE — столбец неизвестен; присланный таким, он стирает
+// то, что было прислано раньше.
+struct MinimapSurfaceColumn {
+	content_t n = CONTENT_IGNORE;
+	s16 y = 0;
+	// Входит в присланный прямоугольник: остальные столбцы плитки при
+	// слиянии не трогаются.
+	bool set = false;
+};
+
+struct MinimapSurfaceTile {
+	MinimapSurfaceColumn data[MAP_BLOCKSIZE * MAP_BLOCKSIZE];
+};
+
+// Итог сканирования одного столбца области вокруг игрока.
+struct MinimapColumn {
+	MapNode n = MapNode(CONTENT_AIR);
+	s16 y = 0;
+	u8 air_count = 0;
+	u8 liquid_depth = 0;
+	bool known = false;
+};
+
+// Готовый скан: сторона size нод, начало min (x, z), высоты абсолютные.
+struct MinimapScan {
+	v3s16 min;
+	u16 size = 0;
+	u32 generation = 0;
+	std::vector<MinimapColumn> columns;
+};
+
 struct MinimapData {
 	MinimapModeDef mode;
 	v3s16 pos;
-	v3s16 old_pos;
-	MinimapPixel minimap_scan[MINIMAP_MAX_SX * MINIMAP_MAX_SY];
-	bool map_invalidated;
+	// Сколько нод сканировать по стороне; считает главный поток из размера
+	// панели и масштаба режима.
+	u16 scan_size = 0;
+	// Растёт при смене режима и размера: скан старого поколения, догнавший
+	// главный поток, отбрасывается, а не рисуется под новым режимом.
+	u32 generation = 0;
 	bool minimap_shape_round;
-	video::IImage *minimap_mask_round = nullptr;
-	video::IImage *minimap_mask_square = nullptr;
 	video::ITexture *texture = nullptr;
-	video::ITexture *heightmap_texture = nullptr;
-	bool textures_initialised = false; // True if the following textures are not nullptrs.
+	bool textures_initialised = false;
 	video::ITexture *minimap_overlay_round = nullptr;
-	video::ITexture *minimap_overlay_square = nullptr;
-	video::ITexture *player_marker = nullptr;
-	video::ITexture *object_marker_red = nullptr;
+	video::ITexture *marker_default = nullptr;
 };
 
 struct QueuedMinimapUpdate {
@@ -99,20 +147,39 @@ public:
 	MinimapUpdateThread() : UpdateThread("Minimap") {}
 	virtual ~MinimapUpdateThread();
 
-	void getMap(v3s16 pos, s16 size, s16 height);
 	void enqueueBlock(v3s16 pos, MinimapMapblock *data);
-	bool pushBlockUpdate(v3s16 pos, MinimapMapblock *data);
-	bool popBlockUpdate(QueuedMinimapUpdate *update);
+	void enqueueSurface(std::map<v2s16, std::unique_ptr<MinimapSurfaceTile>> &&tiles,
+			bool replace);
+	// Требует пересканировать область: позиция, режим или данные изменились.
+	void invalidate();
+
+	// Забрать готовый скан, если он появился после прошлого вызова.
+	bool takeScan(MinimapScan &out);
 
 	MinimapData *data = nullptr;
+	std::mutex *data_mutex = nullptr;
 
 protected:
 	virtual void doUpdate();
 
 private:
+	bool pushBlockUpdate(v3s16 pos, MinimapMapblock *data);
+	bool popBlockUpdate(QueuedMinimapUpdate *update);
+	void getMap(v3s16 pos, s16 size, s16 height, MinimapScan &scan);
+
 	std::mutex m_queue_mutex;
 	std::deque<QueuedMinimapUpdate> m_update_queue;
+	std::map<v2s16, std::unique_ptr<MinimapSurfaceTile>> m_surface_queue;
+	bool m_surface_replace = false;
 	std::map<v3s16, MinimapMapblock *> m_blocks_cache;
+	size_t m_evict_at = 4096;
+	std::map<v2s16, std::unique_ptr<MinimapSurfaceTile>> m_surface;
+	std::atomic<bool> m_dirty{true};
+
+	std::mutex m_scan_mutex;
+	MinimapScan m_ready;
+	MinimapScan m_spare;
+	bool m_ready_fresh = false;
 };
 
 class Minimap {
@@ -121,9 +188,16 @@ public:
 	~Minimap();
 
 	void addBlock(v3s16 pos, MinimapMapblock *data);
+	// Поверхность от сервера: столбцы прямоугольника [min, max] по x и z,
+	// content и y по строкам z, внутри строки — по x. replace = true сначала
+	// выбрасывает всё, что было прислано раньше.
+	void addSurface(v2s16 min, v2s16 max, const std::vector<content_t> &content,
+			const std::vector<s16> &height, bool replace);
+	void clearSurface();
 
-	v3f getYawVec();
-
+	// Положение игрока в нодах с дробной частью: карта скользит плавно, а не
+	// прыгает на ноду.
+	void setPlayerPos(v3f pos);
 	void setPos(v3s16 pos);
 	v3s16 getPos() const { return data->pos; }
 	void setAngle(f32 angle);
@@ -131,11 +205,14 @@ public:
 	void toggleMinimapShape();
 	void setMinimapShape(MinimapShape shape);
 	MinimapShape getMinimapShape();
+	// Форма зафиксирована сервером для текущего режима.
+	bool isShapeLocked() const;
 
 	void clearModes() { m_modes.clear(); };
 	void addMode(MinimapModeDef mode);
 	void addMode(MinimapType type, u16 size = 0, const std::string &label = "",
-			const std::string &texture = "", u16 scale = 1);
+			const std::string &texture = "", u16 scale = 1,
+			MinimapShapeLock shape = MINIMAP_SHAPE_FREE);
 
 	void setModeIndex(size_t index);
 	size_t getModeIndex() const { return m_current_mode_index; };
@@ -144,19 +221,9 @@ public:
 
 	MinimapModeDef getModeDef() const { return data->mode; }
 
-	video::IImage *getMinimapMask();
-	video::ITexture *getMinimapTexture();
-
-	void blitMinimapPixelsToImageRadar(video::IImage *map_image);
-	void blitMinimapPixelsToImageSurface(video::IImage *map_image,
-		video::IImage *heightmap_image);
-
-	irr_ptr<scene::SMeshBuffer> createMinimapMeshBuffer();
-
 	MinimapMarker* addMarker(scene::ISceneNode *parent_node);
 	void removeMarker(MinimapMarker **marker);
 
-	void updateActiveMarkers();
 	void drawMinimap(core::rect<s32> rect);
 
 	video::IVideoDriver *driver = nullptr;
@@ -164,8 +231,23 @@ public:
 	std::unique_ptr<MinimapData> data;
 
 private:
+	// Масштаб показа, выведенный из размера панели и режима.
+	struct View {
+		s32 panel = 0;         // сторона панели в пикселях
+		u16 px_per_texel = 1;  // целое увеличение текселя
+		u16 nodes_per_texel = 1; // сколько нод усредняется в тексель
+		u16 texels = 0;        // сторона текстуры
+		u16 scan_size = 0;     // сторона скана в нодах (с полем под затенение)
+	};
+	View computeView(s32 panel) const;
+	void rebuildTexture(const MinimapScan &scan, const View &view);
+	video::SColor columnColor(const MinimapColumn &c) const;
+	void drawFrame(const core::rect<s32> &rect);
+	void drawPlayerArrow(const core::rect<s32> &rect, f32 angle);
+	void drawMarkers(const core::rect<s32> &rect, const View &view);
+	void drawTextureMode(const core::rect<s32> &rect);
+
 	ITextureSource *m_tsrc = nullptr;
-	IShaderSource *m_shdrsrc = nullptr;
 	const NodeDefManager *m_ndef = nullptr;
 	std::unique_ptr<MinimapUpdateThread> m_minimap_update_thread;
 	irr_ptr<scene::SMeshBuffer> m_meshbuffer;
@@ -173,8 +255,12 @@ private:
 	size_t m_current_mode_index;
 	u16 m_surface_mode_scan_height;
 	f32 m_angle;
+	v3f m_player_pos;
+
+	MinimapScan m_scan;
+	bool m_scan_valid = false;
+	View m_texture_view;
 
 	std::mutex m_mutex;
 	std::vector<std::unique_ptr<MinimapMarker>> m_markers;
-	std::vector<v2f> m_active_markers;
 };

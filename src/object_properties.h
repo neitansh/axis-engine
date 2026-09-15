@@ -152,6 +152,9 @@ struct ObjectProperties
 	 */
 	bool batched = false;
 	bool show_on_minimap = false;
+	// Значок на миникарте: текстура (пустая — точка движка) и её подкраска.
+	std::string minimap_marker;
+	video::SColor minimap_marker_color = video::SColor(255, 255, 255, 255);
 	bool nametag_scale_z = false;
 
 	/*!

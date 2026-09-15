@@ -214,7 +214,6 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	int m_crack_texture_scale_i = 0;
 	CachedPixelShaderSetting<float> m_crack_texture_scale{"crackTextureScale"};
 	CachedPixelShaderSetting<float, 3> m_day_light{"dayLight"};
-	CachedPixelShaderSetting<float, 3> m_minimap_yaw{"yawVec"};
 	CachedPixelShaderSetting<float, 3> m_camera_offset_pixel{"cameraOffset"};
 	CachedVertexShaderSetting<float, 3> m_camera_offset_vertex{"cameraOffset"};
 	CachedPixelShaderSetting<float, 3> m_camera_position_pixel{"cameraPosition"};
@@ -372,12 +371,6 @@ public:
 		float animation_timer_delta_f = (float)m_client->getEnv().getFrameTimeDelta() / 100000.f;
 		m_animation_timer_delta_vertex.set(&animation_timer_delta_f, services);
 		m_animation_timer_delta_pixel.set(&animation_timer_delta_f, services);
-
-		if (m_client->getMinimap())
-		{
-			v3f minimap_yaw = m_client->getMinimap()->getYawVec();
-			m_minimap_yaw.set(minimap_yaw, services);
-		}
 
 		v3f offset = intToFloat(m_client->getCamera()->getOffset(), BS);
 		m_camera_offset_pixel.set(offset, services);
@@ -2596,10 +2589,15 @@ void Game::toggleMinimap(bool shift_pressed)
 	if (!mapper || !m_game_ui->m_flags.show_hud || !g_settings->getBool("enable_minimap"))
 		return;
 
-	if (shift_pressed)
+	if (shift_pressed) {
+		if (mapper->isShapeLocked()) {
+			m_game_ui->showTranslatedStatusText("Minimap shape is set by game or mod");
+			return;
+		}
 		mapper->toggleMinimapShape();
-	else
+	} else {
 		mapper->nextMode();
+	}
 
 	// TODO: When legacy minimap is deprecated, keep only HUD minimap stuff here
 
@@ -4598,7 +4596,7 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	*/
 	if (mapper && m_game_ui->m_flags.show_hud)
 	{
-		mapper->setPos(floatToInt(player->getPosition(), BS));
+		mapper->setPlayerPos(player->getPosition());
 		mapper->setAngle(player->getYaw());
 	}
 

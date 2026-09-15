@@ -145,6 +145,19 @@ struct MinimapMode {
 	u16 size = 0;
 	std::string texture;
 	u16 scale = 1;
+	// 0 — форма на усмотрение клиента, 1 — квадрат, 2 — круг.
+	u8 shape = 0;
+};
+
+// Поверхность для миникарты: прямоугольник столбцов [min, max] по x и z,
+// content и height по строкам z, внутри строки — по x. Клиент показывает её
+// там, куда мапблоки ещё не дошли.
+struct MinimapSurface {
+	v2s16 min;
+	v2s16 max;
+	std::vector<content_t> content;
+	std::vector<s16> height;
+	bool replace = false;
 };
 
 // structure for everything getClientInfo returns, for convenience
@@ -494,6 +507,7 @@ public:
 	void SendMinimapModes(session_t peer_id,
 			std::vector<MinimapMode> &modes,
 			size_t wanted_mode);
+	bool SendMinimapSurface(session_t peer_id, const MinimapSurface &surface);
 
 	void sendDetachedInventories(session_t peer_id, bool incremental);
 

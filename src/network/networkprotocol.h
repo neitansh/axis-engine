@@ -726,6 +726,9 @@ enum ToClientCommand : u16
 			std::string label
 			u16 size
 			std::string extra
+			u16 scale
+			u8 shape  // с версии протокола 57: 0 — как у клиента,
+			          // 1 — квадрат, 2 — круг
 	*/
 
 	TOCLIENT_SET_LIGHTING = 0x63,
@@ -832,7 +835,22 @@ enum ToClientCommand : u16
 		std::string caption    // подпись на закрытых глазах, UTF-8; пустая — без неё
 	*/
 
-	TOCLIENT_NUM_MSG_TYPES = 0x69,
+	TOCLIENT_MINIMAP_SURFACE = 0x69,
+	/*
+		Поверхность для миникарты: столбцы прямоугольника, которые клиент
+		показывает там, куда его мапблоки ещё не дошли. Живые мапблоки
+		всегда перекрывают присланное. Отправляется только клиенту версии
+		протокола 57 и новее.
+
+		u8 replace             // 1 — выбросить всё присланное раньше
+		s16 min_x, min_z
+		s16 max_x, max_z
+		u32 len
+		u8[len] data           // zlib; на столбец: u16 content, s16 y;
+		                       // по строкам z, внутри строки — по x
+	*/
+
+	TOCLIENT_NUM_MSG_TYPES = 0x6a,
 };
 
 enum ToServerCommand : u16

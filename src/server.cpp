@@ -3474,13 +3474,54 @@ void Server::SendMinimapModes(session_t peer_id,
 	if (!player)
 		return;
 
+	u16 proto_version;
+	{
+		ClientInterface::AutoLock clientlock(m_clients);
+		RemoteClient *client = m_clients.lockedGetClientNoEx(peer_id, CS_Created);
+		if (!client)
+			return;
+		proto_version = client->net_proto_version;
+	}
+
 	NetworkPacket pkt(TOCLIENT_MINIMAP_MODES, 0, peer_id);
 	pkt << (u16)modes.size() << (u16)wanted_mode;
 
-	for (auto &mode : modes)
+	for (auto &mode : modes) {
 		pkt << (u16)mode.type << mode.label << mode.size << mode.texture << mode.scale;
+		if (proto_version >= 57)
+			pkt << mode.shape;
+	}
 
 	Send(&pkt);
+}
+
+bool Server::SendMinimapSurface(session_t peer_id, const MinimapSurface &surface)
+{
+	{
+		ClientInterface::AutoLock clientlock(m_clients);
+		RemoteClient *client = m_clients.lockedGetClientNoEx(peer_id, CS_Created);
+		if (!client || client->net_proto_version < 57)
+			return false;
+	}
+
+	const size_t count = surface.content.size();
+	std::string raw;
+	raw.reserve(count * 4);
+	for (size_t i = 0; i < count; i++) {
+		raw.push_back((char)(surface.content[i] >> 8));
+		raw.push_back((char)(surface.content[i] & 0xff));
+		raw.push_back((char)((u16)surface.height[i] >> 8));
+		raw.push_back((char)((u16)surface.height[i] & 0xff));
+	}
+	std::ostringstream os(std::ios::binary);
+	compressZlib(raw, os);
+
+	NetworkPacket pkt(TOCLIENT_MINIMAP_SURFACE, 0, peer_id);
+	pkt << (u8)surface.replace << surface.min.X << surface.min.Y
+		<< surface.max.X << surface.max.Y;
+	pkt.putLongString(os.str());
+	Send(&pkt);
+	return true;
 }
 
 void Server::sendDetachedInventory(Inventory *inventory, const std::string &name, session_t peer_id)

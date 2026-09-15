@@ -427,6 +427,9 @@ private:
 	// set_minimap_modes(self, modes, wanted_mode)
 	static int l_set_minimap_modes(lua_State *L);
 
+	// set_minimap_surface(self, surface)
+	static int l_set_minimap_surface(lua_State *L);
+
 	// set_lighting(self, lighting)
 	static int l_set_lighting(lua_State *L);
 

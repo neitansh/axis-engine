@@ -98,6 +98,9 @@ std::string ObjectProperties::dump() const
 	os << ", damage_texture_modifier=" << damage_texture_modifier;
 	os << ", shaded=" << shaded;
 	os << ", show_on_minimap=" << show_on_minimap;
+	os << ", minimap_marker=" << minimap_marker;
+	os << ", minimap_marker_color=";
+	put_color(os, minimap_marker_color);
 	os << ", nametag_scale_z=" << nametag_scale_z;
 	os << ", nametag_show={max_distance=" << nametag_show.max_distance
 		<< ", fade=" << nametag_show.fade
@@ -122,7 +125,8 @@ static inline auto tie(const ObjectProperties &o)
 	o.node, o.hp_max, o.breath_max, o.glow, o.pointable, o.physical,
 	o.collideWithObjects, o.rotate_selectionbox, o.is_visible, o.makes_footstep_sound,
 	o.automatic_face_movement_dir, o.backface_culling, o.static_save, o.use_texture_alpha,
-	o.shaded, o.show_on_minimap, o.nametag_scale_z, o.step_up_mode,
+	o.shaded, o.show_on_minimap, o.minimap_marker, o.minimap_marker_color,
+	o.nametag_scale_z, o.step_up_mode,
 	o.first_person, o.first_person_position, o.first_person_rotation,
 	o.first_person_only
 	);
@@ -263,6 +267,9 @@ void ObjectProperties::serialize(std::ostream &os) const
 	writeU8(os, nametag_show.require_line_of_sight);
 	writeU8(os, nametag_show.only_when_pointed);
 	writeF32(os, nametag_show.pointed_angle);
+
+	os << serializeString16(minimap_marker);
+	writeARGB8(os, minimap_marker_color);
 
 	// Add stuff only at the bottom.
 	// Never remove anything, because we don't want new versions of this!
@@ -418,6 +425,12 @@ void ObjectProperties::deSerialize(std::istream &is)
 	nametag_show.require_line_of_sight = readU8(is);
 	nametag_show.only_when_pointed = readU8(is);
 	nametag_show.pointed_angle = readF32(is);
+
+	if (!canRead(is))
+		return;
+
+	minimap_marker = deSerializeString16(is);
+	minimap_marker_color = readARGB8(is);
 
 	//if (!canRead(is))
 	//	return;

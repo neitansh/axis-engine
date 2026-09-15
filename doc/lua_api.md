@@ -9661,8 +9661,31 @@ You **must not** mix names and track numbers to refer to the same animation.
         * `scale`: Only for texture type, scale of the texture map in nodes per
           pixel (for example a `scale` of 2 means each pixel represents a 2x2
           nodes square)
+        * `shape`: Optional, `"square"` or `"round"`. Fixes the shape of the
+          minimap in this mode; the player cannot toggle it. Without it the
+          client's own setting decides.
     * `selected_mode` is the mode index to be selected after modes have been changed
     (0 is the first mode).
+    * The client draws `size` nodes across the minimap at a whole number of
+      pixels per node (or nodes per pixel when the panel is smaller), so the
+      extent actually shown is the nearest one that keeps the map crisp.
+* `set_minimap_surface(surface)`
+    * Hands the client the surface of an area for the minimap, so the map is
+      complete before the mapblocks arrive. Mapblocks the client has always
+      take precedence: what the player sees loaded is what is drawn.
+    * `surface` is a table:
+        * `minp`, `maxp`: `{x=, z=}` corners of the area, inclusive.
+        * `content`: content id of the top node of every column, as a table in
+          rows by `z`, each row by `x` (like `VoxelManip` data over a flat
+          area), or a single number for the whole area. `core.CONTENT_IGNORE`
+          marks a column unknown and erases what was sent for it before.
+        * `height`: `y` of that node, a table like `content` or a number.
+        * `replace`: `true` drops everything sent before. Default `false`:
+          the area is merged over what the client already has.
+    * `set_minimap_surface(nil)` drops everything sent before.
+    * Areas are limited to 4 million columns per call. Split a bigger map into
+      strips; sending it as it is built is the natural way.
+    * Returns `false` if the client is too old to understand it.
 * `set_sky(sky_parameters)`
     * The presence of the function `set_sun`, `set_moon` or `set_stars` indicates
       whether `set_sky` accepts this format. Check the legacy format otherwise.
@@ -10522,6 +10545,17 @@ Player properties need to be saved manually.
     show_on_minimap = false,
     -- Defaults to true for players, false for other entities.
     -- If set to true the entity will show as a marker on the minimap.
+    -- The marker is the same for every viewer: to show an object only to
+    -- some players (say, a teammate to their team), attach an invisible
+    -- entity with `show_on_minimap = true` and restrict it with
+    -- `set_observers`, and turn the marker off on the object itself.
+
+    minimap_marker = "",
+    -- Texture of the marker; empty uses the engine's `minimap_marker.png`
+    -- (a dot). Drawn at the size the minimap picks for its markers.
+
+    minimap_marker_color = "#ffffff",
+    -- Tint of the marker texture.
 
     step_up_mode = "legacy",
     -- Defaults to "legacy" for players and entities.

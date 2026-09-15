@@ -89,10 +89,14 @@
 	PROTOCOL VERSION 56
 		Added TOCLIENT_EYELIDS: the player's eyelids closing over the
 		picture with a caption, animated by the client
+	PROTOCOL VERSION 57
+		Added TOCLIENT_MINIMAP_SURFACE: surface columns the client shows on
+		the minimap before its mapblocks arrive
+		Added "shape" to every mode of TOCLIENT_MINIMAP_MODES
 */
 
 // Note: Also update core.protocol_versions in builtin when bumping
-const u16 LATEST_PROTOCOL_VERSION = 56;
+const u16 LATEST_PROTOCOL_VERSION = 57;
 
 // See also formspec [Version History] in doc/lua_api.md
 const u16 FORMSPEC_API_VERSION = 10;
