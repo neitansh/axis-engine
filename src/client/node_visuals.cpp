@@ -487,6 +487,33 @@ void NodeVisuals::updateTextures(ITextureSource *tsrc, IShaderSource *shdsrc, Cl
 		palette = tsrc->getPalette(palette_name);
 }
 
+/*
+ * Поза покоя модели с костями. Вершины в буферах лежат до всякого поворота
+ * костей, а поворот, записанный в файле у кости, — это поза (Bedrock,
+ * bedrock/geometry.cpp), которую у сущности накладывает скиннинг в каждом
+ * кадре. У ноды скиннинга нет, и без этого шага она показала бы модель со
+ * сложенными костями — всякая кость, повёрнутая в Blockbench, стояла бы
+ * прямо. Поэтому кости ставятся в позу покоя здесь, один раз, программно.
+ */
+static void bakeRestPose(scene::SkinnedMesh *mesh)
+{
+	if (!mesh->hasWeights())
+		return;
+	mesh->prepareForAnimation(0);
+	mesh->updateStaticPose();
+
+	std::vector<core::matrix4> matrices;
+	matrices.reserve(mesh->getAllJoints().size());
+	for (const auto *joint : mesh->getAllJoints()) {
+		if (const auto *matrix = std::get_if<core::matrix4>(&joint->transform))
+			matrices.push_back(*matrix);
+		else
+			matrices.push_back(std::get<core::Transform>(joint->transform).buildMatrix());
+	}
+	mesh->calculateGlobalMatrices(matrices);
+	mesh->skinMesh(matrices);
+}
+
 void NodeVisuals::updateMesh(Client *client, const TextureSettings &tsettings)
 {
 	auto *manip = client->getSceneManager()->getMeshManipulator();
@@ -513,6 +540,7 @@ void NodeVisuals::updateMesh(Client *client, const TextureSettings &tsettings)
 			// Nodes do not support mesh animation, so we clone the static pose.
 			// This simplifies working with the mesh: We can just scale the vertices
 			// as transformations have already been applied.
+			bakeRestPose(skinned_mesh);
 			mesh_ptr = cloneStaticMesh(src_mesh);
 			src_mesh->drop();
 		} else {
