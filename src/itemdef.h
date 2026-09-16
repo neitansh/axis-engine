@@ -110,6 +110,11 @@ struct ItemDefinition
 	*/
 	v3f wield_rotation;
 	v3f wield_offset;
+	/*
+		Машет ли рука предметом по нажатию. Граната, которую держат зажатой
+		кнопкой ради трассы броска, не бьёт по воздуху каждый тик.
+	*/
+	bool wield_swing;
 
 	/*
 		Item stack and interaction properties

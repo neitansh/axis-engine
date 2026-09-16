@@ -113,6 +113,8 @@ void read_item_definition(lua_State *L, int index,
 	}
 	lua_pop(L, 1);
 
+	getboolfield(L, index, "wield_swing", def.wield_swing);
+
 	int stack_max = getintfield_default(L, index, "stack_max", def.stack_max);
 	def.stack_max = rangelim(stack_max, 1, U16_MAX);
 
@@ -254,6 +256,8 @@ void push_item_definition_full(lua_State *L, const ItemDefinition &i)
 	lua_setfield(L, -2, "color");
 	push_v3f(L, i.wield_scale);
 	lua_setfield(L, -2, "wield_scale");
+	lua_pushboolean(L, i.wield_swing);
+	lua_setfield(L, -2, "wield_swing");
 	lua_pushinteger(L, i.stack_max);
 	lua_setfield(L, -2, "stack_max");
 	lua_pushboolean(L, i.usable);

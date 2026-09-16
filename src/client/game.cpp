@@ -3829,7 +3829,7 @@ void Game::processPlayerInteraction(f32 dtime, bool show_hud)
 
 	runData.pointed_old = pointed;
 
-	if (runData.punching || wasKeyPressed(KeyType::DIG))
+	if ((runData.punching || wasKeyPressed(KeyType::DIG)) && selected_def.wield_swing)
 		camera->setDigging(0); // dig animation
 
 	input->clearWasKeyPressed();
@@ -3995,7 +3995,8 @@ void Game::handlePointingAtNode(const PointedThing &pointed,
 		infostream << "Place button pressed while looking at ground" << std::endl;
 
 		// Placing animation (always shown for feedback)
-		camera->setDigging(1);
+		if (selected_item.getDefinition(itemdef_manager).wield_swing)
+			camera->setDigging(1);
 
 		soundmaker->m_player_rightpunch_sound = SoundSpec();
 
@@ -4495,7 +4496,8 @@ void Game::handleDigging(const PointedThing &pointed, const v3s16 &nodepos,
 		client->setCrack(-1, nodepos);
 	}
 
-	camera->setDigging(0); // Dig animation
+	if (selected_item.getDefinition(itemdef_manager).wield_swing)
+		camera->setDigging(0); // Dig animation
 }
 
 void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,

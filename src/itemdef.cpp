@@ -127,6 +127,7 @@ ItemDefinition& ItemDefinition::operator=(const ItemDefinition &def)
 	wield_scale = def.wield_scale;
 	wield_rotation = def.wield_rotation;
 	wield_offset = def.wield_offset;
+	wield_swing = def.wield_swing;
 	stack_max = def.stack_max;
 	usable = def.usable;
 	liquids_pointable = def.liquids_pointable;
@@ -177,6 +178,7 @@ void ItemDefinition::reset()
 	wield_scale = v3f(1.0f);
 	wield_rotation = v3f(0.0f);
 	wield_offset = v3f(0.0f);
+	wield_swing = true;
 	stack_max = 99;
 	usable = false;
 	liquids_pointable = false;
@@ -275,6 +277,7 @@ void ItemDefinition::serialize(std::ostream &os, u16 protocol_version) const
 	// >= 5.17.0-dev
 	writeV3F32(os, wield_rotation);
 	writeV3F32(os, wield_offset);
+	writeU8(os, wield_swing);
 }
 
 void ItemDefinition::deSerialize(std::istream &is, u16 protocol_version)
@@ -382,6 +385,11 @@ void ItemDefinition::deSerialize(std::istream &is, u16 protocol_version)
 
 		wield_rotation = readV3F32(is);
 		wield_offset = readV3F32(is);
+
+		if (!canRead(is))
+			break;
+
+		wield_swing = readU8(is);
 
 		//if (!canRead(is))
 		//	break;

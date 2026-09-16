@@ -10901,6 +10901,11 @@ Used by `core.register_node`, `core.register_craftitem`, and
 
     wield_offset = {x = 0, y = 0, z = 0},
     -- Shifts the item in the hand, in nodes. Applied after the rotation.
+
+    wield_swing = true,
+    -- Whether the hand swings the item on dig and place. `false` for an
+    -- item held down for something else, say a grenade held while its
+    -- throw is aimed: the hand stays still, the item does not punch the air.
     -- Scale for the item when held in hand
 
     palette = "",
