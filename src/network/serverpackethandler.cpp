@@ -236,6 +236,20 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 	// A single player game is the one place without a ticket, and it is not an
 	// exception to the rule: there the server lives inside the client, a second
 	// player is refused a few lines above, and there is nobody to check.
+#if AXIS_DEV_NO_TICKETS
+	// Сборка для своей машины (см. AXIS_DEV_NO_TICKETS в CMakeLists.txt):
+	// билет не проверяется, кто назвался — тот и есть. Каждый вход об этом
+	// напоминает в журнале, чтобы такая сборка не ушла дальше стола.
+	if (!isSingleplayer()) {
+		warningstream << "Server: DEV BUILD, tickets are not checked: \"" <<
+			playerName << "\" from " << addr_s << " let in on their word" << std::endl;
+		TicketIdentity id;
+		id.uid = "dev:" + playerName;
+		id.login = playerName;
+		id.display = playerName;
+		client->setIdentity(id);
+	}
+#else
 	if (!isSingleplayer()) {
 		TicketIdentity id;
 		const TicketError err = checkTicket(ticket, playerName,
@@ -270,6 +284,7 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 		infostream << "Server: \"" << playerName << "\" is " << id.uid <<
 			" (" << id.display << ")" << std::endl;
 	}
+#endif
 
 	finishInit(peer_id);
 }

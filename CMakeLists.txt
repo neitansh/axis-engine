@@ -58,6 +58,10 @@ set(BUILD_SERVER FALSE CACHE BOOL "Build server")
 set(BUILD_UNITTESTS TRUE CACHE BOOL "Build unittests")
 set(BUILD_BENCHMARKS FALSE CACHE BOOL "Build benchmarks")
 set(BUILD_DOCUMENTATION TRUE CACHE BOOL "Build documentation")
+# Сервер пускает без билета службы аккаунтов — чтобы гонять двух игроков на
+# своей машине. Только для сборки у себя: релиз собирается без опции, а сервер
+# с ней предупреждает в журнале о каждом входе.
+set(AXIS_DEV_NO_TICKETS FALSE CACHE BOOL "Accept players without account tickets (local development only)")
 
 set(DEFAULT_ENABLE_LTO TRUE)
 # by default don't enable on Debug builds to get faster builds
@@ -96,6 +100,7 @@ message(STATUS "BUILD_SERVER: " ${BUILD_SERVER})
 message(STATUS "BUILD_UNITTESTS: " ${BUILD_UNITTESTS})
 message(STATUS "BUILD_BENCHMARKS: " ${BUILD_BENCHMARKS})
 message(STATUS "BUILD_DOCUMENTATION: " ${BUILD_DOCUMENTATION})
+message(STATUS "AXIS_DEV_NO_TICKETS: " ${AXIS_DEV_NO_TICKETS})
 message(STATUS "RUN_IN_PLACE: " ${RUN_IN_PLACE})
 
 set(WARN_ALL TRUE CACHE BOOL "Enable -Wall for Release build")
