@@ -1665,6 +1665,12 @@ void Client::handleCommand_Camera(NetworkPacket* pkt)
 	player->allowed_camera_mode = static_cast<CameraMode>(tmp);
 	if (player->allowed_camera_mode >= CameraMode_END)
 		player->allowed_camera_mode = CAMERA_MODE_ANY;
+	player->look_locked = false;
+	if (pkt->getRemainingBytes() >= 1) {
+		u8 locked;
+		*pkt >> locked;
+		player->look_locked = locked != 0;
+	}
 
 	m_client_event_queue.push(new ClientEvent(CE_UPDATE_CAMERA));
 }

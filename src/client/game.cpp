@@ -2900,7 +2900,17 @@ void Game::updateCameraDirection(CameraOrientation *cam, float dtime)
 			// развернуло бы камеру в небо. Стенду поворот не нужен - камера
 			// стоит там, куда её поставила игра, и сцена от прогона к
 			// прогону одна и та же.
-			updateCameraOrientation(cam, dtime);
+			LocalPlayer *player = client->getEnv().getLocalPlayer();
+			if (player->look_locked) {
+				// Сервер ведёт камеру сам; мышь только возвращается в
+				// центр, чтобы накопленный сдвиг не дёрнул взгляд, когда
+				// замок снимут.
+				v2s32 center(driver->getScreenSize().Width / 2, driver->getScreenSize().Height / 2);
+				if (input->getMousePos() != center)
+					input->setMousePos(center.X, center.Y);
+			} else {
+				updateCameraOrientation(cam, dtime);
+			}
 		}
 	}
 	else

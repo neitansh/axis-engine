@@ -9916,7 +9916,13 @@ You **must not** mix names and track numbers to refer to the same animation.
       - `first`: first-person camera
       - `third`: third-person camera
       - `third_front`: third-person camera, looking opposite of movement direction
-    * Supported by clients since 5.12.0.
+    * `look`: who turns the camera
+      - `free`: the player, with mouse and look keys (default)
+      - `locked`: the server only, through `set_look_horizontal` /
+        `set_look_vertical`; mouse and look keys are ignored. For scenes the
+        game drives: cutscenes, a camera on rails. The player still sees the
+        look the server sets, without the jitter of fighting the mouse.
+    * Supported by clients since 5.12.0; `look` — Axis only, older clients ignore it.
 * `get_camera()`: Returns the camera parameters as a table as above.
 * `send_mapblock(blockpos)`:
     * Sends an already loaded mapblock to the player.

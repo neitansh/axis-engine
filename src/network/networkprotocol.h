@@ -508,6 +508,7 @@ enum ToClientCommand : u16
 	TOCLIENT_CAMERA = 0x48,
 	/*
 		u8 allowed_camera_mode
+		u8 look_locked (необязательно: старый сервер его не шлёт)
 	*/
 
 	TOCLIENT_HUDADD = 0x49,

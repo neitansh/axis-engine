@@ -200,6 +200,9 @@ public:
 	const std::string& getName() const { return m_name; }
 
 	CameraMode allowed_camera_mode = CAMERA_MODE_ANY;
+	// Взгляд заперт: мышь и клавиши взгляда не крутят камеру, куда смотреть —
+	// решает сервер (set_look_*). Для сцен, где камеру ведёт игра.
+	bool look_locked = false;
 
 	v3f eye_offset_first;
 	v3f eye_offset_third;

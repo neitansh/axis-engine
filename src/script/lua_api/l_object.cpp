@@ -771,6 +771,7 @@ int ObjectRef::l_set_camera(lua_State *L)
 	if (lua_isnoneornil(L, 2))
 	{
 		player->allowed_camera_mode = CAMERA_MODE_ANY;
+		player->look_locked = false;
 	}
 	else
 	{
@@ -779,6 +780,13 @@ int ObjectRef::l_set_camera(lua_State *L)
 		lua_getfield(L, -1, "mode");
 		if (lua_isstring(L, -1))
 			string_to_enum(es_CameraMode, player->allowed_camera_mode, lua_tostring(L, -1));
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "look");
+		if (lua_isstring(L, -1)) {
+			std::string look = lua_tostring(L, -1);
+			player->look_locked = look == "locked";
+		}
 		lua_pop(L, 1);
 	}
 
@@ -796,6 +804,7 @@ int ObjectRef::l_get_camera(lua_State *L)
 
 	lua_newtable(L);
 	setstringfield(L, -1, "mode", enum_to_string(es_CameraMode, player->allowed_camera_mode));
+	setstringfield(L, -1, "look", player->look_locked ? "locked" : "free");
 
 	return 1;
 }
