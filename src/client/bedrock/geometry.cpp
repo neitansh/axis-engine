@@ -430,11 +430,19 @@ scene::SkinnedMesh *GeometryLoader::build(const std::string &json,
 					boxUV(face, cube, box.uv, box.uv_size);
 					faceUVs(box, tex_w, tex_h, cube.mirror, uvs);
 				} else {
-					const FaceUV &face_uv = cube.faces[f];
+					FaceUV face_uv = cube.faces[f];
 					// Грань без развёртки в Bedrock не рисуется вовсе: ею
 					// пользуются, чтобы не платить за невидимые стороны.
 					if (!face_uv.present)
 						continue;
+					// Верх и низ у поштучной развёртки лежат наоборот
+					// относительно коробки: коробка (по Minecraft) кладёт
+					// верх картинки к югу, поштучная (по Blockbench, как
+					// у граней блочных моделей Java) — к северу. Углы
+					// граней ниже подобраны под коробку, поэтому здесь
+					// картинка доворачивается на полоборота.
+					if (face == Face::UP || face == Face::DOWN)
+						face_uv.rotation = (face_uv.rotation + 180) % 360;
 					faceUVs(face_uv, tex_w, tex_h, cube.mirror, uvs);
 				}
 
