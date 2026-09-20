@@ -2414,6 +2414,82 @@ bool Client::getChatMessage(std::wstring &res)
 	return true;
 }
 
+// Поза предмета в руке на живой игре: описания предметов клиент получает
+// при входе, и подбирать wield_rotation/offset/scale перезаходами — мука.
+// Команда клиентская и на C++ намеренно: скрипты клиента по умолчанию
+// выключены, а подбирать позу нужно как раз в обычной игре.
+//
+//   .wield                     показать позу того, что в руке
+//   .wield rot|off|scale x y z задать; «+5» — сдвинуть от нынешнего
+//   .wield reset               снять подмену
+//
+// Подмена действует на всё, что в руке, пока не снята. Числа печатаются так,
+// чтобы перенести их в описание предмета как есть.
+static std::string wieldPoseText(const WieldPose &pose, bool overridden)
+{
+	auto v = [](const v3f &t) {
+		char buf[96];
+		snprintf(buf, sizeof(buf), "{ x = %g, y = %g, z = %g }", t.X, t.Y, t.Z);
+		return std::string(buf);
+	};
+	return "rotation = " + v(pose.rotation) + ",\noffset = " + v(pose.offset) +
+			",\nscale = " + v(pose.scale) +
+			(overridden ? "" : "   (поза предмета, подмены нет)");
+}
+
+bool Client::handleWieldCommand(const std::string &message)
+{
+	if (message != ".wield" && message.rfind(".wield ", 0) != 0)
+		return false;
+	auto say = [&](const std::string &text) {
+		pushToChatQueue(new ChatMessage(utf8_to_wide(text)));
+	};
+	if (!m_camera) {
+		say("нет камеры");
+		return true;
+	}
+	std::vector<std::string> words = str_split(message, ' ');
+	words.erase(std::remove_if(words.begin(), words.end(),
+			[](const std::string &w) { return w.empty(); }), words.end());
+	if (words.size() == 1) {
+		say(wieldPoseText(m_camera->getWieldPose(), m_camera->hasWieldPoseOverride()));
+		return true;
+	}
+	if (words[1] == "reset") {
+		m_camera->setWieldPoseOverride(std::nullopt);
+		say(wieldPoseText(m_camera->getWieldPose(), false));
+		return true;
+	}
+	WieldPose pose = m_camera->getWieldPose();
+	v3f *target = words[1] == "rot" ? &pose.rotation
+			: words[1] == "off" ? &pose.offset
+			: words[1] == "scale" ? &pose.scale : nullptr;
+	if (!target || words.size() < 5) {
+		say(".wield [rot|off|scale x y z | rot|off|scale +dx +dy +dz | reset]");
+		return true;
+	}
+	f32 *axes[3] = {&target->X, &target->Y, &target->Z};
+	for (int i = 0; i < 3; ++i) {
+		const std::string &word = words[i + 2];
+		// «+5» и «+-5» — сдвиг от нынешнего, «-5» — само значение.
+		const bool relative = word[0] == '+';
+		const std::string digits = relative ? word.substr(1) : word;
+		char *end = nullptr;
+		const float value = strtof(digits.c_str(), &end);
+		if (digits.empty() || !end || *end != '\0') {
+			say("не число: " + word);
+			return true;
+		}
+		if (relative)
+			*axes[i] += value;
+		else
+			*axes[i] = value;
+	}
+	m_camera->setWieldPoseOverride(pose);
+	say(wieldPoseText(pose, true));
+	return true;
+}
+
 void Client::typeChatMessage(const std::wstring &message)
 {
 	// Discard empty line
@@ -2422,6 +2498,9 @@ void Client::typeChatMessage(const std::wstring &message)
 
 	auto message_utf8 = wide_to_utf8(message);
 	infostream << "Typed chat message: \"" << message_utf8 << "\"" << std::endl;
+
+	if (handleWieldCommand(message_utf8))
+		return;
 
 	// If message was consumed by script API, don't send it to server
 	if (m_mods_loaded && m_script->on_sending_message(message_utf8))

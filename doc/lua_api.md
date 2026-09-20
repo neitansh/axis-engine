@@ -10909,6 +10909,12 @@ Used by `core.register_node`, `core.register_craftitem`, and
 
     wield_offset = {x = 0, y = 0, z = 0},
     -- Shifts the item in the hand, in nodes. Applied after the rotation.
+    -- The hand's frame is turned, so the axes are not the camera's: z is
+    -- right, y is up, x is towards the eyes (closer and larger). To find the
+    -- numbers, type `.wield` in the game chat: it shows the pose of what is
+    -- held, `.wield rot|off|scale x y z` changes it live (`+5` nudges), and
+    -- `.wield reset` drops the override. Copy the printed lines into the
+    -- item definition.
 
     wield_swing = true,
     -- Whether the hand swings the item on dig and place. `false` for an

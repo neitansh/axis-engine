@@ -12,6 +12,7 @@
 #include <IMeshSceneNode.h>
 #include <SColor.h>
 #include <memory>
+#include <optional>
 #include "tile.h"
 #include "nodedef.h"
 
@@ -109,6 +110,15 @@ struct ItemMesh
 /*
 	Wield item scene node, renders the wield mesh of some item
 */
+// Поза предмета в руке: то, что у предмета зовётся wield_rotation,
+// wield_offset и wield_scale.
+struct WieldPose
+{
+	v3f rotation;
+	v3f offset;
+	v3f scale;
+};
+
 class WieldMeshSceneNode : public scene::ISceneNode
 {
 public:
@@ -133,6 +143,13 @@ public:
 
 	scene::IMesh *getMesh() { return m_meshnode->getMesh(); }
 
+	// Поза поверх той, что у предмета: для подбора на живой игре. Действует
+	// на всё, что в руке, пока не снята; nullopt — поза предмета.
+	void setPoseOverride(const std::optional<WieldPose> &pose);
+	const std::optional<WieldPose> &getPoseOverride() const { return m_pose_override; }
+	// Поза, которая рисуется сейчас: подмена, а без неё — предмета.
+	WieldPose getPose() const;
+
 	virtual void render();
 
 	virtual const aabb3f &getBoundingBox() const { return m_bounding_box; }
@@ -143,8 +160,13 @@ private:
 
 	void changeToMesh(scene::IMesh *mesh);
 
+	void setItemMesh(const ItemStack &item, Client *client, bool check_wield_image);
+	void applyPose();
+
 	// Child scene node with the current wield mesh
 	scene::IMeshSceneNode *m_meshnode = nullptr;
+	WieldPose m_item_pose;
+	std::optional<WieldPose> m_pose_override;
 	// Material types used as fallback
 	video::E_MATERIAL_TYPE m_material_type;
 

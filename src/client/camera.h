@@ -13,12 +13,12 @@
 #include <array>
 #include <vector>
 #include <optional>
+#include "client/wieldmesh.h"
 
 class LocalPlayer;
 struct MapDrawControl;
 class Client;
 class RenderingEngine;
-class WieldMeshSceneNode;
 
 enum CameraMode : int;
 
@@ -176,6 +176,12 @@ public:
 	// рисуются ещё раз с чистым буфером глубины, иначе рука, подошедшая к
 	// стене, уходит в стену. После главной сцены, до предмета в руке.
 	void drawFirstPersonObjects();
+
+	// Поза предмета в руке поверх той, что у предмета, — для подбора на живой
+	// игре (см. .wield в builtin/client/chatcommands.lua).
+	void setWieldPoseOverride(const std::optional<WieldPose> &pose) { m_wieldnode->setPoseOverride(pose); }
+	WieldPose getWieldPose() const { return m_wieldnode->getPose(); }
+	bool hasWieldPoseOverride() const { return m_wieldnode->getPoseOverride().has_value(); }
 
 	// Toggle the current camera mode
 	void toggleCameraMode();

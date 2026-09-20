@@ -13,6 +13,10 @@ private:
 	// get_current_modname()
 	static int l_get_current_modname(lua_State *L);
 
+	// set_wield_pose({rotation, offset, scale} | nil) / get_wield_pose()
+	static int l_set_wield_pose(lua_State *L);
+	static int l_get_wield_pose(lua_State *L);
+
 	// get_modpath(modname)
 	static int l_get_modpath(lua_State *L);
 

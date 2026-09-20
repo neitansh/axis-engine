@@ -341,6 +341,9 @@ public:
 
 	bool getChatMessage(std::wstring &message);
 	void typeChatMessage(const std::wstring& message);
+	// Клиентская команда .wield — поза предмета в руке; истина — сообщение
+	// съедено.
+	bool handleWieldCommand(const std::string &message);
 
 	u64 getMapSeed() const { return m_map_seed; }
 

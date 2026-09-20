@@ -426,16 +426,54 @@ std::vector<FrameSpec> createAnimationFrames(ITextureSource *tsrc,
 
 // Поза предмета в руке. Камера каждый кадр ставит сам узел — качание, замах,
 // отдачу, — поэтому собственная поза предмета живёт на внутреннем узле: одно
-// не затирает другое.
-static void applyWieldPose(scene::IMeshSceneNode *node, const ItemDefinition &def)
+// не затирает другое. Масштаб узлу ставит setItem по виду предмета, здесь
+// он только домножается на отношение подмены к масштабу предмета.
+void WieldMeshSceneNode::applyPose()
 {
-	if (!node)
+	if (!m_meshnode)
 		return;
-	node->setRotation(def.wield_rotation);
-	node->setPosition(def.wield_offset * BS);
+	const WieldPose &pose = m_pose_override ? *m_pose_override : m_item_pose;
+	m_meshnode->setRotation(pose.rotation);
+	m_meshnode->setPosition(pose.offset * BS);
+	if (m_pose_override) {
+		v3f scale = m_meshnode->getScale();
+		const v3f &was = m_item_pose.scale;
+		scale.X *= was.X != 0 ? pose.scale.X / was.X : 1;
+		scale.Y *= was.Y != 0 ? pose.scale.Y / was.Y : 1;
+		scale.Z *= was.Z != 0 ? pose.scale.Z / was.Z : 1;
+		m_meshnode->setScale(scale);
+	}
+}
+
+void WieldMeshSceneNode::setPoseOverride(const std::optional<WieldPose> &pose)
+{
+	// Масштаб узла уже домножен прежней подменой — вернуть его к предмету,
+	// прежде чем домножать на новую.
+	if (m_pose_override && m_meshnode) {
+		v3f scale = m_meshnode->getScale();
+		const WieldPose &old = *m_pose_override;
+		const v3f &was = m_item_pose.scale;
+		scale.X /= (was.X != 0 && old.scale.X != 0) ? old.scale.X / was.X : 1;
+		scale.Y /= (was.Y != 0 && old.scale.Y != 0) ? old.scale.Y / was.Y : 1;
+		scale.Z /= (was.Z != 0 && old.scale.Z != 0) ? old.scale.Z / was.Z : 1;
+		m_meshnode->setScale(scale);
+	}
+	m_pose_override = pose;
+	applyPose();
+}
+
+WieldPose WieldMeshSceneNode::getPose() const
+{
+	return m_pose_override ? *m_pose_override : m_item_pose;
 }
 
 void WieldMeshSceneNode::setItem(const ItemStack &item, Client *client, bool check_wield_image)
+{
+	setItemMesh(item, client, check_wield_image);
+	applyPose();
+}
+
+void WieldMeshSceneNode::setItemMesh(const ItemStack &item, Client *client, bool check_wield_image)
 {
 	ITextureSource *tsrc = client->getTextureSource();
 	IItemDefManager *idef = client->getItemDefManager();
@@ -446,9 +484,7 @@ void WieldMeshSceneNode::setItem(const ItemStack &item, Client *client, bool che
 	const ContentFeatures &f = ndef->get(def.name);
 	const NodeVisuals &v = *(f.visuals);
 
-	// Ставится один раз на весь вызов: ниже узлу меняют только меш и масштаб,
-	// а поза от предмета к предмету своя и сбрасываться не должна.
-	applyWieldPose(m_meshnode, def);
+	m_item_pose = WieldPose{def.wield_rotation, def.wield_offset, item.getWieldScale(idef)};
 
 	{
 		// Initialize material type used by setExtruded

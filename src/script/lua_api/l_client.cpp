@@ -8,6 +8,7 @@
 #include "client/client.h"
 #include "client/sound.h"
 #include "client/clientenvironment.h"
+#include "client/camera.h"
 #include "common/c_content.h"
 #include "common/c_converter.h"
 #include "cpp_api/s_base.h"
@@ -314,9 +315,58 @@ int ModApiClient::l_get_csm_restrictions(lua_State *L)
 	return 1;
 }
 
+// set_wield_pose({rotation = v3, offset = v3, scale = v3} | nil)
+int ModApiClient::l_set_wield_pose(lua_State *L)
+{
+	Camera *camera = getClient(L)->getCamera();
+	if (!camera)
+		return 0;
+	if (lua_isnoneornil(L, 1)) {
+		camera->setWieldPoseOverride(std::nullopt);
+		return 0;
+	}
+	luaL_checktype(L, 1, LUA_TTABLE);
+	WieldPose pose = camera->getWieldPose();
+	lua_getfield(L, 1, "rotation");
+	if (!lua_isnil(L, -1))
+		pose.rotation = read_v3f(L, -1);
+	lua_pop(L, 1);
+	lua_getfield(L, 1, "offset");
+	if (!lua_isnil(L, -1))
+		pose.offset = read_v3f(L, -1);
+	lua_pop(L, 1);
+	lua_getfield(L, 1, "scale");
+	if (!lua_isnil(L, -1))
+		pose.scale = read_v3f(L, -1);
+	lua_pop(L, 1);
+	camera->setWieldPoseOverride(pose);
+	return 0;
+}
+
+// get_wield_pose() -> {rotation, offset, scale, overridden = bool}
+int ModApiClient::l_get_wield_pose(lua_State *L)
+{
+	Camera *camera = getClient(L)->getCamera();
+	if (!camera)
+		return 0;
+	const WieldPose pose = camera->getWieldPose();
+	lua_newtable(L);
+	push_v3f(L, pose.rotation);
+	lua_setfield(L, -2, "rotation");
+	push_v3f(L, pose.offset);
+	lua_setfield(L, -2, "offset");
+	push_v3f(L, pose.scale);
+	lua_setfield(L, -2, "scale");
+	lua_pushboolean(L, camera->hasWieldPoseOverride());
+	lua_setfield(L, -2, "overridden");
+	return 1;
+}
+
 void ModApiClient::Initialize(lua_State *L, int top)
 {
 	API_FCT(get_current_modname);
+	API_FCT(set_wield_pose);
+	API_FCT(get_wield_pose);
 	API_FCT(get_modpath);
 	API_FCT(print);
 	API_FCT(display_chat_message);
