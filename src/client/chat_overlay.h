@@ -8,6 +8,7 @@
 #include "ui/host.h"
 #include <IEventReceiver.h>
 #include <RmlUi/Core/DataModelHandle.h>
+#include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/Types.h>
 #include <deque>
 #include <string>
@@ -67,8 +68,16 @@ private:
 		Rml::String kind;
 		Rml::String name;
 		Rml::String html;
+		int count = 1;
 		bool old = false;
 		f32 age = 0.0f;
+	};
+
+	// Клик по ссылке в строке: с Ctrl открывает её в браузере.
+	class LinkListener : public Rml::EventListener
+	{
+	public:
+		void ProcessEvent(Rml::Event &event) override;
 	};
 
 	std::string themeFile(const std::string &name) const;
@@ -90,6 +99,7 @@ private:
 	Rml::Context *m_context = nullptr;
 	Rml::ElementDocument *m_document = nullptr;
 	Rml::DataModelHandle m_model;
+	LinkListener m_links;
 
 	std::vector<ChatLine> m_incoming;
 	std::vector<Line> m_lines;

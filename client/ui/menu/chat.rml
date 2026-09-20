@@ -10,6 +10,7 @@
 			<div data-for="line : lines" class="line" data-class-old="line.old" data-attr-kind="line.kind">
 				<span class="name" data-if="line.name != ''">{{line.name}}</span>
 				<span class="text" data-rml="line.html"/>
+				<span class="count" data-if="line.count > 1">×{{line.count}}</span>
 			</div>
 		</div>
 		<div class="badge" data-if="!open && unread > 0">+{{unread}}</div>

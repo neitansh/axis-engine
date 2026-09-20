@@ -24,7 +24,9 @@
   перевод текста темы — `[[English]]` в `.rml` через gettext;
 - живая перезагрузка темы (F5) и отладчик RmlUi (F8);
 - `main_menu_rml` включён по умолчанию; Lua-меню остаётся за
-  `main_menu_rml = false`.
+  `main_menu_rml = false`;
+- первый документ RmlUi в игре — чат (`src/client/chat_overlay.*`,
+  `chat.rml` в теме меню, свой контекст «chat»; договор — `doc/chat.md`).
 
 **Ещё нет — план для следующей сессии, по порядку:**
 

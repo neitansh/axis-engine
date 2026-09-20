@@ -87,6 +87,17 @@ body.open .line.old {
 	color: #FF9F0A;
 }
 
+.line .link {
+	color: #8888FF;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.line .count {
+	color: #86868B;
+	margin-left: 6dp;
+}
+
 /* Непрочитанное: строки уже погасли, а метка напоминает, что чат ждёт. */
 
 .badge {

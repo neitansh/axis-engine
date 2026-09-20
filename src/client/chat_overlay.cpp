@@ -6,6 +6,9 @@
 
 #include "client/client.h"
 #include "client/inputhandler.h"
+#include "client/localplayer.h"
+#include "client/sound.h"
+#include "sound_spec.h"
 #include "filesys.h"
 #include "gettext.h"
 #include "gui/mainmenumanager.h"
@@ -47,18 +50,50 @@ static void appendEscaped(std::string &out, const std::wstring &text)
 	}
 }
 
+// Ссылка в тексте: от http(s):// до пробела; замыкающая точка или скобка
+// — знак препинания, не ссылка.
+static size_t linkEnd(const std::wstring &chars, size_t from)
+{
+	size_t end = from;
+	while (end < chars.size() && !iswspace(chars[end]))
+		++end;
+	while (end > from && wcschr(L".,;:!?)]}\"'", chars[end - 1]))
+		--end;
+	return end;
+}
+
+static bool linkAt(const std::wstring &chars, size_t i)
+{
+	return chars.compare(i, 7, L"http://") == 0 || chars.compare(i, 8, L"https://") == 0;
+}
+
 // Цвета из кодов чата (\x1b(c@#rgb)) — в span'ы: ряд одного цвета — один
-// span, цвет по умолчанию — без него, у него цвет темы.
+// span, цвет по умолчанию — без него, у него цвет темы. Ссылки — span
+// класса link с адресом в атрибуте: RmlUi сам их не открывает.
 static std::string toRml(const EnrichedString &text)
 {
 	const std::wstring &chars = text.getString();
 	const std::vector<video::SColor> &colors = text.getColors();
+	auto color_at = [&](size_t i) {
+		return i < colors.size() ? colors[i] : text.getDefaultColor();
+	};
 	std::string out;
 	size_t i = 0;
 	while (i < chars.size()) {
-		const video::SColor color = i < colors.size() ? colors[i] : text.getDefaultColor();
+		if (linkAt(chars, i)) {
+			const size_t end = linkEnd(chars, i);
+			const std::wstring url = chars.substr(i, end - i);
+			out += "<span class=\"link\" data-url=\"";
+			appendEscaped(out, url);
+			out += "\">";
+			appendEscaped(out, url);
+			out += "</span>";
+			i = end;
+			continue;
+		}
+		const video::SColor color = color_at(i);
 		size_t j = i;
-		while (j < chars.size() && (j >= colors.size() ? text.getDefaultColor() : colors[j]) == color)
+		while (j < chars.size() && color_at(j) == color && !linkAt(chars, j))
 			++j;
 		const bool plain = color == text.getDefaultColor();
 		if (!plain) {
@@ -73,6 +108,16 @@ static std::string toRml(const EnrichedString &text)
 		i = j;
 	}
 	return out;
+}
+
+void ChatOverlay::LinkListener::ProcessEvent(Rml::Event &event)
+{
+	Rml::Element *target = event.GetTargetElement();
+	if (!target || !target->HasAttribute("data-url"))
+		return;
+	if (!event.GetParameter<bool>("ctrl_key", false))
+		return;
+	porting::open_url(target->GetAttribute<Rml::String>("data-url", ""));
 }
 
 ChatOverlay::ChatOverlay(ui::Host &host, MyEventReceiver *receiver, Client *client,
@@ -128,6 +173,7 @@ void ChatOverlay::loadDocument()
 		line.RegisterMember("kind", &Line::kind);
 		line.RegisterMember("name", &Line::name);
 		line.RegisterMember("html", &Line::html);
+		line.RegisterMember("count", &Line::count);
 		line.RegisterMember("old", &Line::old);
 	}
 	model.RegisterArray<std::vector<Line>>();
@@ -144,11 +190,17 @@ void ChatOverlay::loadDocument()
 		return;
 	}
 	m_document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
+	m_document->AddEventListener(Rml::EventId::Click, &m_links);
 }
 
 void ChatOverlay::open(const std::wstring &initial)
 {
 	if (!m_document || m_open)
+		return;
+	// Пока камеру ведёт сервер (сцена, поимка), игрок не хозяин себе: чат
+	// не открывается, но приходящее видно.
+	LocalPlayer *player = m_client->getEnv().getLocalPlayer();
+	if (player && player->look_locked)
 		return;
 	m_open = true;
 	m_unread = 0;
@@ -193,6 +245,21 @@ void ChatOverlay::addLine(const ChatLine &line)
 	out.kind = kindName(line.kind);
 	out.name = wide_to_utf8(line.name.getString());
 	out.html = toRml(line.text);
+	// Одно и то же подряд — одна строка со счётчиком, а не столбик.
+	if (!m_lines.empty()) {
+		Line &last = m_lines.back();
+		if (last.kind == out.kind && last.name == out.name && last.html == out.html) {
+			++last.count;
+			last.age = 0.0f;
+			m_lines_dirty = true;
+			m_scroll_pending = true;
+			return;
+		}
+	}
+	// Чужая реплика — со звуком, если игра положила chat_message; без него
+	// тихо (звук по имени, которого нет, — не ошибка).
+	if (line.kind == ChatKind::Player && m_client->sound())
+		m_client->sound()->playSound(0, SoundSpec("chat_message", 1.0f));
 	m_lines.push_back(std::move(out));
 	while (m_lines.size() > HISTORY_LINES)
 		m_lines.erase(m_lines.begin());
