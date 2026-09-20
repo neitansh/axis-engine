@@ -172,6 +172,11 @@ public:
 	// Warning: This clears the Z buffer.
 	void drawWieldedTool(core::matrix4* translation=NULL);
 
+	// Вещи перед глазами (first_person) — поверх мира, как и предмет в руке:
+	// рисуются ещё раз с чистым буфером глубины, иначе рука, подошедшая к
+	// стене, уходит в стену. После главной сцены, до предмета в руке.
+	void drawFirstPersonObjects();
+
 	// Toggle the current camera mode
 	void toggleCameraMode();
 

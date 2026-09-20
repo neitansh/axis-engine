@@ -34,6 +34,7 @@ void DrawWield::run(PipelineContext &context)
 	if (m_target)
 		m_target->activate(context);
 
+	context.client->getCamera()->drawFirstPersonObjects();
 	if (context.draw_wield_tool)
 		context.client->getCamera()->drawWieldedTool();
 }

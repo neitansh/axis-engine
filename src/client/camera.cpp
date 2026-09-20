@@ -746,6 +746,45 @@ void Camera::drawWieldedTool(core::matrix4 *translation)
 	m_wieldmgr->drawAll();
 }
 
+static void renderSubtree(video::IVideoDriver *driver, scene::ISceneNode *node)
+{
+	if (!node->isVisible())
+		return;
+	driver->setTransform(video::ETS_WORLD, node->getAbsoluteTransformation());
+	node->render();
+	for (scene::ISceneNode *child : node->getChildren())
+		renderSubtree(driver, child);
+}
+
+void Camera::drawFirstPersonObjects()
+{
+	// Вещь у камеры — это привязка к игроку, и лежит она там же, где он:
+	// дальше нескольких нод от глаз искать нечего.
+	std::vector<DistanceSortedActiveObject> nearby;
+	m_client->getEnv().getActiveObjects(m_camera_position, 8 * BS, nearby);
+	std::vector<scene::ISceneNode *> roots;
+	for (const DistanceSortedActiveObject &entry : nearby) {
+		auto *cao = dynamic_cast<GenericCAO *>(entry.obj);
+		if (!cao || !cao->inFirstPersonView())
+			continue;
+		if (scene::ISceneNode *node = cao->getSceneNode())
+			roots.push_back(node);
+	}
+	if (roots.empty())
+		return;
+
+	// В главной сцене они уже нарисованы — с обрезкой по миру. Второй проход
+	// по чистой глубине кладёт их целиком поверх; прибитое к костям (руки на
+	// стволе) идёт в том же поддереве.
+	video::IVideoDriver *driver = m_cameranode->getSceneManager()->getVideoDriver();
+	driver->clearBuffers(video::ECBF_DEPTH);
+	driver->setTransform(video::ETS_VIEW, m_cameranode->getViewMatrix());
+	driver->setTransform(video::ETS_PROJECTION, m_cameranode->getProjectionMatrix());
+	for (scene::ISceneNode *node : roots)
+		renderSubtree(driver, node);
+	driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
+}
+
 void Camera::toggleCameraMode()
 {
 	if (m_camera_mode == CAMERA_MODE_FIRST)
