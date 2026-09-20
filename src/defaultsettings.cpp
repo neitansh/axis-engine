@@ -331,6 +331,7 @@ void set_default_settings()
 	settings->setDefault("formspec_fullscreen_bg_opacity", "140");
 	settings->setDefault("selectionbox_color", "(0,0,0)");
 	settings->setDefault("selectionbox_width", "2");
+	settings->setDefault("selectionbox_alpha", "255");
 	settings->setDefault("node_highlighting", "box");
 	settings->setDefault("crosshair_color", "(255,255,255)");
 	settings->setDefault("crosshair_alpha", "255");

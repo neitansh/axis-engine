@@ -606,6 +606,11 @@ selectionbox_color (Selection box color) string (0,0,0)
 #    Width of the selection box lines around nodes.
 selectionbox_width (Selection box width) int 2 1 5
 
+#    Opacity of the selection box edges, 0-255. Below 255 the edges do not
+#    cover what is under them but brighten it by color * alpha: white edges
+#    come out green on grass and light on stone.
+selectionbox_alpha (Selection box opacity) int 255 0 255
+
 [**Fog]
 
 #    Whether to fog out the end of the visible area.

@@ -81,7 +81,8 @@ Hud::Hud(Client *client, LocalPlayer *player,
 	u32 sbox_r = rangelim(myround(selectionbox_color.X), 0, 255);
 	u32 sbox_g = rangelim(myround(selectionbox_color.Y), 0, 255);
 	u32 sbox_b = rangelim(myround(selectionbox_color.Z), 0, 255);
-	selectionbox_argb = video::SColor(255, sbox_r, sbox_g, sbox_b);
+	const u32 sbox_a = rangelim(g_settings->getS16("selectionbox_alpha"), 0, 255);
+	selectionbox_argb = video::SColor(sbox_a, sbox_r, sbox_g, sbox_b);
 
 	use_crosshair_image = tsrc->isKnownSourceImage("crosshair.png");
 	use_object_crosshair_image = tsrc->isKnownSourceImage("object_crosshair.png");
@@ -115,7 +116,23 @@ Hud::Hud(Client *client, LocalPlayer *player,
 		// в 1/96 ноды.
 		m_selection_edge = rangelim(g_settings->getS16("selectionbox_width"), 1, 5) * BS / 96.0f;
 		m_selection_material.BackfaceCulling = false;
-		m_selection_material.ZWriteEnable = video::EZW_OFF;
+		// Глубину рёбра пишут: на углах бруски входят друг в друга, и без
+		// этого угол высветлялся дважды — ярким узлом.
+		m_selection_material.ZWriteEnable = video::EZW_ON;
+		// Ребро ниже полной непрозрачности не кроет, а высветляет то, что под
+		// ним: кадр умножается на (1 + цвет·alpha), и на траве ребро выходит
+		// салатовым, на камне — светлым, как светлая копия самой текстуры.
+		// Текстура нужна материалу как множитель, поэтому белая точка.
+		if (selectionbox_argb.getAlpha() < 255) {
+			m_selection_material.MaterialType = video::EMT_ONETEXTURE_BLEND;
+			m_selection_material.MaterialTypeParam = video::pack_textureBlendFunc(
+					video::EBF_DST_COLOR, video::EBF_ONE,
+					video::EMFN_MODULATE_1X,
+					video::EAS_TEXTURE | video::EAS_VERTEX_COLOR);
+			m_selection_material.BlendOperation = video::EBO_ADD;
+			m_selection_material.setTexture(0,
+					tsrc->getTexture("blank.png^[noalpha^[colorize:#ffffff:255"));
+		}
 	} else if (m_mode == HIGHLIGHT_HALO) {
 		m_selection_material.setTexture(0, tsrc->getTextureForMesh("halo.png"));
 		m_selection_material.BackfaceCulling = true;
@@ -1009,6 +1026,13 @@ void Hud::drawSelectionMesh()
 				m_selection_mesh_color.getGreen() / 255);
 		u32 b = (selectionbox_argb.getBlue() *
 				m_selection_mesh_color.getBlue() / 255);
+		// В режиме высветления сила — alpha: цвет рёбер уходит в множитель.
+		const u32 a = selectionbox_argb.getAlpha();
+		if (a < 255) {
+			r = r * a / 255;
+			g = g * a / 255;
+			b = b * a / 255;
+		}
 		const video::SColor color(255, r, g, b);
 		scene::SMeshBuffer edges;
 		for (const aabb3f &box : m_selection_boxes)
