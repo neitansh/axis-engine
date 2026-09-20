@@ -332,6 +332,13 @@ Server::Server(
 	if (!cratespec.isValid())
 		throw ServerError("Supplied invalid cratespec");
 
+	{
+		Settings conf;
+		conf.readConfigFile((cratespec.path + DIR_DELIM "crate_client.conf").c_str());
+		for (const std::string &name : conf.getNames())
+			m_crate_client_settings.emplace_back(name, conf.get(name));
+	}
+
 #if USE_PROMETHEUS
 	if (!simple_singleplayer_mode)
 	{
@@ -3524,6 +3531,24 @@ bool Server::SendMinimapSurface(session_t peer_id, const MinimapSurface &surface
 	pkt.putLongString(os.str());
 	Send(&pkt);
 	return true;
+}
+
+void Server::SendCrateClientSettings(session_t peer_id)
+{
+	if (m_crate_client_settings.empty())
+		return;
+	{
+		ClientInterface::AutoLock clientlock(m_clients);
+		RemoteClient *client = m_clients.lockedGetClientNoEx(peer_id, CS_Created);
+		if (!client || client->net_proto_version < 58)
+			return;
+	}
+
+	NetworkPacket pkt(TOCLIENT_CRATE_CLIENT_SETTINGS, 0, peer_id);
+	pkt << (u16) m_crate_client_settings.size();
+	for (const auto &[name, value] : m_crate_client_settings)
+		pkt << name << value;
+	Send(&pkt);
 }
 
 bool Server::SendMinimapArea(session_t peer_id, bool set, v2s16 min, v2s16 max, u8 up)

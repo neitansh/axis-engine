@@ -510,6 +510,7 @@ public:
 			size_t wanted_mode);
 	bool SendMinimapSurface(session_t peer_id, const MinimapSurface &surface);
 	bool SendMinimapArea(session_t peer_id, bool set, v2s16 min, v2s16 max, u8 up);
+	void SendCrateClientSettings(session_t peer_id);
 
 	void sendDetachedInventories(session_t peer_id, bool incremental);
 
@@ -756,6 +757,9 @@ private:
 	std::string m_path_mod_data;
 	// Crate specification
 	CrateSpec m_cratespec;
+	// Графика, которую крейт просит у клиента (crate_client.conf): имя и
+	// значение, как в файле; проверяет клиент.
+	std::vector<std::pair<std::string, std::string>> m_crate_client_settings;
 	// If true, do not allow multiple players and hide some multiplayer
 	// functionality
 	bool m_simple_singleplayer_mode;

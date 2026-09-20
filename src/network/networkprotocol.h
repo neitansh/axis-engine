@@ -864,7 +864,21 @@ enum ToClientCommand : u16
 		                       // 1 восток, 2 юг, 3 запад
 	*/
 
-	TOCLIENT_NUM_MSG_TYPES = 0x6b,
+	TOCLIENT_CRATE_CLIENT_SETTINGS = 0x6b,
+	/*
+		Графика, которую просит крейт (его crate_client.conf): клиент
+		ставит её поверх своих настроек на время игры, пропуская только
+		имена из своего белого списка. Идёт первым в ответ на INIT2 — до
+		предметов и нод, чтобы успеть до сборки шейдеров. Отправляется
+		только клиенту версии протокола 58 и новее.
+
+		u16 count
+		foreach count:
+			std::string name
+			std::string value
+	*/
+
+	TOCLIENT_NUM_MSG_TYPES = 0x6c,
 };
 
 enum ToServerCommand : u16

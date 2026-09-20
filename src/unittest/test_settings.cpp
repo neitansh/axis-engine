@@ -19,6 +19,7 @@ public:
 	void testAllSettings();
 	void testDefaults();
 	void testFlagDesc();
+	void testCrateClientOverrides();
 
 	static const char *config_text_before;
 	static const char *config_text_after;
@@ -31,6 +32,7 @@ void TestSettings::runTests(ICrateDef *cratedef)
 	TEST(testAllSettings);
 	TEST(testDefaults);
 	TEST(testFlagDesc);
+	TEST(testCrateClientOverrides);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -314,4 +316,25 @@ void TestSettings::testFlagDesc()
 	UASSERT(s.getFlagStr("test_flags", flagdesc, nullptr) == 0x10);
 
 	delete &s;
+}
+
+void TestSettings::testCrateClientOverrides()
+{
+	// Читается поверх файла игрока, а пишется — под ним; снятие слоя
+	// возвращает значение игрока.
+	g_settings->set("crate_override_test", "player");
+	Settings::setCrateClientOverrides({{"crate_override_test", "crate"}});
+	UASSERT(g_settings->get("crate_override_test") == "crate");
+	UASSERT(g_settings->exists("crate_override_test"));
+	g_settings->set("crate_override_test", "player2");
+	UASSERT(g_settings->get("crate_override_test") == "crate");
+	Settings::clearCrateClientOverrides();
+	UASSERT(g_settings->get("crate_override_test") == "player2");
+
+	// Имя, которого у игрока нет, видно, пока стоит слой.
+	Settings::setCrateClientOverrides({{"crate_override_only", "1"}});
+	UASSERT(g_settings->exists("crate_override_only"));
+	Settings::clearCrateClientOverrides();
+	UASSERT(!g_settings->exists("crate_override_only"));
+	g_settings->remove("crate_override_test");
 }

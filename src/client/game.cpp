@@ -787,6 +787,11 @@ bool Game::startup(volatile std::sig_atomic_t *kill,
 
 	m_rendering_engine->initialize(client, hud);
 
+	// Графика крейта пришла вместе с содержимым и подняла флаги пересборки,
+	// а конвейер, шейдеры и меши только что собраны уже по ней.
+	m_needs_texture_rebuild = m_needs_shader_rebuild = m_needs_node_visual_rebuild =
+			m_needs_mesh_rebuild = m_needs_pipeline_rebuild = m_needs_shadow_reset = false;
+
 	m_game_formspec.init(client, m_rendering_engine, input);
 	if (m_ui && m_ui->ok() && input->eventReceiver()) {
 		m_game_menu = std::make_unique<menu::GameMenu>(*m_ui, input->eventReceiver(),
@@ -1011,6 +1016,9 @@ void Game::shutdown()
 
 	delete client;
 	client = nullptr;
+	// Графика крейта — на время игры; меню и следующий крейт начинают с
+	// настроек игрока.
+	Settings::clearCrateClientOverrides();
 	soundmaker.reset();
 	sound_manager.reset();
 

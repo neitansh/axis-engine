@@ -191,8 +191,18 @@ The game directory can contain the following files:
       e.g. `aliases = foo, bar` (where "foo" and "bar" are the legacy names)
       This allows automatic loading of worlds using a crateid from this list.
       This is intended to allow a full rename of a game, including its id.
-* `crate_defaults.conf` (`minetest.conf` is still read for compatibility):
-  Used to set default settings when running this game.
+* `crate_defaults.conf`:
+  Used to set default settings when running this game. They sit below the
+  player's own settings, and a remote client never sees them.
+* `crate_client.conf` (Axis only):
+  Graphics the crate wants the client to draw with: shadows, bloom,
+  volumetric light, exposure, tone mapping, light curve, fog, clouds,
+  waving, texture filtering, selection box and crosshair. The server sends
+  it to every client on join, and the client puts it *above* the player's
+  settings for the time of the game (`crate_graphics = false` on the client
+  keeps the player's own). Any other setting in this file is ignored by the
+  client with a warning: a server does not get to set a player's window,
+  view range, antialiasing, keys or network.
 * `screenshot.{png,jpg,jpeg}`:
   Preview image, shown in the main menu.
 * `settingtypes.txt`:

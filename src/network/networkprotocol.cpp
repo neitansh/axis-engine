@@ -94,10 +94,13 @@
 		the minimap before its mapblocks arrive
 		Added "shape" to every mode of TOCLIENT_MINIMAP_MODES
 		Added TOCLIENT_MINIMAP_AREA: what the map key shows whole
+	PROTOCOL VERSION 58
+		Added TOCLIENT_CRATE_CLIENT_SETTINGS: graphics the crate asks the
+		client to draw with, on top of the player's own settings
 */
 
 // Note: Also update core.protocol_versions in builtin when bumping
-const u16 LATEST_PROTOCOL_VERSION = 57;
+const u16 LATEST_PROTOCOL_VERSION = 58;
 
 // See also formspec [Version History] in doc/lua_api.md
 const u16 FORMSPEC_API_VERSION = 10;

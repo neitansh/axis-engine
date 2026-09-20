@@ -460,6 +460,8 @@ void set_default_settings()
 	settings->setDefault("enable_water_reflections", "false");
 	settings->setDefault("enable_translucent_foliage", "false");
 
+	settings->setDefault("crate_graphics", "true");
+
 	// Effects Shadows
 	settings->setDefault("enable_dynamic_shadows", "false");
 	settings->setDefault("shadow_strength_gamma", "1.0");

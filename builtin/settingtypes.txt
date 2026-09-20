@@ -463,6 +463,11 @@ joystick_frustum_sensitivity (Joystick frustum sensitivity) float 170.0 0.001
 
 [*Graphics]
 
+#    Draw the way the crate asks: a crate can ship graphics settings (shadows,
+#    bloom, light, fog, filtering) that apply on top of yours while you play it.
+#    Off keeps your own settings in every crate.
+crate_graphics (Graphics as the crate asks) bool true
+
 [**Screen]
 
 #    Width component of the initial window size.

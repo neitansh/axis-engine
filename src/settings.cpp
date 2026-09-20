@@ -34,8 +34,12 @@ SettingsHierarchy::SettingsHierarchy(Settings *fallback)
 
 Settings *SettingsHierarchy::getLayer(int layer) const
 {
-	if (layer < 0 || layer >= (int)layers.size())
+	if (layer < 0)
 		throw BaseException("Invalid settings layer");
+	// Список растёт по мере создания слоёв: слой выше всех созданных — ещё
+	// не заведён, а не ошибка.
+	if (layer >= (int)layers.size())
+		return nullptr;
 	return layers[layer];
 }
 
@@ -90,6 +94,46 @@ Settings *Settings::createLayer(SettingsLayer sl, std::string_view end_tag)
 Settings *Settings::getLayer(SettingsLayer sl)
 {
 	return g_hierarchy.getLayer(sl);
+}
+
+
+Settings *Settings::crateClientLayer()
+{
+	return g_hierarchy.getLayer(SL_CRATE_CLIENT);
+}
+
+
+void Settings::setCrateClientOverrides(
+		const std::vector<std::pair<std::string, std::string>> &pairs)
+{
+	std::vector<std::string> touched;
+	if (Settings *old = crateClientLayer()) {
+		touched = old->getNames();
+		delete old;
+	}
+	Settings *layer = createLayer(SL_CRATE_CLIENT);
+	for (const auto &[name, value] : pairs) {
+		layer->set(name, value);
+		touched.push_back(name);
+	}
+	if (!g_settings)
+		return;
+	for (const std::string &name : touched)
+		g_settings->doCallbacks(name);
+}
+
+
+void Settings::clearCrateClientOverrides()
+{
+	Settings *layer = crateClientLayer();
+	if (!layer)
+		return;
+	std::vector<std::string> touched = layer->getNames();
+	delete layer;
+	if (!g_settings)
+		return;
+	for (const std::string &name : touched)
+		g_settings->doCallbacks(name);
 }
 
 
@@ -468,8 +512,28 @@ Settings *Settings::getParent() const
 }
 
 
+// Чтение начинается с g_settings (SL_GLOBAL) и идёт вниз, поэтому слой крейта
+// над ним никто бы не увидел: g_settings подсматривает в него до своих
+// значений. Только в свой словарь — иначе слой крейта, не найдя имени, ушёл
+// бы к родителю, то есть обратно сюда.
+const SettingsEntry *Settings::getCrateClientEntry(const std::string &name) const
+{
+	if (m_hierarchy != &g_hierarchy || m_settingslayer != (int) SL_GLOBAL)
+		return nullptr;
+	const Settings *layer = crateClientLayer();
+	if (!layer)
+		return nullptr;
+	MutexAutoLock lock(layer->m_mutex);
+	SettingEntries::const_iterator n = layer->m_settings.find(name);
+	return n != layer->m_settings.end() ? &n->second : nullptr;
+}
+
+
 const SettingsEntry &Settings::getEntry(const std::string &name) const
 {
+	if (const SettingsEntry *over = getCrateClientEntry(name))
+		return *over;
+
 	{
 		MutexAutoLock lock(m_mutex);
 
@@ -668,7 +732,7 @@ bool Settings::getNoiseParamsFromGroup(const std::string &name,
 
 bool Settings::exists(const std::string &name) const
 {
-	if (existsLocal(name))
+	if (getCrateClientEntry(name) || existsLocal(name))
 		return true;
 	if (auto parent = getParent())
 		return parent->exists(name);

@@ -426,6 +426,8 @@ void Server::handleCommand_Init2(NetworkPacket* pkt)
 	infostream << "Server: Sending content to " << getPlayerName(peer_id) <<
 		std::endl;
 
+	SendCrateClientSettings(peer_id);
+
 	// Send item definitions
 	SendItemDef(peer_id, m_itemdef, protocol_version);
 

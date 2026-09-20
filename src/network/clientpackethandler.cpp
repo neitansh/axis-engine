@@ -9,6 +9,7 @@
 #include "irr_v2d.h"
 #include "util/base64.h"
 #include "client/camera.h"
+#include "client/crate_settings.h"
 #include "camera_impulse.h"
 #include "client/mesh_generator_thread.h"
 #include "chatmessage.h"
@@ -1992,6 +1993,20 @@ void Client::handleCommand_MinimapArea(NetworkPacket *pkt)
 	*pkt >> set >> min_x >> min_z >> max_x >> max_z >> up;
 	if (m_minimap)
 		m_minimap->setArea(set != 0, v2s16(min_x, min_z), v2s16(max_x, max_z), up);
+}
+
+void Client::handleCommand_CrateClientSettings(NetworkPacket *pkt)
+{
+	u16 count;
+	*pkt >> count;
+	std::vector<std::pair<std::string, std::string>> pairs;
+	pairs.reserve(count);
+	for (u16 i = 0; i < count; i++) {
+		std::string name, value;
+		*pkt >> name >> value;
+		pairs.emplace_back(std::move(name), std::move(value));
+	}
+	applyCrateClientSettings(pairs);
 }
 
 void Client::handleCommand_SetLighting(NetworkPacket *pkt)

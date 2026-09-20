@@ -53,6 +53,10 @@ enum SettingsLayer {
 	SL_DEFAULTS,
 	SL_CRATE,
 	SL_GLOBAL,
+	// Графика, которую просит крейт (crate_client.conf, присылает сервер):
+	// поверх файла игрока, но только на чтение — записи идут в SL_GLOBAL,
+	// иначе просьба крейта осела бы в конфиге игрока.
+	SL_CRATE_CLIENT,
 	SL_TOTAL_COUNT
 };
 
@@ -113,6 +117,11 @@ public:
 	/* These functions operate on the global hierarchy! */
 	static Settings *createLayer(SettingsLayer sl, std::string_view end_tag = "");
 	static Settings *getLayer(SettingsLayer sl);
+	// Слой SL_CRATE_CLIENT: поставить (заменив прежний) или снять. Оба зовут
+	// обработчики изменений g_settings по каждому затронутому имени.
+	static void setCrateClientOverrides(
+			const std::vector<std::pair<std::string, std::string>> &pairs);
+	static void clearCrateClientOverrides();
 	/**/
 
 	Settings(std::string_view end_tag = "") :
@@ -269,6 +278,8 @@ private:
 	Settings *getParent() const;
 
 	const SettingsEntry &getEntry(const std::string &name) const;
+	static Settings *crateClientLayer();
+	const SettingsEntry *getCrateClientEntry(const std::string &name) const;
 
 	// Allow TestSettings to run sanity checks using private functions.
 	friend class TestSettings;

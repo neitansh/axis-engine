@@ -89,7 +89,13 @@ Other configuration files
 These are not part of this system and keep their own names and places:
 
 - `world.mt` - per world, see [world_format.md](world_format.md)
-- `crate_defaults.conf` - defaults a crate ships, in its own directory
-  (`minetest.conf` is still read there for compatibility with existing games)
+- `crate_defaults.conf` - defaults a crate ships, in its own directory; the
+  `SL_CRATE` layer, below the player's files
+- `crate_client.conf` - graphics a crate asks the client for; sent by the
+  server on join and held in the `SL_CRATE_CLIENT` layer *above* the
+  player's files for the time of the game, read-only: writes still go to
+  `SL_GLOBAL`, so nothing of it lands in the player's files. Only the
+  graphics names in `src/client/crate_settings.cpp` are accepted, and
+  `crate_graphics = false` refuses them all
 - `mod.conf`, `modpack.conf`, `texture_pack.conf` - metadata of content
 - `clientmods/mods.conf` - which client-side mods to load

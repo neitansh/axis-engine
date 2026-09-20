@@ -118,6 +118,7 @@ const ToClientCommandHandler toClientCommandTable[TOCLIENT_NUM_MSG_TYPES] =
 	{ "TOCLIENT_EYELIDS",            TOCLIENT_STATE_CONNECTED, &Client::handleCommand_Eyelids }, // 0x68,
 	{ "TOCLIENT_MINIMAP_SURFACE",          TOCLIENT_STATE_CONNECTED, &Client::handleCommand_MinimapSurface }, // 0x69,
 	{ "TOCLIENT_MINIMAP_AREA",             TOCLIENT_STATE_CONNECTED, &Client::handleCommand_MinimapArea }, // 0x6a,
+	{ "TOCLIENT_CRATE_CLIENT_SETTINGS",    TOCLIENT_STATE_CONNECTED, &Client::handleCommand_CrateClientSettings }, // 0x6b,
 };
 
 const static ServerCommandFactory null_command_factory = { nullptr, 0, false };
