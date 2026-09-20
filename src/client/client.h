@@ -339,7 +339,7 @@ public:
 	const std::unordered_set<std::string> &getPrivilegeList() const
 	{ return m_privileges; }
 
-	bool getChatMessage(std::wstring &message);
+	bool getChatMessage(ChatMessage &message);
 	void typeChatMessage(const std::wstring& message);
 	// Клиентская команда .wield — поза предмета в руке; истина — сообщение
 	// съедено.

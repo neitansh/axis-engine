@@ -124,7 +124,7 @@ void TerminalChatConsole::typeChatMessage(const std::wstring &msg)
 
 	// Print if its a command (gets eaten by server otherwise)
 	if (msg[0] == L'/') {
-		m_chat_backend.addMessage(L"", (std::wstring)L"Issued command: " + msg);
+		m_chat_backend.addLocalMessage((std::wstring)L"Issued command: " + msg);
 	}
 }
 
@@ -314,7 +314,7 @@ void TerminalChatConsole::step(int ch)
 				complete_redraw_needed = true;
 				// This is only used for direct replies from commands
 				// or for lua's print() functionality
-				m_chat_backend.addMessage(L"", ((ChatEventChat *)evt)->evt_msg);
+				m_chat_backend.addLocalMessage(((ChatEventChat *)evt)->evt_msg);
 				break;
 			case CET_TIME_INFO:
 				ChatEventTimeInfo *tevt = (ChatEventTimeInfo *)evt;
@@ -331,7 +331,7 @@ void TerminalChatConsole::step(int ch)
 
 		auto label = std::string("\x1b(c@red)") + Logger::getLevelLabel(p.first)
 			+ "\x1b(c@white)";
-		m_chat_backend.addMessage(utf8_to_wide(label), utf8_to_wide(p.second));
+		m_chat_backend.addLogLine(utf8_to_wide(label + " " + p.second));
 	}
 
 	// handle input

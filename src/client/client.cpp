@@ -2381,35 +2381,14 @@ u16 Client::getHP()
 	return player->hp;
 }
 
-bool Client::getChatMessage(std::wstring &res)
+bool Client::getChatMessage(ChatMessage &res)
 {
 	if (m_chat_queue.empty())
 		return false;
 
 	ChatMessage *chatMessage = m_chat_queue.front();
 	m_chat_queue.pop();
-
-	res = L"";
-
-	switch (chatMessage->type)
-	{
-	case CHATMESSAGE_TYPE_RAW:
-	case CHATMESSAGE_TYPE_ANNOUNCE:
-	case CHATMESSAGE_TYPE_SYSTEM:
-		res = chatMessage->message;
-		break;
-	case CHATMESSAGE_TYPE_NORMAL:
-	{
-		if (!chatMessage->sender.empty())
-			res = L"<" + chatMessage->sender + L"> " + chatMessage->message;
-		else
-			res = chatMessage->message;
-		break;
-	}
-	default:
-		break;
-	}
-
+	res = *chatMessage;
 	delete chatMessage;
 	return true;
 }

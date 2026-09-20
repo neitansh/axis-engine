@@ -978,8 +978,7 @@ void Game::shutdown()
 	if (m_shutdown_progress == 0.0f)
 		showOverlayMessage(N_("Shutting down..."), 0, 0);
 
-	chat_backend->addMessage(L"", L"# Disconnected.");
-	chat_backend->addMessage(L"", L"");
+	chat_backend->addLocalMessage(L"# Disconnected.");
 
 	if (client)
 	{
@@ -1302,6 +1301,9 @@ bool Game::initGui()
 
 	// Remove stale "recent" chat messages from previous connections
 	chat_backend->clearRecentChat();
+	chat_backend->setLocalName(utf8_to_wide(client->getEnv().getLocalPlayer()->getName()));
+	chat_backend->getPrompt().setHistoryFile(porting::path_user + DIR_DELIM "client"
+			DIR_DELIM "chat_history.txt");
 
 	// Make sure the size of the recent messages buffer is right
 	chat_backend->applySettings();
@@ -1713,7 +1715,7 @@ void Game::enterLimbo()
 		std::string text = std::string("# ") + m_limbo.reason;
 		if (!m_limbo.transfer)
 			text.append(" ").append(gettext("Waiting for it to come back."));
-		chat_backend->addMessage(L"", utf8_to_wide(text));
+		chat_backend->addLocalMessage(utf8_to_wide(text));
 	}
 }
 
@@ -1815,7 +1817,7 @@ void Game::updateLimbo(f32 dtime)
 		m_limbo.reason = gettext("Could not move to the other server.");
 		if (chat_backend)
 		{
-			chat_backend->addMessage(L"", wstrgettext(
+			chat_backend->addLocalMessage(wstrgettext(
 					"# Could not move to the other server, going back."));
 		}
 	}
@@ -1879,9 +1881,9 @@ void Game::finishRejoin()
 
 	if (chat_backend) {
 		if (transfer)
-			chat_backend->addMessage(L"", wstrgettext("# Arrived."));
+			chat_backend->addLocalMessage(wstrgettext("# Arrived."));
 		else
-			chat_backend->addMessage(L"", seamless
+			chat_backend->addLocalMessage(seamless
 					? wstrgettext("# Connection restored.")
 					: wstrgettext("# Connection restored, the world changed and is "
 							"being loaded again."));
@@ -3545,15 +3547,13 @@ void Game::updateChat(f32 dtime)
 	{
 		std::string line;
 		line.append(color_for(entry.level)).append(entry.combined);
-		chat_backend->addMessage(L"", utf8_to_wide(line));
+		chat_backend->addLogLine(utf8_to_wide(line));
 	}
 
 	// Get new messages from client
-	std::wstring message;
+	ChatMessage message;
 	while (client->getChatMessage(message))
-	{
-		chat_backend->addUnparsedMessage(message);
-	}
+		chat_backend->addMessage(message);
 
 	// Remove old messages
 	chat_backend->step(dtime);

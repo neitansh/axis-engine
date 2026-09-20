@@ -69,15 +69,26 @@ int ModApiServer::l_print(lua_State *L)
 }
 
 // chat_send_all(text)
+// Вид сообщения по слову из Lua: "system" (умолчание), "command", "announce",
+// "raw".
+static ChatMessageType chatKind(lua_State *L, int index)
+{
+	static const char *const names[] = {"raw", "player", "announce", "system", "command", nullptr};
+	if (lua_isnoneornil(L, index))
+		return CHATMESSAGE_TYPE_SYSTEM;
+	return static_cast<ChatMessageType>(luaL_checkoption(L, index, "system", names));
+}
+
 int ModApiServer::l_chat_send_all(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
 	const char *text = luaL_checkstring(L, 1);
+	const ChatMessageType kind = chatKind(L, 2);
 	// Get server from registry
 	Server *server = getServer(L);
 	// Send
 	try {
-		server->notifyPlayers(utf8_to_wide(text));
+		server->notifyPlayers(utf8_to_wide(text), kind);
 	} catch (PacketError &e) {
 		warningstream << "Exception caught: " << e.what() << std::endl
 			<< script_get_backtrace(L) << std::endl;
@@ -93,12 +104,13 @@ int ModApiServer::l_chat_send_player(lua_State *L)
 	NO_MAP_LOCK_REQUIRED;
 	const char *name = luaL_checkstring(L, 1);
 	const char *text = luaL_checkstring(L, 2);
+	const ChatMessageType kind = chatKind(L, 3);
 
 	// Get server from registry
 	Server *server = getServer(L);
 	// Send
 	try {
-		server->notifyPlayer(name, utf8_to_wide(text));
+		server->notifyPlayer(name, utf8_to_wide(text), kind);
 	} catch (PacketError &e) {
 		warningstream << "Exception caught: " << e.what() << std::endl
 			<< script_get_backtrace(L) << std::endl;

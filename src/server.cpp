@@ -3868,43 +3868,17 @@ std::wstring Server::handleChat(const std::string &name,
 	if (m_script->on_chat_message(name, message))
 		return L"";
 
-	// Line to send
-	std::wstring line;
-	// Whether to send line to the player that sent the message, or to all players
-	bool broadcast_line = true;
-
 	if (check_shout_priv && !checkPriv(name, "shout"))
-	{
-		line += L"-!- You don't have permission to shout.";
-		broadcast_line = false;
-	}
-	else
-	{
-		/*
-			Workaround for fixing chat on Android. Lua doesn't handle
-			the Cyrillic alphabet and some characters on older Android devices
-		*/
-#ifdef __ANDROID__
-		line += L"<" + utf8_to_wide(name) + L"> " + wmessage;
-#else
-		line += utf8_to_wide(m_script->formatChatMessage(name, message));
-#endif
-	}
+		return L"-!- You don't have permission to shout.";
 
-	/*
-		Tell calling method to send the message to sender
-	*/
-	if (!broadcast_line)
-		return line;
+	// Реплика уходит как есть, с именем отдельно: как её показать — дело
+	// клиента (имя своим цветом, своя реплика отдельно от чужих). Строку
+	// «<имя> текст» клиент собирает сам там, где ему нужна строка.
+	actionstream << "CHAT: <" << name << "> "
+			<< wide_to_utf8(unescape_enriched(wmessage)) << std::endl;
 
-	/*
-		Send the message to others
-	*/
-	actionstream << "CHAT: " << wide_to_utf8(unescape_enriched(line)) << std::endl;
-
-	ChatMessage chatmsg(line);
-
-	SendChatMessage(PEER_ID_INEXISTENT, chatmsg);
+	SendChatMessage(PEER_ID_INEXISTENT,
+			ChatMessage(CHATMESSAGE_TYPE_NORMAL, wmessage, utf8_to_wide(name)));
 
 	return L"";
 }
@@ -4094,7 +4068,7 @@ bool Server::checkUserLimit(const std::string &player_name, const std::string &a
 	return !m_script->can_bypass_userlimit(player_name, addr_s);
 }
 
-void Server::notifyPlayer(const char *name, const std::wstring &msg)
+void Server::notifyPlayer(const char *name, const std::wstring &msg, ChatMessageType type)
 {
 	// m_env will be NULL if the server is initializing
 	if (!m_env)
@@ -4109,7 +4083,7 @@ void Server::notifyPlayer(const char *name, const std::wstring &msg)
 	if (!player)
 		return;
 
-	SendChatMessage(player->getPeerId(), ChatMessage(msg));
+	SendChatMessage(player->getPeerId(), ChatMessage(type, msg));
 }
 
 bool Server::showFormspec(const char *playername, const std::string &formspec,
@@ -4302,9 +4276,9 @@ void Server::setLighting(RemotePlayer *player, const Lighting &lighting)
 	SendSetLighting(player->getPeerId(), lighting);
 }
 
-void Server::notifyPlayers(const std::wstring &msg)
+void Server::notifyPlayers(const std::wstring &msg, ChatMessageType type)
 {
-	SendChatMessage(PEER_ID_INEXISTENT, ChatMessage(msg));
+	SendChatMessage(PEER_ID_INEXISTENT, ChatMessage(type, msg));
 }
 
 void Server::spawnParticle(const std::string &playername,

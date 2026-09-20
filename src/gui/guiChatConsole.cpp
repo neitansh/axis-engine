@@ -925,7 +925,7 @@ bool GUIChatConsole::weblinkClick(s32 col, s32 row)
 			msg << gettext("Failed to open webpage");
 		}
 		msg << " '" << weblink << "'";
-		m_chat_backend->addUnparsedMessage(utf8_to_wide(msg.str()));
+		m_chat_backend->addLocalMessage(utf8_to_wide(msg.str()));
 		return true;
 	}
 

@@ -7033,13 +7033,25 @@ handler.
 Chat
 ----
 
-* `core.chat_send_all(text)`: send chat message to all players
-* `core.chat_send_player(name, text)`: send chat message to specific player
+* `core.chat_send_all(text[, kind])`: send chat message to all players
+* `core.chat_send_player(name, text[, kind])`: send chat message to specific player
     * `name`: Name of the player
+    * `kind`: what the message is, so the client can show it in its place:
+      `"system"` (default) — a word from the game to the player: joins,
+      leaves, a mod talking; `"command"` — the reply to a chat command,
+      which the client keeps out of the chat when it is long and shows in
+      the console instead; `"announce"` — a server-wide announcement;
+      `"raw"` — a preformatted line, as older servers send.
+    * Player chat itself is not sent through these: the server passes it on
+      as a player message with the name apart from the text, and the client
+      decides how a player's line looks. `chat_message_format` and
+      `core.format_chat_message` are kept for mods that call them, but the
+      shown line is the client's.
 * `core.format_chat_message(name, message)`
-    * Used by the server to format a chat message, based on the setting `chat_message_format`.
-      Refer to the documentation of the setting for a list of valid placeholders.
-    * Takes player name and message, and returns the formatted string to be sent to players.
+    * Formats a chat message the way the setting `chat_message_format`
+      says. Refer to the documentation of the setting for a list of valid
+      placeholders.
+    * Takes player name and message, and returns the formatted string.
     * Can be redefined by mods if required, for things like colored names or messages.
     * **Only** the first occurrence of each placeholder will be replaced.
 

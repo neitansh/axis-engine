@@ -56,7 +56,7 @@ class Settings;
 
 struct ChatEventChat;
 struct ChatInterface;
-struct ChatMessage;
+#include "chatmessage.h"
 struct CloudParams;
 struct GameParams;
 struct Lighting;
@@ -311,8 +311,9 @@ public:
 	std::string getBanDescription(const std::string &ip_or_name);
 	bool denyIfBanned(session_t peer_id);
 
-	void notifyPlayer(const char *name, const std::wstring &msg);
-	void notifyPlayers(const std::wstring &msg);
+	void notifyPlayer(const char *name, const std::wstring &msg,
+			ChatMessageType type = CHATMESSAGE_TYPE_SYSTEM);
+	void notifyPlayers(const std::wstring &msg, ChatMessageType type = CHATMESSAGE_TYPE_SYSTEM);
 
 	void spawnParticle(const std::string &playername,
 		const ParticleParameters &p);

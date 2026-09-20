@@ -14,6 +14,8 @@
 #include "util/strfnd.h"
 #include "util/string.h"
 #include "util/numeric.h"
+#include "filesys.h"
+#include <fstream>
 
 ChatBuffer::ChatBuffer(u32 scrollback):
 	m_scrollback(scrollback)
@@ -34,11 +36,12 @@ ChatBuffer::ChatBuffer(u32 scrollback):
 	}
 }
 
-void ChatBuffer::addLine(const EnrichedString &name, const EnrichedString &text)
+void ChatBuffer::addLine(const EnrichedString &name, const EnrichedString &text,
+		ChatKind kind)
 {
 	m_lines_modified = true;
 
-	ChatLine line(name, text);
+	ChatLine line(name, text, kind);
 	m_unformatted.push_back(line);
 
 	if (m_rows > 0) {
@@ -491,6 +494,39 @@ void ChatPrompt::input(const std::wstring &str)
 	clampView();
 }
 
+// Сколько строк истории переживает запуск: больше и не листают.
+static const size_t HISTORY_FILE_LINES = 200;
+
+void ChatPrompt::setHistoryFile(const std::string &path)
+{
+	m_history_file = path;
+	std::ifstream in(path, std::ios::binary);
+	std::string raw;
+	while (std::getline(in, raw)) {
+		if (raw.empty())
+			continue;
+		HistoryEntry entry(utf8_to_wide(raw));
+		m_history.erase(std::remove(m_history.begin(), m_history.end(), entry),
+				m_history.end());
+		m_history.push_back(std::move(entry));
+	}
+	if (m_history.size() > m_history_limit)
+		m_history.erase(m_history.begin(), m_history.end() - m_history_limit);
+	m_history_index = m_history.size();
+}
+
+void ChatPrompt::saveHistory() const
+{
+	if (m_history_file.empty())
+		return;
+	std::string out;
+	const size_t from = m_history.size() > HISTORY_FILE_LINES
+			? m_history.size() - HISTORY_FILE_LINES : 0;
+	for (size_t i = from; i < m_history.size(); ++i)
+		out.append(wide_to_utf8(m_history[i].line)).push_back('\n');
+	fs::safeWriteToFile(m_history_file, out);
+}
+
 void ChatPrompt::addToHistory(const std::wstring &line)
 {
 	std::wstring old_line = getLine();
@@ -520,6 +556,7 @@ void ChatPrompt::addToHistory(const std::wstring &line)
 		m_history.erase(m_history.begin());
 	m_history_index = m_history.size();
 	m_line = std::move(old_line);
+	saveHistory();
 }
 
 void ChatPrompt::clear()
@@ -1158,42 +1195,63 @@ ChatBackend::ChatBackend():
 	m_prompt.setChatBuffer(&m_console_buffer);
 }
 
-void ChatBackend::addMessage(const std::wstring &name, const std::wstring &text)
+// Ответ на команду длиннее этого в чат не идёт: там ему не поместиться, и
+// он выталкивал бы реплики. Читать его — в консоли.
+static const size_t COMMAND_REPLY_CHAT_LINES = 3;
+
+static std::vector<EnrichedString> splitLines(const std::wstring &text)
 {
 	// Note: A message may consist of multiple lines, for example the MOTD.
-	EnrichedString ename(name);
 	EnrichedString etext(text);
-
+	std::vector<EnrichedString> lines;
 	size_t str_pos = 0;
-	while (str_pos < etext.size()) {
-		EnrichedString line = etext.getNextLine(&str_pos);
-
-		m_console_buffer.addLine(ename, line);
-		m_recent_buffer.addLine(ename, line);
-	}
+	while (str_pos < etext.size())
+		lines.push_back(etext.getNextLine(&str_pos));
+	return lines;
 }
 
-void ChatBackend::addUnparsedMessage(std::wstring message)
+void ChatBackend::addMessage(const ChatMessage &message)
 {
-	// TODO: Remove the need to parse chat messages client-side, by sending
-	// separate name and text fields in TOCLIENT_CHAT_MESSAGE.
-
-	if (message.size() >= 2 && message[0] == L'<')
-	{
-		std::size_t closing = message.find_first_of(L'>', 1);
-		if (closing != std::wstring::npos &&
-				closing + 2 <= message.size() &&
-				message[closing+1] == L' ')
-		{
-			std::wstring name = message.substr(1, closing - 1);
-			std::wstring text = message.substr(closing + 2);
-			addMessage(name, text);
-			return;
-		}
+	ChatKind kind;
+	EnrichedString name;
+	switch (message.type) {
+	case CHATMESSAGE_TYPE_NORMAL:
+		kind = message.sender == m_local_name ? ChatKind::Own : ChatKind::Player;
+		name = EnrichedString(message.sender);
+		break;
+	case CHATMESSAGE_TYPE_ANNOUNCE:
+		kind = ChatKind::Announce;
+		break;
+	case CHATMESSAGE_TYPE_COMMAND:
+		kind = ChatKind::Command;
+		break;
+	default:
+		kind = ChatKind::System;
+		break;
 	}
 
-	// Unable to parse, probably a server message.
-	addMessage(L"", message);
+	std::vector<EnrichedString> lines = splitLines(message.message);
+	for (const EnrichedString &line : lines)
+		m_console_buffer.addLine(name, line, kind);
+
+	if (kind == ChatKind::Command && lines.size() > COMMAND_REPLY_CHAT_LINES) {
+		m_recent_buffer.addLine(name,
+				EnrichedString(wstrgettext("Reply is in the console (F10)")), kind);
+		return;
+	}
+	for (const EnrichedString &line : lines)
+		m_recent_buffer.addLine(name, line, kind);
+}
+
+void ChatBackend::addLocalMessage(const std::wstring &text)
+{
+	addMessage(ChatMessage(CHATMESSAGE_TYPE_SYSTEM, text));
+}
+
+void ChatBackend::addLogLine(const std::wstring &text)
+{
+	for (const EnrichedString &line : splitLines(text))
+		m_console_buffer.addLine(EnrichedString(), line, ChatKind::Log);
 }
 
 ChatBuffer& ChatBackend::getConsoleBuffer()

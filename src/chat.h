@@ -10,26 +10,45 @@
 #include <optional>
 
 #include "irrlichttypes.h"
+#include "chatmessage.h"
 #include "util/enriched_string.h"
 
 // Chat console related classes
+
+// Кем и зачем сказана строка — от этого зависит, где она видна и как
+// выглядит. Тип с сервера (ChatMessageType) плюс то, что знает только
+// клиент: своя ли реплика и не журнал ли это движка.
+enum class ChatKind : u8
+{
+	Player,   // чужая реплика
+	Own,      // своя реплика
+	System,   // слово игры: вошёл, вышел, мод
+	Announce, // объявление сервера
+	Command,  // ответ на команду
+	Log,      // журнал движка (ошибки, предупреждения) — только консоль
+};
 
 struct ChatLine
 {
 	// age in seconds
 	f32 age = 0.0f;
+	ChatKind kind = ChatKind::System;
 	// name of sending player, or empty if sent by server
 	EnrichedString name;
 	// message text
 	EnrichedString text;
 
-	ChatLine(const std::wstring &a_name, const std::wstring &a_text):
+	ChatLine(const std::wstring &a_name, const std::wstring &a_text,
+			ChatKind a_kind = ChatKind::System):
+		kind(a_kind),
 		name(a_name),
 		text(a_text)
 	{
 	}
 
-	ChatLine(const EnrichedString &a_name, const EnrichedString &a_text):
+	ChatLine(const EnrichedString &a_name, const EnrichedString &a_text,
+			ChatKind a_kind = ChatKind::System):
+		kind(a_kind),
 		name(a_name),
 		text(a_text)
 	{
@@ -64,7 +83,8 @@ public:
 
 	// Append chat line
 	// Removes oldest chat line if scrollback size is reached
-	void addLine(const EnrichedString &name, const EnrichedString &text);
+	void addLine(const EnrichedString &name, const EnrichedString &text,
+			ChatKind kind = ChatKind::System);
 
 	// Remove all chat lines
 	void clear();
@@ -158,6 +178,10 @@ public:
 
 	// Add a string to the history
 	void addToHistory(const std::wstring &line);
+
+	// История между запусками: файл читается при открытии и дописывается
+	// на каждую отправку. Пустой путь — история живёт только в памяти.
+	void setHistoryFile(const std::string &path);
 
 	// Get current line
 	std::wstring getLine() const { return getLineRef(); }
@@ -311,6 +335,8 @@ private:
 	std::vector<HistoryEntry> m_history;
 	// History index (0 <= m_history_index <= m_history.size())
 	u32 m_history_index = 0;
+	std::string m_history_file;
+	void saveHistory() const;
 	// Maximum number of history entries
 	u32 m_history_limit;
 
@@ -336,10 +362,16 @@ public:
 	ChatBackend();
 	~ChatBackend() = default;
 
-	// Add chat message
-	void addMessage(const std::wstring &name, const std::wstring &text);
-	// Parse and add unparsed chat message
-	void addUnparsedMessage(std::wstring line);
+	// Сообщение с сервера: тип решает, куда оно идёт. В консоль — всё;
+	// в чат — реплики, слово игры и объявления, а ответ на команду — только
+	// короткий, длинный оставляет в чате одну строку-отсылку к консоли.
+	void addMessage(const ChatMessage &message);
+	// Строка журнала движка: только в консоль.
+	void addLogLine(const std::wstring &text);
+	// Слово клиента игроку (связь, переезд): в чат и консоль.
+	void addLocalMessage(const std::wstring &text);
+	// Имя своего игрока: по нему реплика становится своей.
+	void setLocalName(const std::wstring &name) { m_local_name = name; }
 
 	// Get the console buffer
 	ChatBuffer& getConsoleBuffer();
@@ -371,4 +403,5 @@ private:
 	ChatBuffer m_console_buffer;
 	ChatBuffer m_recent_buffer;
 	ChatPrompt m_prompt;
+	std::wstring m_local_name;
 };

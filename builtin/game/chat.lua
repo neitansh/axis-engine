@@ -54,7 +54,7 @@ core.register_on_chat_message(function(name, message)
 
 	local cmd, param = string.match(message, "^/([^ ]+) *(.*)")
 	if not cmd then
-		core.chat_send_player(name, "-!- "..S("Empty command."))
+		core.chat_send_player(name, "-!- "..S("Empty command."), "command")
 		return true
 	end
 
@@ -69,7 +69,7 @@ core.register_on_chat_message(function(name, message)
 
 	local cmd_def = core.registered_chatcommands[cmd]
 	if not cmd_def then
-		core.chat_send_player(name, "-!- "..S("Invalid command: @1", cmd))
+		core.chat_send_player(name, "-!- "..S("Invalid command: @1", cmd), "command")
 		return true
 	end
 	local has_privs, missing_privs = core.check_player_privs(name, cmd_def.privs)
@@ -79,12 +79,12 @@ core.register_on_chat_message(function(name, message)
 		local success, result = cmd_def.func(name, param)
 		local delay = (core.get_us_time() - t_before) / 1000000
 		if success == false and result == nil then
-			core.chat_send_player(name, "-!- "..S("Invalid command usage."))
+			core.chat_send_player(name, "-!- "..S("Invalid command usage."), "command")
 			local help_def = core.registered_chatcommands["help"]
 			if help_def then
 				local _, helpmsg = help_def.func(name, cmd)
 				if helpmsg then
-					core.chat_send_player(name, helpmsg)
+					core.chat_send_player(name, helpmsg, "command")
 				end
 			end
 		else
@@ -100,14 +100,14 @@ core.register_on_chat_message(function(name, message)
 				end
 			end
 			if result then
-				core.chat_send_player(name, result)
+				core.chat_send_player(name, result, "command")
 			end
 		end
 	else
 		core.chat_send_player(name,
 				S("You don't have permission to run this command "
 				.. "(missing privileges: @1).",
-				table.concat(missing_privs, ", ")))
+				table.concat(missing_privs, ", ")), "command")
 	end
 	return true  -- Handled chat message
 end)
