@@ -38,59 +38,74 @@
       "name": "Debug",
       "displayName": "Debug",
       "description": "Debug preset with debug symbols and no optimizations",
-      "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "RUN_IN_PLACE": "TRUE"
-      }
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "inherits": "axis-base"
     },
     {
       "name": "Release",
       "displayName": "Release",
       "description": "Release with optimizations and in-place build",
-      "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "RUN_IN_PLACE": "TRUE"
-      }
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "inherits": "axis-base"
     },
     {
       "name": "Server-Release",
       "displayName": "Server Release",
       "description": "Release build for Headless Server (no GUI)",
-      "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "RUN_IN_PLACE": "TRUE",
         "BUILD_SERVER": "TRUE",
         "BUILD_CLIENT": "FALSE"
-      }
+      },
+      "inherits": "axis-base"
     },
     {
       "name": "RelWithDebInfo",
       "displayName": "RelWithDebInfo",
       "description": "Release with debug symbols and in-place build",
-      "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "RUN_IN_PLACE": "TRUE"
-      }
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "inherits": "axis-base"
     },
     {
       "name": "MinSizeRel",
       "displayName": "MinSizeRel",
       "description": "Release with minimal code size and in-place build",
-      "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "MinSizeRel",
-        "RUN_IN_PLACE": "TRUE"
-      }
+        "CMAKE_BUILD_TYPE": "MinSizeRel"
+      },
+      "inherits": "axis-base"
     }
   ],
   "buildPresets": [
     {
       "name": "dev",
       "configurePreset": "dev"
+    },
+    {
+      "name": "Debug",
+      "configurePreset": "Debug"
+    },
+    {
+      "name": "Release",
+      "configurePreset": "Release"
+    },
+    {
+      "name": "Server-Release",
+      "configurePreset": "Server-Release"
+    },
+    {
+      "name": "RelWithDebInfo",
+      "configurePreset": "RelWithDebInfo"
+    },
+    {
+      "name": "MinSizeRel",
+      "configurePreset": "MinSizeRel"
     }
   ]
 }

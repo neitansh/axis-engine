@@ -7,10 +7,19 @@ endif()
 project(axis)
 set(PROJECT_NAME_CAPITALIZED "Axis")
 
-# Предел параллельности для Ninja: правка общего заголовка перекомпилирует
-# сотни файлов, и без пула `-j` запускает их все разом — по нескольку сотен
-# мегабайт каждый, память кончается. Makefiles пулов не знают; там предел —
-# число после -j, и это забота того, кто собирает.
+# Замок от сборки без предела параллельности. Правка общего заголовка
+# перекомпилирует сотни файлов, и `make -j` или `cmake --build -j` без
+# числа запускает их все разом — по нескольку сотен мегабайт каждый, память
+# кончается, у машины падают приложения. Ninja держит пулы (CMAKE_JOB_POOLS,
+# ниже), у Makefiles предела нет вовсе — поэтому Makefiles не собираем.
+# Все пресеты CMakePresets.json — Ninja; IDE выбирает пресет, а не генератор.
+if(NOT CMAKE_GENERATOR MATCHES "Ninja" AND NOT AXIS_ALLOW_UNLIMITED_JOBS)
+	message(FATAL_ERROR
+		"Генератор ${CMAKE_GENERATOR} не ограничивает число компиляций и съедает "
+		"всю память. Собирайте пресетом из CMakePresets.json (все на Ninja с пулом "
+		"compile=8): cmake --preset Release && cmake --build --preset Release. "
+		"Если очень нужно: -DAXIS_ALLOW_UNLIMITED_JOBS=ON.")
+endif()
 if(NOT CMAKE_JOB_POOLS)
 	set(CMAKE_JOB_POOLS "compile=8;link=1")
 	set(CMAKE_JOB_POOL_COMPILE "compile")
