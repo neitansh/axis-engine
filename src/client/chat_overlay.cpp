@@ -21,9 +21,10 @@
 #include <RmlUi/Core/ElementDocument.h>
 #include <RmlUi/Core/Elements/ElementFormControlInput.h>
 
-// Сколько реплика висит свёрнутой (гаснет она стилем, transition в
-// chat.rcss); сколько строк помнит открытый чат.
+// Сколько реплика висит свёрнутой и за сколько гаснет (сам переход — в
+// chat.rcss, тут его длина); сколько строк помнит открытый чат.
 static const f32 LINE_LIFETIME = 10.0f;
+static const f32 LINE_FADE = 0.8f;
 static const size_t HISTORY_LINES = 200;
 
 static const char *kindName(ChatKind kind)
@@ -175,13 +176,14 @@ void ChatOverlay::loadDocument()
 		line.RegisterMember("html", &Line::html);
 		line.RegisterMember("count", &Line::count);
 		line.RegisterMember("old", &Line::old);
+		line.RegisterMember("gone", &Line::gone);
 	}
 	model.RegisterArray<std::vector<Line>>();
 	model.Bind("lines", &m_lines);
 	model.Bind("draft", &m_draft);
 	model.Bind("placeholder", &m_placeholder);
 	model.Bind("open", &m_open);
-	model.Bind("unread", &m_unread);
+	model.Bind("empty", &m_empty);
 	m_model = model.GetModelHandle();
 
 	m_document = ui::Host::loadDocument(*m_context, themeFile("chat.rml"));
@@ -203,7 +205,6 @@ void ChatOverlay::open(const std::wstring &initial)
 	if (player && player->look_locked)
 		return;
 	m_open = true;
-	m_unread = 0;
 	g_rml_menu_open = true;
 	m_receiver->setUiReceiver(this);
 	m_document->SetClass("open", true);
@@ -211,7 +212,6 @@ void ChatOverlay::open(const std::wstring &initial)
 	m_focus_pending = true;
 	m_scroll_pending = true;
 	m_model.DirtyVariable("open");
-	m_model.DirtyVariable("unread");
 }
 
 void ChatOverlay::close()
@@ -263,10 +263,6 @@ void ChatOverlay::addLine(const ChatLine &line)
 	m_lines.push_back(std::move(out));
 	while (m_lines.size() > HISTORY_LINES)
 		m_lines.erase(m_lines.begin());
-	if (!m_open) {
-		++m_unread;
-		m_model.DirtyVariable("unread");
-	}
 	m_lines_dirty = true;
 	m_scroll_pending = true;
 }
@@ -287,15 +283,24 @@ void ChatOverlay::step(f32 dtime)
 	for (size_t i = m_lines.size(); i-- > 0;) {
 		Line &line = m_lines[i];
 		line.age += dtime;
-		const bool old = line.age > LINE_LIFETIME || ++fresh > shown;
-		if (old != line.old) {
+		const bool old = line.age > LINE_LIFETIME || fresh >= shown;
+		const bool gone = line.age > LINE_LIFETIME + LINE_FADE || fresh >= shown;
+		if (!old)
+			++fresh;
+		if (old != line.old || gone != line.gone) {
 			line.old = old;
+			line.gone = gone;
 			m_lines_dirty = true;
 		}
 	}
 	if (m_lines_dirty) {
 		m_model.DirtyVariable("lines");
 		m_lines_dirty = false;
+	}
+	const bool empty = fresh == 0;
+	if (empty != m_empty) {
+		m_empty = empty;
+		m_model.DirtyVariable("empty");
 	}
 
 	m_host.update(*m_context);

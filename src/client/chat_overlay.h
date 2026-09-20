@@ -69,7 +69,8 @@ private:
 		Rml::String name;
 		Rml::String html;
 		int count = 1;
-		bool old = false;
+		bool old = false;  // гаснет
+		bool gone = false; // погасла: свёрнутым не занимает места
 		f32 age = 0.0f;
 	};
 
@@ -107,7 +108,8 @@ private:
 	Rml::String m_placeholder;
 	bool m_open = false;
 	bool m_visible = true;
-	int m_unread = 0;
+	// Свёрнутым нечего показать: подложка прячется.
+	bool m_empty = true;
 	bool m_focus_pending = false;
 	bool m_scroll_pending = false;
 	bool m_lines_dirty = false;

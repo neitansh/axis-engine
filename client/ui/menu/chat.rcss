@@ -1,8 +1,11 @@
 /*
- * Чат в игре: внизу слева, поверх мира. Свёрнутый — хвост реплик на мягкой
- * подложке, каждая гаснет; открытый — история с прокруткой и поле ввода.
- * Цвета — словарь темы (theme.rcss): имя игрока акцентом, своё имя светлым,
- * слово игры тише, объявление тревожным.
+ * Чат в игре: внизу слева, поверх мира. Одна тёмная подложка под всеми
+ * строками и такая же под полем ввода — и свёрнутым, и открытым: открытие
+ * ничего не перекрашивает, закрытие ничего не сдвигает (место под поле
+ * занято всегда, поле лишь прячется). Свёрнутым строка гаснет, потом
+ * уходит из подложки, пустая подложка исчезает. Имя автора — Departure
+ * Mono, текст — Inter: разные шрифты разводят их лучше цвета. Словарь
+ * цветов — theme.rcss.
  */
 
 body.chat {
@@ -28,27 +31,42 @@ body.chat.hidden {
 }
 
 /* Свёрнутый: без прокрутки, строки только последние; открытый — до
-   половины экрана, колесо и PgUp/PgDn. */
+   половины экрана, колесо и PgUp/PgDn. Полоса прокрутки короче
+   списка на отступ, чтобы не вылезать за пузыри. */
 
 .history {
 	display: block;
 	width: 100%;
 	max-height: 50vh;
 	overflow-y: hidden;
+	margin-bottom: 6dp;
+	padding: 4dp 0;
+	border-radius: 6dp;
+	background-color: #000000A6;
+}
+
+.history.empty {
+	visibility: hidden;
 }
 
 body.open .history {
 	overflow-y: auto;
-	background-color: #000000A6;
-	border-radius: 12dp;
-	padding: 6dp 0;
-	margin-bottom: 8dp;
+	visibility: visible;
+}
+
+.history scrollbarvertical {
+	width: 4dp;
+	margin: 4dp 0 4dp 4dp;
+}
+
+.history scrollbarvertical sliderbar {
+	border-radius: 2dp;
+	background-color: #FFFFFF3A;
 }
 
 .line {
 	display: block;
-	padding: 3dp 10dp;
-	background-color: #00000099;
+	padding: 2dp 12dp;
 	line-height: 1.35;
 	opacity: 1;
 	transition: opacity 0.8s linear-in-out;
@@ -59,8 +77,8 @@ body.open .history {
 	opacity: 0;
 }
 
-body.open .line {
-	background-color: transparent;
+.line.gone {
+	display: none;
 }
 
 body.open .line.old {
@@ -68,10 +86,15 @@ body.open .line.old {
 	transition: none;
 }
 
+body.open .line.gone {
+	display: block;
+}
+
 .line .name {
+	font-family: "Departure Mono";
+	font-size: 13dp;
 	color: #A78BFA;
-	font-weight: 600;
-	margin-right: 6dp;
+	margin-right: 8dp;
 }
 
 .line[kind="own"] .name {
@@ -94,34 +117,38 @@ body.open .line.old {
 }
 
 .line .count {
+	font-family: "Departure Mono";
+	font-size: 13dp;
 	color: #86868B;
 	margin-left: 6dp;
 }
 
-/* Непрочитанное: строки уже погасли, а метка напоминает, что чат ждёт. */
-
-.badge {
-	display: block;
-	margin-top: 4dp;
-	padding: 3dp 10dp;
-	border-radius: 11dp;
-	background-color: #221B36;
-	border: 1dp #A78BFA3D;
-	color: #A78BFA;
-	font-size: 13dp;
-	font-weight: 600;
-}
-
-/* Селектор с типом: у темы input.text задан display, класс один его не
-   перебьёт. */
+/* Поле ввода — такая же подложка, как у строк; кайма только в фокусе, то
+   есть пока чат открыт. Селектор с типом: у темы input.text задан свой
+   вид, класс один его не перебьёт. */
 
 input.draft {
-	display: none;
+	visibility: hidden;
 	width: 100%;
-	height: 40dp;
+	height: 36dp;
 	line-height: 22dp;
+	padding: 7dp 12dp;
+	border-radius: 6dp;
+	border: 1dp #00000000;
+	background-color: #000000A6;
+	font-family: "Departure Mono";
+	font-size: 14dp;
+	color: #F5F5F7;
 }
 
 body.open input.draft {
-	display: block;
+	visibility: visible;
+}
+
+input.draft:hover {
+	border-color: #00000000;
+}
+
+input.draft:focus {
+	border-color: #A78BFA80;
 }
