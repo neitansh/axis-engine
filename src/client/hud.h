@@ -73,7 +73,8 @@ public:
 	void disableBlockBounds();
 	void drawBlockBounds();
 
-	void drawHotbar(const v2s32 &pos, const v2f &offset, u16 direction, const v2f &align);
+	void drawHotbar(const v2s32 &pos, const v2f &offset, u16 direction, const v2f &align,
+			f32 scale = 1.0f);
 	void resizeHotbar();
 	void drawCrosshair();
 	void drawSelectionMesh();
@@ -121,9 +122,10 @@ private:
 
 	void drawItems(v2s32 screen_pos, v2s32 screen_offset, s32 itemcount, v2f alignment,
 			s32 inv_offset, InventoryList *mainlist, u16 selectitem,
-			u16 direction, bool is_hotbar);
+			u16 direction, bool is_hotbar, f32 scale = 1.0f);
 
-	void drawItem(const ItemStack &item, const core::rect<s32> &rect, bool selected);
+	void drawItem(const ItemStack &item, const core::rect<s32> &rect, bool selected,
+			bool compact, s32 padding);
 
 	void drawCompassTranslate(HudElement *e, video::ITexture *texture,
 			const core::rect<s32> &rect, int way);

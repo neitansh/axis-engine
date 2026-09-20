@@ -34,6 +34,9 @@
 #define HUD_FLAG_MINIMAP_RADAR_VISIBLE (1 << 6)
 #define HUD_FLAG_BASIC_DEBUG           (1 << 7)
 #define HUD_FLAG_CHAT_VISIBLE          (1 << 8)
+// Хотбар без пустых ячеек: предметы идут подряд, пустая ячейка не занимает
+// места и не обводится. Для игр, где хотбар — это «что у меня в руках».
+#define HUD_FLAG_HOTBAR_COMPACT        (1 << 9)
 
 #define HUD_PARAM_HOTBAR_ITEMCOUNT 1
 #define HUD_PARAM_HOTBAR_IMAGE 2

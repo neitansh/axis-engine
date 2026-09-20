@@ -2166,6 +2166,8 @@ Displays a horizontal bar made up of half-images with an optional background.
 * `direction`: Direction the list will be displayed in
 * `offset`: offset in pixels from position.
 * `alignment`: The alignment of the inventory.
+* `scale`: `x` multiplies the slot size (1 or unset: the size the client's
+  HUD scaling gives). Axis only.
 
 ### `waypoint`
 
@@ -9655,6 +9657,15 @@ You **must not** mix names and track numbers to refer to the same animation.
           Does not affect players with the `debug` privilege.
         * `chat`: Modifies the client's permission to view chat on the HUD.
           The client may locally elect to not view chat. Does not affect the console.
+        * `hotbar_compact`: empty hotbar slots take no space and are not
+          drawn, so the items stand in a row without gaps; the selection
+          frame is drawn only around an item. The wheel still walks through
+          every slot, so an empty slot is a "nothing in hand" stop. The bar
+          has no fixed length, so `hud_set_hotbar_image` here is the
+          background of one cell and `hud_set_hotbar_selected_image` the
+          cell with the selected item, both stretched over the whole cell;
+          the item is drawn inside with a small margin. Off by default.
+          Axis only.
     * If a flag equals `nil`, the flag is not modified
 * `hud_get_flags()`: returns a table of player HUD flags with boolean values.
     * See `hud_set_flags` for a list of flags that can be toggled.

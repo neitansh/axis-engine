@@ -201,16 +201,43 @@ Hud::~Hud()
 }
 
 void Hud::drawItem(const ItemStack &item, const core::rect<s32>& rect,
-		bool selected)
+		bool selected, bool compact, s32 padding)
 {
+	// Сжатый хотбар — ряд отдельных плашек, а не одна полоса: картинки
+	// хотбара здесь — фон одной ячейки (обычный и выбранный) во всю клетку,
+	// предмет — внутри с отступом. Полосе нет длины, чтобы её растягивать.
+	if (compact) {
+		const std::string &slot_image = selected && use_hotbar_selected_image
+				? hotbar_selected_image : hotbar_image;
+		core::rect<s32> cell = rect;
+		cell.UpperLeftCorner -= v2s32(padding, padding);
+		cell.LowerRightCorner += v2s32(padding, padding);
+		if (!slot_image.empty()) {
+			video::ITexture *texture = tsrc->getTexture(slot_image);
+			core::dimension2di imgsize(texture->getOriginalSize());
+			draw2DImageFilterScaled(driver, texture, cell,
+					core::rect<s32>(core::position2d<s32>(0,0), imgsize),
+					NULL, hbar_colors, true);
+		} else {
+			driver->draw2DRectangle(video::SColor(selected ? 192 : 128, 0, 0, 0),
+					cell, NULL);
+		}
+		core::rect<s32> inner = rect;
+		inner.UpperLeftCorner += v2s32(padding, padding);
+		inner.LowerRightCorner -= v2s32(padding, padding);
+		drawItemStack(driver, g_fontengine->getFont(), item, inner, NULL,
+			client, selected ? IT_ROT_SELECTED : IT_ROT_NONE);
+		return;
+	}
+
 	if (selected) {
 		/* draw highlighting around selected item */
 		if (use_hotbar_selected_image) {
 			core::rect<s32> imgrect2 = rect;
-			imgrect2.UpperLeftCorner.X  -= (m_padding*2);
-			imgrect2.UpperLeftCorner.Y  -= (m_padding*2);
-			imgrect2.LowerRightCorner.X += (m_padding*2);
-			imgrect2.LowerRightCorner.Y += (m_padding*2);
+			imgrect2.UpperLeftCorner.X  -= (padding*2);
+			imgrect2.UpperLeftCorner.Y  -= (padding*2);
+			imgrect2.LowerRightCorner.X += (padding*2);
+			imgrect2.LowerRightCorner.Y += (padding*2);
 				video::ITexture *texture = tsrc->getTexture(hotbar_selected_image);
 				core::dimension2di imgsize(texture->getOriginalSize());
 			draw2DImageFilterScaled(driver, texture, imgrect2,
@@ -227,23 +254,23 @@ void Hud::drawItem(const ItemStack &item, const core::rect<s32>& rect,
 			// Black base borders
 			driver->draw2DRectangle(c_outside,
 				core::rect<s32>(
-				v2s32(x1 - m_padding, y1 - m_padding),
-				v2s32(x2 + m_padding, y1)
+				v2s32(x1 - padding, y1 - padding),
+				v2s32(x2 + padding, y1)
 				), NULL);
 			driver->draw2DRectangle(c_outside,
 				core::rect<s32>(
-				v2s32(x1 - m_padding, y2),
-				v2s32(x2 + m_padding, y2 + m_padding)
+				v2s32(x1 - padding, y2),
+				v2s32(x2 + padding, y2 + padding)
 				), NULL);
 			driver->draw2DRectangle(c_outside,
 				core::rect<s32>(
-				v2s32(x1 - m_padding, y1),
+				v2s32(x1 - padding, y1),
 					v2s32(x1, y2)
 				), NULL);
 			driver->draw2DRectangle(c_outside,
 				core::rect<s32>(
 					v2s32(x2, y1),
-				v2s32(x2 + m_padding, y2)
+				v2s32(x2 + padding, y2)
 				), NULL);
 			/*// Light inside borders
 			driver->draw2DRectangle(c_inside,
@@ -281,10 +308,23 @@ void Hud::drawItem(const ItemStack &item, const core::rect<s32>& rect,
 // mainlist can be NULL, but draw the frame anyway.
 void Hud::drawItems(v2s32 screen_pos, v2s32 screen_offset, s32 itemcount, v2f alignment,
 		s32 inv_offset, InventoryList *mainlist, u16 selectitem, u16 direction,
-		bool is_hotbar)
+		bool is_hotbar, f32 scale)
 {
-	s32 height  = m_hotbar_imagesize + m_padding * 2;
-	s32 width   = (itemcount - inv_offset) * (m_hotbar_imagesize + m_padding * 2);
+	// Сжатый хотбар: место получают только занятые ячейки, пустые не
+	// рисуются вовсе — ни фоном, ни обводкой выбора.
+	const bool compact = is_hotbar && (player->hud_flags & HUD_FLAG_HOTBAR_COMPACT);
+	const s32 list_max = std::min(itemcount, (s32) (mainlist ? mainlist->getSize() : 0 ));
+	std::vector<s32> shown;
+	for (s32 i = inv_offset; i < list_max; i++) {
+		if (!compact || !mainlist->getItem(i).empty())
+			shown.push_back(i);
+	}
+
+	const s32 imagesize = std::max<s32>(1, m_hotbar_imagesize * scale);
+	const s32 padding = imagesize / 12;
+	s32 height  = imagesize + padding * 2;
+	s32 width   = (compact ? (s32) shown.size() : itemcount - inv_offset)
+			* (imagesize + padding * 2);
 
 	if (direction == HUD_DIR_TOP_BOTTOM || direction == HUD_DIR_BOTTOM_TOP) {
 		s32 tmp = height;
@@ -311,9 +351,9 @@ void Hud::drawItems(v2s32 screen_pos, v2s32 screen_offset, s32 itemcount, v2f al
 	}
 
 	// draw customized item background
-	if (use_hotbar_image) {
-		core::rect<s32> imgrect2(-m_padding/2, -m_padding/2,
-			width+m_padding/2, height+m_padding/2);
+	if (use_hotbar_image && !compact) {
+		core::rect<s32> imgrect2(-padding/2, -padding/2,
+			width+padding/2, height+padding/2);
 		core::rect<s32> rect2 = imgrect2 + pos;
 		video::ITexture *texture = tsrc->getTexture(hotbar_image);
 		core::dimension2di imgsize(texture->getOriginalSize());
@@ -323,30 +363,31 @@ void Hud::drawItems(v2s32 screen_pos, v2s32 screen_offset, s32 itemcount, v2f al
 	}
 
 	// Draw items
-	core::rect<s32> imgrect(0, 0, m_hotbar_imagesize, m_hotbar_imagesize);
-	const s32 list_max = std::min(itemcount, (s32) (mainlist ? mainlist->getSize() : 0 ));
-	for (s32 i = inv_offset; i < list_max; i++) {
-		s32 fullimglen = m_hotbar_imagesize + m_padding * 2;
+	core::rect<s32> imgrect(0, 0, imagesize, imagesize);
+	const s32 count = (s32) shown.size();
+	for (s32 n = 0; n < count; n++) {
+		const s32 i = shown[n];
+		s32 fullimglen = imagesize + padding * 2;
 
 		v2s32 steppos;
 		switch (direction) {
 		case HUD_DIR_RIGHT_LEFT:
-			steppos = v2s32(m_padding + (list_max - 1 - i - inv_offset) * fullimglen, m_padding);
+			steppos = v2s32(padding + (count - 1 - n) * fullimglen, padding);
 			break;
 		case HUD_DIR_TOP_BOTTOM:
-			steppos = v2s32(m_padding, m_padding + (i - inv_offset) * fullimglen);
+			steppos = v2s32(padding, padding + n * fullimglen);
 			break;
 		case HUD_DIR_BOTTOM_TOP:
-			steppos = v2s32(m_padding, m_padding + (list_max - 1 - i - inv_offset) * fullimglen);
+			steppos = v2s32(padding, padding + (count - 1 - n) * fullimglen);
 			break;
 		default:
-			steppos = v2s32(m_padding + (i - inv_offset) * fullimglen, m_padding);
+			steppos = v2s32(padding + n * fullimglen, padding);
 			break;
 		}
 
 		core::rect<s32> item_rect = imgrect + pos + steppos;
 
-		drawItem(mainlist->getItem(i), item_rect, (i + 1) == selectitem);
+		drawItem(mainlist->getItem(i), item_rect, (i + 1) == selectitem, compact, padding);
 
 		if (is_hotbar && g_touchcontrols)
 			g_touchcontrols->registerHotbarRect(i, item_rect);
@@ -650,7 +691,8 @@ void Hud::drawLuaElements(const v3s16 &camera_offset, bool only_unhidable)
 				client->getMinimap()->drawMinimap(rect, m_map_markers);
 				break; }
 			case HUD_ELEM_HOTBAR: {
-				drawHotbar(pos, e->offset, e->dir, e->align);
+				drawHotbar(pos, e->offset, e->dir, e->align,
+						e->scale.X > 0 ? e->scale.X : 1.0f);
 				break; }
 			case HUD_ELEM_MAP_MARKER:
 				break;
@@ -863,7 +905,8 @@ void Hud::drawStatbar(v2s32 pos, u16 corner, u16 drawdir,
 		}
 	}
 }
-void Hud::drawHotbar(const v2s32 &pos, const v2f &offset, u16 dir, const v2f &align)
+void Hud::drawHotbar(const v2s32 &pos, const v2f &offset, u16 dir, const v2f &align,
+		f32 scale)
 {
 	if (g_touchcontrols)
 		g_touchcontrols->resetHotbarRects();
@@ -878,20 +921,20 @@ void Hud::drawHotbar(const v2s32 &pos, const v2f &offset, u16 dir, const v2f &al
 	v2s32 screen_offset(offset.X, offset.Y);
 
 	s32 hotbar_itemcount = player->getMaxHotbarItemcount();
-	s32 width = hotbar_itemcount * (m_hotbar_imagesize + m_padding * 2);
+	s32 width = hotbar_itemcount * (m_hotbar_imagesize + m_padding * 2) * scale;
 
 	const v2u32 &window_size = RenderingEngine::getWindowSize();
 	if ((float) width / (float) window_size.X <=
 			g_settings->getFloat("hud_hotbar_max_width")) {
 		drawItems(pos, screen_offset, hotbar_itemcount, align, 0,
-			mainlist, playeritem + 1, dir, true);
+			mainlist, playeritem + 1, dir, true, scale);
 	} else {
-		v2s32 upper_pos = pos - v2s32(0, m_hotbar_imagesize + m_padding);
+		v2s32 upper_pos = pos - v2s32(0, (m_hotbar_imagesize + m_padding) * scale);
 
 		drawItems(upper_pos, screen_offset, hotbar_itemcount / 2, align, 0,
-			mainlist, playeritem + 1, dir, true);
+			mainlist, playeritem + 1, dir, true, scale);
 		drawItems(pos, screen_offset, hotbar_itemcount, align,
-			hotbar_itemcount / 2, mainlist, playeritem + 1, dir, true);
+			hotbar_itemcount / 2, mainlist, playeritem + 1, dir, true, scale);
 	}
 }
 
