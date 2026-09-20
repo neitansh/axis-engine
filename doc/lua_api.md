@@ -9979,6 +9979,11 @@ You **must not** mix names and track numbers to refer to the same animation.
         * `speed_dark_bright` set the speed of adapting to bright light (default: `1000.0`)
         * `speed_bright_dark` set the speed of adapting to dark scene (default: `1000.0`)
         * `center_weight_power` set the power factor for center-weighted luminance measurement (default: `1.0`)
+      * `lens` is a table for the picture as seen through a lens; both
+        fields are 0..1 and 0 by default. Needs post-processing on the client.
+        * `vignette` darkens the edges and corners of the screen.
+        * `flicker` makes the light breathe unevenly, like a bulb on bad
+          wiring: at 1 the brightness sways by about five percent.
       * `bloom` is a table that controls bloom.
         * This has no effect on clients with protocol version < 46 or clients who
           have the "Bloom" effect disabled.

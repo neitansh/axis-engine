@@ -2030,6 +2030,11 @@ void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 			break;
 		// >= 5.16.0-dev
 		*pkt >> lighting.shadow_direction;
+
+		if (!pkt->hasRemainingBytes())
+			break;
+		// Axis: объектив
+		*pkt >> lighting.vignette >> lighting.flicker;
 	} while (0);
 }
 

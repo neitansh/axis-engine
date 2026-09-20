@@ -23,6 +23,10 @@ uniform vec2 texelSize0;
 uniform ExposureParams exposureParams;
 uniform lowp float bloomIntensity;
 uniform lowp float saturation;
+// Объектив (set_lighting lens): затемнение по краям и дрожание света, 0..1.
+uniform lowp float vignette;
+uniform lowp float flicker;
+uniform mediump float animationTimer;
 // Веки: 0 — глаза открыты, 1 — закрыты. См. TOCLIENT_EYELIDS.
 uniform lowp float eyelids;
 uniform mediump float eyelidsTime;
@@ -86,6 +90,26 @@ vec4 applyToneMapping(vec4 color)
 	return vec4(pow(color.rgb, vec3(1.0 / gamma)), color.a);
 }
 #endif
+
+// Кадр как через объектив: углы темнее, свет чуть дышит — не ровно, как
+// лампа накаливания на плохой проводке: три несоизмеримые частоты, чтобы
+// не было видно периода. Едва заметно и на полной силе: это атмосфера, а
+// не эффект.
+vec3 applyLens(vec3 color, vec2 uv)
+{
+	if (vignette > 0.001) {
+		vec2 half_size = vec2(texelSize0.y / texelSize0.x, 1.0) * 0.5;
+		float d = length((uv - 0.5) * vec2(texelSize0.y / texelSize0.x, 1.0)) / length(half_size);
+		float dark = smoothstep(0.45, 1.05, d) * vignette;
+		color *= 1.0 - 0.8 * dark;
+	}
+	if (flicker > 0.001) {
+		float t = animationTimer * 100.0;
+		float n = 0.5 * sin(t * 11.3) + 0.3 * sin(t * 23.7 + 1.7) + 0.2 * sin(t * 41.0 + 0.4);
+		color *= 1.0 + 0.05 * flicker * n;
+	}
+	return color;
+}
 
 vec3 applySaturation(vec3 color, float factor)
 {
@@ -194,6 +218,7 @@ void main(void)
 		color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 #endif
 		color.rgb = applySaturation(color.rgb, saturation);
+		color.rgb = applyLens(color.rgb, uv);
 		color.rgb *= lid * mix(0.6, 1.0, open);
 
 		// Подпись живёт только на закрытых глазах.
@@ -247,6 +272,7 @@ void main(void)
 #endif
 
 		color.rgb = applySaturation(color.rgb, saturation);
+		color.rgb = applyLens(color.rgb, uv);
 	}
 
 #ifdef ENABLE_DITHERING

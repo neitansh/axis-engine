@@ -53,4 +53,7 @@ struct Lighting
 	float bloom_strength_factor {1.0f};
 	float bloom_radius {1.0f};
 	v3f shadow_direction;
+	// Объектив: затемнение по краям кадра и дрожание света, 0..1.
+	float vignette {0.0f};
+	float flicker {0.0f};
 };

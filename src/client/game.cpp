@@ -239,6 +239,8 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	CachedPixelShaderSetting<float> m_bloom_strength_pixel{"bloomStrength"};
 	CachedPixelShaderSetting<float> m_bloom_radius_pixel{"bloomRadius"};
 	CachedPixelShaderSetting<float> m_saturation_pixel{"saturation"};
+	CachedPixelShaderSetting<float> m_vignette_pixel{"vignette"};
+	CachedPixelShaderSetting<float> m_flicker_pixel{"flicker"};
 	CachedPixelShaderSetting<float> m_eyelids_pixel{"eyelids"};
 	CachedPixelShaderSetting<float> m_eyelids_time_pixel{"eyelidsTime"};
 	CachedPixelShaderSetting<float> m_eyelids_closing_pixel{"eyelidsClosing"};
@@ -424,6 +426,10 @@ public:
 
 		float saturation = lighting.saturation;
 		m_saturation_pixel.set(&saturation, services);
+		float vignette = lighting.vignette;
+		m_vignette_pixel.set(&vignette, services);
+		float flicker = lighting.flicker;
+		m_flicker_pixel.set(&flicker, services);
 
 		const auto &eyelids = m_client->getEnv().getLocalPlayer()->eyelids;
 		float eyelids_closed = eyelids.closed;

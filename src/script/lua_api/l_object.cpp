@@ -3252,6 +3252,14 @@ int ObjectRef::l_set_lighting(lua_State *L)
 			lighting.bloom_radius = getfloatfield_default(L, -1, "radius", lighting.bloom_radius);
 		}
 		lua_pop(L, 1); // bloom
+
+		lua_getfield(L, 2, "lens");
+		if (lua_istable(L, -1))
+		{
+			lighting.vignette = rangelim(getfloatfield_default(L, -1, "vignette", lighting.vignette), 0.0f, 1.0f);
+			lighting.flicker = rangelim(getfloatfield_default(L, -1, "flicker", lighting.flicker), 0.0f, 1.0f);
+		}
+		lua_pop(L, 1); // lens
 	}
 
 	getServer(L)->setLighting(player, lighting);
@@ -3298,6 +3306,12 @@ int ObjectRef::l_get_lighting(lua_State *L)
 	lua_pushnumber(L, lighting.volumetric_light_strength);
 	lua_setfield(L, -2, "strength");
 	lua_setfield(L, -2, "volumetric_light");
+	lua_newtable(L); // "lens"
+	lua_pushnumber(L, lighting.vignette);
+	lua_setfield(L, -2, "vignette");
+	lua_pushnumber(L, lighting.flicker);
+	lua_setfield(L, -2, "flicker");
+	lua_setfield(L, -2, "lens");
 	lua_newtable(L); // "bloom"
 	lua_pushnumber(L, lighting.bloom_intensity);
 	lua_setfield(L, -2, "intensity");
