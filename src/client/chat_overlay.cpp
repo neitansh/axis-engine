@@ -184,6 +184,7 @@ void ChatOverlay::loadDocument()
 	model.Bind("placeholder", &m_placeholder);
 	model.Bind("open", &m_open);
 	model.Bind("empty", &m_empty);
+	model.Bind("none", &m_none);
 	m_model = model.GetModelHandle();
 
 	m_document = ui::Host::loadDocument(*m_context, themeFile("chat.rml"));
@@ -301,6 +302,11 @@ void ChatOverlay::step(f32 dtime)
 	if (empty != m_empty) {
 		m_empty = empty;
 		m_model.DirtyVariable("empty");
+	}
+	const bool none = m_lines.empty();
+	if (none != m_none) {
+		m_none = none;
+		m_model.DirtyVariable("none");
 	}
 
 	m_host.update(*m_context);

@@ -57,6 +57,13 @@ body.open .history {
 	visibility: visible;
 }
 
+/* Истории нет вовсе — подложки нет и открытым: пустая полоса ни к чему.
+   Место остаётся, чтобы поле ввода не ездило. */
+
+body .history.none {
+	visibility: hidden;
+}
+
 .history scrollbarvertical {
 	width: 4dp;
 	margin: 4dp 0 4dp 4dp;

@@ -108,8 +108,10 @@ private:
 	Rml::String m_placeholder;
 	bool m_open = false;
 	bool m_visible = true;
-	// Свёрнутым нечего показать: подложка прячется.
+	// Свёрнутым нечего показать: подложка прячется; нет ни строки — и
+	// открытым тоже.
 	bool m_empty = true;
+	bool m_none = true;
 	bool m_focus_pending = false;
 	bool m_scroll_pending = false;
 	bool m_lines_dirty = false;
