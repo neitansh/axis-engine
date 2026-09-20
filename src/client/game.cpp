@@ -3046,6 +3046,18 @@ void Game::updatePlayerControl(const CameraOrientation &cam)
 		control.yaw = yaw;
 	}
 
+	// Камеру ведёт сервер — значит, сцена, и тело игрока в ней не участвует:
+	// клавиши хода не уходят ни в физику клиента, ни в пакет серверу. Одного
+	// серверного «скорость ноль» мало: клавиши всё равно доезжают до сервера
+	// и до всего, что на них смотрит, а сцене они не нужны вовсе.
+	if (player->look_locked)
+	{
+		const float pitch = control.pitch, yaw = control.yaw;
+		control = PlayerControl();
+		control.pitch = pitch;
+		control.yaw = yaw;
+	}
+
 	client->setPlayerControl(control);
 
 	// tt.stop();
