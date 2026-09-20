@@ -658,6 +658,7 @@ Game::Game() : m_chat_log_buf(g_logger),
 		// Цветные тени меняют формат самих текстур карты, а он выбирается при
 		// создании рендерера
 		"shadow_map_color",
+		"shadow_texel_snap",
 	};
 	for (auto s : shadow_renderer_settings)
 		g_settings->registerChangedCallback(s, &shadowRendererSettingChangedCallback, this);
@@ -4823,6 +4824,7 @@ void Game::updateShadows()
 
 	const auto &lighting = client->getEnv().getLocalPlayer()->getLighting();
 	shadow->setShadowTint(lighting.shadow_tint);
+	shadow->setShadowLight(lighting.shadow_light, lighting.shadow_light_strength);
 
 	const float offset_constant = 10000.0f;
 

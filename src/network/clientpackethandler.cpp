@@ -2050,6 +2050,11 @@ void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 			break;
 		// Axis: объектив
 		*pkt >> lighting.vignette >> lighting.flicker;
+
+		if (!pkt->hasRemainingBytes())
+			break;
+		// Axis: свет светила по карте теней
+		*pkt >> lighting.shadow_light >> lighting.shadow_light_strength;
 	} while (0);
 }
 

@@ -67,6 +67,9 @@ VARYING_ vec3 varNightPart;
 	VARYING_ float cosLight;
 	VARYING_ vec3 shadow_position;
 	VARYING_ float perspective_factor;
+	// Смещение по нормали и по глубине, чтобы пиксельная тень могла
+	// пересчитать позицию в свете сама (см. getLightSpacePosition)
+	VARYING_ vec2 shadow_bias;
 #endif
 
 VARYING_ highp float eyeDist;
@@ -303,8 +306,11 @@ void main(void)
 		shadow_position = applyPerspectiveDistortion(m_ShadowViewProj * (mWorld * (shadow_pos + vec4(normalOffsetScale * nNormal, 0.0)))).xyz;
 #if !defined(ENABLE_TRANSLUCENT_FOLIAGE) || MATERIAL_TYPE != TILE_MATERIAL_WAVING_LEAVES
 		shadow_position.z -= z_bias;
+#else
+		z_bias = 0.0;
 #endif
 		perspective_factor = pFactor;
+		shadow_bias = vec2(normalOffsetScale, z_bias);
 	}
 #endif
 }

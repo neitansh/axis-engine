@@ -466,6 +466,7 @@ void set_default_settings()
 	settings->setDefault("enable_dynamic_shadows", "false");
 	settings->setDefault("shadow_strength_gamma", "1.0");
 	settings->setDefault("shadow_poisson_filter", "true");
+	settings->setDefault("shadow_texel_snap", "0");
 	settings->setDefault("shadow_update_frames", "32");
 	settings->setDefault("shadow_soft_radius", "5.0");
 	settings->setDefault("shadow_sky_body_orbit_tilt", "0.0");

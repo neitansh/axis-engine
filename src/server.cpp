@@ -2351,6 +2351,7 @@ void Server::SendSetLighting(session_t peer_id, const Lighting &lighting)
 
 	pkt << lighting.shadow_direction;
 	pkt << lighting.vignette << lighting.flicker;
+	pkt << lighting.shadow_light << lighting.shadow_light_strength;
 
 	Send(&pkt);
 }

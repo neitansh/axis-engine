@@ -28,6 +28,12 @@ void ShadowUniformSetter::onSetUniforms(video::IMaterialRendererServices *servic
 	video::SColor ShadowTint = shadow->getShadowTint();
 	m_shadow_tint.set(ShadowTint, services);
 
+	video::SColorf ShadowLight = shadow->getShadowLight();
+	m_shadow_light.set(ShadowLight, services);
+
+	f32 texelSnap = shadow->getTexelSnap();
+	m_texel_snap.set(&texelSnap, services);
+
 	f32 timeOfDay = shadow->getTimeOfDay();
 	m_time_of_day.set(&timeOfDay, services);
 

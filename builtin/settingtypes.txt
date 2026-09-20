@@ -809,6 +809,14 @@ shadow_map_texture_32bit (Shadow map texture in 32 bits) bool true
 #    Requires: enable_dynamic_shadows, shadows_support
 shadow_map_color (Colored shadows) bool false
 
+#    Shadows on the pixel grid of the world: the edge of a shadow steps in
+#    squares of 1/N of a node, like the texels of the textures, instead of
+#    running smooth. N is the number of squares per node, 16 matches
+#    16-pixel textures; 0 keeps smooth shadows.
+#
+#    Requires: enable_dynamic_shadows, shadows_support
+shadow_texel_snap (Pixel shadows) float 0 0 64
+
 #    Set the default tilt of Sun/Moon orbit in degrees.
 #    Crates may change orbit tilt via API.
 #    Value of 0 means no tilt / vertical orbit.

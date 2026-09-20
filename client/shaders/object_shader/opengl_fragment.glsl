@@ -27,12 +27,16 @@ uniform float animationTimer;
 	uniform float xyPerspectiveBias0;
 	uniform float xyPerspectiveBias1;
 	uniform vec3 shadow_tint;
+	uniform vec3 shadow_light;
 
 	VARYING_ float adj_shadow_strength;
 	VARYING_ float cosLight;
 	VARYING_ float f_normal_length;
 	VARYING_ vec3 shadow_position;
 	VARYING_ float perspective_factor;
+	VARYING_ vec2 shadow_bias;
+	uniform float zPerspectiveBias;
+	uniform float shadowTexelSnap;
 #endif
 
 
@@ -64,9 +68,52 @@ float getLinearDepth()
 	return 2.0 * f_shadowfar / (f_shadowfar + 1.0 - (2.0 * gl_FragCoord.z - 1.0) * (f_shadowfar - 1.0));
 }
 
+
+vec4 getRelativePosition(in vec4 position)
+{
+	vec2 l = position.xy - CameraPos.xy;
+	vec2 s = l / abs(l);
+	s = (1.0 - s * CameraPos.xy);
+	l /= s;
+	return vec4(l, s);
+}
+
+float getPerspectiveFactor(in vec4 relativePosition)
+{
+	float pDistance = length(relativePosition.xy);
+	float pFactor = pDistance * xyPerspectiveBias0 + xyPerspectiveBias1;
+	return pFactor;
+}
+
+vec4 applyPerspectiveDistortion(in vec4 position)
+{
+	vec4 l = getRelativePosition(position);
+	float pFactor = getPerspectiveFactor(l);
+	l.xy /= pFactor;
+	position.xy = l.xy * l.zw + CameraPos.xy;
+	position.z *= zPerspectiveBias;
+	return position;
+}
+
+// Тень по пиксельной сетке мира: точка поверхности прижимается к центру
+// клетки в 1/shadowTexelSnap ноды по двум осям вдоль грани (ось нормали
+// не трогается, иначе точка ушла бы внутрь ноды и затенила сама себя), и
+// уже она смотрится в карте теней. Край тени тогда ступенчатый, в тех же
+// пикселях, что и текстуры, а не плавный.
 vec3 getLightSpacePosition()
 {
-	return shadow_position * 0.5 + 0.5;
+	if (shadowTexelSnap <= 0.0)
+		return shadow_position * 0.5 + 0.5;
+
+	float cell = 10.0 / shadowTexelSnap;
+	vec3 n = f_normal_length > 1e-3 ? normalize(vNormal) : vec3(0.0);
+	vec3 absolute = worldPosition + cameraOffset;
+	vec3 snapped = (floor(absolute / cell) + 0.5) * cell;
+	vec3 along_face = vec3(1.0) - abs(n);
+	vec3 pos = mix(absolute, snapped, along_face) - cameraOffset + shadow_bias.x * n;
+	vec3 light_pos = applyPerspectiveDistortion(m_ShadowViewProj * vec4(pos, 1.0)).xyz;
+	light_pos.z -= shadow_bias.y;
+	return light_pos * 0.5 + 0.5;
 }
 
 #if __VERSION__ >= 130
@@ -544,14 +591,18 @@ void main(void)
 #ifdef COLORED_SHADOWS
 			vec4 visibility;
 			if (cosLight > 0.0 || f_normal_length < 1e-3)
-				visibility = getShadowColor(ShadowMapSampler, posLightSpace.xy, posLightSpace.z);
+				visibility = shadowTexelSnap > 0.0
+					? getHardShadowColor(ShadowMapSampler, posLightSpace.xy, posLightSpace.z)
+					: getShadowColor(ShadowMapSampler, posLightSpace.xy, posLightSpace.z);
 			else
 				visibility = vec4(1.0, 0.0, 0.0, 0.0);
 			shadow_int = visibility.r;
 			shadow_color = visibility.gba;
 #else
 			if (cosLight > 0.0 || f_normal_length < 1e-3)
-				shadow_int = getShadow(ShadowMapSampler, posLightSpace.xy, posLightSpace.z);
+				shadow_int = shadowTexelSnap > 0.0
+					? getHardShadow(ShadowMapSampler, posLightSpace.xy, posLightSpace.z)
+					: getShadow(ShadowMapSampler, posLightSpace.xy, posLightSpace.z);
 			else
 				shadow_int = 1.0;
 #endif
@@ -573,6 +624,15 @@ void main(void)
 			shadow_color = mix(vec3(0.0), shadow_color, min(cosLight, self_shadow_cutoff_cosine)/self_shadow_cutoff_cosine);
 		}
 
+		// Свет самого светила там, куда оно достаёт. Тень ниже только гасит
+		// дневную долю, а ночью её почти нет: луна в окно ничего бы не
+		// положила. Здесь она кладёт полосу на пол — по той же карте теней,
+		// пока та не ослаблена силой тени, в пределах её дальности, по
+		// косинусу падения.
+		float sky_lit = clamp(distance_rate - shadow_int, 0.0, 1.0)
+				* (1.0 - mtsmoothstep(0.9, 1.1, posLightSpace.z))
+				* (f_normal_length < 1e-3 ? 1.0 : mtsmoothstep(0.05, 0.35, cosLight));
+
 		shadow_int *= f_adj_shadow_strength;
 
 		// calculate fragment color from components:
@@ -581,6 +641,8 @@ void main(void)
 				(1.0 - adjusted_night_ratio) * ( // natural light
 						col.rgb * (1.0 - shadow_int * (1.0 - shadow_color) * (1.0 - shadow_tint)) +  // filtered texture color
 						dayLight * shadow_color * shadow_int);                 // reflected filtered sunlight/moonlight
+
+		col.rgb += base.rgb * shadow_light * sky_lit;
 	}
 #endif
 

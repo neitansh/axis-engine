@@ -24,6 +24,7 @@ const std::unordered_set<std::string> ALLOWED = {
 	"shadow_map_texture_32bit", "shadow_map_color",
 	"shadow_sky_body_orbit_tilt", "shadow_update_frames",
 	"shadow_filters", "shadow_soft_radius", "shadow_poisson_filter",
+	"shadow_texel_snap",
 	// Пост-обработка
 	"enable_post_processing", "post_processing_texture_bits",
 	"tone_mapping", "enable_auto_exposure", "exposure_compensation",

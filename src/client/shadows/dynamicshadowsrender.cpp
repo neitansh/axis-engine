@@ -39,6 +39,7 @@ ShadowRenderer::ShadowRenderer(IrrlichtDevice *device, Client *client) :
 	m_shadow_map_texture_32bit = g_settings->getBool("shadow_map_texture_32bit");
 	m_shadow_map_colored = g_settings->getBool("shadow_map_color");
 	m_map_shadow_update_frames = g_settings->getS16("shadow_update_frames");
+	m_texel_snap = g_settings->getFloat("shadow_texel_snap", 0.0f, 64.0f);
 
 	m_screen_quad = new ShadowScreenQuad();
 

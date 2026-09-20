@@ -9991,6 +9991,13 @@ You **must not** mix names and track numbers to refer to the same animation.
           The default is a zero vector and disables the override.
           Note: the vector points "outwards" so that `(0, 1, 0)` is equivalent to
           the sun at midday shining straight down.
+        * `light` (Axis only): ColorSpec, the light the sun/moon itself adds
+          where it reaches, by the shadow map: a moonbeam on the floor under
+          a window at night, when there is no daylight left for the shadow to
+          take away. Black (default) adds nothing. Needs `intensity` > 0 and
+          dynamic shadows on the client, like the rest of this table.
+        * `light_strength` (Axis only): multiplier for `light`, 0..8
+          (default 1: white is as bright as daylight on the same surface).
       * `exposure` is a table that controls automatic exposure.
         The basic exposure factor equation is `e = 2^exposure_correction / clamp(luminance, 2^luminance_min, 2^luminance_max)`
         * This has no effect on clients who have the "Automatic Exposure" effect disabled.

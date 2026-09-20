@@ -85,6 +85,20 @@ public:
 	void setTimeOfDay(float isDay) { m_time_day = isDay; };
 	void setShadowIntensity(float shadow_intensity);
 	void setShadowTint(video::SColor shadow_tint) { m_shadow_tint = shadow_tint; }
+	void setShadowLight(video::SColor shadow_light, float strength)
+	{
+		m_shadow_light = shadow_light;
+		m_shadow_light_strength = strength;
+	}
+	float getTexelSnap() const { return m_texel_snap; }
+	video::SColorf getShadowLight() const
+	{
+		video::SColorf light(m_shadow_light);
+		light.r *= m_shadow_light_strength;
+		light.g *= m_shadow_light_strength;
+		light.b *= m_shadow_light_strength;
+		return light;
+	}
 
 	float getShadowStrength() const { return m_shadows_enabled ? m_shadow_strength : 0.0f; }
 	video::SColor getShadowTint() const { return m_shadow_tint; }
@@ -124,6 +138,9 @@ private:
 
 	float m_shadow_strength;
 	video::SColor m_shadow_tint;
+	video::SColor m_shadow_light{255, 0, 0, 0};
+	float m_shadow_light_strength{1.0f};
+	float m_texel_snap{0.0f};
 	float m_shadow_strength_gamma;
 	float m_shadow_map_max_distance;
 	u32 m_shadow_map_texture_size;

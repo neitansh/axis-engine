@@ -80,8 +80,11 @@ void DirectionalLight::createSplitMatrices(const Camera *cam)
 	future_frustum.length = length;
 	future_frustum.radius = radius;
 	future_frustum.ViewMat.buildCameraLookAtMatrixLH(eye, center_scene, up);
+	// Глубина до дальнего края сферы, а не до её центра: иначе всё, что за
+	// центром по ходу света, в карту не попадает, и оттуда свет светила
+	// «проходит» сквозь крышу.
 	future_frustum.ProjOrthMat.buildProjectionMatrixOrthoLH(radius, radius,
-			0.0f, length, false);
+			0.0f, length + radius, false);
 }
 
 DirectionalLight::DirectionalLight(const u32 shadowMapResolution,

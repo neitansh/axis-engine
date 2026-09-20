@@ -26,6 +26,9 @@ flat VARYING_ uint varTexLayer;
 	VARYING_ float f_normal_length;
 	VARYING_ vec3 shadow_position;
 	VARYING_ float perspective_factor;
+	// Смещение по нормали и по глубине, чтобы пиксельная тень могла
+	// пересчитать позицию в свете сама (см. getLightSpacePosition)
+	VARYING_ vec2 shadow_bias;
 #endif
 
 VARYING_ highp vec3 eyeVec;
@@ -211,6 +214,7 @@ void main(void)
 		shadow_position = applyPerspectiveDistortion(m_ShadowViewProj * mWorld * (inVertexPosition + vec4(normalOffsetScale * nNormal, 0.0))).xyz;
 		shadow_position.z -= z_bias;
 		perspective_factor = pFactor;
+		shadow_bias = vec2(normalOffsetScale, z_bias);
 
 		if (f_timeofday < 0.2) {
 			adj_shadow_strength = f_shadow_strength * 0.5 *
