@@ -157,6 +157,7 @@ private:
 	v3f m_selected_face_normal;
 
 	video::SMaterial m_selection_material;
+	f32 m_selection_edge = 0;
 	video::SMaterial m_block_bounds_material;
 
 	irr_ptr<scene::SMeshBuffer> m_rotation_mesh_buffer;

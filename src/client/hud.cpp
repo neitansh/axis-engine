@@ -109,8 +109,13 @@ Hud::Hud(Client *client, LocalPlayer *player,
 	}
 
 	if (m_mode == HIGHLIGHT_BOX) {
-		m_selection_material.Thickness =
-			rangelim(g_settings->getS16("selectionbox_width"), 1, 5);
+		// Рёбра — не линии, а брусочки в мире: линии толще пикселя современный
+		// GL не рисует, а брусок к тому же прячется за гранями, как и
+		// положено ребру, и с расстоянием тоньше. Ширина настройки —
+		// в 1/96 ноды.
+		m_selection_edge = rangelim(g_settings->getS16("selectionbox_width"), 1, 5) * BS / 96.0f;
+		m_selection_material.BackfaceCulling = false;
+		m_selection_material.ZWriteEnable = video::EZW_OFF;
 	} else if (m_mode == HIGHLIGHT_HALO) {
 		m_selection_material.setTexture(0, tsrc->getTextureForMesh("halo.png"));
 		m_selection_material.BackfaceCulling = true;
@@ -942,6 +947,48 @@ void Hud::setSelectionPos(const v3f &pos, const v3s16 &camera_offset)
 	m_selection_pos_with_offset = pos - intToFloat(camera_offset, BS);
 }
 
+// Брусок по ребру: параллелепипед толщиной edge вокруг отрезка.
+static void appendPrism(scene::SMeshBuffer &out, const aabb3f &b, video::SColor color)
+{
+	const v3f c[8] = {
+		v3f(b.MinEdge.X, b.MinEdge.Y, b.MinEdge.Z), v3f(b.MaxEdge.X, b.MinEdge.Y, b.MinEdge.Z),
+		v3f(b.MaxEdge.X, b.MaxEdge.Y, b.MinEdge.Z), v3f(b.MinEdge.X, b.MaxEdge.Y, b.MinEdge.Z),
+		v3f(b.MinEdge.X, b.MinEdge.Y, b.MaxEdge.Z), v3f(b.MaxEdge.X, b.MinEdge.Y, b.MaxEdge.Z),
+		v3f(b.MaxEdge.X, b.MaxEdge.Y, b.MaxEdge.Z), v3f(b.MinEdge.X, b.MaxEdge.Y, b.MaxEdge.Z),
+	};
+	static const u16 faces[6][4] = {
+		{0, 1, 2, 3}, {5, 4, 7, 6}, {4, 0, 3, 7}, {1, 5, 6, 2}, {3, 2, 6, 7}, {4, 5, 1, 0},
+	};
+	for (const auto &f : faces) {
+		const u16 base = out.getVertexCount();
+		for (u16 i : f)
+			out.Vertices->Data.push_back(video::S3DVertex(c[i], v3f(0, 1, 0), color, v2f(0, 0)));
+		const u16 tri[6] = {0, 1, 2, 0, 2, 3};
+		for (u16 t : tri)
+			out.Indices->Data.push_back(base + t);
+	}
+}
+
+// Двенадцать рёбер коробки брусочками: половина бруска внутри коробки, за
+// гранью, половина — снаружи, и видно ровно то, что видно у ребра.
+static void appendBoxEdges(scene::SMeshBuffer &out, const aabb3f &box, f32 edge, video::SColor color)
+{
+	const v3f lo = box.MinEdge, hi = box.MaxEdge;
+	const f32 h = edge / 2;
+	auto along_x = [&](f32 y, f32 z) {
+		appendPrism(out, aabb3f(lo.X - h, y - h, z - h, hi.X + h, y + h, z + h), color);
+	};
+	auto along_y = [&](f32 x, f32 z) {
+		appendPrism(out, aabb3f(x - h, lo.Y - h, z - h, x + h, hi.Y + h, z + h), color);
+	};
+	auto along_z = [&](f32 x, f32 y) {
+		appendPrism(out, aabb3f(x - h, y - h, lo.Z - h, x + h, y + h, hi.Z + h), color);
+	};
+	along_x(lo.Y, lo.Z); along_x(lo.Y, hi.Z); along_x(hi.Y, lo.Z); along_x(hi.Y, hi.Z);
+	along_y(lo.X, lo.Z); along_y(lo.X, hi.Z); along_y(hi.X, lo.Z); along_y(hi.X, hi.Z);
+	along_z(lo.X, lo.Y); along_z(lo.X, hi.Y); along_z(hi.X, lo.Y); along_z(hi.X, hi.Y);
+}
+
 void Hud::drawSelectionMesh()
 {
 	if (m_mode == HIGHLIGHT_NONE || (m_mode == HIGHLIGHT_HALO && !m_selection_mesh))
@@ -956,15 +1003,20 @@ void Hud::drawSelectionMesh()
 	driver->setTransform(video::ETS_WORLD, translate * rotation);
 
 	if (m_mode == HIGHLIGHT_BOX) {
-		// Draw 3D selection boxes
-		for (auto & selection_box : m_selection_boxes) {
-			u32 r = (selectionbox_argb.getRed() *
-					m_selection_mesh_color.getRed() / 255);
-			u32 g = (selectionbox_argb.getGreen() *
-					m_selection_mesh_color.getGreen() / 255);
-			u32 b = (selectionbox_argb.getBlue() *
-					m_selection_mesh_color.getBlue() / 255);
-			driver->draw3DBox(selection_box, video::SColor(255, r, g, b));
+		u32 r = (selectionbox_argb.getRed() *
+				m_selection_mesh_color.getRed() / 255);
+		u32 g = (selectionbox_argb.getGreen() *
+				m_selection_mesh_color.getGreen() / 255);
+		u32 b = (selectionbox_argb.getBlue() *
+				m_selection_mesh_color.getBlue() / 255);
+		const video::SColor color(255, r, g, b);
+		scene::SMeshBuffer edges;
+		for (const aabb3f &box : m_selection_boxes)
+			appendBoxEdges(edges, box, m_selection_edge, color);
+		if (edges.getVertexCount() > 0) {
+			edges.setDirty();
+			edges.setHardwareMappingHint(scene::EHM_NEVER);
+			driver->drawMeshBuffer(&edges);
 		}
 	} else if (m_mode == HIGHLIGHT_HALO && m_selection_mesh) {
 		// Draw selection mesh
