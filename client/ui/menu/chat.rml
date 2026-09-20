@@ -6,9 +6,9 @@
 </head>
 <body data-model="chat" class="chat">
 	<div class="panel">
-		<div id="history" class="history" data-class-empty="empty">
+		<div id="history" class="history" data-class-quiet="empty">
 			<div data-for="line : lines" class="line" data-class-old="line.old" data-class-gone="line.gone" data-attr-kind="line.kind">
-				<span class="name" data-if="line.name != ''">{{line.name}}</span>
+				<span class="name" data-if="line.name != ''">{{line.name}}:</span>
 				<span class="text" data-rml="line.html"/>
 				<span class="count" data-if="line.count > 1">×{{line.count}}</span>
 			</div>

@@ -45,7 +45,10 @@ body.chat.hidden {
 	background-color: #000000A6;
 }
 
-.history.empty {
+/* Класс не empty: так в теме зовётся пустой список с отступом и текстом по
+   центру, и подложка чата от него ехала. */
+
+.history.quiet {
 	visibility: hidden;
 }
 
