@@ -601,7 +601,13 @@ void Client::handleCommand_MovePlayer(NetworkPacket* pkt)
 	if (g_netdiag)
 		g_netdiag->serverMovedPlayer(player->getPosition(), pos);
 
-	player->setPosition(pos);
+	// Прицепленный игрок стоит там, где его носитель, и место ему каждый
+	// кадр даёт носитель, сглаженный клиентом. Позиция из пакета — та же,
+	// но с серверного тика: поставить её — значит на кадр дёрнуть камеру
+	// назад, а сервер шлёт этот пакет на всякий set_look, хоть двадцать
+	// раз в секунду.
+	if (!player->getParent())
+		player->setPosition(pos);
 
 	infostream << "Client got TOCLIENT_MOVE_PLAYER"
 			<< " pos=" << pos
