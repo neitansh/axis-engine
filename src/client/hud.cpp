@@ -115,23 +115,33 @@ Hud::Hud(Client *client, LocalPlayer *player,
 		// положено ребру, и с расстоянием тоньше. Ширина настройки —
 		// в 1/96 ноды.
 		m_selection_edge = rangelim(g_settings->getS16("selectionbox_width"), 1, 5) * BS / 96.0f;
+		// Только лицевые грани бруска: выпуклый брусок кроет точку кадра ровно
+		// одной лицевой гранью, и высветление ложится один раз.
 		m_selection_material.BackfaceCulling = false;
-		// Глубину рёбра пишут: на углах бруски входят друг в друга, и без
-		// этого угол высветлялся дважды — ярким узлом.
-		m_selection_material.ZWriteEnable = video::EZW_ON;
+		m_selection_material.FrontfaceCulling = true;
+		m_selection_material.ZWriteEnable = video::EZW_OFF;
 		// Ребро ниже полной непрозрачности не кроет, а высветляет то, что под
-		// ним: кадр умножается на (1 + цвет·alpha), и на траве ребро выходит
-		// салатовым, на камне — светлым, как светлая копия самой текстуры.
-		// Текстура нужна материалу как множитель, поэтому белая точка.
+		// ним: кадр умножается на (1 + 2·цвет·alpha), и на траве ребро
+		// выходит салатовым, на камне — светлым, как светлая копия самой
+		// текстуры. Текстура нужна материалу как множитель, поэтому белая
+		// точка; MODULATE_2X даёт множитель до трёх, а не до двух.
 		if (selectionbox_argb.getAlpha() < 255) {
 			m_selection_material.MaterialType = video::EMT_ONETEXTURE_BLEND;
 			m_selection_material.MaterialTypeParam = video::pack_textureBlendFunc(
 					video::EBF_DST_COLOR, video::EBF_ONE,
-					video::EMFN_MODULATE_1X,
+					video::EMFN_MODULATE_2X,
 					video::EAS_TEXTURE | video::EAS_VERTEX_COLOR);
 			m_selection_material.BlendOperation = video::EBO_ADD;
 			m_selection_material.setTexture(0,
 					tsrc->getTexture("blank.png^[noalpha^[colorize:#ffffff:255"));
+			// Умножение на тёмном почти невидимо: вторым проходом ребро
+			// ещё и прибавляет треть своего цвета.
+			m_selection_lift = true;
+			m_selection_lift_material = m_selection_material;
+			m_selection_lift_material.MaterialTypeParam = video::pack_textureBlendFunc(
+					video::EBF_ONE, video::EBF_ONE,
+					video::EMFN_MODULATE_1X,
+					video::EAS_TEXTURE | video::EAS_VERTEX_COLOR);
 		}
 	} else if (m_mode == HIGHLIGHT_HALO) {
 		m_selection_material.setTexture(0, tsrc->getTextureForMesh("halo.png"));
@@ -987,7 +997,9 @@ static void appendPrism(scene::SMeshBuffer &out, const aabb3f &b, video::SColor 
 }
 
 // Двенадцать рёбер коробки брусочками: половина бруска внутри коробки, за
-// гранью, половина — снаружи, и видно ровно то, что видно у ребра.
+// гранью, половина — снаружи, и видно ровно то, что видно у ребра. Углы
+// достаются брускам вдоль X, остальные до угла не доходят — иначе на углу
+// бруски входят друг в друга и высветляют его дважды.
 static void appendBoxEdges(scene::SMeshBuffer &out, const aabb3f &box, f32 edge, video::SColor color)
 {
 	const v3f lo = box.MinEdge, hi = box.MaxEdge;
@@ -996,10 +1008,10 @@ static void appendBoxEdges(scene::SMeshBuffer &out, const aabb3f &box, f32 edge,
 		appendPrism(out, aabb3f(lo.X - h, y - h, z - h, hi.X + h, y + h, z + h), color);
 	};
 	auto along_y = [&](f32 x, f32 z) {
-		appendPrism(out, aabb3f(x - h, lo.Y - h, z - h, x + h, hi.Y + h, z + h), color);
+		appendPrism(out, aabb3f(x - h, lo.Y + h, z - h, x + h, hi.Y - h, z + h), color);
 	};
 	auto along_z = [&](f32 x, f32 y) {
-		appendPrism(out, aabb3f(x - h, y - h, lo.Z - h, x + h, y + h, hi.Z + h), color);
+		appendPrism(out, aabb3f(x - h, y - h, lo.Z + h, x + h, y + h, hi.Z - h), color);
 	};
 	along_x(lo.Y, lo.Z); along_x(lo.Y, hi.Z); along_x(hi.Y, lo.Z); along_x(hi.Y, hi.Z);
 	along_y(lo.X, lo.Z); along_y(lo.X, hi.Z); along_y(hi.X, lo.Z); along_y(hi.X, hi.Z);
@@ -1041,6 +1053,16 @@ void Hud::drawSelectionMesh()
 			edges.setDirty();
 			edges.setHardwareMappingHint(scene::EHM_NEVER);
 			driver->drawMeshBuffer(&edges);
+			if (m_selection_lift) {
+				scene::SMeshBuffer lift;
+				const video::SColor third(255, r / 3, g / 3, b / 3);
+				for (const aabb3f &box : m_selection_boxes)
+					appendBoxEdges(lift, box, m_selection_edge, third);
+				lift.setDirty();
+				lift.setHardwareMappingHint(scene::EHM_NEVER);
+				driver->setMaterial(m_selection_lift_material);
+				driver->drawMeshBuffer(&lift);
+			}
 		}
 	} else if (m_mode == HIGHLIGHT_HALO && m_selection_mesh) {
 		// Draw selection mesh

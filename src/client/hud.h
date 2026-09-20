@@ -157,6 +157,10 @@ private:
 	v3f m_selected_face_normal;
 
 	video::SMaterial m_selection_material;
+	// Второй проход высветления: прибавка, чтобы ребро было видно и на
+	// тёмном, где умножение почти ничего не даёт.
+	video::SMaterial m_selection_lift_material;
+	bool m_selection_lift = false;
 	f32 m_selection_edge = 0;
 	video::SMaterial m_block_bounds_material;
 
