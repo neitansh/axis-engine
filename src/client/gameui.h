@@ -26,6 +26,8 @@ struct PointedThing;
  *   - chat texts
  *   - hud flags
  */
+class ChatOverlay;
+
 class GameUI
 {
 	// Temporary between coding time to move things here
@@ -55,6 +57,9 @@ public:
 
 	void initFlags();
 	const Flags &getFlags() const { return m_flags; }
+
+	// Чат на RmlUi, если он есть: недавнее рисует он, текст Irrlicht молчит.
+	void setChatOverlay(ChatOverlay *overlay) { m_chat_overlay = overlay; }
 
 	inline void setInfoText(const std::wstring &str) { m_infotext = str; }
 	inline void clearInfoText() { m_infotext.clear(); }
@@ -97,6 +102,7 @@ public:
 
 private:
 	Flags m_flags;
+	ChatOverlay *m_chat_overlay = nullptr;
 
 	float m_drawtime_avg = 0;
 

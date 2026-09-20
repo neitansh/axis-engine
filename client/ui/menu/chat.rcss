@@ -1,0 +1,116 @@
+/*
+ * Чат в игре: внизу слева, поверх мира. Свёрнутый — хвост реплик на мягкой
+ * подложке, каждая гаснет; открытый — история с прокруткой и поле ввода.
+ * Цвета — словарь темы (theme.rcss): имя игрока акцентом, своё имя светлым,
+ * слово игры тише, объявление тревожным.
+ */
+
+body.chat {
+	display: block;
+	background-color: transparent;
+	font-size: 15dp;
+}
+
+body.chat.hidden {
+	visibility: hidden;
+}
+
+.panel {
+	position: absolute;
+	left: 16dp;
+	bottom: 64dp;
+	width: 42%;
+	min-width: 360dp;
+	max-width: 640dp;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+/* Свёрнутый: без прокрутки, строки только последние; открытый — до
+   половины экрана, колесо и PgUp/PgDn. */
+
+.history {
+	display: block;
+	width: 100%;
+	max-height: 50vh;
+	overflow-y: hidden;
+}
+
+body.open .history {
+	overflow-y: auto;
+	background-color: #000000A6;
+	border-radius: 12dp;
+	padding: 6dp 0;
+	margin-bottom: 8dp;
+}
+
+.line {
+	display: block;
+	padding: 3dp 10dp;
+	background-color: #00000099;
+	line-height: 1.35;
+	opacity: 1;
+	transition: opacity 0.8s linear-in-out;
+	overflow: hidden;
+}
+
+.line.old {
+	opacity: 0;
+}
+
+body.open .line {
+	background-color: transparent;
+}
+
+body.open .line.old {
+	opacity: 1;
+	transition: none;
+}
+
+.line .name {
+	color: #A78BFA;
+	font-weight: 600;
+	margin-right: 6dp;
+}
+
+.line[kind="own"] .name {
+	color: #F5F5F7;
+}
+
+.line[kind="system"] .text,
+.line[kind="command"] .text {
+	color: #A1A1A6;
+}
+
+.line[kind="announce"] .text {
+	color: #FF9F0A;
+}
+
+/* Непрочитанное: строки уже погасли, а метка напоминает, что чат ждёт. */
+
+.badge {
+	display: block;
+	margin-top: 4dp;
+	padding: 3dp 10dp;
+	border-radius: 11dp;
+	background-color: #221B36;
+	border: 1dp #A78BFA3D;
+	color: #A78BFA;
+	font-size: 13dp;
+	font-weight: 600;
+}
+
+/* Селектор с типом: у темы input.text задан display, класс один его не
+   перебьёт. */
+
+input.draft {
+	display: none;
+	width: 100%;
+	height: 40dp;
+	line-height: 22dp;
+}
+
+body.open input.draft {
+	display: block;
+}

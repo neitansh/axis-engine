@@ -782,9 +782,15 @@ bool Game::startup(volatile std::sig_atomic_t *kill,
 	m_rendering_engine->initialize(client, hud);
 
 	m_game_formspec.init(client, m_rendering_engine, input);
-	if (m_ui && m_ui->ok() && input->eventReceiver())
+	if (m_ui && m_ui->ok() && input->eventReceiver()) {
 		m_game_menu = std::make_unique<menu::GameMenu>(*m_ui, input->eventReceiver(),
 				g_gamecallback, simple_singleplayer_mode);
+		m_chat_overlay = std::make_unique<ChatOverlay>(*m_ui, input->eventReceiver(),
+				client, chat_backend);
+		if (!m_chat_overlay->ok())
+			m_chat_overlay.reset();
+		m_game_ui->setChatOverlay(m_chat_overlay.get());
+	}
 
 	return true;
 }
@@ -903,6 +909,8 @@ void Game::run()
 		// Меню поверх игры живёт на настоящем времени и когда мир стоит.
 		if (m_game_menu)
 			m_game_menu->step(dtime, device->isWindowActive());
+		if (m_chat_overlay)
+			m_chat_overlay->step(dtime);
 
 		updatePauseState();
 		if (m_is_paused)
@@ -950,6 +958,8 @@ void Game::shutdown()
 {
 	// Delete text and menus first
 	m_game_ui->clearText();
+	m_game_ui->setChatOverlay(nullptr);
+	m_chat_overlay.reset();
 	m_game_menu.reset();
 	m_game_formspec.reset();
 	while (g_menumgr.menuCount() > 0)
@@ -2239,16 +2249,16 @@ void Game::processKeyInput()
 	}
 	else if (wasKeyDown(KeyType::CHAT))
 	{
-		openConsole(0.2, L"");
+		openChat(L"");
 	}
 	else if (wasKeyDown(KeyType::CMD))
 	{
-		openConsole(0.2, L"/");
+		openChat(L"/");
 	}
 	else if (wasKeyDown(KeyType::CMD_LOCAL))
 	{
 		if (client->modsLoaded())
-			openConsole(0.2, L".");
+			openChat(L".");
 		else
 			m_game_ui->showTranslatedStatusText("Client side scripting is disabled");
 	}
@@ -2463,6 +2473,17 @@ void Game::dropSelectedItem(bool single_item)
 	a->from_list = "main";
 	a->from_i = client->getEnv().getLocalPlayer()->getWieldIndex();
 	client->inventoryAction(a);
+}
+
+// Чат — на RmlUi, если он есть; консоль Irrlicht остаётся на F10 и там, где
+// RmlUi не поднялся.
+void Game::openChat(const wchar_t *line)
+{
+	if (m_chat_overlay) {
+		m_chat_overlay->open(line);
+		return;
+	}
+	openConsole(0.2, line);
 }
 
 void Game::openConsole(float scale, const wchar_t *line)
@@ -3563,7 +3584,9 @@ void Game::updateChat(f32 dtime)
 	if (buf.getLinesModified())
 	{
 		buf.resetLinesModified();
-		m_game_ui->setChatText(chat_backend->getRecentChat(), buf.getLineCount());
+		// С чатом на RmlUi недавнее рисует он; текст Irrlicht не показываем.
+		if (!m_chat_overlay)
+			m_game_ui->setChatText(chat_backend->getRecentChat(), buf.getLineCount());
 	}
 
 	// Make sure that the size is still correct
@@ -4918,6 +4941,8 @@ void Game::drawScene(ProfilerGraph *graph, RunStats *stats)
 	 * когда та переполнена, — то есть когда видеокарта не поспевает. Большое
 	 * время здесь и означает «процессор ждёт видеокарту», и наоборот.
 	 */
+	if (m_chat_overlay)
+		m_chat_overlay->render();
 	if (m_game_menu)
 		m_game_menu->render();
 

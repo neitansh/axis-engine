@@ -1235,12 +1235,19 @@ void ChatBackend::addMessage(const ChatMessage &message)
 		m_console_buffer.addLine(name, line, kind);
 
 	if (kind == ChatKind::Command && lines.size() > COMMAND_REPLY_CHAT_LINES) {
-		m_recent_buffer.addLine(name,
-				EnrichedString(wstrgettext("Reply is in the console (F10)")), kind);
+		addRecentLine(name, EnrichedString(wstrgettext("Reply is in the console (F10)")), kind);
 		return;
 	}
 	for (const EnrichedString &line : lines)
-		m_recent_buffer.addLine(name, line, kind);
+		addRecentLine(name, line, kind);
+}
+
+void ChatBackend::addRecentLine(const EnrichedString &name, const EnrichedString &line,
+		ChatKind kind)
+{
+	m_recent_buffer.addLine(name, line, kind);
+	if (m_chat_sink)
+		m_chat_sink(ChatLine(name, line, kind));
 }
 
 void ChatBackend::addLocalMessage(const std::wstring &text)

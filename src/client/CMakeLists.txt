@@ -96,6 +96,7 @@ set(client_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/sounds.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/about_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/game_menu.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/chat_overlay.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/pause_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/intro_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/online_screen.cpp

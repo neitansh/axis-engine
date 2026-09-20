@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <set>
 #include <string>
 #include <vector>
@@ -372,6 +373,9 @@ public:
 	void addLocalMessage(const std::wstring &text);
 	// Имя своего игрока: по нему реплика становится своей.
 	void setLocalName(const std::wstring &name) { m_local_name = name; }
+	// Кому отдавать строки, идущие в чат (те же, что в буфер недавнего):
+	// чат на RmlUi берёт их отсюда и хранит сам.
+	void setChatSink(std::function<void(const ChatLine &)> sink) { m_chat_sink = std::move(sink); }
 
 	// Get the console buffer
 	ChatBuffer& getConsoleBuffer();
@@ -404,4 +408,7 @@ private:
 	ChatBuffer m_recent_buffer;
 	ChatPrompt m_prompt;
 	std::wstring m_local_name;
+	std::function<void(const ChatLine &)> m_chat_sink;
+
+	void addRecentLine(const EnrichedString &name, const EnrichedString &line, ChatKind kind);
 };

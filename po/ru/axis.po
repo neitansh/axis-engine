@@ -4418,6 +4418,10 @@ msgstr "# На месте."
 msgid "Reply is in the console (F10)"
 msgstr "Ответ в консоли (F10)"
 
+#: src/client/chat_overlay.cpp
+msgid "Write a message…"
+msgstr "Напишите сообщение…"
+
 #: src/client/game.cpp
 msgid "# Connection restored, the world changed and is being loaded again."
 msgstr "# Связь восстановлена, мир сменился и загружается заново."

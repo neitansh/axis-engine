@@ -1,0 +1,19 @@
+<rml>
+<head>
+	<title>chat</title>
+	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="chat.rcss"/>
+</head>
+<body data-model="chat" class="chat">
+	<div class="panel">
+		<div id="history" class="history">
+			<div data-for="line : lines" class="line" data-class-old="line.old" data-attr-kind="line.kind">
+				<span class="name" data-if="line.name != ''">{{line.name}}</span>
+				<span class="text" data-rml="line.html"/>
+			</div>
+		</div>
+		<div class="badge" data-if="!open && unread > 0">+{{unread}}</div>
+		<input type="text" id="draft" class="text draft" data-value="draft" data-attr-placeholder="placeholder"/>
+	</div>
+</body>
+</rml>

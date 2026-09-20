@@ -4,6 +4,7 @@
 // Copyright (C) 2018 nerzhul, Loic Blot <loic.blot@unix-experience.fr>
 
 #include "gameui.h"
+#include "client/chat_overlay.h"
 #include "net_diagnostics.h"
 #include <irrlicht_changes/static_text.h>
 #include <gettext.h>
@@ -376,8 +377,13 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 
 	// Hide chat when disabled by server or when console is visible.
 	// И пока веки опущены: чат — часть картинки.
-	m_guitext_chat->setVisible(isChatVisible() && !chat_console->isVisible()
-			&& (player->hud_flags & HUD_FLAG_CHAT_VISIBLE) && !player->eyelids.visible());
+	// Чату на RmlUi число строк недавнего не указ: у него свои.
+	const bool chat_allowed = m_flags.show_chat && m_profiler_current_page == 0
+			&& !chat_console->isVisible() && (player->hud_flags & HUD_FLAG_CHAT_VISIBLE)
+			&& !player->eyelids.visible();
+	m_guitext_chat->setVisible(chat_allowed && m_recent_chat_count != 0 && !m_chat_overlay);
+	if (m_chat_overlay)
+		m_chat_overlay->setVisible(chat_allowed);
 }
 
 void GameUI::initFlags()

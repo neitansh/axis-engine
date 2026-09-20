@@ -14,6 +14,7 @@
 #include "client/clientevent.h"
 #include "client/game_formspec.h"
 #include "client/menu/game_menu.h"
+#include "client/chat_overlay.h"
 #include "client/renderingengine.h"
 #include "clientdynamicinfo.h"
 #include "clouds.h"
@@ -183,6 +184,7 @@ protected:
 
 	void dropSelectedItem(bool single_item = false);
 	void openConsole(float scale, const wchar_t *line=NULL);
+	void openChat(const wchar_t *line);
 	void toggleFreeMove();
 	void toggleFreeMoveAlt();
 	void togglePitchMove();
@@ -378,6 +380,7 @@ private:
 	// Пауза и настройки на RmlUi; без хоста RmlUi остаётся formspec.
 	ui::Host *m_ui = nullptr;
 	std::unique_ptr<menu::GameMenu> m_game_menu;
+	std::unique_ptr<ChatOverlay> m_chat_overlay;
 	void showPauseMenu();
 
 	// Map server hud ids to client hud ids
