@@ -132,8 +132,10 @@ public:
 			const TileDef &d1, const TileLayer &l1,
 			v3f wield_scale, ITextureSource *tsrc);
 
+	// `grip` — класть ли предмет по его wield_rotation/offset: это хват от
+	// первого лица; в мире (сущность wielditem) предмет ставит привязка.
 	void setItem(const ItemStack &item, Client *client,
-			bool check_wield_image = true);
+			bool check_wield_image = true, bool grip = true);
 
 	// Sets the vertex color of the wield mesh.
 	// Must only be used if the constructor was called with lighting = false

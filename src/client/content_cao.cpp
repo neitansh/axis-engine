@@ -1163,7 +1163,7 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 		}
 		m_wield_meshnode = new WieldMeshSceneNode(m_smgr, -1);
 		m_wield_meshnode->setItem(item, m_client,
-			(m_prop.visual == OBJECTVISUAL_WIELDITEM));
+			(m_prop.visual == OBJECTVISUAL_WIELDITEM), false);
 
 		m_wield_meshnode->setScale(m_prop.visual_size / 2.0f);
 		break;

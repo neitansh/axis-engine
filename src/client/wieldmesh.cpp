@@ -467,9 +467,11 @@ WieldPose WieldMeshSceneNode::getPose() const
 	return m_pose_override ? *m_pose_override : m_item_pose;
 }
 
-void WieldMeshSceneNode::setItem(const ItemStack &item, Client *client, bool check_wield_image)
+void WieldMeshSceneNode::setItem(const ItemStack &item, Client *client, bool check_wield_image, bool grip)
 {
 	setItemMesh(item, client, check_wield_image);
+	if (!grip)
+		m_item_pose.rotation = m_item_pose.offset = v3f(0, 0, 0);
 	applyPose();
 }
 
