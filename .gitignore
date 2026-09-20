@@ -164,7 +164,7 @@ deploy.sh
 
 # Правила работы с Claude Code — личные, не для репозитория
 /CLAUDE.md
-/.claude/
+/.claude/settings.local.json
 
 # Замеры сетевой синхронизации, пишутся клиентом при включённой диагностике
 /netsync/
