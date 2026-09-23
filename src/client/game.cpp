@@ -241,6 +241,12 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	CachedPixelShaderSetting<float> m_saturation_pixel{"saturation"};
 	CachedPixelShaderSetting<float> m_vignette_pixel{"vignette"};
 	CachedPixelShaderSetting<float> m_flicker_pixel{"flicker"};
+	CachedPixelShaderSetting<float> m_grain_pixel{"grain"};
+	CachedPixelShaderSetting<float> m_chromatic_pixel{"chromatic"};
+	CachedPixelShaderSetting<float> m_pulse_pixel{"pulse"};
+	CachedPixelShaderSetting<float> m_blind_pixel{"blind"};
+	CachedPixelShaderSetting<float, 4> m_grade_shadows_pixel{"gradeShadows"};
+	CachedPixelShaderSetting<float, 4> m_grade_highlights_pixel{"gradeHighlights"};
 	CachedPixelShaderSetting<float> m_eyelids_pixel{"eyelids"};
 	CachedPixelShaderSetting<float> m_eyelids_time_pixel{"eyelidsTime"};
 	CachedPixelShaderSetting<float> m_eyelids_closing_pixel{"eyelidsClosing"};
@@ -426,10 +432,15 @@ public:
 
 		float saturation = lighting.saturation;
 		m_saturation_pixel.set(&saturation, services);
-		float vignette = lighting.vignette;
-		m_vignette_pixel.set(&vignette, services);
-		float flicker = lighting.flicker;
-		m_flicker_pixel.set(&flicker, services);
+		const LensParams &lens = m_client->getEnv().getLocalPlayer()->lens.shown;
+		m_vignette_pixel.set(&lens.vignette, services);
+		m_flicker_pixel.set(&lens.flicker, services);
+		m_grain_pixel.set(&lens.grain, services);
+		m_chromatic_pixel.set(&lens.chromatic, services);
+		m_pulse_pixel.set(&lens.pulse, services);
+		m_blind_pixel.set(&lens.blind, services);
+		m_grade_shadows_pixel.set(video::SColorf(lighting.grade_shadows), services);
+		m_grade_highlights_pixel.set(video::SColorf(lighting.grade_highlights), services);
 
 		const auto &eyelids = m_client->getEnv().getLocalPlayer()->eyelids;
 		float eyelids_closed = eyelids.closed;
@@ -3630,6 +3641,7 @@ void Game::updateCamera(f32 dtime)
 	camera->update(player, dtime, tool_reload_ratio);
 	camera->step(dtime);
 	player->eyelids.step(dtime);
+	player->lens.step(dtime);
 
 	if (!m_flags.disable_camera_update)
 	{

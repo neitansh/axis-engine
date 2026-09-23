@@ -2011,7 +2011,8 @@ void Client::handleCommand_CrateClientSettings(NetworkPacket *pkt)
 
 void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 {
-	Lighting& lighting = m_env.getLocalPlayer()->getLighting();
+	LocalPlayer *player = m_env.getLocalPlayer();
+	Lighting& lighting = player->getLighting();
 
 	*pkt >> lighting.shadow_intensity;
 	do {
@@ -2049,13 +2050,21 @@ void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 		if (!pkt->hasRemainingBytes())
 			break;
 		// Axis: объектив
-		*pkt >> lighting.vignette >> lighting.flicker;
+		*pkt >> lighting.lens.vignette >> lighting.lens.flicker;
 
 		if (!pkt->hasRemainingBytes())
 			break;
 		// Axis: свет светила по карте теней
 		*pkt >> lighting.shadow_light >> lighting.shadow_light_strength;
+
+		if (!pkt->hasRemainingBytes())
+			break;
+		// Axis: цвет кадра и остальной объектив
+		*pkt >> lighting.grade_shadows >> lighting.grade_highlights;
+		*pkt >> lighting.lens.grain >> lighting.lens.chromatic >> lighting.lens.pulse
+				>> lighting.lens.blind >> lighting.lens_fade;
 	} while (0);
+	player->lens.aim(lighting.lens, lighting.lens_fade);
 }
 
 void Client::handleCommand_ChatCommands(NetworkPacket *pkt)

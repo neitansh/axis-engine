@@ -10007,11 +10007,29 @@ You **must not** mix names and track numbers to refer to the same animation.
         * `speed_dark_bright` set the speed of adapting to bright light (default: `1000.0`)
         * `speed_bright_dark` set the speed of adapting to dark scene (default: `1000.0`)
         * `center_weight_power` set the power factor for center-weighted luminance measurement (default: `1.0`)
-      * `lens` is a table for the picture as seen through a lens; both
-        fields are 0..1 and 0 by default. Needs post-processing on the client.
+      * `lens` (Axis only) is a table for the picture as seen through a lens;
+        the effects are 0..1 and 0 by default. Needs post-processing on the
+        client. Fields left out keep their current value.
         * `vignette` darkens the edges and corners of the screen.
         * `flicker` makes the light breathe unevenly, like a bulb on bad
           wiring: at 1 the brightness sways by about five percent.
+        * `grain` is film grain, 24 frames a second, densest in the
+          midtones.
+        * `chromatic` splits the colors towards the edges of the screen:
+          red outwards, blue inwards.
+        * `pulse` is a pounding heart: the picture loses color and the
+          edges darken and redden in a heartbeat, about 110 a minute.
+        * `blind` is a flash in the eyes: the picture overexposes to white.
+        * `fade`: seconds the client takes to go from the lens it shows now
+          to the one of this call (default 0: at once). Not stored: every
+          call without it is instant. A flash is two calls: `blind = 1`,
+          then `blind = 0, fade = 1.5`.
+      * `grade` (Axis only) is a table for the color of the picture. Needs
+        post-processing on the client.
+        * `shadows`, `highlights`: ColorSpec tinting the dark and the bright
+          parts; the tint keeps the brightness, alpha is the strength
+          (default: transparent, no tint). E.g. cold nights and warm lamps:
+          `{shadows = "#3A5FB070", highlights = "#FFB36A50"}`.
       * `bloom` is a table that controls bloom.
         * This has no effect on clients with protocol version < 46 or clients who
           have the "Bloom" effect disabled.

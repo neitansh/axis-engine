@@ -26,6 +26,15 @@ uniform lowp float saturation;
 // Объектив (set_lighting lens): затемнение по краям и дрожание света, 0..1.
 uniform lowp float vignette;
 uniform lowp float flicker;
+uniform lowp float grain;
+uniform lowp float chromatic;
+// Сердце колотится: кадр выцветает и бьётся по краям, 0..1.
+uniform lowp float pulse;
+// Ослеплён вспышкой, 0..1.
+uniform lowp float blind;
+// Оттенок теней и светов; альфа — сила.
+uniform lowp vec4 gradeShadows;
+uniform lowp vec4 gradeHighlights;
 uniform mediump float animationTimer;
 // Веки: 0 — глаза открыты, 1 — закрыты. См. TOCLIENT_EYELIDS.
 uniform lowp float eyelids;
@@ -111,12 +120,109 @@ vec3 applyLens(vec3 color, vec2 uv)
 	return color;
 }
 
+const vec3 LUMA = vec3(0.2125, 0.7154, 0.0721);
+
 vec3 applySaturation(vec3 color, float factor)
 {
 	// Calculate the perceived luminosity from the RGB color.
 	// See also: https://www.w3.org/WAI/GL/wiki/Relative_luminance
-	float brightness = dot(color, vec3(0.2125, 0.7154, 0.0721));
+	float brightness = dot(color, LUMA);
 	return mix(vec3(brightness), color, factor);
+}
+
+// Оттенок нормируется по яркости: тени синеют, а не темнеют и не светлеют.
+vec3 tint(vec3 color, vec4 tone, float weight)
+{
+	vec3 hue = tone.rgb / max(dot(tone.rgb, LUMA), 0.01);
+	return mix(color, color * hue, tone.a * weight);
+}
+
+vec3 applyGrade(vec3 color)
+{
+	float luma = dot(color, LUMA);
+	color = tint(color, gradeShadows, 1.0 - smoothstep(0.05, 0.5, luma));
+	color = tint(color, gradeHighlights, smoothstep(0.35, 0.9, luma));
+	return color;
+}
+
+float edgeDistance(vec2 uv)
+{
+	vec2 aspect = vec2(texelSize0.y / texelSize0.x, 1.0);
+	return length((uv - 0.5) * aspect) / length(aspect * 0.5);
+}
+
+// Удар сердца: «тук-тук» и пауза, около 110 в минуту.
+float heartbeat(float seconds)
+{
+	float p = fract(seconds / 0.55);
+	float lub = (p - 0.03) / 0.05;
+	float dub = (p - 0.22) / 0.06;
+	return exp(-lub * lub) + 0.6 * exp(-dub * dub);
+}
+
+vec3 applyPulse(vec3 color, vec2 uv)
+{
+	if (pulse < 0.001)
+		return color;
+	color = applySaturation(color, 1.0 - 0.55 * pulse);
+	float beat = heartbeat(animationTimer * 100.0);
+	float dark = smoothstep(0.15, 1.0, edgeDistance(uv)) * pulse * (0.25 + 0.75 * beat);
+	color = mix(color, color * vec3(1.25, 0.5, 0.45), 0.7 * dark);
+	return color * (1.0 - 0.7 * dark) * (1.0 - 0.1 * pulse * beat);
+}
+
+vec3 applyBlind(vec3 color)
+{
+	if (blind < 0.001)
+		return color;
+	color = min(color * (1.0 + 3.0 * blind), vec3(1.0));
+	return mix(color, vec3(1.0, 0.98, 0.94), 0.85 * blind * blind);
+}
+
+// Хэш без синуса (Dave Hoskins, «Hash without Sine»): у fract(sin) на
+// больших координатах экрана проступают полосы.
+float hash12(vec2 p)
+{
+	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+	p3 += dot(p3, p3.yzx + 33.33);
+	return fract((p3.x + p3.y) * p3.z);
+}
+
+// Зерно плёнки: 24 кадра в секунду, как у плёнки, а не каждый кадр экрана
+// — иначе оно кипит, а не шумит. Гуще в полутенях, на чёрном и белом — тише.
+vec3 applyGrain(vec3 color, vec2 frag_coord)
+{
+	if (grain < 0.001)
+		return color;
+	float frame = mod(floor(animationTimer * 100.0 * 24.0), 251.0);
+	float n = hash12(frag_coord + frame * vec2(37.0, 17.0)) - 0.5;
+	float luma = dot(color, LUMA);
+	float weight = 0.4 + 0.6 * smoothstep(0.0, 0.25, luma) * (1.0 - smoothstep(0.6, 1.0, luma));
+	return color + n * grain * 0.12 * weight;
+}
+
+vec3 applyPost(vec3 color, vec2 uv)
+{
+	color = applySaturation(color, saturation);
+	color = applyGrade(color);
+	color = applyPulse(color, uv);
+	color = applyLens(color, uv);
+	color = applyBlind(color);
+	return applyGrain(color, gl_FragCoord.xy);
+}
+
+// Края объектива разводят цвета: красный наружу, синий внутрь, тем сильнее,
+// чем дальше от центра.
+vec4 sampleScene(vec2 uv)
+{
+	vec4 color = texture2D(rendered, uv);
+	if (chromatic > 0.001) {
+		vec2 from_center = uv - 0.5;
+		vec2 shift = from_center * chromatic * 0.02 * dot(from_center, from_center);
+		color.r = texture2D(rendered, uv + shift).r;
+		color.b = texture2D(rendered, uv - shift).b;
+	}
+	return color;
 }
 
 #ifdef ENABLE_DITHERING
@@ -217,8 +323,7 @@ void main(void)
 #else
 		color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 #endif
-		color.rgb = applySaturation(color.rgb, saturation);
-		color.rgb = applyLens(color.rgb, uv);
+		color.rgb = applyPost(color.rgb, uv);
 		color.rgb *= lid * mix(0.6, 1.0, open);
 
 		// Подпись живёт только на закрытых глазах.
@@ -232,10 +337,10 @@ void main(void)
 	vec4 color = vec4(0.);
 	for (float dx = 1.; dx < SSAA_SCALE; dx += 2.)
 	for (float dy = 1.; dy < SSAA_SCALE; dy += 2.)
-		color += texture2D(rendered, uv + texelSize0 * vec2(dx, dy)).rgba;
+		color += sampleScene(uv + texelSize0 * vec2(dx, dy));
 	color /= SSAA_SCALE * SSAA_SCALE / 4.;
 #else
-	vec4 color = texture2D(rendered, uv).rgba;
+	vec4 color = sampleScene(uv);
 #endif
 
 	// translate to linear colorspace (approximate)
@@ -271,8 +376,7 @@ void main(void)
 		color = applyToneMapping(color);
 #endif
 
-		color.rgb = applySaturation(color.rgb, saturation);
-		color.rgb = applyLens(color.rgb, uv);
+		color.rgb = applyPost(color.rgb, uv);
 	}
 
 #ifdef ENABLE_DITHERING

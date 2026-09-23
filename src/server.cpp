@@ -2350,8 +2350,11 @@ void Server::SendSetLighting(session_t peer_id, const Lighting &lighting)
 	pkt << lighting.bloom_intensity << lighting.bloom_strength_factor << lighting.bloom_radius;
 
 	pkt << lighting.shadow_direction;
-	pkt << lighting.vignette << lighting.flicker;
+	pkt << lighting.lens.vignette << lighting.lens.flicker;
 	pkt << lighting.shadow_light << lighting.shadow_light_strength;
+	pkt << lighting.grade_shadows << lighting.grade_highlights;
+	pkt << lighting.lens.grain << lighting.lens.chromatic << lighting.lens.pulse
+		<< lighting.lens.blind << lighting.lens_fade;
 
 	Send(&pkt);
 }

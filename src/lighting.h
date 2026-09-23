@@ -40,6 +40,22 @@ struct AutoExposure
 	{}
 };
 
+/// Объектив, всё 0..1.
+struct LensParams
+{
+	float vignette {0.0f};
+	float flicker {0.0f};
+	float grain {0.0f};
+	float chromatic {0.0f};
+	float pulse {0.0f};
+	float blind {0.0f};
+
+	static constexpr float LensParams::*FIELDS[] = {
+		&LensParams::vignette, &LensParams::flicker, &LensParams::grain,
+		&LensParams::chromatic, &LensParams::pulse, &LensParams::blind,
+	};
+};
+
 /** Describes ambient light settings for a player
  */
 struct Lighting
@@ -59,7 +75,11 @@ struct Lighting
 	// Множитель к нему: 1 — как дневной свет на той же поверхности, больше
 	// — ярче (луна в тёмной комнате должна читаться, а не теряться в дереве).
 	float shadow_light_strength {1.0f};
-	// Объектив: затемнение по краям кадра и дрожание света, 0..1.
-	float vignette {0.0f};
-	float flicker {0.0f};
+	// Цвет теней и светов кадра; альфа — сила, 0 — без оттенка.
+	video::SColor grade_shadows {0, 0, 0, 0};
+	video::SColor grade_highlights {0, 0, 0, 0};
+	LensParams lens;
+	// За сколько секунд клиент ведёт кадр от прежнего `lens` к этому. Не
+	// настройка, а свойство одного вызова: следующий вызов без него — сразу.
+	float lens_fade {0.0f};
 };

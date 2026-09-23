@@ -3258,13 +3258,32 @@ int ObjectRef::l_set_lighting(lua_State *L)
 		}
 		lua_pop(L, 1); // bloom
 
+		lighting.lens_fade = 0.0f;
 		lua_getfield(L, 2, "lens");
 		if (lua_istable(L, -1))
 		{
-			lighting.vignette = rangelim(getfloatfield_default(L, -1, "vignette", lighting.vignette), 0.0f, 1.0f);
-			lighting.flicker = rangelim(getfloatfield_default(L, -1, "flicker", lighting.flicker), 0.0f, 1.0f);
+			LensParams &lens = lighting.lens;
+			lens.vignette = rangelim(getfloatfield_default(L, -1, "vignette", lens.vignette), 0.0f, 1.0f);
+			lens.flicker = rangelim(getfloatfield_default(L, -1, "flicker", lens.flicker), 0.0f, 1.0f);
+			lens.grain = rangelim(getfloatfield_default(L, -1, "grain", lens.grain), 0.0f, 1.0f);
+			lens.chromatic = rangelim(getfloatfield_default(L, -1, "chromatic", lens.chromatic), 0.0f, 1.0f);
+			lens.pulse = rangelim(getfloatfield_default(L, -1, "pulse", lens.pulse), 0.0f, 1.0f);
+			lens.blind = rangelim(getfloatfield_default(L, -1, "blind", lens.blind), 0.0f, 1.0f);
+			lighting.lens_fade = rangelim(getfloatfield_default(L, -1, "fade", 0.0f), 0.0f, 60.0f);
 		}
 		lua_pop(L, 1); // lens
+
+		lua_getfield(L, 2, "grade");
+		if (lua_istable(L, -1))
+		{
+			lua_getfield(L, -1, "shadows");
+			read_color(L, -1, &lighting.grade_shadows);
+			lua_pop(L, 1); // shadows
+			lua_getfield(L, -1, "highlights");
+			read_color(L, -1, &lighting.grade_highlights);
+			lua_pop(L, 1); // highlights
+		}
+		lua_pop(L, 1); // grade
 	}
 
 	getServer(L)->setLighting(player, lighting);
@@ -3316,11 +3335,25 @@ int ObjectRef::l_get_lighting(lua_State *L)
 	lua_setfield(L, -2, "strength");
 	lua_setfield(L, -2, "volumetric_light");
 	lua_newtable(L); // "lens"
-	lua_pushnumber(L, lighting.vignette);
+	lua_pushnumber(L, lighting.lens.vignette);
 	lua_setfield(L, -2, "vignette");
-	lua_pushnumber(L, lighting.flicker);
+	lua_pushnumber(L, lighting.lens.flicker);
 	lua_setfield(L, -2, "flicker");
+	lua_pushnumber(L, lighting.lens.grain);
+	lua_setfield(L, -2, "grain");
+	lua_pushnumber(L, lighting.lens.chromatic);
+	lua_setfield(L, -2, "chromatic");
+	lua_pushnumber(L, lighting.lens.pulse);
+	lua_setfield(L, -2, "pulse");
+	lua_pushnumber(L, lighting.lens.blind);
+	lua_setfield(L, -2, "blind");
 	lua_setfield(L, -2, "lens");
+	lua_newtable(L); // "grade"
+	push_ARGB8(L, lighting.grade_shadows);
+	lua_setfield(L, -2, "shadows");
+	push_ARGB8(L, lighting.grade_highlights);
+	lua_setfield(L, -2, "highlights");
+	lua_setfield(L, -2, "grade");
 	lua_newtable(L); // "bloom"
 	lua_pushnumber(L, lighting.bloom_intensity);
 	lua_setfield(L, -2, "intensity");

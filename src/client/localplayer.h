@@ -10,6 +10,7 @@
 #include "lighting.h"
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 class Client;
 class ClientActiveObject;
@@ -127,6 +128,34 @@ public:
 		bool visible() const { return closed > 0.001f; }
 	};
 	Eyelids eyelids;
+
+	// Объектив, каким он виден сейчас: к тому, что прислал сервер, клиент
+	// идёт сам за `fade` секунд — так вспышка гаснет и пульс нарастает
+	// плавно, одним пакетом, а не лестницей из них.
+	struct Lens {
+		LensParams shown;
+		LensParams target;
+		LensParams rate;
+
+		void aim(const LensParams &to, f32 fade)
+		{
+			target = to;
+			for (auto field : LensParams::FIELDS) {
+				if (fade > 0.0f)
+					rate.*field = std::fabs(to.*field - shown.*field) / fade;
+				else
+					shown.*field = to.*field;
+			}
+		}
+		void step(f32 dtime)
+		{
+			for (auto field : LensParams::FIELDS) {
+				const f32 d = rate.*field * dtime;
+				shown.*field += std::clamp(target.*field - shown.*field, -d, d);
+			}
+		}
+	};
+	Lens lens;
 
 	// Куда ушла голова персонажа от своего места в покое, в осях игрока и
 	// единицах движка. Считает объект игрока с костей своей модели; камера
