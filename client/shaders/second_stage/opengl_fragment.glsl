@@ -28,8 +28,10 @@ uniform lowp float vignette;
 uniform lowp float flicker;
 uniform lowp float grain;
 uniform lowp float chromatic;
-// Сердце колотится: кадр выцветает и бьётся по краям, 0..1.
+// Сердце колотится: кадр выцветает и бьётся по краям, 0..1; удары — от
+// pulseTime, секунд с того мига, как пульс включили.
 uniform lowp float pulse;
+uniform mediump float pulseTime;
 // Ослеплён вспышкой, 0..1.
 uniform lowp float blind;
 // Оттенок теней и светов; альфа — сила.
@@ -151,13 +153,14 @@ float edgeDistance(vec2 uv)
 	return length((uv - 0.5) * aspect) / length(aspect * 0.5);
 }
 
-// Удар сердца: «тук-тук» и пауза, около 110 в минуту.
+// Удар сердца: «тук-тук» и пауза, около 110 в минуту. Удары на 0,029 и
+// 0,254 с периода — там же, где у звука сердца, который пускает сервер.
 float heartbeat(float seconds)
 {
 	float p = fract(seconds / 0.55);
-	float lub = (p - 0.03) / 0.05;
-	float dub = (p - 0.22) / 0.06;
-	return exp(-lub * lub) + 0.6 * exp(-dub * dub);
+	float lub = (p - 0.053) / 0.05;
+	float dub = (p - 0.462) / 0.06;
+	return exp(-lub * lub) + 0.9 * exp(-dub * dub);
 }
 
 vec3 applyPulse(vec3 color, vec2 uv)
@@ -165,7 +168,7 @@ vec3 applyPulse(vec3 color, vec2 uv)
 	if (pulse < 0.001)
 		return color;
 	color = applySaturation(color, 1.0 - 0.55 * pulse);
-	float beat = heartbeat(animationTimer * 100.0);
+	float beat = heartbeat(pulseTime);
 	float dark = smoothstep(0.15, 1.0, edgeDistance(uv)) * pulse * (0.25 + 0.75 * beat);
 	color = mix(color, color * vec3(1.25, 0.5, 0.45), 0.7 * dark);
 	return color * (1.0 - 0.7 * dark) * (1.0 - 0.1 * pulse * beat);

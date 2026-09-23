@@ -10019,6 +10019,9 @@ You **must not** mix names and track numbers to refer to the same animation.
           red outwards, blue inwards.
         * `pulse` is a pounding heart: the picture loses color and the
           edges darken and redden in a heartbeat, about 110 a minute.
+          Beats count from the moment `pulse` goes up from 0: a heartbeat
+          sound started in the same server step stays on the beat if it
+          loops every 0.55 s with the beats at 0.029 s and 0.254 s.
         * `blind` is a flash in the eyes: the picture overexposes to white.
         * `fade`: seconds the client takes to go from the lens it shows now
           to the one of this call (default 0: at once). Not stored: every

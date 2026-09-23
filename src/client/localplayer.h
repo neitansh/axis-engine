@@ -136,9 +136,14 @@ public:
 		LensParams shown;
 		LensParams target;
 		LensParams rate;
+		// С какого мига бьётся сердце: удары в кадре отсчитываются от него,
+		// чтобы совпасть со звуком сердца, пущенным сервером в тот же шаг.
+		f32 pulse_time = 0.0f;
 
 		void aim(const LensParams &to, f32 fade)
 		{
+			if (to.pulse > 0.0f && target.pulse <= 0.0f)
+				pulse_time = 0.0f;
 			target = to;
 			for (auto field : LensParams::FIELDS) {
 				if (fade > 0.0f)
@@ -149,6 +154,7 @@ public:
 		}
 		void step(f32 dtime)
 		{
+			pulse_time += dtime;
 			for (auto field : LensParams::FIELDS) {
 				const f32 d = rate.*field * dtime;
 				shown.*field += std::clamp(target.*field - shown.*field, -d, d);

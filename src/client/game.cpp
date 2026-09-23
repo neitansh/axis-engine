@@ -244,6 +244,7 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	CachedPixelShaderSetting<float> m_grain_pixel{"grain"};
 	CachedPixelShaderSetting<float> m_chromatic_pixel{"chromatic"};
 	CachedPixelShaderSetting<float> m_pulse_pixel{"pulse"};
+	CachedPixelShaderSetting<float> m_pulse_time_pixel{"pulseTime"};
 	CachedPixelShaderSetting<float> m_blind_pixel{"blind"};
 	CachedPixelShaderSetting<float, 4> m_grade_shadows_pixel{"gradeShadows"};
 	CachedPixelShaderSetting<float, 4> m_grade_highlights_pixel{"gradeHighlights"};
@@ -432,7 +433,9 @@ public:
 
 		float saturation = lighting.saturation;
 		m_saturation_pixel.set(&saturation, services);
-		const LensParams &lens = m_client->getEnv().getLocalPlayer()->lens.shown;
+		const auto &lens_state = m_client->getEnv().getLocalPlayer()->lens;
+		const LensParams &lens = lens_state.shown;
+		m_pulse_time_pixel.set(&lens_state.pulse_time, services);
 		m_vignette_pixel.set(&lens.vignette, services);
 		m_flicker_pixel.set(&lens.flicker, services);
 		m_grain_pixel.set(&lens.grain, services);
