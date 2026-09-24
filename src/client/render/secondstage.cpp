@@ -231,8 +231,8 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 		previousStep->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, std::vector<u8> { TEXTURE_COLOR }, TEXTURE_DEPTH));
 	}
 
-	// Подпись на закрытых глазах: своя текстура, в экранном размере, без
-	// сглаживания — мягкость ей даёт уже сведение.
+	// Подпись на закрытых глазах: своя текстура в экранном размере, а не в
+	// размере кадра мира — тот бывает меньше экрана, и буквы расплылись бы.
 	static const u8 TEXTURE_CAPTION = 30;
 	buffer->setTexture(TEXTURE_CAPTION, v2f(1.0f, 1.0f), "caption", video::ECF_A8R8G8B8);
 	caption->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_CAPTION));

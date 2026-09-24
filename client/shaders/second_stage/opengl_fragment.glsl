@@ -260,22 +260,6 @@ vec3 hazyWorld(vec2 uv, float haze)
 	return color;
 }
 
-// Подпись — мягкая, как всё, что видно с закрытыми глазами.
-vec4 softCaption(vec2 uv)
-{
-	const int TAPS = 8;
-	vec2 taps[TAPS];
-	taps[0] = vec2(-0.7, -0.7); taps[1] = vec2( 0.7, -0.7);
-	taps[2] = vec2(-0.7,  0.7); taps[3] = vec2( 0.7,  0.7);
-	taps[4] = vec2(-1.0,  0.0); taps[5] = vec2( 1.0,  0.0);
-	taps[6] = vec2( 0.0, -1.0); taps[7] = vec2( 0.0,  1.0);
-	float radius = 0.003;
-	vec4 sum = texture2D(caption, uv);
-	for (int i = 0; i < TAPS; i++)
-		sum += texture2D(caption, uv + taps[i] * radius);
-	return sum / float(TAPS + 1);
-}
-
 // Насколько открыт глаз при раскрытии, 0..1 по ходу раскрытия: два
 // коротких моргания, потом целиком.
 float eyeOpening(float progress)
@@ -330,7 +314,7 @@ void main(void)
 		color.rgb *= lid * mix(0.6, 1.0, open);
 
 		// Подпись живёт только на закрытых глазах.
-		vec4 cap = softCaption(uv);
+		vec4 cap = texture2D(caption, uv);
 		cap.a *= smoothstep(0.85, 1.0, k);
 		color.rgb = mix(color.rgb, cap.rgb, cap.a);
 		gl_FragColor = vec4(clamp(color.rgb, vec3(0.), vec3(1.)), 1.0);
