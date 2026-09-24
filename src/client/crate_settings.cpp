@@ -10,9 +10,10 @@
 namespace
 {
 
-// Что и как рисовать. Не здесь: окно и разрешение, дальность видимости,
-// антиалиасинг и undersampling, всё про ввод, звук, сеть, моды — это машина
-// и привычки игрока, а не вид крейта.
+// Что и как рисовать — в том числе всё, что меняют пресеты качества, иначе
+// пресет переписывает вид крейта. Не здесь: окно и разрешение, дальность
+// видимости, undersampling, всё про ввод, звук, сеть, моды — это машина и
+// привычки игрока, а не вид крейта.
 const std::unordered_set<std::string> ALLOWED = {
 	// Свет
 	"display_gamma", "ambient_occlusion_gamma", "smooth_lighting",
@@ -42,6 +43,9 @@ const std::unordered_set<std::string> ALLOWED = {
 	"enable_waving_leaves", "enable_waving_plants", "enable_waving_water",
 	"water_wave_height", "water_wave_length", "water_wave_speed",
 	"enable_translucent_foliage", "enable_water_reflections",
+	"foliage_range", "leaves_detail_range",
+	// Сглаживание
+	"antialiasing", "fxaa",
 	// Текстуры
 	"bilinear_filter", "trilinear_filter", "anisotropic_filter",
 	"texture_min_size",

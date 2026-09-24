@@ -939,7 +939,10 @@ bool Settings::set(const std::string &name, const std::string &value)
 	if (!setEntry(name, &value, false))
 		return false;
 
-	doCallbacks(name);
+	// Под слоем крейта видимое значение не сдвинулось, а подписчики на
+	// смену пересобирают дорогое — вид нод, шейдеры, карту.
+	if (!getCrateClientEntry(name))
+		doCallbacks(name);
 	return true;
 }
 
@@ -1057,7 +1060,8 @@ bool Settings::remove(const std::string &name)
 		m_settings.erase(it);
 		m_mutex.unlock();
 
-		doCallbacks(name);
+		if (!getCrateClientEntry(name))
+			doCallbacks(name);
 		return true;
 	}
 

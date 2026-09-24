@@ -2574,6 +2574,8 @@ struct TextureUpdateArgs
 void Client::showUpdateProgressTexture(void *args, float progress)
 {
 	auto *targs = reinterpret_cast<TextureUpdateArgs *>(args);
+	if (!targs)
+		return;
 	u16 cur_percent = std::ceil(100 * progress);
 
 	// Throttle menu drawing
@@ -2702,10 +2704,9 @@ void Client::rebuildNodeVisuals()
 	// Тот же приём, что и при смене сессии, см. applyPendingContent().
 	m_nodedef->detachVisuals(m_retired_visuals);
 
-	TextureUpdateArgs tu_args;
-	tu_args.last_time_ms = porting::getTimeMs();
-	tu_args.text_base = wstrgettext("Initializing nodes");
-	NodeVisuals::fillNodeVisuals(m_nodedef, this, &tu_args);
+	// Без экрана загрузки: он посреди игры забирает себе ввод интерфейса и
+	// не отдаёт его открытому меню настроек.
+	NodeVisuals::fillNodeVisuals(m_nodedef, this, nullptr);
 
 	m_mesh_update_manager->start();
 
