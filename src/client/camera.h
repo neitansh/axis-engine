@@ -24,6 +24,7 @@ enum CameraMode : int;
 
 namespace scene {
 	class ICameraSceneNode;
+	class IDummyTransformationSceneNode;
 	class ISceneManager;
 	class ISceneNode;
 };
@@ -86,6 +87,12 @@ public:
 	{
 		return m_cameranode;
 	}
+
+	// Глаза в координатах сцены: место камеры и полный поворот головы. К
+	// ним цепляются вещи перед глазами, а не к узлу камеры — у того поворот
+	// выводится из направления взгляда и при взгляде отвесно вниз или вверх
+	// теряет рыскание: вещь мечется по экрану.
+	scene::ISceneNode *getEyeNode() const;
 
 	// Get the camera position (in absolute scene coordinates).
 	// This has view bobbing applied.
@@ -217,6 +224,7 @@ private:
 	scene::ISceneNode *m_playernode = nullptr;
 	scene::ISceneNode *m_headnode = nullptr;
 	scene::ICameraSceneNode *m_cameranode = nullptr;
+	scene::IDummyTransformationSceneNode *m_eyenode = nullptr;
 
 	scene::ISceneManager *m_wieldmgr = nullptr;
 	WieldMeshSceneNode *m_wieldnode = nullptr;

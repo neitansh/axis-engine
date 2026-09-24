@@ -22,6 +22,7 @@
 #include "gettext.h"
 
 #include <ICameraSceneNode.h>
+#include <IDummyTransformationSceneNode.h>
 #include <IGUIFont.h>
 #include <ISceneNode.h>
 #include <IVideoDriver.h>
@@ -53,6 +54,7 @@ Camera::Camera(MapDrawControl &draw_control, Client *client, RenderingEngine *re
 	m_headnode = smgr->addEmptySceneNode(m_playernode);
 	m_cameranode = smgr->addCameraSceneNode(smgr->getRootSceneNode());
 	m_cameranode->bindTargetAndRotation(true);
+	m_eyenode = smgr->addDummyTransformationSceneNode(smgr->getRootSceneNode());
 
 	// This needs to be in its own scene manager. It is drawn after
 	// all other 3D scene nodes and before the GUI.
@@ -546,6 +548,11 @@ void Camera::update(LocalPlayer *player, f32 frametime, f32 tool_reload_ratio)
 	// *100 helps in large map coordinates
 	m_cameranode->setTarget(m_camera_position - intToFloat(m_camera_offset, BS) + 100 * m_camera_direction);
 
+	core::matrix4 eye = m_headnode->getAbsoluteTransformation();
+	eye.setTranslation(m_camera_position - intToFloat(m_camera_offset, BS));
+	m_eyenode->getRelativeTransformationMatrix() = eye;
+	m_eyenode->updateAbsolutePosition();
+
 	/*
 	 * Apply server-sent FOV, instantaneous or smooth transition.
 	 * If not, check for zoom and set to zoom FOV.
@@ -754,6 +761,11 @@ static void renderSubtree(video::IVideoDriver *driver, scene::ISceneNode *node)
 	node->render();
 	for (scene::ISceneNode *child : node->getChildren())
 		renderSubtree(driver, child);
+}
+
+scene::ISceneNode *Camera::getEyeNode() const
+{
+	return m_eyenode;
 }
 
 void Camera::drawFirstPersonObjects()

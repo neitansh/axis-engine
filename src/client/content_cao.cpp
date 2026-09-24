@@ -2247,8 +2247,8 @@ void GenericCAO::updateAttachments()
 		v3f position = m_attachment_position;
 		v3f rotation = m_attachment_rotation;
 		if (inFirstPersonView()) {
-			if (auto *camera_node = m_client->getCamera()->getCameraNode()) {
-				parent_node = camera_node;
+			if (auto *eye_node = m_client->getCamera()->getEyeNode()) {
+				parent_node = eye_node;
 				position = m_prop.first_person_position * BS;
 				rotation = m_prop.first_person_rotation;
 			}
