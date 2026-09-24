@@ -2122,6 +2122,10 @@ void Client::handleCommand_Eyelids(NetworkPacket *pkt)
 	st.closing = st.target >= st.closed;
 	st.fade = std::max(fade, 0.0f);
 	st.caption = utf8_to_wide(caption);
+	std::string note;
+	if (pkt->getRemainingBytes() >= 2)
+		*pkt >> note;
+	st.note = utf8_to_wide(note);
 }
 
 void Client::handleCommand_CameraImpulse(NetworkPacket *pkt)

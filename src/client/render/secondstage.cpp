@@ -24,7 +24,7 @@ void ScreenCaptionStep::run(PipelineContext &context)
 	if (!player || !m_target)
 		return;
 	const auto &st = player->eyelids;
-	if (!st.visible() || st.caption.empty())
+	if (!st.visible() || (st.caption.empty() && st.note.empty()))
 		return;
 
 	m_target->activate(context);
@@ -40,11 +40,21 @@ void ScreenCaptionStep::run(PipelineContext &context)
 	// Когда подпись видна и насколько, решает сведение; здесь она рисуется
 	// в полную силу.
 	const u32 alpha = 255;
-	const core::rect<s32> frame(0, 0, size.Width, size.Height);
+	gui::IGUIFont *note_font = g_fontengine->getFont(
+			FontSpec(std::max(12u, size.Height / 22), FM_Standard, false, false));
+	// С пояснением подпись поднимается, чтобы пара строк стояла по центру.
+	const s32 lift = st.note.empty() || !note_font ? 0 : size.Height / 20;
+	const core::rect<s32> frame(0, -lift, size.Width, size.Height - lift);
 	const s32 drop = std::max<s32>(2, size.Height / 160);
 	font->draw(st.caption.c_str(), frame + core::vector2d<s32>(0, drop),
 			video::SColor(alpha * 4 / 5, 20, 0, 0), true, true);
 	font->draw(st.caption.c_str(), frame, video::SColor(alpha, 236, 38, 38), true, true);
+
+	if (lift == 0)
+		return;
+	const s32 below = size.Height / 12;
+	const core::rect<s32> note_frame(0, below, size.Width, size.Height + below);
+	note_font->draw(st.note.c_str(), note_frame, video::SColor(alpha, 200, 190, 180), true, true);
 }
 
 PostProcessingStep::PostProcessingStep(u32 _shader_id, const std::vector<u8> &_texture_map,

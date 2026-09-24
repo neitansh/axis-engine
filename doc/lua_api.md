@@ -9531,6 +9531,7 @@ You **must not** mix names and track numbers to refer to the same animation.
     * `closed`: `1` shuts the eyes, `0` opens them.
     * `fade`: seconds to get there from where the lids are now. Default `0.5`.
     * `caption`: text shown on the closed eyes, large and red. Empty for none.
+    * `note`: a smaller, pale line under the caption. Empty for none.
     * Returns `false` if the client cannot show it (protocol version below 56).
     * Example: `player:set_eyelids({closed = 1, fade = 0.5, caption = "WASTED"})`
       on death, `player:set_eyelids({closed = 0, fade = 2.4})` on respawn.

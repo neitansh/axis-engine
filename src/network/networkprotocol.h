@@ -836,6 +836,7 @@ enum ToClientCommand : u16
 		f32 closed             // 0 — глаза открыты, 1 — закрыты
 		f32 fade               // секунд до цели
 		std::string caption    // подпись на закрытых глазах, UTF-8; пустая — без неё
+		std::string note       // строка под подписью, мельче; может не прийти
 	*/
 
 	TOCLIENT_MINIMAP_SURFACE = 0x69,

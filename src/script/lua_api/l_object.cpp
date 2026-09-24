@@ -1827,7 +1827,7 @@ int ObjectRef::l_add_camera_impulse(lua_State *L)
 	return 1;
 }
 
-// set_eyelids(self, {closed=, fade=, caption=})
+// set_eyelids(self, {closed=, fade=, caption=, note=})
 int ObjectRef::l_set_eyelids(lua_State *L)
 {
 	NO_MAP_LOCK_REQUIRED;
@@ -1840,9 +1840,10 @@ int ObjectRef::l_set_eyelids(lua_State *L)
 	const f32 closed = getfloatfield_default(L, 2, "closed", 0.0f);
 	const f32 fade = getfloatfield_default(L, 2, "fade", 0.5f);
 	const std::string caption = getstringfield_default(L, 2, "caption", "");
+	const std::string note = getstringfield_default(L, 2, "note", "");
 
 	lua_pushboolean(L, getServer(L)->SendEyelids(player->getPeerId(),
-			closed, fade, caption));
+			closed, fade, caption, note));
 	return 1;
 }
 

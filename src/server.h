@@ -496,7 +496,7 @@ public:
 	 */
 	bool SendCameraImpulse(session_t peer_id, const CameraImpulse &impulse);
 	bool SendEyelids(session_t peer_id, f32 closed, f32 fade,
-			const std::string &caption);
+			const std::string &caption, const std::string &note);
 	void SendPlayerBreath(PlayerSAO *sao);
 	void SendInventory(RemotePlayer *player, bool incremental, bool skip_wield_anim = false);
 	void SendMovePlayer(PlayerSAO *sao);

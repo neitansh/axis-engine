@@ -118,6 +118,7 @@ public:
 		/// морганиями, а смыкание — ровно.
 		bool closing = false;
 		std::wstring caption;
+		std::wstring note;
 
 		void step(f32 dtime)
 		{

@@ -1693,7 +1693,7 @@ bool Server::SendTransfer(session_t peer_id, const std::string &address,
 }
 
 bool Server::SendEyelids(session_t peer_id, f32 closed, f32 fade,
-		const std::string &caption)
+		const std::string &caption, const std::string &note)
 {
 	{
 		ClientInterface::AutoLock clientlock(m_clients);
@@ -1703,7 +1703,7 @@ bool Server::SendEyelids(session_t peer_id, f32 closed, f32 fade,
 	}
 
 	NetworkPacket pkt(TOCLIENT_EYELIDS, 0, peer_id);
-	pkt << closed << fade << caption;
+	pkt << closed << fade << caption << note;
 	Send(&pkt);
 	return true;
 }
