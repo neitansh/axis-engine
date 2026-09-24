@@ -2621,6 +2621,9 @@ to games.
 
 ### Node-only groups
 
+* `no_outline`: the node is pointed at as usual — it blocks the view and takes
+  clicks — but no selection box is drawn around it. For decoration the player
+  is not meant to handle, like furniture. Axis only.
 * `attached_node`: the node is 'attached' to a neighboring node. It checks
                    whether the node it is attached to is walkable. If it
                    isn't, the node will drop as an item.

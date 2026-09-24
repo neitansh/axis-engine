@@ -3982,11 +3982,14 @@ PointedThing Game::updatePointedThing(
 	}
 	else if (result.type == POINTEDTHING_NODE)
 	{
-		// Update selection boxes
+		// Update selection boxes. Нода в группе no_outline наводится как
+		// обычно — загораживает и принимает клики, — но без обводки: мебель,
+		// которую игрок и не собирается трогать.
 		MapNode n = map.getNode(result.node_undersurface);
 		std::vector<aabb3f> boxes;
-		n.getSelectionBoxes(nodedef, &boxes,
-							n.getNeighbors(result.node_undersurface, &map));
+		if (itemgroup_get(nodedef->get(n).groups, "no_outline") == 0)
+			n.getSelectionBoxes(nodedef, &boxes,
+								n.getNeighbors(result.node_undersurface, &map));
 
 		f32 d = 0.002f * BS;
 		for (aabb3f box : boxes)
