@@ -1,0 +1,46 @@
+<rml>
+<head>
+	<title>places</title>
+	<link type="text/rcss" href="theme.rcss"/>
+	<link type="text/rcss" href="page.rcss"/>
+	<link type="text/rcss" href="places.rcss"/>
+</head>
+<body data-model="places" class="page places">
+	<div class="page-head">
+		<div class="head-side">
+			<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
+			<h1>[[Singleplayer]]</h1>
+			<span class="kbd">Esc</span>
+		</div>
+	</div>
+
+	<div class="no-crates" data-if="places.size == 0">
+		<div class="mark"/>
+		<h4>[[No crates yet]]</h4>
+		<p>[[The engine decides how the game works; a crate decides what is in it — the rules, the items, the look. Install a crate, and you can create a world here.]]</p>
+	</div>
+
+	<div class="shelf" data-if="places.size > 0">
+		<div class="pager back-page" data-if="overflow" data-event-click="page(-1)"/>
+		<div id="track" class="track">
+			<div class="place focusable" data-for="p : places" data-class-current="it_index == current"
+					data-attrif-autofocus="it_index == current"
+					data-event-click="open(it_index)" data-event-keydown="card_key(it_index)"
+					data-event-focus="card_focus(it_index)">
+				<div class="cover" data-if="p.cover != ''"
+						data-style-decorator="'image(' + p.cover + ' cover)'"/>
+				<div class="cover blank" data-if="p.cover == ''">{{ p.initial }}</div>
+				<div class="body">
+					<div class="title">{{ p.title }}</div>
+					<div class="author" data-if="p.author != ''">{{ p.author }}</div>
+					<div class="about" data-if="p.description != ''">{{ p.description }}</div>
+					<div class="foot">
+						<span class="chip">[[Worlds]] · {{ p.worlds }}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="pager forward-page" data-if="overflow" data-event-click="page(1)"/>
+	</div>
+</body>
+</rml>

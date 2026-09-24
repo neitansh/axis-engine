@@ -1,0 +1,195 @@
+/*
+ * Одиночная игра, первый шаг: плейсы (крейты) карточками в ряд — обложка,
+ * название, автор, описание, сколько миров. Ряд шире экрана уходит за край
+ * и листается стрелками по бокам, колесом и клавишами. Текущая карточка —
+ * в кольце акцента. Страница и шапка — в page.rcss.
+ */
+
+.shelf {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 1;
+	min-height: 0;
+}
+
+/* Ряд прокручивается сам, полосы не видно: листают стрелки. Поля сверху и
+   снизу — место под кольцо текущей карточки, иначе край его срежет */
+
+.track {
+	display: flex;
+	flex-direction: row;
+	flex: 1;
+	width: 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding: 6dp 4dp;
+}
+
+.track scrollbarhorizontal {
+	height: 0;
+}
+
+.place {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	width: 320dp;
+	height: 440dp;
+	margin-right: 20dp;
+	border-radius: 18dp;
+	border: 2dp #00000000;
+	background-color: #1C1C1E;
+	cursor: pointer;
+	overflow: hidden;
+	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out;
+}
+
+.place:hover,
+.place:focus {
+	background-color: #232325;
+}
+
+.place.current {
+	border-color: #A78BFA;
+}
+
+.place .cover {
+	display: block;
+	height: 180dp;
+	background-color: #221B36;
+}
+
+/* Без обложки — первая буква крупно на подсветке акцента, как плитка
+   крейта без значка */
+
+.place .cover.blank {
+	line-height: 180dp;
+	text-align: center;
+	font-size: 72dp;
+	font-weight: 700;
+	color: #A78BFA;
+}
+
+.place .body {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	padding: 18dp 20dp 20dp 20dp;
+}
+
+.place .title {
+	display: block;
+	font-size: 22dp;
+	font-weight: 700;
+	letter-spacing: -0.3dp;
+	color: #F5F5F7;
+}
+
+.place .author {
+	display: block;
+	margin-top: 2dp;
+	font-size: 13dp;
+	color: #86868B;
+}
+
+/* Описание — сколько влезет до подвала карточки; хвост гаснет, а не
+   обрывается на полуслове */
+
+.place .about {
+	display: block;
+	flex: 1;
+	height: 0;
+	margin-top: 12dp;
+	overflow: hidden;
+	font-size: 14dp;
+	line-height: 1.5;
+	color: #A1A1A6;
+	mask-image: linear-gradient(to bottom, #FFFFFF 70%, #FFFFFF00 100%);
+}
+
+.place .foot {
+	display: flex;
+	flex-direction: row;
+	margin-top: 14dp;
+}
+
+.place .chip {
+	padding: 3dp 10dp;
+	border-radius: 8dp;
+	background-color: #2C2C2E;
+	font-size: 12dp;
+	color: #A1A1A6;
+}
+
+.place.current .chip {
+	background-color: #221B36;
+	color: #A78BFA;
+}
+
+/* Стрелки листания: круглые, в полях страницы по бокам ряда — ряд стоит
+   вровень с шапкой, есть стрелки или нет */
+
+.pager {
+	position: absolute;
+	top: 50%;
+	margin-top: -22dp;
+	width: 44dp;
+	height: 44dp;
+	border-radius: 22dp;
+	background-color: #1C1C1E;
+	decorator: image(icons/chevron.png scale-none);
+	image-color: #A1A1A6;
+	cursor: pointer;
+	transition: background-color 0.12s linear-in-out, image-color 0.12s linear-in-out;
+}
+
+.pager.back-page {
+	left: -66dp;
+}
+
+.pager.forward-page {
+	right: -66dp;
+	transform: rotate(180deg);
+}
+
+.pager:hover {
+	background-color: #2C2C2E;
+	image-color: #F5F5F7;
+}
+
+/* Крейтов нет вовсе */
+
+.no-crates {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	text-align: center;
+}
+
+.no-crates .mark {
+	width: 48dp;
+	height: 48dp;
+	margin-bottom: 20dp;
+	decorator: image(icons/package.png scale-none);
+	image-color: #A78BFA;
+}
+
+.no-crates h4 {
+	display: block;
+	width: 560dp;
+	font-size: 22dp;
+	font-weight: 600;
+	color: #F5F5F7;
+	margin: 0 0 10dp 0;
+}
+
+.no-crates p {
+	width: 480dp;
+	font-size: 15dp;
+	line-height: 1.55;
+	color: #A1A1A6;
+}

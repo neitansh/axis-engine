@@ -1,7 +1,7 @@
 /*
- * Одиночная игра: слева крейты списком разделов, в середине миры выбранного
- * крейта в карточке, справа — что делать с выбранным миром (играть, удалить)
- * или форма нового. Страница, шапка и заголовки — в page.rcss.
+ * Миры плейса, выбранного карточкой (places.rml): миры в карточке, справа —
+ * что делать с выбранным миром (играть, удалить) или форма нового.
+ * Страница, шапка и заголовки — в page.rcss.
  */
 
 .play-body {
@@ -9,105 +9,6 @@
 	flex-direction: row;
 	flex: 1;
 	min-height: 0;
-}
-
-/* Крейты: строки бокового списка, выбранная — цвета карточки */
-
-.crates {
-	display: flex;
-	flex-direction: column;
-	width: 280dp;
-	margin-right: 28dp;
-	padding-top: 18dp;
-}
-
-.crates .eyebrow {
-	padding-left: 14dp;
-}
-
-.crate {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	height: 64dp;
-	padding: 0 14dp;
-	margin-bottom: 4dp;
-	border-radius: 12dp;
-	cursor: pointer;
-	transition: background-color 0.12s linear-in-out;
-}
-
-/* Наведение — тёмным, а не белым с прозрачностью: RmlUi ведёт переход по
-   цвету без учёта альфы, и путь от прозрачного белого к тёмной подсветке
-   проходит через светло-серую вспышку */
-
-.crate:hover,
-.crate:focus {
-	background-color: #1C1C1E99;
-}
-
-.crate.active {
-	background-color: #1C1C1E;
-}
-
-.crate .icon,
-.crate .tile {
-	width: 40dp;
-	height: 40dp;
-	margin-right: 12dp;
-	border-radius: 10dp;
-}
-
-.crate .tile {
-	background-color: #221B36;
-	line-height: 40dp;
-	text-align: center;
-	font-size: 18dp;
-	font-weight: 700;
-	color: #A78BFA;
-}
-
-.crate .text {
-	display: block;
-	flex: 1;
-	width: 0;
-	min-width: 0;
-	white-space: nowrap;
-	overflow: hidden;
-	mask-image: linear-gradient(to right, #FFFFFF 85%, #FFFFFF00 100%);
-}
-
-.crate .name {
-	display: block;
-	font-size: 15dp;
-	font-weight: 500;
-	color: #A1A1A6;
-	transition: color 0.12s linear-in-out;
-}
-
-.crate:hover .name,
-.crate:focus .name,
-.crate.active .name {
-	color: #F5F5F7;
-}
-
-.crate .meta {
-	display: block;
-	font-size: 12dp;
-	color: #86868B;
-}
-
-.crate .count {
-	padding: 1dp 8dp;
-	border-radius: 6dp;
-	background-color: #2C2C2E;
-	font-size: 12dp;
-	color: #A1A1A6;
-}
-
-.crate.active .count {
-	background-color: #221B36;
-	color: #A78BFA;
 }
 
 /* Миры: карточка со строками */
@@ -305,40 +206,4 @@ button.new .plus {
 .side .confirm-actions button {
 	width: 0;
 	margin-top: 0;
-}
-
-
-/* Крейтов нет */
-
-.no-crates {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	flex: 1;
-	text-align: center;
-}
-
-.no-crates .mark {
-	width: 48dp;
-	height: 48dp;
-	margin-bottom: 20dp;
-	decorator: image(icons/package.png scale-none);
-	image-color: #A78BFA;
-}
-
-.no-crates h4 {
-	display: block;
-	width: 560dp;
-	font-size: 22dp;
-	font-weight: 600;
-	color: #F5F5F7;
-	margin: 0 0 10dp 0;
-}
-
-.no-crates p {
-	width: 480dp;
-	font-size: 15dp;
-	line-height: 1.55;
-	color: #A1A1A6;
 }

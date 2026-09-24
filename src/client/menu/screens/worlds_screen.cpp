@@ -39,27 +39,16 @@ std::string worldMapgen(const WorldSpec &world)
 
 void WorldsScreen::bind(Rml::DataModelConstructor &model)
 {
-	if (auto entry = model.RegisterStruct<CrateEntry>()) {
-		entry.RegisterMember("id", &CrateEntry::id);
-		entry.RegisterMember("title", &CrateEntry::title);
-		entry.RegisterMember("author", &CrateEntry::author);
-		entry.RegisterMember("icon", &CrateEntry::icon);
-		entry.RegisterMember("initial", &CrateEntry::initial);
-		entry.RegisterMember("worlds", &CrateEntry::worlds);
-	}
 	if (auto entry = model.RegisterStruct<WorldEntry>()) {
 		entry.RegisterMember("name", &WorldEntry::name);
 		entry.RegisterMember("mapgen", &WorldEntry::mapgen);
 	}
-	model.RegisterArray<std::vector<CrateEntry>>();
 	model.RegisterArray<std::vector<WorldEntry>>();
 	model.RegisterArray<std::vector<Rml::String>>();
 
-	m_crate_heading = strgettext("Crate");
 	m_worlds_heading = strgettext("Worlds");
-	model.Bind("crate_heading", &m_crate_heading);
+	model.Bind("crate_title", &m_crate_title);
 	model.Bind("worlds_heading", &m_worlds_heading);
-	model.Bind("crates", &m_crates);
 	model.Bind("crate", &m_crate);
 	model.Bind("worlds", &m_entries);
 	model.Bind("mapgens", &m_mapgens);
@@ -78,11 +67,6 @@ void WorldsScreen::bind(Rml::DataModelConstructor &model)
 		return args.empty() ? -1 : args[0].Get<int>(-1);
 	};
 
-	model.BindEventCallback("select_crate",
-			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &args) {
-				selectCrate(index_arg(args));
-				handle.DirtyAllVariables();
-			});
 	model.BindEventCallback("select",
 			[this, index_arg](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &args) {
 				selectWorld(index_arg(args));
@@ -150,22 +134,6 @@ void WorldsScreen::refresh()
 	m_crate_specs = getAvailableCrates();
 	m_all_worlds = getAvailableWorlds();
 
-	m_crates.clear();
-	for (const CrateSpec &spec : m_crate_specs) {
-		CrateEntry entry;
-		entry.id = spec.id;
-		entry.title = spec.title.empty() ? spec.id : spec.title;
-		entry.author = spec.author;
-		const std::string icon = spec.path + DIR_DELIM "menu" DIR_DELIM "icon.png";
-		if (fs::PathExists(icon))
-			entry.icon = icon;
-		const std::wstring wide = utf8_to_wide(entry.title);
-		entry.initial = wide.empty() ? "" : uppercase(wide_to_utf8(wide.substr(0, 1)));
-		entry.worlds = (int)std::count_if(m_all_worlds.begin(), m_all_worlds.end(),
-				[&spec](const WorldSpec &w) { return belongsTo(w, spec); });
-		m_crates.push_back(entry);
-	}
-
 	std::string last;
 	g_settings->getNoEx("menu_last_crate", last);
 	int crate = -1;
@@ -194,13 +162,13 @@ bool WorldsScreen::onEvent(const SEvent &event)
 		m_error.clear();
 		model().DirtyAllVariables();
 	} else {
-		menu().navigate("start");
+		menu().navigate("places");
 	}
 	return true;
 }
 
 // Миры лежат в прокручиваемом списке — острове для стрелок RmlUi; между
-// крейтами, списком и правой карточкой фокус переносится здесь.
+// списком и правой карточкой фокус переносится здесь.
 void WorldsScreen::onUnhandledKey(const SEvent &event)
 {
 	const int arrow = arrowOf(event);
@@ -208,20 +176,13 @@ void WorldsScreen::onUnhandledKey(const SEvent &event)
 		return;
 	const bool horizontal = event.KeyInput.Key == KEY_LEFT || event.KeyInput.Key == KEY_RIGHT;
 	Rml::Element *focus = focused();
-	const bool in_crates = focus && focus->Closest(".crates");
 	const bool in_worlds = focus && focus->Closest(".world-list");
 	const bool in_side = focus && (focus->Closest(".side") || focus->Closest(".list-actions"));
 
-	if (horizontal && arrow > 0 && in_crates) {
-		if (!hop(".world.active"))
-			hop(".side button, .side input, button.new");
-	} else if (horizontal && arrow > 0 && in_worlds) {
+	if (horizontal && arrow > 0 && in_worlds) {
 		hop(".side button.primary, .side button, .side input");
-	} else if (horizontal && arrow < 0 && in_worlds) {
-		hop(".crate.active");
 	} else if (horizontal && arrow < 0 && in_side) {
-		if (!hop(".world.active"))
-			hop(".crate.active");
+		hop(".world.active");
 	} else if (!horizontal && arrow > 0 && in_worlds) {
 		hop("button.new");
 	} else if (!horizontal && arrow < 0 && in_side) {
@@ -241,8 +202,13 @@ void WorldsScreen::selectCrate(int index)
 	m_creating = false;
 	m_confirm_delete = false;
 	m_error.clear();
-	if (m_crate >= 0)
-		g_settings->set("menu_last_crate", m_crate_specs[m_crate].id);
+	if (m_crate >= 0) {
+		const CrateSpec &spec = m_crate_specs[m_crate];
+		g_settings->set("menu_last_crate", spec.id);
+		m_crate_title = spec.title.empty() ? spec.id : spec.title;
+	} else {
+		m_crate_title.clear();
+	}
 	m_mapgens = m_crate >= 0 ? mapgensFor(m_crate_specs[m_crate]) : std::vector<Rml::String>();
 	reloadWorlds();
 }

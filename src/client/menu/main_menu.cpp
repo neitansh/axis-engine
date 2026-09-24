@@ -16,6 +16,7 @@
 #include "screens/about_screen.h"
 #include "screens/intro_screen.h"
 #include "screens/online_screen.h"
+#include "screens/places_screen.h"
 #include "screens/settings_screen.h"
 #include "screens/start_screen.h"
 #include "screens/worlds_screen.h"
@@ -54,6 +55,7 @@ MainMenu::MainMenu(RenderingEngine *engine, ui::Host &host, MyEventReceiver *rec
 	m_sounds->attach(*m_context);
 
 	addScreen(std::make_unique<StartScreen>(*this));
+	addScreen(std::make_unique<PlacesScreen>(*this));
 	addScreen(std::make_unique<WorldsScreen>(*this));
 	addScreen(std::make_unique<OnlineScreen>(*this));
 	addScreen(std::make_unique<SettingsScreen>(*this));

@@ -8,33 +8,13 @@
 <body data-model="worlds" class="page play">
 	<div class="page-head">
 		<div class="head-side">
-			<div class="back" data-event-click="nav('start')"><div class="arrow"/></div>
-			<h1>[[Worlds]]</h1>
+			<div class="back" data-event-click="nav('places')"><div class="arrow"/></div>
+			<h1>{{ crate_title }}</h1>
 			<span class="kbd">Esc</span>
 		</div>
 	</div>
 
-	<div class="no-crates" data-if="crates.size == 0">
-		<div class="mark"/>
-		<h4>[[No crates yet]]</h4>
-		<p>[[The engine decides how the game works; a crate decides what is in it — the rules, the items, the look. Install a crate, and you can create a world here.]]</p>
-	</div>
-
-	<div class="play-body" data-if="crates.size > 0">
-		<div class="crates">
-			<div class="eyebrow">{{ crate_heading }}</div>
-			<div class="crate focusable" data-for="c : crates" data-class-active="it_index == crate"
-					data-event-click="select_crate(it_index)">
-				<img class="icon" data-if="c.icon != ''" data-attr-src="c.icon"/>
-				<div class="tile" data-if="c.icon == ''">{{ c.initial }}</div>
-				<div class="text">
-					<div class="name">{{ c.title }}</div>
-					<div class="meta" data-if="c.author != ''">{{ c.author }}</div>
-				</div>
-				<div class="count" data-if="c.worlds > 0">{{ c.worlds }}</div>
-			</div>
-		</div>
-
+	<div class="play-body" data-if="crate >= 0">
 		<div class="worlds">
 			<h3 class="group">{{ worlds_heading }}</h3>
 			<div class="world-list">

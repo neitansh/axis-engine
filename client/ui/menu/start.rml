@@ -11,7 +11,7 @@
 		</div>
 		<div class="menu">
 			<div class="item focusable" autofocus data-event-click="nav('online')"><i class="glow"/><span class="word">[[Multiplayer]]</span></div>
-			<div class="item focusable" data-event-click="nav('worlds')"><i class="glow"/><span class="word">[[Worlds]]</span></div>
+			<div class="item focusable" data-event-click="nav('places')"><i class="glow"/><span class="word">[[Singleplayer]]</span></div>
 			<div class="item focusable" data-event-click="nav('settings')"><i class="glow"/><span class="word">[[Settings]]</span></div>
 			<div class="item apart focusable" data-event-click="quit_begin()"><i class="glow"/><span class="word">[[Exit]]</span></div>
 		</div>

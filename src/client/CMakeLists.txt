@@ -101,6 +101,7 @@ set(client_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/pause_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/intro_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/online_screen.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/places_screen.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/settings_catalog.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/settings_presets.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/menu/screens/settings_screen.cpp
