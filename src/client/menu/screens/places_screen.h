@@ -35,6 +35,7 @@ private:
 		Rml::String author;
 		Rml::String description;
 		Rml::String cover;
+		Rml::String cover_decorator;
 		Rml::String initial;
 		int worlds = 0;
 	};

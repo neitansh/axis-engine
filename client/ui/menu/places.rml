@@ -28,7 +28,7 @@
 					data-event-click="open(it_index)" data-event-keydown="card_key(it_index)"
 					data-event-focus="card_focus(it_index)">
 				<div class="cover" data-if="p.cover != ''"
-						data-style-decorator="'image(' + p.cover + ' cover)'"/>
+						data-style-decorator="p.cover_decorator"/>
 				<div class="cover blank" data-if="p.cover == ''">{{ p.initial }}</div>
 				<div class="body">
 					<div class="title">{{ p.title }}</div>

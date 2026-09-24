@@ -53,6 +53,7 @@ void PlacesScreen::bind(Rml::DataModelConstructor &model)
 		entry.RegisterMember("author", &PlaceEntry::author);
 		entry.RegisterMember("description", &PlaceEntry::description);
 		entry.RegisterMember("cover", &PlaceEntry::cover);
+		entry.RegisterMember("cover_decorator", &PlaceEntry::cover_decorator);
 		entry.RegisterMember("initial", &PlaceEntry::initial);
 		entry.RegisterMember("worlds", &PlaceEntry::worlds);
 	}
@@ -106,6 +107,9 @@ void PlacesScreen::refresh()
 		entry.author = spec.author;
 		entry.description = descriptionOf(spec);
 		entry.cover = coverOf(spec);
+		// Декоратор собирается здесь, а не выражением в документе: data-style
+		// вычисляется и у карточки без обложки, и «image( cover)» ищет файл cover.
+		entry.cover_decorator = entry.cover.empty() ? "none" : "image(" + entry.cover + " cover)";
 		const std::wstring wide = utf8_to_wide(entry.title);
 		entry.initial = wide.empty() ? "" : uppercase(wide_to_utf8(wide.substr(0, 1)));
 		entry.worlds = (int)std::count_if(worlds.begin(), worlds.end(),
