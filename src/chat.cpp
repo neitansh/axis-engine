@@ -702,28 +702,67 @@ std::pair<u32, u32> tokenAroundCursor(std::wstring_view line, u32 cursor)
 	return {start, end};
 }
 
-/// Which argument the cursor is on, counting from one. Zero means the command
-u32 argumentIndex(std::wstring_view line, u32 token_start)
+std::vector<std::wstring> splitWords(std::wstring_view text)
 {
-	u32 index = 0;
+	std::vector<std::wstring> words;
+	size_t start = 0;
 
-	for (u32 i = 1; i < token_start; i++) {
-		if (line[i - 1] != L' ' && line[i] == L' ')
-			index++;
+	while (start < text.size()) {
+		while (start < text.size() && text[start] == L' ')
+			++start;
+
+		size_t end = text.find(L' ', start);
+		if (end == std::wstring::npos)
+			end = text.size();
+
+		if (start < end)
+			words.emplace_back(text.substr(start, end - start));
+
+		start = end + 1;
 	}
 
-	return index;
+	return words;
 }
 
-/// Words of a parameter list that describe the given argument.
+/// A parameter word without the brackets that group it or mark it optional:
+/// "[all" and "(clear" are typed as "all" and "clear"
+std::wstring bareWord(std::wstring_view word)
+{
+	while (!word.empty() && wcschr(L"([", word.front()))
+		word.remove_prefix(1);
+	while (!word.empty() && wcschr(L")]", word.back()))
+		word.remove_suffix(1);
+
+	return std::wstring(word);
+}
+
+/// A word the player types as it is written, like "start" in
+/// "start [<difficulty>] | dawn", as opposed to a placeholder like
+/// "<difficulty>". Single letters are placeholders by habit ("x y z", "N").
+bool isLiteral(const std::wstring &bare)
+{
+	if (bare.size() < 2)
+		return false;
+
+	for (wchar_t c : bare) {
+		if (!((c >= L'a' && c <= L'z') || (c >= L'0' && c <= L'9') ||
+				c == L'-' || c == L'_'))
+			return false;
+	}
+
+	return true;
+}
+
+/// Shapes of a parameter list that still fit the arguments typed so far.
 ///
 /// A command may take more than one shape - "/teleport" accepts coordinates
 /// or a player, and either of them after a name - and the shapes are written
-/// one after another, divided by "|". So the same position can mean different
-/// things, and all of them are worth knowing about.
-std::vector<std::wstring> parametersAt(std::wstring_view params, u32 index)
+/// one after another, divided by "|". A shape whose fixed words disagree with
+/// what is typed is no longer what the player means.
+std::vector<std::vector<std::wstring>> formsFitting(std::wstring_view params,
+		const std::vector<std::wstring> &typed)
 {
-	std::vector<std::wstring> found;
+	std::vector<std::vector<std::wstring>> fitting;
 	size_t form_start = 0;
 
 	while (form_start <= params.size()) {
@@ -731,36 +770,62 @@ std::vector<std::wstring> parametersAt(std::wstring_view params, u32 index)
 		if (form_end == std::wstring::npos)
 			form_end = params.size();
 
-		std::wstring_view form = params.substr(form_start, form_end - form_start);
+		std::vector<std::wstring> form =
+				splitWords(params.substr(form_start, form_end - form_start));
+		form_start = form_end + 1;
 
-		u32 seen = 0;
-		size_t start = 0;
-
-		while (start < form.size()) {
-			while (start < form.size() && form[start] == L' ')
-				++start;
-
-			size_t end = form.find(L' ', start);
-			if (end == std::wstring::npos)
-				end = form.size();
-
-			if (start < end && ++seen == index) {
-				std::wstring word(form.substr(start, end - start));
-
-				if (!word.empty() && std::find(found.begin(), found.end(), word)
-						== found.end())
-					found.push_back(std::move(word));
-
+		bool fits = true;
+		for (size_t i = 0; i < typed.size() && i < form.size(); i++) {
+			const std::wstring bare = bareWord(form[i]);
+			if (isLiteral(bare) && !str_equal(std::wstring_view(bare),
+					std::wstring_view(typed[i]), true)) {
+				fits = false;
 				break;
 			}
-
-			start = end + 1;
 		}
 
-		form_start = form_end + 1;
+		if (fits && !form.empty())
+			fitting.push_back(std::move(form));
+	}
+
+	return fitting;
+}
+
+/// Words of the fitting shapes that describe the argument at the given
+/// position, counting from one
+std::vector<std::wstring> parametersAt(
+		const std::vector<std::vector<std::wstring>> &forms, u32 index)
+{
+	std::vector<std::wstring> found;
+
+	for (const std::vector<std::wstring> &form : forms) {
+		if (index > form.size())
+			continue;
+
+		const std::wstring &word = form[index - 1];
+		if (std::find(found.begin(), found.end(), word) == found.end())
+			found.push_back(word);
 	}
 
 	return found;
+}
+
+std::wstring joinForms(const std::vector<std::vector<std::wstring>> &forms)
+{
+	std::wstring joined;
+
+	for (const std::vector<std::wstring> &form : forms) {
+		if (!joined.empty())
+			joined += L" | ";
+
+		for (size_t i = 0; i < form.size(); i++) {
+			if (i > 0)
+				joined += L' ';
+			joined += form[i];
+		}
+	}
+
+	return joined;
 }
 
 /// Longest prefix shared by every candidate, starting from what is typed
@@ -788,6 +853,43 @@ std::wstring commonPrefix(const std::vector<std::wstring> &candidates,
 	return shortest;
 }
 
+struct CommandLine
+{
+	/// The deepest command typed in full: "td night" rather than "td"
+	const ChatPrompt::CommandInfo *command = nullptr;
+	/// Words after the command and before the one being typed
+	std::vector<std::wstring> arguments;
+	/// Words before the one being typed, without the slash
+	std::vector<std::wstring> words;
+};
+
+CommandLine parseCommandLine(std::wstring_view line, u32 token_start,
+		const std::vector<ChatPrompt::CommandInfo> &commands)
+{
+	CommandLine parsed;
+
+	if (token_start > 0)
+		parsed.words = splitWords(line.substr(1, token_start - 1));
+
+	for (size_t depth = parsed.words.size(); depth > 0 && !parsed.command; depth--) {
+		std::wstring name = parsed.words[0];
+		for (size_t i = 1; i < depth; i++)
+			name += L" " + parsed.words[i];
+
+		for (const ChatPrompt::CommandInfo &candidate : commands) {
+			if (str_equal(std::wstring_view(candidate.name),
+					std::wstring_view(name), true)) {
+				parsed.command = &candidate;
+				parsed.arguments.assign(parsed.words.begin() + depth,
+						parsed.words.end());
+				break;
+			}
+		}
+	}
+
+	return parsed;
+}
+
 } // namespace
 
 bool ChatPrompt::commandCompletion(const std::vector<CommandInfo> &commands,
@@ -798,76 +900,21 @@ bool ChatPrompt::commandCompletion(const std::vector<CommandInfo> &commands,
 	if (line.empty() || line[0] != L'/')
 		return false;
 
-	auto [token_start, token_end] = tokenAroundCursor(line, m_cursor);
-	const std::wstring typed(line.substr(token_start, token_end - token_start));
-	const u32 argument = argumentIndex(line, token_start);
+	updateSuggestions(commands, names);
 
-	std::vector<std::wstring> candidates;
+	const std::vector<std::wstring> candidates = m_suggestions.options;
+	const std::wstring typed = m_suggestions.typed;
+	const u32 token_start = m_suggestions.token_start;
+	const u32 token_end = token_start + typed.size();
+
 	std::wstring note;
-
-	if (argument == 0) {
-		// The command itself: "/tel" -> "/teleport"
-		const std::wstring prefix = typed.substr(1);
-
-		for (const CommandInfo &command : commands) {
-			if (str_starts_with(command.name, prefix, true))
-				candidates.push_back(L"/" + command.name);
-		}
-	} else {
-		// An argument: what it should be is written in the command's own
-		// parameter list, so that is what decides how to complete it
-		const std::wstring name = std::wstring(line.substr(1,
-				line.find(L' ') == std::wstring::npos
-					? line.size() - 1 : line.find(L' ') - 1));
-
-		const CommandInfo *command = nullptr;
-		for (const CommandInfo &candidate : commands) {
-			if (str_equal(candidate.name, name, true)) {
-				command = &candidate;
-				break;
-			}
-		}
-
-		if (!command)
-			return true;
-
-		const std::vector<std::wstring> wanted =
-				parametersAt(command->params, argument);
-
-		bool wants_player = false;
-		bool wants_command = false;
-
-		for (const std::wstring &word : wanted) {
-			std::wstring lowered = word;
-
-			for (wchar_t &c : lowered)
-				c = my_tolower(c);
-
-			wants_player |= lowered.find(L"player") != std::wstring::npos
-					|| lowered.find(L"name") != std::wstring::npos;
-			wants_command |= lowered.find(L"command") != std::wstring::npos;
-		}
-
-		if (wants_player) {
-			for (const std::string &player : names) {
-				std::wstring candidate = utf8_to_wide(player);
-				if (str_starts_with(candidate, typed, true))
-					candidates.push_back(candidate);
-			}
-		} else if (wants_command) {
-			for (const CommandInfo &entry : commands) {
-				if (str_starts_with(entry.name, typed, true))
-					candidates.push_back(entry.name);
-			}
-		}
-
-		if (candidates.empty() && !command->params.empty()) {
-			// Nothing to fill in, but the shape of the command is itself
-			// what the player is missing
-			note = L"/" + command->name + L" " + command->params;
-			if (!command->description.empty())
-				note += L" - " + command->description;
-		}
+	if (candidates.empty() && !m_suggestions.command.empty() &&
+			!m_suggestions.params.empty()) {
+		// Nothing to fill in, but the shape of the command is itself
+		// what the player is missing
+		note = L"/" + m_suggestions.command + L" " + m_suggestions.params;
+		if (!m_suggestions.description.empty())
+			note += L" - " + m_suggestions.description;
 	}
 
 	auto show = [&](const std::wstring &text) {
@@ -886,8 +933,6 @@ bool ChatPrompt::commandCompletion(const std::vector<CommandInfo> &commands,
 
 	if (candidates.empty())
 		return true;
-
-	std::sort(candidates.begin(), candidates.end());
 
 	std::wstring completion = commonPrefix(candidates, typed.size());
 
@@ -949,40 +994,74 @@ void ChatPrompt::updateSuggestions(const std::vector<CommandInfo> &commands,
 		return;
 	}
 
-	const u32 argument = argumentIndex(line, token_start);
+	// Option and its parameters, kept together through the sort
+	std::vector<std::pair<std::wstring, std::wstring>> offer;
 
-	if (argument == 0) {
+	auto finish = [&]() {
+		std::sort(offer.begin(), offer.end());
+		offer.erase(std::unique(offer.begin(), offer.end(),
+				[](const auto &a, const auto &b) { return a.first == b.first; }),
+				offer.end());
+
+		for (auto &[option, detail] : offer) {
+			m_suggestions.options.push_back(std::move(option));
+			m_suggestions.details.push_back(std::move(detail));
+		}
+
+		keepChoice(previous);
+	};
+
+	const CommandLine parsed = parseCommandLine(line, token_start, commands);
+
+	if (parsed.words.empty()) {
+		// The command itself: "/tel" -> "/teleport". Subcommands come once
+		// their command is typed, or "/td" would bury the list under its own
 		const std::wstring prefix = typed.substr(1);
 
 		for (const CommandInfo &command : commands) {
-			if (str_starts_with(command.name, prefix, true))
-				m_suggestions.options.push_back(L"/" + command.name);
+			if (command.name.find(L' ') == std::wstring::npos &&
+					str_starts_with(command.name, prefix, true))
+				offer.emplace_back(L"/" + command.name, command.params);
 		}
 
-		std::sort(m_suggestions.options.begin(), m_suggestions.options.end());
-		keepChoice(previous);
+		finish();
 		return;
 	}
 
-	const size_t first_space = line.find(L' ');
-	const std::wstring name(line.substr(1,
-			first_space == std::wstring::npos
-				? line.size() - 1 : first_space - 1));
+	if (!parsed.command)
+		return;
 
-	const CommandInfo *command = nullptr;
-	for (const CommandInfo &candidate : commands) {
-		if (str_equal(std::wstring_view(candidate.name),
-				std::wstring_view(name), true)) {
-			command = &candidate;
-			break;
+	const CommandInfo *command = parsed.command;
+	const u32 argument = parsed.arguments.size() + 1;
+	const std::vector<std::vector<std::wstring>> forms =
+			formsFitting(command->params, parsed.arguments);
+	const std::vector<std::wstring> wanted = parametersAt(forms, argument);
+
+	m_suggestions.command = command->name;
+	m_suggestions.params = forms.empty() ? command->params : joinForms(forms);
+	m_suggestions.description = command->description;
+	m_suggestions.argument = argument;
+
+	if (parsed.arguments.empty()) {
+		const std::wstring stem = command->name + L" ";
+
+		for (const CommandInfo &sub : commands) {
+			if (sub.name.size() <= stem.size() ||
+					!str_starts_with(sub.name, stem, true) ||
+					sub.name.find(L' ', stem.size()) != std::wstring::npos)
+				continue;
+
+			std::wstring word = sub.name.substr(stem.size());
+			if (str_starts_with(word, typed, true))
+				offer.emplace_back(std::move(word), sub.params);
 		}
 	}
 
-	if (!command)
-		return;
-
-	const std::vector<std::wstring> wanted =
-			parametersAt(command->params, argument);
+	for (const std::wstring &word : wanted) {
+		const std::wstring bare = bareWord(word);
+		if (isLiteral(bare) && str_starts_with(bare, typed, true))
+			offer.emplace_back(bare, L"");
+	}
 
 	bool wants_player = false;
 	bool wants_command = false;
@@ -1002,18 +1081,17 @@ void ChatPrompt::updateSuggestions(const std::vector<CommandInfo> &commands,
 		for (const std::string &player : names) {
 			std::wstring candidate = utf8_to_wide(player);
 			if (str_starts_with(candidate, typed, true))
-				m_suggestions.options.push_back(candidate);
+				offer.emplace_back(std::move(candidate), L"");
 		}
 	}
 
 	if (wants_command) {
 		for (const CommandInfo &entry : commands) {
-			if (str_starts_with(entry.name, typed, true))
-				m_suggestions.options.push_back(entry.name);
+			if (entry.name.find(L' ') == std::wstring::npos &&
+					str_starts_with(entry.name, typed, true))
+				offer.emplace_back(entry.name, entry.params);
 		}
 	}
-
-	std::sort(m_suggestions.options.begin(), m_suggestions.options.end());
 
 	// The shapes this position can take are shown whether or not any of them
 	// can be listed: a player may still mean to type coordinates.
@@ -1027,7 +1105,7 @@ void ChatPrompt::updateSuggestions(const std::vector<CommandInfo> &commands,
 	if (m_suggestions.hint.empty())
 		m_suggestions.hint = command->params;
 
-	keepChoice(previous);
+	finish();
 }
 
 void ChatPrompt::keepChoice(const Suggestions &previous)

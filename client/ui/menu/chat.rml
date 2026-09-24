@@ -14,6 +14,18 @@
 			</div>
 		</div>
 		<input type="text" id="draft" class="text draft" data-value="draft" data-attr-placeholder="placeholder"/>
+		<div class="ghost" data-if="open && ghost_fits"><span id="ghost-typed" class="typed">{{draft}}</span>{{ghost}}</div>
+		<div class="assist" data-if="open && (usage != '' || options.size > 0)">
+			<div class="usage" data-if="usage != ''" data-rml="usage"/>
+			<div class="about" data-if="about != ''">{{about}}</div>
+			<div class="options" data-if="options.size > 0">
+				<div data-for="option : options" class="option" data-class-chosen="option.chosen">
+					<span class="word">{{option.text}}</span>
+					<span class="detail" data-if="option.detail != ''">{{option.detail}}</span>
+				</div>
+				<div class="more" data-if="more > 0">+{{more}}</div>
+			</div>
+		</div>
 	</div>
 </body>
 </rml>

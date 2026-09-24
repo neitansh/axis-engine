@@ -162,3 +162,101 @@ input.draft:hover {
 input.draft:focus {
 	border-color: #A78BFA80;
 }
+
+/* Серое дописывание — копия поля поверх него: набранное прозрачно и лишь
+   занимает место, за ним то, что допишет Tab. Поля и шрифт — как у
+   input.draft, иначе текст разъедется. */
+
+.ghost {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	box-sizing: border-box;
+	height: 36dp;
+	line-height: 22dp;
+	padding: 8dp 13dp;
+	font-family: "Departure Mono";
+	font-size: 14dp;
+	color: #86868B;
+	white-space: pre;
+	pointer-events: none;
+}
+
+.ghost .typed {
+	color: #00000000;
+}
+
+/* Подсказки над полем, поверх истории: плотнее её подложки, чтобы строки
+   чата под ними не читались. */
+
+.assist {
+	position: absolute;
+	left: 0;
+	bottom: 42dp;
+	width: 100%;
+	padding: 6dp 0;
+	border-radius: 6dp;
+	background-color: #0D0D0FF0;
+	font-family: "Departure Mono";
+	font-size: 13dp;
+	line-height: 1.4;
+	color: #F5F5F7;
+}
+
+.assist .usage,
+.assist .about,
+.assist .option,
+.assist .more {
+	display: block;
+	padding: 1dp 12dp;
+}
+
+.assist .option {
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.assist .usage {
+	color: #A1A1A6;
+}
+
+.assist .usage .current {
+	color: #A78BFA;
+}
+
+.assist .usage .or {
+	color: #86868B;
+}
+
+.assist .about {
+	font-family: "Inter Variable";
+	color: #86868B;
+}
+
+.assist .options {
+	display: block;
+	margin-top: 4dp;
+}
+
+.assist .usage + .options,
+.assist .about + .options {
+	padding-top: 4dp;
+	border-top: 1dp #FFFFFF14;
+}
+
+.assist .option .detail {
+	margin-left: 8dp;
+	color: #86868B;
+}
+
+.assist .option.chosen {
+	background-color: #A78BFA26;
+}
+
+.assist .option.chosen .word {
+	color: #A78BFA;
+}
+
+.assist .more {
+	color: #86868B;
+}

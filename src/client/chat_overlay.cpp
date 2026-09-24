@@ -111,6 +111,49 @@ static std::string toRml(const EnrichedString &text)
 	return out;
 }
 
+// «/td night start [<сложность>] | dawn | speed <N>»: у каждой формы слово
+// на месте набираемого аргумента — span.current.
+static std::string usageRml(const ChatPrompt::Suggestions &offer)
+{
+	std::string out = "/";
+	appendEscaped(out, offer.command);
+	const std::wstring &params = offer.params;
+	size_t form_start = 0;
+	bool first_form = true;
+	while (form_start <= params.size()) {
+		size_t form_end = params.find(L'|', form_start);
+		if (form_end == std::wstring::npos)
+			form_end = params.size();
+		const std::wstring form = params.substr(form_start, form_end - form_start);
+		form_start = form_end + 1;
+
+		// Пробел — внутри span: текст из одних пробелов между тегами парсер
+		// RmlUi выбрасывает.
+		if (!first_form)
+			out += "<span class=\"or\"> |</span>";
+		first_form = false;
+
+		u32 index = 0;
+		size_t start = 0;
+		while (start < form.size()) {
+			while (start < form.size() && form[start] == L' ')
+				++start;
+			size_t end = form.find(L' ', start);
+			if (end == std::wstring::npos)
+				end = form.size();
+			if (start < end) {
+				const bool current = ++index == offer.argument;
+				out += current ? "<span class=\"current\"> " : " ";
+				appendEscaped(out, form.substr(start, end - start));
+				if (current)
+					out += "</span>";
+			}
+			start = end + 1;
+		}
+	}
+	return out;
+}
+
 void ChatOverlay::LinkListener::ProcessEvent(Rml::Event &event)
 {
 	Rml::Element *target = event.GetTargetElement();
@@ -179,6 +222,18 @@ void ChatOverlay::loadDocument()
 		line.RegisterMember("gone", &Line::gone);
 	}
 	model.RegisterArray<std::vector<Line>>();
+	if (auto option = model.RegisterStruct<Option>()) {
+		option.RegisterMember("text", &Option::text);
+		option.RegisterMember("detail", &Option::detail);
+		option.RegisterMember("chosen", &Option::chosen);
+	}
+	model.RegisterArray<std::vector<Option>>();
+	model.Bind("options", &m_options);
+	model.Bind("more", &m_more);
+	model.Bind("ghost", &m_ghost);
+	model.Bind("ghost_fits", &m_ghost_fits);
+	model.Bind("usage", &m_usage);
+	model.Bind("about", &m_about);
 	model.Bind("lines", &m_lines);
 	model.Bind("draft", &m_draft);
 	model.Bind("placeholder", &m_placeholder);
@@ -309,7 +364,22 @@ void ChatOverlay::step(f32 dtime)
 		m_model.DirtyVariable("none");
 	}
 
+	refreshSuggestions();
+
 	m_host.update(*m_context);
+
+	// Серое дописывание лежит поверх поля и не знает его прокрутки: когда
+	// набранное длиннее поля, оно легло бы не туда.
+	if (m_open) {
+		Rml::Element *draft = draftElement();
+		Rml::Element *typed = m_document->GetElementById("ghost-typed");
+		const bool fits = !draft || !typed ||
+				typed->GetOffsetWidth() + 24.0f < draft->GetClientWidth();
+		if (fits != m_ghost_fits) {
+			m_ghost_fits = fits;
+			m_model.DirtyVariable("ghost_fits");
+		}
+	}
 
 	if (m_focus_pending) {
 		if (Rml::Element *draft = draftElement()) {
@@ -375,21 +445,132 @@ void ChatOverlay::send()
 	m_client->typeChatMessage(line);
 }
 
-// Дополнение — то же, что в консоли: сперва то, что уже предложено, иначе
-// команда или её аргумент, иначе имя игрока.
+std::vector<ChatPrompt::CommandInfo> ChatOverlay::commandInfos() const
+{
+	// Подписи встроенных команд приходят с кодами перевода (S() в builtin).
+	std::vector<ChatPrompt::CommandInfo> commands;
+	for (const auto &command : m_client->getChatCommands()) {
+		commands.push_back({utf8_to_wide(command.name),
+				unescape_translate(utf8_to_wide(command.params)),
+				unescape_translate(utf8_to_wide(command.description))});
+	}
+	return commands;
+}
+
+// Подсказки считаются от конца строки: курсор в середине — правка уже
+// набранного, предлагать там нечего.
+bool ChatOverlay::cursorAtEnd() const
+{
+	auto *input = rmlui_dynamic_cast<Rml::ElementFormControlInput *>(draftElement());
+	if (!input)
+		return true;
+	int start = 0, end = 0;
+	input->GetSelection(&start, &end, nullptr);
+	return start == end && static_cast<size_t>(end) >= input->GetValue().size();
+}
+
+void ChatOverlay::refreshSuggestions()
+{
+	std::vector<Option> options;
+	int more = 0;
+	Rml::String ghost, usage, about;
+
+	if (m_open && !m_draft.empty() && cursorAtEnd()) {
+		ChatPrompt &prompt = m_backend->getPrompt();
+		prompt.replace(utf8_to_wide(m_draft));
+		prompt.updateSuggestions(commandInfos(), m_client->getConnectedPlayerNames());
+		const ChatPrompt::Suggestions &offer = prompt.getSuggestions();
+
+		// Окно списка идёт за выбором, как в консоли.
+		const size_t shown_max = 6;
+		const size_t count = offer.options.size();
+		const size_t shown = std::min(shown_max, count);
+		size_t first = offer.chosen >= shown ? offer.chosen - shown + 1 : 0;
+		if (first + shown > count)
+			first = count - shown;
+		if (count > 1 || (count == 1 && !str_equal(offer.options[0], offer.typed, true))) {
+			for (size_t i = first; i < first + shown; i++) {
+				Option option;
+				std::wstring text = offer.options[i];
+				if (!text.empty() && text[0] == L'/')
+					text.erase(0, 1);
+				option.text = wide_to_utf8(text);
+				if (i < offer.details.size())
+					option.detail = wide_to_utf8(offer.details[i]);
+				option.chosen = i == offer.chosen;
+				options.push_back(std::move(option));
+			}
+			more = static_cast<int>(count - shown);
+		}
+
+		std::wstring rest;
+		if (count > 0) {
+			const std::wstring &chosen = offer.options[offer.chosen];
+			if (chosen.size() > offer.typed.size() &&
+					str_starts_with(chosen, offer.typed, true))
+				rest = chosen.substr(offer.typed.size());
+		} else if (offer.typed.empty()) {
+			rest = offer.hint;
+		}
+		ghost = wide_to_utf8(rest);
+
+		if (!offer.command.empty()) {
+			usage = usageRml(offer);
+			about = wide_to_utf8(offer.description);
+		} else if (count > 0 && offer.chosen < offer.details.size() &&
+				m_draft[0] == '/' && m_draft.find(' ') == Rml::String::npos) {
+			// Ещё набирается сама команда: её форма — у выбранной.
+			ChatPrompt::Suggestions chosen;
+			chosen.command = offer.options[offer.chosen].substr(1);
+			chosen.params = offer.details[offer.chosen];
+			usage = usageRml(chosen);
+			for (const ChatPrompt::CommandInfo &command : commandInfos()) {
+				if (command.name == chosen.command) {
+					about = wide_to_utf8(command.description);
+					break;
+				}
+			}
+		}
+	}
+
+	if (!(options == m_options)) {
+		m_options = std::move(options);
+		m_model.DirtyVariable("options");
+	}
+	if (more != m_more) {
+		m_more = more;
+		m_model.DirtyVariable("more");
+	}
+	if (ghost != m_ghost) {
+		m_ghost = ghost;
+		m_model.DirtyVariable("ghost");
+	}
+	if (usage != m_usage) {
+		m_usage = usage;
+		m_model.DirtyVariable("usage");
+	}
+	if (about != m_about) {
+		m_about = about;
+		m_model.DirtyVariable("about");
+	}
+}
+
+// Дополнение — то же, что в консоли: сперва то, что предложено, иначе
+// команда или её аргумент, иначе имя игрока. Дописанное слово в конце
+// строки получает пробел: сразу видно, что ждёт следующий аргумент.
 void ChatOverlay::completeDraft()
 {
 	ChatPrompt &prompt = m_backend->getPrompt();
+	const std::vector<ChatPrompt::CommandInfo> commands = commandInfos();
+	const auto &names = m_client->getConnectedPlayerNames();
 	prompt.replace(utf8_to_wide(m_draft));
-	if (!prompt.applySuggestion()) {
-		std::vector<ChatPrompt::CommandInfo> commands;
-		for (const auto &command : m_client->getChatCommands()) {
-			commands.push_back({utf8_to_wide(command.name), utf8_to_wide(command.params),
-					utf8_to_wide(command.description)});
-		}
-		const auto &names = m_client->getConnectedPlayerNames();
-		if (!prompt.commandCompletion(commands, names))
-			prompt.nickCompletion(names);
+	prompt.updateSuggestions(commands, names);
+	if (prompt.applySuggestion()) {
+		const std::wstring line = prompt.getLine();
+		if (!line.empty() && line.back() != L' ' && line[0] == L'/')
+			prompt.input(L' ');
+	} else if (!prompt.commandCompletion(commands, names)) {
+		prompt.nickCompletion(names);
 	}
 	setDraft(prompt.getLine());
 }
@@ -411,15 +592,20 @@ bool ChatOverlay::OnEvent(const SEvent &event)
 			send();
 			return true;
 		case KEY_UP:
+		case KEY_DOWN: {
+			const bool up = event.KeyInput.Key == KEY_UP;
+			if (m_options.size() > 1) {
+				prompt.cycleSuggestion(up ? -1 : 1);
+				return true;
+			}
 			prompt.replace(utf8_to_wide(m_draft));
-			prompt.historyPrev();
+			if (up)
+				prompt.historyPrev();
+			else
+				prompt.historyNext();
 			setDraft(prompt.getLine());
 			return true;
-		case KEY_DOWN:
-			prompt.replace(utf8_to_wide(m_draft));
-			prompt.historyNext();
-			setDraft(prompt.getLine());
-			return true;
+		}
 		case KEY_TAB:
 			completeDraft();
 			return true;

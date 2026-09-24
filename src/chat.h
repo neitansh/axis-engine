@@ -246,6 +246,16 @@ public:
 		std::wstring hint;
 		/// Where the token being completed starts, for redrawing it
 		u32 token_start = 0;
+		/// Parameters of each option that is itself a command or a
+		/// subcommand, empty for the rest; runs alongside options
+		std::vector<std::wstring> details;
+		/// The command typed in full, subcommand included ("td night"),
+		/// with the shapes of its parameters that still fit what is typed
+		std::wstring command;
+		std::wstring params;
+		std::wstring description;
+		/// Which of its arguments is being typed, counting from one
+		u32 argument = 0;
 
 		bool empty() const { return options.empty() && hint.empty(); }
 	};

@@ -12483,6 +12483,14 @@ description fields is shown when the "/help" chatcommand is issued.
     -- Required privileges to run. See `core.check_player_privs()` for
     -- the format and see [Privileges] for an overview of privileges.
 
+    subcommands = nil,
+    -- Optional. `{[word] = {params = "", description = ""}}`: what the first
+    -- argument may be, each with its own parameters. Only for completion
+    -- in the chat: the client offers the words and, once one is typed, its
+    -- parameters and description. `func` still receives the whole line.
+    -- Read when the command list is sent to a player (on join and on a
+    -- change of privileges), so it may be filled after registration.
+
     func = function(name, param),
     -- Called when command is run.
     -- * `name` is the name of the player who issued the command.
@@ -12504,6 +12512,12 @@ Note that in params, the conventional use of symbols is as follows:
   provided. For example: `<param1> | <param2>`
 * `()` signifies grouping. For example, when param1 and param2 are both
   required, or only param3 is required: `(<param1> <param2>) | <param3>`
+
+The chat completes by these params. Each `|` starts a whole new shape of the
+command, from its first argument: `start [<level>] | dawn | speed <N>` is three
+shapes, and once `speed` is typed only the last one is shown. A word of two or
+more lowercase letters, digits, `-` or `_` outside `<>` (`start`, `-t`) is
+typed as written and offered as a completion; anything else is a placeholder.
 
 Example:
 

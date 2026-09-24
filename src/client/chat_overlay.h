@@ -74,6 +74,20 @@ private:
 		f32 age = 0.0f;
 	};
 
+	// Что можно набрать дальше: команда, подкоманда, аргумент, игрок.
+	struct Option
+	{
+		Rml::String text;
+		Rml::String detail;
+		bool chosen = false;
+
+		bool operator==(const Option &other) const
+		{
+			return text == other.text && detail == other.detail &&
+					chosen == other.chosen;
+		}
+	};
+
 	// Клик по ссылке в строке: с Ctrl открывает её в браузере.
 	class LinkListener : public Rml::EventListener
 	{
@@ -87,6 +101,9 @@ private:
 	void send();
 	void setDraft(const std::wstring &text);
 	void completeDraft();
+	std::vector<ChatPrompt::CommandInfo> commandInfos() const;
+	bool cursorAtEnd() const;
+	void refreshSuggestions();
 	void scrollHistory(float rows);
 	void scrollToBottom();
 	Rml::Element *draftElement() const;
@@ -106,6 +123,12 @@ private:
 	std::vector<Line> m_lines;
 	Rml::String m_draft;
 	Rml::String m_placeholder;
+	std::vector<Option> m_options;
+	int m_more = 0;
+	Rml::String m_ghost;
+	Rml::String m_usage;
+	Rml::String m_about;
+	bool m_ghost_fits = true;
 	bool m_open = false;
 	bool m_visible = true;
 	// Свёрнутым нечего показать: подложка прячется; нет ни строки — и

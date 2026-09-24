@@ -1335,6 +1335,13 @@ local function commands_for(name)
 				params = def.params or "",
 				description = def.description or "",
 			}
+			for sub, sub_def in pairs(def.subcommands or {}) do
+				commands[#commands + 1] = {
+					name = command .. " " .. sub,
+					params = sub_def.params or "",
+					description = sub_def.description or "",
+				}
+			end
 		end
 	end
 
