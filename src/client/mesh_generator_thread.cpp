@@ -262,7 +262,7 @@ MeshUpdateWorkerThread::MeshUpdateWorkerThread(Client *client, MeshUpdateQueue *
 void MeshUpdateWorkerThread::doUpdate()
 {
 	QueuedMeshUpdate *q;
-	while ((q = m_queue_in->pop())) {
+	while (!stopRequested() && (q = m_queue_in->pop())) {
 		ScopeProfiler sp(g_profiler, "Client: Mesh making (sum)");
 
 		// This generates the mesh:
@@ -393,6 +393,7 @@ void MeshUpdateManager::start()
 {
 	for (auto &thread: m_workers)
 		thread->start();
+	deferUpdate();
 }
 
 void MeshUpdateManager::stop()

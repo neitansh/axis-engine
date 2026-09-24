@@ -2692,6 +2692,11 @@ void Client::rebuildNodeVisuals()
 
 	infostream << "Client: rebuilding node visuals" << std::endl;
 
+	// Потоки мешей читают визуалы нод без замка, а между detachVisuals и
+	// концом fillNodeVisuals их у нод нет вовсе
+	m_mesh_update_manager->stop();
+	m_mesh_update_manager->wait();
+
 	// Меши, которые сейчас на экране, построены по прежним визуалам и ссылаются
 	// внутрь них, поэтому те доживают до выхода из мира, а не умирают здесь.
 	// Тот же приём, что и при смене сессии, см. applyPendingContent().
@@ -2701,6 +2706,8 @@ void Client::rebuildNodeVisuals()
 	tu_args.last_time_ms = porting::getTimeMs();
 	tu_args.text_base = wstrgettext("Initializing nodes");
 	NodeVisuals::fillNodeVisuals(m_nodedef, this, &tu_args);
+
+	m_mesh_update_manager->start();
 
 	// Старые меши ещё описывают листву так, как её рисовали до переключения
 	rebuildAllMeshes();
