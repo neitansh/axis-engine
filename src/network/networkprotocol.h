@@ -509,6 +509,8 @@ enum ToClientCommand : u16
 	/*
 		u8 allowed_camera_mode
 		u8 look_locked (необязательно: старый сервер его не шлёт)
+		u8 device_keys (необязательно): при запертом взгляде доходят
+			действия и цифры полосы, а не ничего
 	*/
 
 	TOCLIENT_HUDADD = 0x49,

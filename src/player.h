@@ -102,6 +102,10 @@ struct PlayerControl
 	bool dig = false;
 	bool place = false;
 	bool sprint = false;
+	// Зажатая клавиша ячейки полосы, 1–9; 0 — ни одной. Только пока игрок
+	// работает с устройством (`set_camera` с `keys = "device"`): тогда цифры
+	// не меняют предмет в руке, а приходят серверу этим полем.
+	u8 hotbar = 0;
 	// Note: These two are NOT available on the server
 	float pitch = 0.0f;
 	float yaw = 0.0f;
@@ -203,6 +207,10 @@ public:
 	// Взгляд заперт: мышь и клавиши взгляда не крутят камеру, куда смотреть —
 	// решает сервер (set_look_*). Для сцен, где камеру ведёт игра.
 	bool look_locked = false;
+	// Пока взгляд заперт, игрок работает с устройством: ход не идёт, но
+	// прыжок, «использовать», присесть, кнопки мыши и цифры полосы
+	// (PlayerControl::hotbar) доходят до сервера. Без него замок гасит всё.
+	bool device_keys = false;
 
 	v3f eye_offset_first;
 	v3f eye_offset_third;

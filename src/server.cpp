@@ -2365,6 +2365,7 @@ void Server::SendCamera(session_t peer_id, Player *player)
 
 	pkt << static_cast<u8>(player->allowed_camera_mode);
 	pkt << static_cast<u8>(player->look_locked ? 1 : 0);
+	pkt << static_cast<u8>(player->device_keys ? 1 : 0);
 
 	Send(&pkt);
 }

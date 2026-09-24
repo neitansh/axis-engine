@@ -9567,6 +9567,9 @@ You **must not** mix names and track numbers to refer to the same animation.
       reports it; what reloading means is up to the game.
     * The fields `LMB` and `RMB` are equal to `dig` and `place` respectively,
       and exist only to preserve backwards compatibility.
+    * `hotbar` is the hotbar number key held down, 1–9, or 0 for none. It is
+      reported only while the player works a device (`set_camera` with
+      `keys = "device"`); otherwise number keys just change the wielded item.
     * The table also contains the fields `movement_x` and `movement_y`.
         * They represent the movement of the player. Values are numbers in the
           range [-1.0, +1.0].
@@ -9957,7 +9960,14 @@ You **must not** mix names and track numbers to refer to the same animation.
         keys to the server. For scenes the game drives: cutscenes, a camera
         on rails, a player in a monster's grip. The player still sees the
         look the server sets, without the jitter of fighting the mouse.
-    * Supported by clients since 5.12.0; `look` — Axis only, older clients ignore it.
+    * `keys`: what still reaches the server while the look is locked
+      - `none`: nothing (default)
+      - `device`: the player is working a device — a computer, a lever.
+        Movement stays blocked, but `jump`, `aux1`, `sneak`, `dig` and
+        `place` pass, and the hotbar number keys no longer change the
+        wielded item: the held one comes as `hotbar` in
+        `get_player_control()`.
+    * Supported by clients since 5.12.0; `look` and `keys` — Axis only, older clients ignore them.
 * `get_camera()`: Returns the camera parameters as a table as above.
 * `send_mapblock(blockpos)`:
     * Sends an already loaded mapblock to the player.

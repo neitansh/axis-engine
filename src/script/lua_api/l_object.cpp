@@ -772,6 +772,7 @@ int ObjectRef::l_set_camera(lua_State *L)
 	{
 		player->allowed_camera_mode = CAMERA_MODE_ANY;
 		player->look_locked = false;
+		player->device_keys = false;
 	}
 	else
 	{
@@ -787,6 +788,11 @@ int ObjectRef::l_set_camera(lua_State *L)
 			std::string look = lua_tostring(L, -1);
 			player->look_locked = look == "locked";
 		}
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "keys");
+		if (lua_isstring(L, -1))
+			player->device_keys = std::string(lua_tostring(L, -1)) == "device";
 		lua_pop(L, 1);
 	}
 
@@ -805,6 +811,7 @@ int ObjectRef::l_get_camera(lua_State *L)
 	lua_newtable(L);
 	setstringfield(L, -1, "mode", enum_to_string(es_CameraMode, player->allowed_camera_mode));
 	setstringfield(L, -1, "look", player->look_locked ? "locked" : "free");
+	setstringfield(L, -1, "keys", player->device_keys ? "device" : "none");
 
 	return 1;
 }
@@ -2050,6 +2057,8 @@ int ObjectRef::l_get_player_control(lua_State *L)
 	lua_setfield(L, -2, "dig");
 	lua_pushboolean(L, control.place);
 	lua_setfield(L, -2, "place");
+	lua_pushinteger(L, control.hotbar);
+	lua_setfield(L, -2, "hotbar");
 
 	v2f movement = control.getMovement();
 	lua_pushnumber(L, movement.X);

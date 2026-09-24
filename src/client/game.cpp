@@ -2445,6 +2445,10 @@ void Game::processItemSelection(u16 *new_playeritem)
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
 
 	*new_playeritem = player->getWieldIndex();
+	// За устройством цифры полосы — его клавиши (PlayerControl::hotbar), а не
+	// смена предмета в руке.
+	if (player->look_locked && player->device_keys)
+		return;
 	u16 max_item = player->getMaxHotbarItemcount();
 	if (max_item == 0)
 		return;
@@ -3102,12 +3106,29 @@ void Game::updatePlayerControl(const CameraOrientation &cam)
 	// клавиши хода не уходят ни в физику клиента, ни в пакет серверу. Одного
 	// серверного «скорость ноль» мало: клавиши всё равно доезжают до сервера
 	// и до всего, что на них смотрит, а сцене они не нужны вовсе.
+	//
+	// За устройством (device_keys) ход так же не идёт, но действия — прыжок,
+	// «использовать», присесть, кнопки мыши — и зажатая цифра полосы доходят:
+	// ими устройством и управляют.
 	if (player->look_locked)
 	{
-		const float pitch = control.pitch, yaw = control.yaw;
-		control = PlayerControl();
-		control.pitch = pitch;
-		control.yaw = yaw;
+		PlayerControl locked;
+		locked.pitch = control.pitch;
+		locked.yaw = control.yaw;
+		if (player->device_keys) {
+			locked.jump = control.jump;
+			locked.aux1 = control.aux1;
+			locked.sneak = control.sneak;
+			locked.dig = control.dig;
+			locked.place = control.place;
+			for (u8 i = 0; i < 9; i++) {
+				if (isKeyDown((GameKeyType)(KeyType::SLOT_1 + i))) {
+					locked.hotbar = i + 1;
+					break;
+				}
+			}
+		}
+		control = locked;
 	}
 
 	client->setPlayerControl(control);
