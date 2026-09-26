@@ -73,8 +73,8 @@ VARYING_ vec3 varNightPart;
 #endif
 
 VARYING_ highp float eyeDist;
-// Color of the light emitted by the light sources.
-const vec3 artificialLight = vec3(1.04, 1.04, 1.04);
+// Color of the light emitted by the light sources (set_lighting artificial_light).
+uniform vec3 artificialLight;
 
 #ifdef ENABLE_DYNAMIC_SHADOWS
 

@@ -2355,6 +2355,7 @@ void Server::SendSetLighting(session_t peer_id, const Lighting &lighting)
 	pkt << lighting.grade_shadows << lighting.grade_highlights;
 	pkt << lighting.lens.grain << lighting.lens.chromatic << lighting.lens.pulse
 		<< lighting.lens.blind << lighting.lens_fade;
+	pkt << lighting.artificial_light << lighting.artificial_light_strength;
 
 	Send(&pkt);
 }

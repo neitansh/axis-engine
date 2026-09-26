@@ -3294,6 +3294,17 @@ int ObjectRef::l_set_lighting(lua_State *L)
 			lua_pop(L, 1); // highlights
 		}
 		lua_pop(L, 1); // grade
+
+		lua_getfield(L, 2, "artificial_light");
+		if (lua_istable(L, -1))
+		{
+			lua_getfield(L, -1, "color");
+			read_color(L, -1, &lighting.artificial_light);
+			lua_pop(L, 1); // color
+			lighting.artificial_light_strength = rangelim(getfloatfield_default(L, -1,
+					"strength", lighting.artificial_light_strength), 0.0f, 4.0f);
+		}
+		lua_pop(L, 1); // artificial_light
 	}
 
 	getServer(L)->setLighting(player, lighting);
@@ -3364,6 +3375,12 @@ int ObjectRef::l_get_lighting(lua_State *L)
 	push_ARGB8(L, lighting.grade_highlights);
 	lua_setfield(L, -2, "highlights");
 	lua_setfield(L, -2, "grade");
+	lua_newtable(L); // "artificial_light"
+	push_ARGB8(L, lighting.artificial_light);
+	lua_setfield(L, -2, "color");
+	lua_pushnumber(L, lighting.artificial_light_strength);
+	lua_setfield(L, -2, "strength");
+	lua_setfield(L, -2, "artificial_light");
 	lua_newtable(L); // "bloom"
 	lua_pushnumber(L, lighting.bloom_intensity);
 	lua_setfield(L, -2, "intensity");

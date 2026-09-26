@@ -2069,6 +2069,11 @@ void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 		*pkt >> lighting.grade_shadows >> lighting.grade_highlights;
 		*pkt >> lighting.lens.grain >> lighting.lens.chromatic >> lighting.lens.pulse
 				>> lighting.lens.blind >> lighting.lens_fade;
+
+		if (!pkt->hasRemainingBytes())
+			break;
+		// Axis: цвет света ламп
+		*pkt >> lighting.artificial_light >> lighting.artificial_light_strength;
 	} while (0);
 	player->lens.aim(lighting.lens, lighting.lens_fade);
 }

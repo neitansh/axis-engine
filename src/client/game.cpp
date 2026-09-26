@@ -214,6 +214,8 @@ class GameGlobalShaderUniformSetter : public IShaderUniformSetter
 	int m_crack_texture_scale_i = 0;
 	CachedPixelShaderSetting<float> m_crack_texture_scale{"crackTextureScale"};
 	CachedPixelShaderSetting<float, 3> m_day_light{"dayLight"};
+	CachedVertexShaderSetting<float, 3> m_artificial_light_vertex{"artificialLight"};
+	CachedPixelShaderSetting<float, 3> m_artificial_light_pixel{"artificialLight"};
 	CachedPixelShaderSetting<float, 3> m_camera_offset_pixel{"cameraOffset"};
 	CachedVertexShaderSetting<float, 3> m_camera_offset_vertex{"cameraOffset"};
 	CachedPixelShaderSetting<float, 3> m_camera_position_pixel{"cameraPosition"};
@@ -444,6 +446,14 @@ public:
 		m_blind_pixel.set(&lens.blind, services);
 		m_grade_shadows_pixel.set(video::SColorf(lighting.grade_shadows), services);
 		m_grade_highlights_pixel.set(video::SColorf(lighting.grade_highlights), services);
+		video::SColorf lamps(lighting.artificial_light);
+		float lamps_rgb[3] = {
+			lamps.r * lighting.artificial_light_strength,
+			lamps.g * lighting.artificial_light_strength,
+			lamps.b * lighting.artificial_light_strength,
+		};
+		m_artificial_light_vertex.set(lamps_rgb, services);
+		m_artificial_light_pixel.set(lamps_rgb, services);
 
 		const auto &eyelids = m_client->getEnv().getLocalPlayer()->eyelids;
 		float eyelids_closed = eyelids.closed;

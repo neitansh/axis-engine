@@ -10047,6 +10047,13 @@ You **must not** mix names and track numbers to refer to the same animation.
           parts; the tint keeps the brightness, alpha is the strength
           (default: transparent, no tint). E.g. cold nights and warm lamps:
           `{shadows = "#3A5FB070", highlights = "#FFB36A50"}`.
+      * `artificial_light` (Axis only) is a table for the colour of the light
+        that light-emitting nodes give (the part of a surface's light that
+        does not come from the sky). Needs shaders on the client.
+        * `color`: ColorSpec (default white).
+        * `strength`: multiplier, 0..4 (default `1.04`, the value shaders
+          used to hard-code). E.g. tungsten lamps:
+          `{color = "#FFB878", strength = 1.25}`.
       * `bloom` is a table that controls bloom.
         * This has no effect on clients with protocol version < 46 or clients who
           have the "Bloom" effect disabled.

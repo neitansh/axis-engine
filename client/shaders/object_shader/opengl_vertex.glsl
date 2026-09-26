@@ -49,8 +49,8 @@ VARYING_ vec3 varTint;
 // same quantity and not two effects layered on each other.
 VARYING_ vec3 varDayPart;
 VARYING_ vec3 varNightPart;
-// Color of the light emitted by the light sources.
-const vec3 artificialLight = vec3(1.04, 1.04, 1.04);
+// Color of the light emitted by the light sources (set_lighting artificial_light).
+uniform vec3 artificialLight;
 VARYING_ float vIDiff;
 
 #ifdef USE_SKINNING

@@ -591,7 +591,7 @@ float dynamicLightLevel(vec3 surface_pos, vec3 normal)
 	return level;
 }
 
-const vec3 artificialLight = vec3(1.04, 1.04, 1.04);
+uniform vec3 artificialLight;
 
 // Rebuilds the fragment colour the way the vertex shader does, with the
 // artificial part raised to whatever the dynamic sources contribute.
