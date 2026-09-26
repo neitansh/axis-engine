@@ -164,7 +164,7 @@ public:
 	void putResult(MeshUpdateResult &&r);
 
 	/// Перечитывает настройки построения мешей, см. MeshUpdateQueue::readSettings()
-	void readSettings() { m_queue_in.readSettings(); }
+	void readSettings();
 
 	/// @note caller needs to refDrop() the affected map_blocks
 	bool getNextResult(MeshUpdateResult &r);
@@ -186,6 +186,10 @@ private:
 	MeshUpdateQueue m_queue_in;
 	ResultQueue m_queue_out;
 	ResultQueue m_queue_out_urgent;
+
+	// Сглаженный свет берёт соседей по рёбрам и углам, и перестраивать при
+	// правке блока надо все 26 соседних, а не 6
+	bool m_many_neighbors = false;
 
 	std::vector<std::unique_ptr<MeshUpdateWorkerThread>> m_workers;
 };

@@ -309,21 +309,27 @@ MeshUpdateManager::MeshUpdateManager(Client *client):
 
 	for (int i = 0; i < number_of_threads; i++)
 		m_workers.push_back(std::make_unique<MeshUpdateWorkerThread>(client, &m_queue_in, this));
+
+	readSettings();
+}
+
+void MeshUpdateManager::readSettings()
+{
+	m_queue_in.readSettings();
+	m_many_neighbors = g_settings->getBool("smooth_lighting")
+			&& !g_settings->getFlag("performance_tradeoffs");
 }
 
 void MeshUpdateManager::updateBlock(Map *map, v3s16 p, bool ack_block_to_server,
 		bool urgent, bool update_neighbors)
 {
-	static thread_local const bool many_neighbors =
-			g_settings->getBool("smooth_lighting")
-			&& !g_settings->getFlag("performance_tradeoffs");
 	if (!m_queue_in.addBlock(map, p, ack_block_to_server, urgent, false)) {
 		warningstream << "Update requested for non-existent block at "
 				<< p << std::endl;
 		return;
 	}
 	if (update_neighbors) {
-		if (many_neighbors) {
+		if (m_many_neighbors) {
 			for (v3s16 dp : g_26dirs)
 				m_queue_in.addBlock(map, p + dp, false, urgent, true);
 		} else {
