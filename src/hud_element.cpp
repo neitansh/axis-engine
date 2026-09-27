@@ -53,5 +53,6 @@ const struct EnumString es_HudBuiltinElement[] =
 	{HUD_FLAG_BASIC_DEBUG,           "basic_debug"},
 	{HUD_FLAG_CHAT_VISIBLE,          "chat"},
 	{HUD_FLAG_HOTBAR_COMPACT,        "hotbar_compact"},
+	{HUD_FLAG_NODE_OUTLINE_VISIBLE,  "node_outline"},
 	{0, NULL},
 };

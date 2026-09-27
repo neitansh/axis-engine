@@ -9683,6 +9683,10 @@ You **must not** mix names and track numbers to refer to the same animation.
           cell with the selected item, both stretched over the whole cell;
           the item is drawn inside with a small margin. Off by default.
           Axis only.
+        * `node_outline`: the selection box around the pointed node. Off,
+          nodes are still pointed and clicked, only the box is not drawn
+          (like the `no_outline` group, for every node). Entities keep
+          theirs. On by default. Axis only.
     * If a flag equals `nil`, the flag is not modified
 * `hud_get_flags()`: returns a table of player HUD flags with boolean values.
     * See `hud_set_flags` for a list of flags that can be toggled.

@@ -1736,7 +1736,7 @@ void Game::dropSessionHud()
 			HUD_FLAG_CROSSHAIR_VISIBLE | HUD_FLAG_WIELDITEM_VISIBLE |
 			HUD_FLAG_BREATHBAR_VISIBLE | HUD_FLAG_MINIMAP_VISIBLE |
 			HUD_FLAG_MINIMAP_RADAR_VISIBLE | HUD_FLAG_BASIC_DEBUG |
-			HUD_FLAG_CHAT_VISIBLE;
+			HUD_FLAG_CHAT_VISIBLE | HUD_FLAG_NODE_OUTLINE_VISIBLE;
 	player->hud_hotbar_itemcount = HUD_HOTBAR_ITEMCOUNT_DEFAULT;
 }
 
@@ -3997,10 +3997,12 @@ PointedThing Game::updatePointedThing(
 	{
 		// Update selection boxes. Нода в группе no_outline наводится как
 		// обычно — загораживает и принимает клики, — но без обводки: мебель,
-		// которую игрок и не собирается трогать.
+		// которую игрок и не собирается трогать. Флаг node_outline то же
+		// самое для всех нод разом.
 		MapNode n = map.getNode(result.node_undersurface);
 		std::vector<aabb3f> boxes;
-		if (itemgroup_get(nodedef->get(n).groups, "no_outline") == 0)
+		bool outline = client->getEnv().getLocalPlayer()->hud_flags & HUD_FLAG_NODE_OUTLINE_VISIBLE;
+		if (outline && itemgroup_get(nodedef->get(n).groups, "no_outline") == 0)
 			n.getSelectionBoxes(nodedef, &boxes,
 								n.getNeighbors(result.node_undersurface, &map));
 
