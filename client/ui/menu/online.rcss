@@ -238,6 +238,115 @@
 	padding: 0 28dp;
 }
 
+/* Крейты — первый шаг матчей, карточки как в одиночной игре, только ниже:
+   рядом колонка подключения */
+
+.crate-cards {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	padding: 4dp 2dp;
+}
+
+.crate-card {
+	display: flex;
+	flex-direction: column;
+	width: 260dp;
+	height: 330dp;
+	margin: 0 16dp 16dp 0;
+	border-radius: 18dp;
+	border: 2dp #00000000;
+	background-color: #1C1C1E;
+	cursor: pointer;
+	overflow: hidden;
+	transition: border-color 0.15s linear-in-out, background-color 0.15s linear-in-out;
+}
+
+.crate-card:hover,
+.crate-card:focus {
+	background-color: #232325;
+	border-color: #A78BFA;
+}
+
+.crate-card .cover {
+	display: block;
+	height: 146dp;
+	background-color: #221B36;
+}
+
+.crate-card .cover.blank {
+	line-height: 146dp;
+	text-align: center;
+	font-size: 60dp;
+	font-weight: 700;
+	color: #A78BFA;
+}
+
+.crate-card .body {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	padding: 16dp 18dp 18dp 18dp;
+}
+
+.crate-card .title {
+	display: block;
+	font-size: 20dp;
+	font-weight: 700;
+	letter-spacing: -0.3dp;
+	color: #F5F5F7;
+}
+
+.crate-card .author {
+	display: block;
+	margin-top: 2dp;
+	font-size: 13dp;
+	color: #86868B;
+}
+
+.crate-card .about {
+	display: block;
+	flex: 1;
+	height: 0;
+	margin-top: 10dp;
+	overflow: hidden;
+	font-size: 13dp;
+	line-height: 1.45;
+	color: #A1A1A6;
+}
+
+.crate-card .foot {
+	display: flex;
+	flex-direction: row;
+	margin-top: 12dp;
+}
+
+.crate-card .chip {
+	padding: 3dp 10dp;
+	border-radius: 8dp;
+	font-size: 12dp;
+	color: #A1A1A6;
+	background-color: #2C2C2E;
+}
+
+.crate-head {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 14dp;
+}
+
+.crate-head .back {
+	margin-right: 12dp;
+}
+
+.crate-head .crate-name {
+	font-size: 22dp;
+	font-weight: 700;
+	letter-spacing: -0.3dp;
+	color: #F5F5F7;
+}
+
 /* Компания */
 
 .tile .tile-action {

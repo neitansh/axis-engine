@@ -30,6 +30,17 @@ public:
 		int players = 0;
 		// Играют своей компанией по коду, а не подбором.
 		bool party = false;
+		std::string crate;
+	};
+
+	struct Crate
+	{
+		std::string id;
+		std::string title;
+		std::string author;
+		std::string description;
+		// Полный адрес обложки у Диспетчера; пусто — обложки нет.
+		std::string cover;
 	};
 
 	struct Member
@@ -93,9 +104,11 @@ public:
 	const ServerEntry *entry() const;
 	// nullopt — список ещё не приехал.
 	const std::optional<std::vector<Mode>> &modes() const { return m_modes; }
+	const std::vector<Crate> &crates() const { return m_crates; }
 	const std::optional<Queue> &queue() const { return m_queue; }
 	// Что не так: с последним нажатием или, если оно прошло, со списком арен.
 	const std::string &status() const { return m_status.empty() ? m_modes_status : m_status; }
+	void clearStatus() { m_status.clear(); }
 	Faces &faces() { return m_faces; }
 
 	void setOnChange(std::function<void()> on_change) { m_on_change = std::move(on_change); }
@@ -137,6 +150,7 @@ private:
 	bool m_shown = false;
 	int m_region = -1;
 	std::optional<std::vector<Mode>> m_modes;
+	std::vector<Crate> m_crates;
 	std::optional<Queue> m_queue;
 	std::string m_pass;
 	std::string m_status;

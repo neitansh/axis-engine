@@ -10,6 +10,7 @@
 #include "settings.h"
 #include "util/string.h"
 #include <RmlUi/Core/Element.h>
+#include <map>
 
 namespace menu
 {
@@ -35,6 +36,7 @@ OnlineScreen::OnlineScreen(MainMenu &menu) : Screen(menu, "online")
 	m_mode = s_last_mode;
 	m_title = strgettext("Multiplayer");
 	m_matches_heading = strgettext("Arenas");
+	m_games_heading = strgettext("Games");
 	m_servers_heading = strgettext("Server List");
 	m_connection_heading = strgettext("Connection");
 	m_direct_heading = strgettext("Connect by address");
@@ -60,6 +62,17 @@ void OnlineScreen::bind(Rml::DataModelConstructor &model)
 		member.RegisterMember("host", &MemberRow::host);
 	}
 	model.RegisterArray<std::vector<MemberRow>>();
+	if (auto crate = model.RegisterStruct<CrateEntry>()) {
+		crate.RegisterMember("id", &CrateEntry::id);
+		crate.RegisterMember("title", &CrateEntry::title);
+		crate.RegisterMember("author", &CrateEntry::author);
+		crate.RegisterMember("description", &CrateEntry::description);
+		crate.RegisterMember("cover", &CrateEntry::cover);
+		crate.RegisterMember("cover_decorator", &CrateEntry::cover_decorator);
+		crate.RegisterMember("initial", &CrateEntry::initial);
+		crate.RegisterMember("count", &CrateEntry::count);
+	}
+	model.RegisterArray<std::vector<CrateEntry>>();
 	if (auto row = model.RegisterStruct<ServerRow>()) {
 		row.RegisterMember("index", &ServerRow::index);
 		row.RegisterMember("kind", &ServerRow::kind);
@@ -92,6 +105,11 @@ void OnlineScreen::bind(Rml::DataModelConstructor &model)
 	model.Bind("queue_line", &m_queue_line);
 	model.Bind("queue_below", &m_queue_below);
 	model.Bind("status", &m_status);
+	model.Bind("crates", &m_crates);
+	model.Bind("crate", &m_crate);
+	model.Bind("crate_title", &m_crate_title);
+	model.Bind("games_heading", &m_games_heading);
+	model.Bind("any_modes", &m_any_modes);
 	model.Bind("has_party_modes", &m_has_party_modes);
 	model.Bind("party_code", &m_party_code);
 	model.Bind("queue_party", &m_queue_party);
@@ -137,6 +155,34 @@ void OnlineScreen::bind(Rml::DataModelConstructor &model)
 					mm.createParty(id);
 				else
 					mm.join(id);
+			});
+	model.BindEventCallback("open_crate",
+			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &args) {
+				if (args.empty())
+					return;
+				m_crate = args[0].Get<Rml::String>();
+				menu().matchmaking().clearStatus();
+				refresh();
+				handle.DirtyAllVariables();
+				refocus();
+			});
+	model.BindEventCallback("crate_key",
+			[this](Rml::DataModelHandle handle, Rml::Event &event, const Rml::VariantList &args) {
+				if (!isEnter(event) || args.empty())
+					return;
+				event.StopPropagation();
+				m_crate = args[0].Get<Rml::String>();
+				refresh();
+				handle.DirtyAllVariables();
+				refocus();
+			});
+	model.BindEventCallback("crates_back",
+			[this](Rml::DataModelHandle handle, Rml::Event &, const Rml::VariantList &) {
+				m_crate.clear();
+				menu().matchmaking().clearStatus();
+				refresh();
+				handle.DirtyAllVariables();
+				refocus();
 			});
 	model.BindEventCallback("join_code",
 			[this](Rml::DataModelHandle, Rml::Event &, const Rml::VariantList &) {
@@ -258,10 +304,15 @@ bool OnlineScreen::onEvent(const SEvent &event)
 	if (event.EventType != EET_KEY_INPUT_EVENT || !event.KeyInput.PressedDown)
 		return false;
 	if (event.KeyInput.Key == KEY_ESCAPE) {
-		if (m_waiting)
+		if (m_waiting) {
 			menu().matchmaking().cancel();
-		else
+		} else if (m_mode == "matches" && !m_crate.empty()) {
+			m_crate.clear();
+			refresh();
+			refocus();
+		} else {
 			menu().navigate("start");
+		}
 		return true;
 	}
 	// Q и E листают вкладки, как бамперы на геймпаде; в поле ввода это буквы.
@@ -286,12 +337,13 @@ void OnlineScreen::onUnhandledKey(const SEvent &event)
 	const bool horizontal = event.KeyInput.Key == KEY_LEFT || event.KeyInput.Key == KEY_RIGHT;
 	Rml::Element *focus = focused();
 	const bool in_switch = focus && focus->Closest(".switch");
-	const bool in_list = focus && (focus->Closest(".server-list") || focus->Closest(".tiles"));
+	const bool in_list = focus && (focus->Closest(".server-list") || focus->Closest(".tiles")
+			|| focus->Closest(".crate-cards"));
 	const bool in_side = focus && (focus->Closest(".side") || focus->Closest(".list-actions")
 			|| focus->Closest(".centered") || focus->Closest(".waiting"));
 
 	if (!horizontal && arrow > 0 && in_switch) {
-		if (!hop(".tile, .server.active, .server"))
+		if (!hop(".crate-card, .tile, .server.active, .server"))
 			hop(".centered button, .waiting button, .side button.primary, .side input");
 	} else if (!horizontal && arrow < 0 && (in_list || in_side)) {
 		if (in_list || !hop(".server.active, .server"))
@@ -299,7 +351,7 @@ void OnlineScreen::onUnhandledKey(const SEvent &event)
 	} else if (horizontal && arrow > 0 && in_list) {
 		hop(".side button.primary, .side input");
 	} else if (horizontal && arrow < 0 && in_side) {
-		hop(".server.active, .server, .tile");
+		hop(".server.active, .server, .crate-card, .tile");
 	} else if (!horizontal && arrow > 0 && in_list) {
 		hop("button.refresh");
 	}
@@ -351,10 +403,42 @@ void OnlineScreen::rebuildMatches()
 	}
 
 	m_modes.clear();
+	m_crates.clear();
 	m_has_party_modes = false;
 	m_modes_loaded = mm.modes().has_value();
+	m_any_modes = mm.modes() && !mm.modes()->empty();
+
+	// Шаг первый — во что играть: крейты карточками, как в одиночной игре.
+	std::map<std::string, int> modes_of;
+	for (const Matchmaking::Mode &mode : mm.modes().value_or(std::vector<Matchmaking::Mode>()))
+		modes_of[mode.crate]++;
+	bool crate_known = false;
+	for (const Matchmaking::Crate &crate : mm.crates()) {
+		CrateEntry entry;
+		entry.id = crate.id;
+		entry.title = crate.title;
+		entry.author = crate.author;
+		entry.description = crate.description;
+		entry.cover = mm.faces().cover(crate.id, crate.cover);
+		entry.cover_decorator = entry.cover.empty() ? "none" : "image(" + entry.cover + " cover)";
+		entry.initial = utf8_first(crate.title);
+		entry.count = fmtgettext("Modes: %d", modes_of[crate.id]);
+		m_crates.push_back(entry);
+		if (crate.id == m_crate) {
+			crate_known = true;
+			m_crate_title = crate.title;
+		}
+	}
+	// Диспетчер старый и крейтов не называет — одна общая полка режимов.
+	if (m_crates.empty() && mm.modes() && !mm.modes()->empty())
+		m_crate = "*";
+	else if (!crate_known)
+		m_crate.clear();
+
 	if (mm.modes()) {
 		for (const Matchmaking::Mode &mode : *mm.modes()) {
+			if (m_crate != "*" && mode.crate != m_crate)
+				continue;
 			ModeEntry entry;
 			entry.id = mode.id;
 			entry.title = mode.title;
@@ -372,6 +456,14 @@ void OnlineScreen::rebuildMatches()
 	if (m_queue_party) {
 		const Matchmaking::Queue &q = *mm.queue();
 		m_queue_title = q.title;
+		for (const Matchmaking::Mode &mode : mm.modes().value_or(std::vector<Matchmaking::Mode>())) {
+			if (mode.id != q.mode)
+				continue;
+			for (const Matchmaking::Crate &crate : mm.crates()) {
+				if (crate.id == mode.crate)
+					m_queue_title = crate.title + " · " + q.title;
+			}
+		}
 		m_queue_joining = q.joining;
 		m_queue_host = q.host;
 		m_queue_started = q.started;

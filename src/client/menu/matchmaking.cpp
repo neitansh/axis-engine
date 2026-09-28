@@ -159,9 +159,24 @@ void Matchmaking::refreshModes(bool again)
 						entry.waiting = mode.get("waiting", 0).asInt();
 						entry.players = mode.get("players", 0).asInt();
 						entry.party = mode.get("party", false).asBool();
+						entry.crate = mode.get("crate", "").asString();
 						modes.push_back(entry);
 					}
 					m_modes = std::move(modes);
+					m_crates.clear();
+					for (const Json::Value &crate : (*body)["crates"]) {
+						if (!crate.isObject())
+							continue;
+						Crate entry;
+						entry.id = crate.get("id", "").asString();
+						entry.title = crate.get("title", entry.id).asString();
+						entry.author = crate.get("author", "").asString();
+						entry.description = crate.get("description", "").asString();
+						const std::string cover = crate.get("cover", "").asString();
+						if (!cover.empty())
+							entry.cover = asked + cover;
+						m_crates.push_back(entry);
+					}
 					m_modes_status.clear();
 					m_answered = true;
 				} else {

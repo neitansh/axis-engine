@@ -39,6 +39,18 @@ private:
 		bool party = false;
 	};
 
+	struct CrateEntry
+	{
+		Rml::String id;
+		Rml::String title;
+		Rml::String author;
+		Rml::String description;
+		Rml::String cover;
+		Rml::String cover_decorator;
+		Rml::String initial;
+		Rml::String count;
+	};
+
 	struct MemberRow
 	{
 		Rml::String name;
@@ -86,6 +98,12 @@ private:
 	Rml::String m_queue_line;
 	Rml::String m_queue_below;
 	Rml::String m_status;
+	std::vector<CrateEntry> m_crates;
+	// Крейт, чьи режимы открыты; пусто — видны карточки крейтов.
+	Rml::String m_crate;
+	Rml::String m_crate_title;
+	Rml::String m_games_heading;
+	bool m_any_modes = false;
 	bool m_has_party_modes = false;
 	Rml::String m_party_code;
 	bool m_queue_party = false;

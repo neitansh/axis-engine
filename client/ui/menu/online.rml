@@ -34,7 +34,12 @@
 
 		<div class="main">
 			<div class="arenas" data-if="!waiting">
-				<div class="eyebrow">{{ matches_heading }}</div>
+				<div class="eyebrow" data-if="crate == ''">{{ games_heading }}</div>
+				<div class="crate-head" data-if="crate != '' && crate != '*'">
+					<div class="back" data-event-click="crates_back()"><div class="arrow"/></div>
+					<div class="crate-name">{{ crate_title }}</div>
+				</div>
+				<div class="eyebrow" data-if="crate == '*'">{{ matches_heading }}</div>
 				<div class="centered" data-if="!decided">
 					<div class="ring"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
 					<p>[[Checking connection...]]</p>
@@ -43,19 +48,33 @@
 					<div class="ring"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
 					<p>[[Loading...]]</p>
 				</div>
-				<div class="centered" data-if="decided && modes_loaded && modes.size == 0">
+				<div class="centered" data-if="decided && modes_loaded && !any_modes">
 					<p data-if="status == ''">[[No arenas available]]</p>
 					<p data-if="status != ''">{{ status }}</p>
 					<button class="primary" data-event-click="retry()">[[Try again]]</button>
 				</div>
-				<div class="tiles" data-if="decided && modes_loaded && modes.size > 0">
+				<div class="crate-cards" data-if="decided && modes_loaded && crate == '' && crates.size > 0">
+					<div class="crate-card focusable" data-for="c : crates" data-event-click="open_crate(c.id)"
+							data-event-keydown="crate_key(c.id)">
+						<div class="cover" data-if="c.cover != ''" data-style-decorator="c.cover_decorator"/>
+						<div class="cover blank" data-if="c.cover == ''">{{ c.initial }}</div>
+						<div class="body">
+							<div class="title">{{ c.title }}</div>
+							<div class="author" data-if="c.author != ''">{{ c.author }}</div>
+							<div class="about" data-if="c.description != ''">{{ c.description }}</div>
+							<div class="foot"><span class="chip">{{ c.count }}</span></div>
+						</div>
+					</div>
+				</div>
+				<div class="tiles" data-if="decided && modes_loaded && crate != '' && modes.size > 0">
 					<div class="tile focusable" data-for="m : modes" data-event-click="join_mode(m.id)">
 						<div class="tile-title">{{ m.title }}</div>
 						<div class="tile-count">{{ m.count }}</div>
 						<div class="tile-action" data-if="m.party">[[Create a game]]</div>
+						<div class="tile-action" data-if="!m.party">[[Find a match]]</div>
 					</div>
 				</div>
-				<div class="code-join" data-if="decided && modes_loaded && has_party_modes">
+				<div class="code-join" data-if="decided && modes_loaded && crate != '' && has_party_modes">
 					<div class="eyebrow">[[Join a friend]]</div>
 					<div class="code-row">
 						<input type="text" class="code" data-value="party_code" maxlength="8"
@@ -63,7 +82,7 @@
 						<button data-event-click="join_code()">[[Join by code]]</button>
 					</div>
 				</div>
-				<p class="status" data-if="modes.size > 0 && status != ''">{{ status }}</p>
+				<p class="status" data-if="any_modes && status != ''">{{ status }}</p>
 			</div>
 
 			<div class="party" data-if="waiting && queue_party">

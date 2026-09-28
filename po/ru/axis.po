@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-28 16:42+0300\n"
+"POT-Creation-Date: 2026-09-28 19:47+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -4232,6 +4232,10 @@ msgid "Create a game"
 msgstr "Создать игру"
 
 #: client/ui/menu/online.rml
+msgid "Find a match"
+msgstr "Найти матч"
+
+#: client/ui/menu/online.rml
 msgid "From the list"
 msgstr "Из списка"
 
@@ -5509,8 +5513,17 @@ msgid "Friends join with this code"
 msgstr "Друзья входят по этому коду"
 
 #: src/client/menu/screens/online_screen.cpp
+msgid "Games"
+msgstr "Игры"
+
+#: src/client/menu/screens/online_screen.cpp
 msgid "Joining…"
 msgstr "Заходим…"
+
+#: src/client/menu/screens/online_screen.cpp
+#, c-format
+msgid "Modes: %d"
+msgstr "Режимов: %d"
 
 #: src/client/menu/screens/online_screen.cpp
 #, c-format
@@ -7146,9 +7159,10 @@ msgid ""
 "bloom, light, fog, filtering) that apply on top of yours while you play it.\n"
 "Off keeps your own settings in every crate."
 msgstr ""
-"Рисовать так, как просит крейт: крейт может привезти настройки графики (тени,\n"
-"свечение, свет, туман, фильтрацию), и они действуют поверх ваших, пока вы в нём "
-"играете.\n"
+"Рисовать так, как просит крейт: крейт может привезти настройки графики "
+"(тени,\n"
+"свечение, свет, туман, фильтрацию), и они действуют поверх ваших, пока вы в "
+"нём играете.\n"
 "Выключено — во всех крейтах остаются ваши настройки."
 
 #: src/settings_translation_file.cpp
