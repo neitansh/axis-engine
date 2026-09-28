@@ -999,14 +999,21 @@ void GenericCAO::addToScene(ITextureSource *tsrc, scene::ISceneManager *smgr)
 {
 	m_smgr = smgr;
 
-	if (getSceneNode() != NULL || isBatched()) {
+	if (getSceneNode() != NULL || m_matrixnode || isBatched()) {
 		return;
 	}
 
 	m_visuals_expired = false;
 
-	if (!m_prop.is_visible)
+	// Модели у невидимого нет, а узел положения нужен: по нему getPosition()
+	// считает место прицепленного. Без узла свой игрок, скрытый и прицепленный
+	// к камере заставки, оставался стоять на месте.
+	if (!m_prop.is_visible) {
+		m_matrixnode = m_smgr->addDummyTransformationSceneNode();
+		m_matrixnode->grab();
+		updateAttachments();
 		return;
+	}
 
 	/*
 	 * Пакетная сущность узла сцены не заводит вовсе — ни своего, ни
