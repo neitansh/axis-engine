@@ -68,7 +68,9 @@ end
 
 core.register_on_joinplayer(function(player)
 	local player_name = player:get_player_name()
-	if not core.is_singleplayer() then
+	-- Версия, аптайм и список ников — сведения для того, кто сервер ведёт;
+	-- игроку при входе они только засоряют чат.
+	if not core.is_singleplayer() and core.check_player_privs(player_name, "server") then
 		local status = core.get_server_status(player_name, true)
 		if status and status ~= "" then
 			core.chat_send_player(player_name, status)

@@ -912,7 +912,6 @@ void PlayerSAO::unlinkPlayerSessionAndSave()
 
 std::string PlayerSAO::getPropertyPacket()
 {
-	m_prop.is_visible = (true);
 	return generateSetPropertiesCommand(m_prop);
 }
 
