@@ -50,7 +50,7 @@ std::string SkinCache::want(const std::string &hash)
 		return "";
 	if (m_ready.count(hash))
 		return mediaName(hash);
-	if (m_pending.count(hash))
+	if (m_pending.count(hash) || m_deferred.count(hash))
 		return "";
 	// Уже роздан и едет к клиентам: второй раз слать тот же файл незачем.
 	for (const auto &[token, sent] : m_awaiting) {
@@ -93,6 +93,12 @@ std::string SkinCache::want(const std::string &hash)
 
 bool SkinCache::publish(Server *server, const std::string &hash, std::string_view data)
 {
+	if (server->mediaPushWouldMissSomeone()) {
+		m_deferred[hash] = std::string(data);
+		return true;
+	}
+	m_deferred.erase(hash);
+
 	const u32 token = server->allocateEngineMediaToken();
 
 	Server::DynamicMediaArgs args;
@@ -153,6 +159,8 @@ std::string SkinCache::wantLocal(const std::string &path)
 
 	if (m_ready.count(hash))
 		return mediaName(hash);
+	if (m_deferred.count(hash))
+		return "";
 	for (const auto &[token, sent] : m_awaiting) {
 		(void)token;
 		if (sent == hash)
@@ -185,6 +193,13 @@ void SkinCache::step(Server *server)
 	// Дисковый кэш отдаётся тем же путём, что и приехавшее по сети, а для
 	// этого нужен сервер: раздать медиа умеет только он.
 	m_owner = server;
+
+	if (!m_deferred.empty() && !server->mediaPushWouldMissSomeone()) {
+		const auto deferred = std::move(m_deferred);
+		m_deferred.clear();
+		for (const auto &[hash, data] : deferred)
+			publish(server, hash, data);
+	}
 
 	checkDelivered(server);
 	pump(server);

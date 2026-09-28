@@ -111,6 +111,9 @@ private:
 	/// сиреневую — и второй раз за текстурой не идёт: имя не изменилось,
 	/// значит и перерисовывать ему нечего.
 	std::unordered_map<u32, std::string> m_awaiting;
+	/// Добыто, но ещё не роздано: кто-то как раз входит, и раздача прошла бы
+	/// мимо него (Server::mediaPushWouldMissSomeone). Хэш → содержимое.
+	std::unordered_map<std::string, std::string> m_deferred;
 	/// Путь до картинки со стенда → её хэш: читать файл на каждый вопрос
 	/// незачем, а спрашивают об облике на каждую правку свойств.
 	std::unordered_map<std::string, std::string> m_local;

@@ -3428,6 +3428,16 @@ void Server::refreshAvatars()
 	}
 }
 
+bool Server::mediaPushWouldMissSomeone()
+{
+	ClientInterface::AutoLock clientlock(m_clients);
+	for (auto &pair : m_clients.getClientList()) {
+		if (pair.second->getState() == CS_DefinitionsSent)
+			return true;
+	}
+	return false;
+}
+
 void Server::stepAwaitingAuth()
 {
 	if (m_awaiting_auth.empty())

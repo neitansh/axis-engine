@@ -86,8 +86,14 @@ Rml::Context *Host::createContext(const std::string &name)
 
 void Host::removeContext(const std::string &name)
 {
-	if (m_ok)
-		Rml::RemoveContext(name);
+	if (!m_ok)
+		return;
+	// Поле, получив фокус, включает у SDL ввод текста, а RmlUi, убирая поле
+	// вместе с документом или контекстом, DeactivateKeyboard не зовёт. Ввод
+	// остаётся включённым, и в игре буквенные клавиши приходят текстом: W, A,
+	// S, D не двигают.
+	m_system.DeactivateKeyboard();
+	Rml::RemoveContext(name);
 }
 
 Rml::ElementDocument *Host::loadDocument(Rml::Context &context, const std::string &path)
