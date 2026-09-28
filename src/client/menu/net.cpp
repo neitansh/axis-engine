@@ -92,6 +92,7 @@ void Net::poll()
 			if (!reader->parse(result.data.data(), result.data.data() + result.data.size(),
 					&answer.body, &errors))
 				answer.body = Json::Value();
+			answer.raw = std::move(result.data);
 		}
 		callback(answer);
 	}

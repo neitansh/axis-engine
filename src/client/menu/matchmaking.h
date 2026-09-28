@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "faces.h"
 #include "server_list.h"
 #include <functional>
 #include <optional>
@@ -27,6 +28,17 @@ public:
 		std::string title;
 		int waiting = 0;
 		int players = 0;
+		// Играют своей компанией по коду, а не подбором.
+		bool party = false;
+	};
+
+	struct Member
+	{
+		std::string login;
+		std::string name;
+		std::string skin;
+		std::string face;
+		bool host = false;
 	};
 
 	struct Queue
@@ -41,6 +53,12 @@ public:
 		int min = 1;
 		// Адрес получен, идёт билет и вход: карточка ожидания ещё на месте.
 		bool joining = false;
+
+		std::string code;
+		bool host = false;
+		bool started = false;
+		std::vector<Member> members;
+		bool party() const { return !code.empty(); }
 	};
 
 	// Диспетчер назвал адрес: дальше обычный вход на сервер.
@@ -57,6 +75,9 @@ public:
 	void update();
 
 	void join(const std::string &mode_id);
+	void createParty(const std::string &mode_id);
+	void joinParty(const std::string &code);
+	void startParty();
 	void cancel();
 	void joinFailed();
 	void retry();
@@ -75,6 +96,7 @@ public:
 	const std::optional<Queue> &queue() const { return m_queue; }
 	// Что не так: с последним нажатием или, если оно прошло, со списком арен.
 	const std::string &status() const { return m_status.empty() ? m_modes_status : m_status; }
+	Faces &faces() { return m_faces; }
 
 	void setOnChange(std::function<void()> on_change) { m_on_change = std::move(on_change); }
 	void setOnMatch(OnMatch on_match) { m_on_match = std::move(on_match); }
@@ -98,8 +120,10 @@ private:
 	bool enterMatch(const Json::Value &body);
 	void poll();
 	void ticketForJoin(std::function<void(const std::string &ticket, const std::string &trouble)> done);
-	void doJoin(const std::string &mode, const Credential &cred);
-	void joinRoom(const std::string &room, const Credential &cred);
+	void withCredential(std::function<void(const Credential &cred)> go);
+	// /v1/join с тем, что в body: режим, приглашение или код компании.
+	void enqueue(Json::Value body, const Credential &cred);
+	static std::string refusal(const Net::Answer &res);
 	void followInvite();
 	void stop();
 	void changed();
@@ -108,6 +132,7 @@ private:
 	Net &m_net;
 	Launcher &m_launcher;
 	ServerList &m_servers;
+	Faces m_faces;
 
 	bool m_shown = false;
 	int m_region = -1;

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: axis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 06:32+0300\n"
+"POT-Creation-Date: 2026-09-28 16:42+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1057,6 +1057,12 @@ msgstr ""
 
 #: builtin/common/settings/descriptions.lua
 msgid "Reload the weapon in your hands."
+msgstr ""
+
+#: builtin/common/settings/descriptions.lua
+msgid ""
+"Open and close the map of the area the game marks out: the whole arena, with "
+"what the game puts on it."
 msgstr ""
 
 #: builtin/common/settings/descriptions.lua
@@ -2697,6 +2703,7 @@ msgstr ""
 #: builtin/mainmenu/content/dlg_package.lua
 #: src/client/menu/screens/about_screen.cpp
 #: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/places_screen.cpp
 #: src/client/menu/screens/settings_screen.cpp
 #: src/client/menu/screens/worlds_screen.cpp src/gui/guiVolumeChange.cpp
 #: client/ui/menu/loading.rml
@@ -3710,7 +3717,7 @@ msgstr ""
 msgid "Enable Damage"
 msgstr ""
 
-#: builtin/mainmenu/tab_local.lua src/client/menu/screens/worlds_screen.cpp
+#: builtin/mainmenu/tab_local.lua
 msgid "Crate"
 msgstr ""
 
@@ -3731,7 +3738,7 @@ msgid "Play Crate"
 msgstr ""
 
 #: builtin/mainmenu/tab_local.lua src/client/clientlauncher.cpp
-#: src/client/game.cpp
+#: src/client/game.cpp client/ui/menu/places.rml client/ui/menu/start.rml
 msgid "Singleplayer"
 msgstr ""
 
@@ -3842,6 +3849,14 @@ msgstr ""
 
 #: src/chat.cpp
 msgid "Player names: "
+msgstr ""
+
+#: src/chat.cpp
+msgid "Reply is in the console (F10)"
+msgstr ""
+
+#: src/client/chat_overlay.cpp
+msgid "Write a message…"
 msgstr ""
 
 #: src/client/client.cpp
@@ -4105,6 +4120,10 @@ msgid "Block bounds shown for nearby blocks"
 msgstr ""
 
 #: src/client/game.cpp
+msgid "Minimap shape is set by game or mod"
+msgstr ""
+
+#: src/client/game.cpp
 msgid "Minimap currently disabled by game or mod"
 msgstr ""
 
@@ -4199,6 +4218,10 @@ msgstr ""
 
 #: src/client/game.cpp
 msgid "Minimap"
+msgstr ""
+
+#: src/client/game.cpp src/settings_translation_file.cpp
+msgid "Map"
 msgstr ""
 
 #: src/client/game.cpp src/settings_translation_file.cpp
@@ -4924,6 +4947,18 @@ msgstr ""
 msgid "Axis %d-"
 msgstr ""
 
+#: src/client/menu/matchmaking.cpp
+msgid "There is no game with this code"
+msgstr ""
+
+#: src/client/menu/matchmaking.cpp
+msgid "This game has already started"
+msgstr ""
+
+#: src/client/menu/matchmaking.cpp
+msgid "This game is full"
+msgstr ""
+
 #: src/client/menu/screens/about_screen.cpp
 #: src/client/menu/screens/settings_screen.cpp
 msgid "Copied"
@@ -4936,6 +4971,7 @@ msgstr ""
 
 #: src/client/menu/screens/about_screen.cpp
 #: src/client/menu/screens/pause_screen.cpp
+#: src/client/menu/screens/places_screen.cpp
 #: src/client/menu/screens/start_screen.cpp src/gui/guiOpenURL.cpp
 msgid "Open"
 msgstr ""
@@ -4946,6 +4982,7 @@ msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
 #: src/client/menu/screens/pause_screen.cpp
+#: src/client/menu/screens/places_screen.cpp
 #: src/client/menu/screens/start_screen.cpp
 #: src/client/menu/screens/worlds_screen.cpp
 msgid "Choose"
@@ -4957,11 +4994,33 @@ msgid "Tabs"
 msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
-msgid "The arena is ready"
+#, c-format
+msgid "Up to %d players"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+#, c-format
+msgid "Players %d / %d"
 msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
 msgid "Joining…"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "Starting the game"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "Friends join with this code"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "Waiting for the host to start"
+msgstr ""
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "The arena is ready"
 msgstr ""
 
 #: src/client/menu/screens/online_screen.cpp
@@ -4991,8 +5050,7 @@ msgstr ""
 msgid "Press a key…"
 msgstr ""
 
-#: src/client/menu/screens/worlds_screen.cpp client/ui/menu/start.rml
-#: client/ui/menu/worlds.rml
+#: src/client/menu/screens/worlds_screen.cpp client/ui/menu/places.rml
 msgid "Worlds"
 msgstr ""
 
@@ -5504,6 +5562,13 @@ msgid "Hotbar: select previous item"
 msgstr ""
 
 #: src/settings_translation_file.cpp
+msgid ""
+"Key for the map of the area the game marks out (the whole arena, say),\n"
+"with whatever the game puts on it. Opens over the picture, closes with\n"
+"the same key."
+msgstr ""
+
+#: src/settings_translation_file.cpp
 msgid "Mute"
 msgstr ""
 
@@ -5914,6 +5979,17 @@ msgid "Graphics and Audio"
 msgstr ""
 
 #: src/settings_translation_file.cpp
+msgid "Graphics as the crate asks"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Draw the way the crate asks: a crate can ship graphics settings (shadows,\n"
+"bloom, light, fog, filtering) that apply on top of yours while you play it.\n"
+"Off keeps your own settings in every crate."
+msgstr ""
+
+#: src/settings_translation_file.cpp
 msgid "Screen"
 msgstr ""
 
@@ -6200,6 +6276,17 @@ msgstr ""
 
 #: src/settings_translation_file.cpp
 msgid "Width of the selection box lines around nodes."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Selection box opacity"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Opacity of the selection box edges, 0-255. Below 255 the edges do not\n"
+"cover what is under them but brighten it by color * alpha: white edges\n"
+"come out green on grass and light on stone."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -6556,6 +6643,18 @@ msgstr ""
 msgid ""
 "Enable colored shadows for transculent nodes.\n"
 "This is expensive."
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid "Pixel shadows"
+msgstr ""
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Shadows on the pixel grid of the world: the edge of a shadow steps in\n"
+"squares of 1/N of a node, like the texels of the textures, instead of\n"
+"running smooth. N is the number of squares per node, 16 matches\n"
+"16-pixel textures; 0 keeps smooth shadows."
 msgstr ""
 
 #: src/settings_translation_file.cpp
@@ -10188,6 +10287,34 @@ msgid ""
 msgstr ""
 
 #: client/ui/menu/online.rml
+msgid "Create a game"
+msgstr ""
+
+#: client/ui/menu/online.rml
+msgid "Join a friend"
+msgstr ""
+
+#: client/ui/menu/online.rml
+msgid "Join by code"
+msgstr ""
+
+#: client/ui/menu/online.rml
+msgid "Game code"
+msgstr ""
+
+#: client/ui/menu/online.rml
+msgid "Host"
+msgstr ""
+
+#: client/ui/menu/online.rml
+msgid "Start game"
+msgstr ""
+
+#: client/ui/menu/online.rml
+msgid "Leave"
+msgstr ""
+
+#: client/ui/menu/online.rml
 msgid "From the list"
 msgstr ""
 
@@ -10207,22 +10334,22 @@ msgstr ""
 msgid "Quit the game?"
 msgstr ""
 
+#: client/ui/menu/places.rml
+msgid "No crates yet"
+msgstr ""
+
+#: client/ui/menu/places.rml
+msgid ""
+"The engine decides how the game works; a crate decides what is in it — the "
+"rules, the items, the look. Install a crate, and you can create a world here."
+msgstr ""
+
 #: client/ui/menu/settings.rml
 msgid "Nothing found"
 msgstr ""
 
 #: client/ui/menu/start.rml
 msgid "Always ask before quitting"
-msgstr ""
-
-#: client/ui/menu/worlds.rml
-msgid "No crates yet"
-msgstr ""
-
-#: client/ui/menu/worlds.rml
-msgid ""
-"The engine decides how the game works; a crate decides what is in it — the "
-"rules, the items, the look. Install a crate, and you can create a world here."
 msgstr ""
 
 #: client/ui/menu/worlds.rml

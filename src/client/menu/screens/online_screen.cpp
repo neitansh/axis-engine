@@ -19,6 +19,17 @@ namespace menu
 // серверов, а не арены.
 static Rml::String s_last_mode = "matches";
 
+// Буква вместо лица, пока его нет: первый символ имени целиком, а не байт.
+static std::string utf8_first(const std::string &s)
+{
+	if (s.empty())
+		return "";
+	size_t len = 1;
+	while (len < s.size() && (static_cast<unsigned char>(s[len]) & 0xC0) == 0x80)
+		len++;
+	return s.substr(0, len);
+}
+
 OnlineScreen::OnlineScreen(MainMenu &menu) : Screen(menu, "online")
 {
 	m_mode = s_last_mode;
@@ -40,7 +51,15 @@ void OnlineScreen::bind(Rml::DataModelConstructor &model)
 		entry.RegisterMember("id", &ModeEntry::id);
 		entry.RegisterMember("title", &ModeEntry::title);
 		entry.RegisterMember("count", &ModeEntry::count);
+		entry.RegisterMember("party", &ModeEntry::party);
 	}
+	if (auto member = model.RegisterStruct<MemberRow>()) {
+		member.RegisterMember("name", &MemberRow::name);
+		member.RegisterMember("face", &MemberRow::face);
+		member.RegisterMember("initial", &MemberRow::initial);
+		member.RegisterMember("host", &MemberRow::host);
+	}
+	model.RegisterArray<std::vector<MemberRow>>();
 	if (auto row = model.RegisterStruct<ServerRow>()) {
 		row.RegisterMember("index", &ServerRow::index);
 		row.RegisterMember("kind", &ServerRow::kind);
@@ -73,6 +92,13 @@ void OnlineScreen::bind(Rml::DataModelConstructor &model)
 	model.Bind("queue_line", &m_queue_line);
 	model.Bind("queue_below", &m_queue_below);
 	model.Bind("status", &m_status);
+	model.Bind("has_party_modes", &m_has_party_modes);
+	model.Bind("party_code", &m_party_code);
+	model.Bind("queue_party", &m_queue_party);
+	model.Bind("queue_host", &m_queue_host);
+	model.Bind("queue_started", &m_queue_started);
+	model.Bind("queue_code", &m_queue_code);
+	model.Bind("members", &m_members);
 
 	model.Bind("launcher", &m_launcher);
 	model.Bind("list_loaded", &m_list_loaded);
@@ -100,8 +126,32 @@ void OnlineScreen::bind(Rml::DataModelConstructor &model)
 			});
 	model.BindEventCallback("join_mode",
 			[this](Rml::DataModelHandle, Rml::Event &, const Rml::VariantList &args) {
-				if (!args.empty())
-					menu().matchmaking().join(args[0].Get<Rml::String>());
+				if (args.empty())
+					return;
+				const std::string id = args[0].Get<Rml::String>();
+				Matchmaking &mm = menu().matchmaking();
+				bool party = false;
+				for (const Matchmaking::Mode &mode : mm.modes().value_or(std::vector<Matchmaking::Mode>()))
+					party = party || (mode.id == id && mode.party);
+				if (party)
+					mm.createParty(id);
+				else
+					mm.join(id);
+			});
+	model.BindEventCallback("join_code",
+			[this](Rml::DataModelHandle, Rml::Event &, const Rml::VariantList &) {
+				menu().matchmaking().joinParty(std::string(trim(m_party_code)));
+			});
+	model.BindEventCallback("code_key",
+			[this](Rml::DataModelHandle, Rml::Event &event, const Rml::VariantList &) {
+				if (!isEnter(event))
+					return;
+				event.StopPropagation();
+				menu().matchmaking().joinParty(std::string(trim(m_party_code)));
+			});
+	model.BindEventCallback("start_party",
+			[this](Rml::DataModelHandle, Rml::Event &, const Rml::VariantList &) {
+				menu().matchmaking().startParty();
 			});
 	model.BindEventCallback("cancel",
 			[this](Rml::DataModelHandle, Rml::Event &, const Rml::VariantList &) {
@@ -301,19 +351,49 @@ void OnlineScreen::rebuildMatches()
 	}
 
 	m_modes.clear();
+	m_has_party_modes = false;
 	m_modes_loaded = mm.modes().has_value();
 	if (mm.modes()) {
 		for (const Matchmaking::Mode &mode : *mm.modes()) {
 			ModeEntry entry;
 			entry.id = mode.id;
 			entry.title = mode.title;
-			entry.count = std::to_string(mode.waiting) + " / " + std::to_string(mode.players);
+			entry.party = mode.party;
+			entry.count = mode.party ? fmtgettext("Up to %d players", mode.players)
+					: std::to_string(mode.waiting) + " / " + std::to_string(mode.players);
+			m_has_party_modes = m_has_party_modes || mode.party;
 			m_modes.push_back(entry);
 		}
 	}
 
 	m_waiting = mm.queue().has_value();
-	if (mm.queue()) {
+	m_queue_party = m_waiting && mm.queue()->party();
+	m_members.clear();
+	if (m_queue_party) {
+		const Matchmaking::Queue &q = *mm.queue();
+		m_queue_title = q.title;
+		m_queue_joining = q.joining;
+		m_queue_host = q.host;
+		m_queue_started = q.started;
+		m_queue_code = q.code;
+		for (const Matchmaking::Member &member : q.members) {
+			MemberRow row;
+			row.name = member.name;
+			row.face = mm.faces().path(member.skin, member.face);
+			row.initial = utf8_first(member.name);
+			row.host = member.host;
+			m_members.push_back(row);
+		}
+		m_queue_line = fmtgettext("Players %d / %d", (int)q.members.size(), q.needed);
+		if (q.joining)
+			m_queue_below = strgettext("Joining…");
+		else if (q.started)
+			m_queue_below = strgettext("Starting the game");
+		else if (q.host)
+			m_queue_below = strgettext("Friends join with this code");
+		else
+			m_queue_below = strgettext("Waiting for the host to start");
+	} else if (mm.queue()) {
 		const Matchmaking::Queue &q = *mm.queue();
 		m_queue_title = q.title;
 		m_queue_joining = q.joining;

@@ -52,12 +52,44 @@
 					<div class="tile focusable" data-for="m : modes" data-event-click="join_mode(m.id)">
 						<div class="tile-title">{{ m.title }}</div>
 						<div class="tile-count">{{ m.count }}</div>
+						<div class="tile-action" data-if="m.party">[[Create a game]]</div>
+					</div>
+				</div>
+				<div class="code-join" data-if="decided && modes_loaded && has_party_modes">
+					<div class="eyebrow">[[Join a friend]]</div>
+					<div class="code-row">
+						<input type="text" class="code" data-value="party_code" maxlength="8"
+								data-event-keydown="code_key()"/>
+						<button data-event-click="join_code()">[[Join by code]]</button>
 					</div>
 				</div>
 				<p class="status" data-if="modes.size > 0 && status != ''">{{ status }}</p>
 			</div>
 
-			<div class="waiting" data-if="waiting">
+			<div class="party" data-if="waiting && queue_party">
+				<div class="queue-title">{{ queue_title }}</div>
+				<div class="party-code">
+					<div class="eyebrow">[[Game code]]</div>
+					<div class="code-value">{{ queue_code }}</div>
+				</div>
+				<div class="members">
+					<div class="member" data-for="p : members">
+						<img class="face" data-if="p.face != ''" data-attr-src="p.face"/>
+						<div class="face blank" data-if="p.face == ''">{{ p.initial }}</div>
+						<div class="member-name">{{ p.name }}</div>
+						<div class="member-host" data-if="p.host">[[Host]]</div>
+					</div>
+				</div>
+				<div class="queue-line">{{ queue_line }}</div>
+				<div class="queue-below">{{ queue_below }}</div>
+				<p class="status" data-if="status != ''">{{ status }}</p>
+				<div class="party-actions">
+					<button class="primary big" data-if="queue_host && !queue_started" data-event-click="start_party()">[[Start game]]</button>
+					<button data-if="!queue_joining && !queue_started" data-event-click="cancel()">[[Leave]]</button>
+				</div>
+			</div>
+
+			<div class="waiting" data-if="waiting && !queue_party">
 				<div class="ring big"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
 				<div class="queue-title">{{ queue_title }}</div>
 				<div class="queue-line">{{ queue_line }}</div>

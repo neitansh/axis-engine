@@ -64,6 +64,8 @@ fake_function() {
 	gettext("Toggle noclip");
 	gettext("Hotbar: select next item");
 	gettext("Hotbar: select previous item");
+	gettext("Map");
+	gettext("Key for the map of the area the game marks out (the whole arena, say),\nwith whatever the game puts on it. Opens over the picture, closes with\nthe same key.");
 	gettext("Mute");
 	gettext("Increase volume");
 	gettext("Decrease volume");
@@ -163,6 +165,8 @@ fake_function() {
 	gettext("The sensitivity of the joystick axes for moving the\nin-game view frustum around.");
 	gettext("Graphics and Audio");
 	gettext("Graphics");
+	gettext("Graphics as the crate asks");
+	gettext("Draw the way the crate asks: a crate can ship graphics settings (shadows,\nbloom, light, fog, filtering) that apply on top of yours while you play it.\nOff keeps your own settings in every crate.");
 	gettext("Screen");
 	gettext("Screen width");
 	gettext("Width component of the initial window size.");
@@ -223,6 +227,8 @@ fake_function() {
 	gettext("Selection box border color (R,G,B).");
 	gettext("Selection box width");
 	gettext("Width of the selection box lines around nodes.");
+	gettext("Selection box opacity");
+	gettext("Opacity of the selection box edges, 0-255. Below 255 the edges do not\ncover what is under them but brighten it by color * alpha: white edges\ncome out green on grass and light on stone.");
 	gettext("Fog");
 	gettext("Whether to fog out the end of the visible area.");
 	gettext("Colored fog");
@@ -295,6 +301,8 @@ fake_function() {
 	gettext("Sets shadow texture quality to 32 bits.\nOn false, 16 bits texture will be used.\nThis can cause much more artifacts in the shadow.");
 	gettext("Colored shadows");
 	gettext("Enable colored shadows for transculent nodes.\nThis is expensive.");
+	gettext("Pixel shadows");
+	gettext("Shadows on the pixel grid of the world: the edge of a shadow steps in\nsquares of 1/N of a node, like the texels of the textures, instead of\nrunning smooth. N is the number of squares per node, 16 matches\n16-pixel textures; 0 keeps smooth shadows.");
 	gettext("Sky Body Orbit Tilt");
 	gettext("Set the default tilt of Sun/Moon orbit in degrees.\nCrates may change orbit tilt via API.\nValue of 0 means no tilt / vertical orbit.");
 	gettext("Post Processing");

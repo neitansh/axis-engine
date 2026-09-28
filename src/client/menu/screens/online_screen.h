@@ -36,6 +36,15 @@ private:
 		Rml::String id;
 		Rml::String title;
 		Rml::String count;
+		bool party = false;
+	};
+
+	struct MemberRow
+	{
+		Rml::String name;
+		Rml::String face;
+		Rml::String initial;
+		bool host = false;
 	};
 
 	struct ServerRow
@@ -77,6 +86,13 @@ private:
 	Rml::String m_queue_line;
 	Rml::String m_queue_below;
 	Rml::String m_status;
+	bool m_has_party_modes = false;
+	Rml::String m_party_code;
+	bool m_queue_party = false;
+	bool m_queue_host = false;
+	bool m_queue_started = false;
+	Rml::String m_queue_code;
+	std::vector<MemberRow> m_members;
 
 	// Серверы
 	bool m_launcher = false;

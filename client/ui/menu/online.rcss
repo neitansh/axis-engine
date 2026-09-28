@@ -238,6 +238,125 @@
 	padding: 0 28dp;
 }
 
+/* Компания */
+
+.tile .tile-action {
+	display: block;
+	margin-top: 10dp;
+	font-size: 13dp;
+	font-weight: 600;
+	color: #F5F5F7;
+}
+
+.code-join {
+	display: block;
+	margin-top: 22dp;
+	margin-left: 6dp;
+}
+
+.code-row {
+	display: flex;
+	flex-direction: row;
+	margin-top: 8dp;
+}
+
+.code-row input.code {
+	width: 160dp;
+	margin-right: 8dp;
+	font-family: "Departure Mono";
+}
+
+.code-row button {
+	padding: 0 22dp;
+}
+
+.party {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	text-align: center;
+}
+
+.party-code {
+	display: block;
+	margin-bottom: 24dp;
+}
+
+.party-code .code-value {
+	display: block;
+	margin-top: 6dp;
+	font-family: "Departure Mono";
+	font-size: 40dp;
+	letter-spacing: 6dp;
+	color: #A78BFA;
+}
+
+.members {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-bottom: 22dp;
+}
+
+.member {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 96dp;
+	margin: 0 6dp;
+}
+
+.member .face {
+	width: 64dp;
+	height: 64dp;
+	border-radius: 14dp;
+	background-color: #1C1C1E;
+}
+
+.member .face.blank {
+	display: block;
+	line-height: 64dp;
+	font-size: 26dp;
+	font-weight: 700;
+	color: #86868B;
+}
+
+.member .member-name {
+	display: block;
+	margin-top: 8dp;
+	width: 96dp;
+	font-size: 14dp;
+	color: #F5F5F7;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.member .member-host {
+	display: block;
+	font-size: 12dp;
+	color: #A78BFA;
+}
+
+.party p.status {
+	margin-top: -14dp;
+	margin-bottom: 18dp;
+	font-size: 14dp;
+	color: #FF453A;
+}
+
+.party-actions {
+	display: flex;
+	flex-direction: row;
+}
+
+.party-actions button {
+	margin: 0 6dp;
+	padding: 0 28dp;
+}
+
 /* Список серверов в карточке */
 
 .servers-card {

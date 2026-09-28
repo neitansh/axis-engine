@@ -24,6 +24,7 @@ public:
 		bool reached = false;
 		long code = 0;
 		Json::Value body;
+		std::string raw;
 		bool ok() const { return reached && code == 200; }
 	};
 	using Callback = std::function<void(const Answer &)>;

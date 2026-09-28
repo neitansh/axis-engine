@@ -13,8 +13,10 @@ namespace menu
 Matchmaking::Matchmaking(Net &net, Launcher &launcher, ServerList &servers) :
 	m_net(net),
 	m_launcher(launcher),
-	m_servers(servers)
+	m_servers(servers),
+	m_faces(net)
 {
+	m_faces.setOnChange([this]() { changed(); });
 }
 
 void Matchmaking::changed()
@@ -156,6 +158,7 @@ void Matchmaking::refreshModes(bool again)
 						entry.title = mode.get("title", entry.id).asString();
 						entry.waiting = mode.get("waiting", 0).asInt();
 						entry.players = mode.get("players", 0).asInt();
+						entry.party = mode.get("party", false).asBool();
 						modes.push_back(entry);
 					}
 					m_modes = std::move(modes);
@@ -203,6 +206,20 @@ void Matchmaking::readQueue(const Json::Value &body)
 	queue.needed = body.get("needed", 0).asInt();
 	queue.starts_in = body.get("starts_in", 0).asInt();
 	queue.min = body.get("min", 1).asInt();
+	queue.code = body.get("code", "").asString();
+	queue.host = body.get("host", false).asBool();
+	queue.started = body.get("started", false).asBool();
+	for (const Json::Value &member : body["members"]) {
+		if (!member.isObject())
+			continue;
+		Member entry;
+		entry.login = member.get("login", "").asString();
+		entry.name = member.get("name", entry.login).asString();
+		entry.skin = member.get("skin", "").asString();
+		entry.face = member.get("face", "").asString();
+		entry.host = member.get("host", false).asBool();
+		queue.members.push_back(entry);
+	}
 	m_queue = queue;
 	const ServerEntry *server = entry();
 	m_launcher.inQueue(server ? server->server_name : "", queue.title, queue.room,
@@ -279,11 +296,25 @@ void Matchmaking::ticketForJoin(
 	});
 }
 
-void Matchmaking::doJoin(const std::string &mode, const Credential &cred)
+// Отказ — обычное дело, а не поломка: комната уехала или набралась, код
+// набран с ошибкой. Игрок остаётся на экране арен и видит, почему.
+std::string Matchmaking::refusal(const Net::Answer &res)
+{
+	const std::string error = res.body.isObject() ? res.body.get("error", "").asString() : "";
+	if (error == "invite_gone")
+		return strgettext("The match you were invited to has already started");
+	if (error == "no_party")
+		return strgettext("There is no game with this code");
+	if (error == "party_gone")
+		return strgettext("This game has already started");
+	if (error == "party_full")
+		return strgettext("This game is full");
+	return strgettext("Matchmaking is unavailable");
+}
+
+void Matchmaking::enqueue(Json::Value body, const Credential &cred)
 {
 	const int epoch = m_epoch;
-	Json::Value body;
-	body["mode"] = mode;
 	body["region"] = region();
 	body["pass"] = cred.pass;
 	body["ticket"] = cred.ticket;
@@ -293,7 +324,7 @@ void Matchmaking::doJoin(const std::string &mode, const Credential &cred)
 		std::string why;
 		const Json::Value *answer = decode(res, why);
 		if (!answer) {
-			m_status = strgettext("Matchmaking is unavailable");
+			m_status = refusal(res);
 			changed();
 			return;
 		}
@@ -312,41 +343,6 @@ void Matchmaking::doJoin(const std::string &mode, const Credential &cred)
 	});
 }
 
-// Позвали из Discord: входим в ту самую комнату, а не просто на её режим.
-void Matchmaking::joinRoom(const std::string &room, const Credential &cred)
-{
-	const int epoch = m_epoch;
-	Json::Value body;
-	body["room"] = room;
-	body["region"] = region();
-	body["pass"] = cred.pass;
-	body["ticket"] = cred.ticket;
-	request("/v1/join", &body, [this, epoch](const Net::Answer &res) {
-		if (epoch != m_epoch)
-			return;
-		std::string why;
-		const Json::Value *answer = decode(res, why);
-		if (!answer) {
-			// Комната уехала или набралась — обычное дело; игрок остаётся на
-			// экране арен и встанет в очередь сам.
-			m_status = why == "gone"
-					? strgettext("The match you were invited to has already started")
-					: strgettext("Matchmaking is unavailable");
-			changed();
-			return;
-		}
-		const std::string pass = answer->get("pass", "").asString();
-		if (!pass.empty())
-			m_pass = pass;
-		readQueue(*answer);
-		m_status.clear();
-		if (enterMatch(*answer))
-			return;
-		changed();
-		poll();
-	});
-}
-
 // Лаунчер отдаёт приглашение один раз, поэтому спрашивается оно, только
 // когда есть чем воспользоваться; не сумевшее сработать помнится и
 // пробуется снова.
@@ -355,17 +351,23 @@ void Matchmaking::followInvite()
 	if (m_asking_invite || m_entering || serverId().empty())
 		return;
 
-	auto go = [this](const std::string &room) {
+	// Позвали из Discord: входим в ту самую комнату, а не просто на её режим.
+	auto join_room = [this](const std::string &room, const Credential &cred) {
+		Json::Value body;
+		body["room"] = room;
+		enqueue(body, cred);
+	};
+	auto go = [this, join_room](const std::string &room) {
 		m_invite = room;
 		m_entering = true;
 		if (!m_pass.empty()) {
 			m_invite.clear();
 			m_entering = false;
-			joinRoom(room, {m_pass, ""});
+			join_room(room, {m_pass, ""});
 			return;
 		}
 		const int epoch = m_epoch;
-		ticketForJoin([this, room, epoch](const std::string &ticket, const std::string &trouble) {
+		ticketForJoin([this, room, epoch, join_room](const std::string &ticket, const std::string &trouble) {
 			m_entering = false;
 			if (epoch != m_epoch)
 				return;
@@ -377,7 +379,7 @@ void Matchmaking::followInvite()
 				return;
 			}
 			m_invite.clear();
-			joinRoom(room, {"", ticket});
+			join_room(room, {"", ticket});
 		});
 	};
 
@@ -401,7 +403,7 @@ void Matchmaking::followInvite()
 	});
 }
 
-void Matchmaking::join(const std::string &mode)
+void Matchmaking::withCredential(std::function<void(const Credential &)> go)
 {
 	if (!decided())
 		return;
@@ -410,11 +412,11 @@ void Matchmaking::join(const std::string &mode)
 	// Пропуск уже есть — личность несёт он: смена режима не требует нового
 	// билета.
 	if (!m_pass.empty()) {
-		doJoin(mode, {m_pass, ""});
+		go({m_pass, ""});
 		return;
 	}
 	const int epoch = m_epoch;
-	ticketForJoin([this, mode, epoch](const std::string &ticket, const std::string &trouble) {
+	ticketForJoin([this, go = std::move(go), epoch](const std::string &ticket, const std::string &trouble) {
 		if (epoch != m_epoch)
 			return;
 		if (ticket.empty()) {
@@ -424,7 +426,61 @@ void Matchmaking::join(const std::string &mode)
 			changed();
 			return;
 		}
-		doJoin(mode, {"", ticket});
+		go({"", ticket});
+	});
+}
+
+void Matchmaking::join(const std::string &mode)
+{
+	withCredential([this, mode](const Credential &cred) {
+		Json::Value body;
+		body["mode"] = mode;
+		enqueue(body, cred);
+	});
+}
+
+void Matchmaking::createParty(const std::string &mode)
+{
+	withCredential([this, mode](const Credential &cred) {
+		Json::Value body;
+		body["mode"] = mode;
+		body["party"] = true;
+		enqueue(body, cred);
+	});
+}
+
+void Matchmaking::joinParty(const std::string &code)
+{
+	if (code.empty())
+		return;
+	withCredential([this, code](const Credential &cred) {
+		Json::Value body;
+		body["code"] = code;
+		enqueue(body, cred);
+	});
+}
+
+// Состав закрывается сразу, адрес матча каждый получит своим опросом.
+void Matchmaking::startParty()
+{
+	if (!m_queue || !m_queue->party() || !m_queue->host)
+		return;
+	const int epoch = m_epoch;
+	Json::Value body;
+	body["pass"] = m_pass;
+	request("/v1/start", &body, [this, epoch](const Net::Answer &res) {
+		if (epoch != m_epoch)
+			return;
+		std::string why;
+		const Json::Value *answer = decode(res, why);
+		if (!answer) {
+			m_status = refusal(res);
+			changed();
+			return;
+		}
+		readQueue(*answer);
+		m_status.clear();
+		changed();
 	});
 }
 

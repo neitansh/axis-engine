@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Russian (Minetest)\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 06:32+0300\n"
+"POT-Creation-Date: 2026-09-28 16:42+0300\n"
 "PO-Revision-Date: 2026-04-06 09:09+0000\n"
 "Last-Translator: BlackImpostor <SkyBuilderOFFICAL@yandex.ru>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/minetest/"
@@ -1790,6 +1790,14 @@ msgid "Only let in clients of exactly the same version."
 msgstr "Пускать только клиентов ровно той же версии."
 
 #: builtin/common/settings/descriptions.lua
+msgid ""
+"Open and close the map of the area the game marks out: the whole arena, with "
+"what the game puts on it."
+msgstr ""
+"Открыть и закрыть карту области, которую отмечает крейт: всю арену вместе с "
+"тем, что крейт на неё кладёт."
+
+#: builtin/common/settings/descriptions.lua
 msgid "Open the chat line with a command already started."
 msgstr "Открыть строку чата с уже начатой командой."
 
@@ -2860,6 +2868,7 @@ msgstr "Звук"
 #: builtin/mainmenu/content/dlg_package.lua client/ui/menu/loading.rml
 #: src/client/menu/screens/about_screen.cpp
 #: src/client/menu/screens/online_screen.cpp
+#: src/client/menu/screens/places_screen.cpp
 #: src/client/menu/screens/settings_screen.cpp
 #: src/client/menu/screens/worlds_screen.cpp src/gui/guiVolumeChange.cpp
 msgid "Back"
@@ -4034,7 +4043,7 @@ msgstr "Использовать набор текстур"
 msgid "Axis is a crate engine: it runs crates, and does not come with one."
 msgstr "Axis — движок крейтов: он их запускает, а своего в комплекте не несёт."
 
-#: builtin/mainmenu/tab_local.lua src/client/menu/screens/worlds_screen.cpp
+#: builtin/mainmenu/tab_local.lua
 msgid "Crate"
 msgstr "Крейт"
 
@@ -4066,8 +4075,8 @@ msgstr "Выберите моды"
 msgid "Select World:"
 msgstr "Выберите мир:"
 
-#: builtin/mainmenu/tab_local.lua src/client/clientlauncher.cpp
-#: src/client/game.cpp
+#: builtin/mainmenu/tab_local.lua client/ui/menu/places.rml
+#: client/ui/menu/start.rml src/client/clientlauncher.cpp src/client/game.cpp
 msgid "Singleplayer"
 msgstr "Одиночная игра"
 
@@ -4219,8 +4228,36 @@ msgid "Press any key to skip"
 msgstr "Любая клавиша — пропустить"
 
 #: client/ui/menu/online.rml
+msgid "Create a game"
+msgstr "Создать игру"
+
+#: client/ui/menu/online.rml
 msgid "From the list"
 msgstr "Из списка"
+
+#: client/ui/menu/online.rml
+msgid "Game code"
+msgstr "Код игры"
+
+#: client/ui/menu/online.rml
+msgid "Host"
+msgstr "Хост"
+
+#: client/ui/menu/online.rml
+msgid "Join a friend"
+msgstr "К другу"
+
+#: client/ui/menu/online.rml
+msgid "Join by code"
+msgstr "Войти по коду"
+
+#: client/ui/menu/online.rml
+msgid "Leave"
+msgstr "Выйти"
+
+#: client/ui/menu/online.rml
+msgid "Start game"
+msgstr "Начать игру"
 
 #: client/ui/menu/online.rml
 msgid ""
@@ -4253,6 +4290,23 @@ msgstr "Пауза"
 msgid "Quit the game?"
 msgstr "Выйти из игры?"
 
+#: client/ui/menu/places.rml
+msgid "No crates yet"
+msgstr "Крейтов пока нет"
+
+#: client/ui/menu/places.rml
+msgid ""
+"The engine decides how the game works; a crate decides what is in it — the "
+"rules, the items, the look. Install a crate, and you can create a world here."
+msgstr ""
+"Движок отвечает за то, как работает игра, а крейт — за то, что в ней есть: "
+"правила, предметы и внешний вид. Установите крейт, и здесь можно будет "
+"создать мир."
+
+#: client/ui/menu/places.rml src/client/menu/screens/worlds_screen.cpp
+msgid "Worlds"
+msgstr "Миры"
+
 #: client/ui/menu/settings.rml
 msgid "Nothing found"
 msgstr "Ничего не найдено"
@@ -4269,11 +4323,6 @@ msgstr "Выйти"
 #: src/client/menu/screens/online_screen.cpp
 msgid "Multiplayer"
 msgstr "Сетевая игра"
-
-#: client/ui/menu/start.rml client/ui/menu/worlds.rml
-#: src/client/menu/screens/worlds_screen.cpp
-msgid "Worlds"
-msgstr "Миры"
 
 #: client/ui/menu/worlds.rml
 msgid "Create a world for this crate and it will show up here."
@@ -4296,10 +4345,6 @@ msgid "New world"
 msgstr "Новый мир"
 
 #: client/ui/menu/worlds.rml
-msgid "No crates yet"
-msgstr "Крейтов пока нет"
-
-#: client/ui/menu/worlds.rml
 msgid "No world yet"
 msgstr "Миров пока нет"
 
@@ -4307,18 +4352,17 @@ msgstr "Миров пока нет"
 msgid "No worlds yet — create the first one"
 msgstr "Миров пока нет — создайте первый"
 
-#: client/ui/menu/worlds.rml
-msgid ""
-"The engine decides how the game works; a crate decides what is in it — the "
-"rules, the items, the look. Install a crate, and you can create a world here."
-msgstr ""
-"Движок отвечает за то, как работает игра, а крейт — за то, что в ней есть: "
-"правила, предметы и внешний вид. Установите крейт, и здесь можно будет "
-"создать мир."
-
 #: src/chat.cpp
 msgid "Player names: "
 msgstr "Имена игроков: "
+
+#: src/chat.cpp
+msgid "Reply is in the console (F10)"
+msgstr "Ответ в консоли (F10)"
+
+#: src/client/chat_overlay.cpp
+msgid "Write a message…"
+msgstr "Напишите сообщение…"
 
 #: src/client/client.cpp
 msgid "Connection aborted (protocol error?)."
@@ -4413,14 +4457,6 @@ msgstr ""
 #: src/client/game.cpp
 msgid "# Arrived."
 msgstr "# На месте."
-
-#: src/chat.cpp
-msgid "Reply is in the console (F10)"
-msgstr "Ответ в консоли (F10)"
-
-#: src/client/chat_overlay.cpp
-msgid "Write a message…"
-msgstr "Напишите сообщение…"
 
 #: src/client/game.cpp
 msgid "# Connection restored, the world changed and is being loaded again."
@@ -4589,6 +4625,10 @@ msgstr "КиБ"
 msgid "Loading the world again..."
 msgstr "Мир загружается заново…"
 
+#: src/client/game.cpp src/settings_translation_file.cpp
+msgid "Map"
+msgstr "Карта"
+
 #: src/client/game.cpp
 msgid "MiB"
 msgstr "МиБ"
@@ -4600,6 +4640,10 @@ msgstr "Мини-карта"
 #: src/client/game.cpp
 msgid "Minimap currently disabled by game or mod"
 msgstr "Миникарта на данный момент отключена игрой или модом"
+
+#: src/client/game.cpp
+msgid "Minimap shape is set by game or mod"
+msgstr "Форму миникарты задаёт крейт или мод"
 
 #: src/client/game.cpp src/settings_translation_file.cpp
 msgid "Move backward"
@@ -5415,6 +5459,18 @@ msgstr "X (геймпад)"
 msgid "Y (Pad)"
 msgstr "Y (геймпад)"
 
+#: src/client/menu/matchmaking.cpp
+msgid "There is no game with this code"
+msgstr "Игры с таким кодом нет"
+
+#: src/client/menu/matchmaking.cpp
+msgid "This game has already started"
+msgstr "Эта игра уже началась"
+
+#: src/client/menu/matchmaking.cpp
+msgid "This game is full"
+msgstr "В этой игре нет мест"
+
 #: src/client/menu/screens/about_screen.cpp
 #: src/client/menu/screens/settings_screen.cpp
 msgid "Copied"
@@ -5427,6 +5483,7 @@ msgstr "Дальше"
 
 #: src/client/menu/screens/about_screen.cpp
 #: src/client/menu/screens/pause_screen.cpp
+#: src/client/menu/screens/places_screen.cpp
 #: src/client/menu/screens/start_screen.cpp src/gui/guiOpenURL.cpp
 msgid "Open"
 msgstr "Открыть"
@@ -5437,6 +5494,7 @@ msgstr "Нужны адрес и порт"
 
 #: src/client/menu/screens/online_screen.cpp
 #: src/client/menu/screens/pause_screen.cpp
+#: src/client/menu/screens/places_screen.cpp
 #: src/client/menu/screens/start_screen.cpp
 #: src/client/menu/screens/worlds_screen.cpp
 msgid "Choose"
@@ -5447,8 +5505,21 @@ msgid "Connect by address"
 msgstr "Подключиться по адресу"
 
 #: src/client/menu/screens/online_screen.cpp
+msgid "Friends join with this code"
+msgstr "Друзья входят по этому коду"
+
+#: src/client/menu/screens/online_screen.cpp
 msgid "Joining…"
 msgstr "Заходим…"
+
+#: src/client/menu/screens/online_screen.cpp
+#, c-format
+msgid "Players %d / %d"
+msgstr "Игроков: %d / %d"
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "Starting the game"
+msgstr "Запускаем игру"
 
 #: src/client/menu/screens/online_screen.cpp
 #, c-format
@@ -5463,6 +5534,15 @@ msgstr "Вкладки"
 #: src/client/menu/screens/online_screen.cpp
 msgid "The arena is ready"
 msgstr "Арена готова"
+
+#: src/client/menu/screens/online_screen.cpp
+#, c-format
+msgid "Up to %d players"
+msgstr "До %d игроков"
+
+#: src/client/menu/screens/online_screen.cpp
+msgid "Waiting for the host to start"
+msgstr "Ждём, когда хост начнёт игру"
 
 #: src/client/menu/screens/settings_screen.cpp
 msgid "Change"
@@ -7062,6 +7142,17 @@ msgstr "Двойное нажатие на прыжок включает реж�
 
 #: src/settings_translation_file.cpp
 msgid ""
+"Draw the way the crate asks: a crate can ship graphics settings (shadows,\n"
+"bloom, light, fog, filtering) that apply on top of yours while you play it.\n"
+"Off keeps your own settings in every crate."
+msgstr ""
+"Рисовать так, как просит крейт: крейт может привезти настройки графики (тени,\n"
+"свечение, свет, туман, фильтрацию), и они действуют поверх ваших, пока вы в нём "
+"играете.\n"
+"Выключено — во всех крейтах остаются ваши настройки."
+
+#: src/settings_translation_file.cpp
+msgid ""
 "Draw transparency sorted triangles grouped by their mesh buffers.\n"
 "This breaks transparency sorting between mesh buffers, but avoids "
 "situations\n"
@@ -7705,6 +7796,10 @@ msgstr ""
 #: src/settings_translation_file.cpp
 msgid "Graphics and Audio"
 msgstr "Графика и звук"
+
+#: src/settings_translation_file.cpp
+msgid "Graphics as the crate asks"
+msgstr "Графика по просьбе крейта"
 
 #: src/settings_translation_file.cpp
 msgid "Gravity"
@@ -8460,8 +8555,8 @@ msgid ""
 "Key for reloading the weapon in hand. The engine only reports it;\n"
 "what reloading means is up to the crate."
 msgstr ""
-"Клавиша перезарядки оружия в руках. Движок только сообщает о ней; что "
-"значит перезарядка — решает крейт."
+"Клавиша перезарядки оружия в руках. Движок только сообщает о ней; что значит "
+"перезарядка — решает крейт."
 
 #: src/settings_translation_file.cpp
 msgid "Key for sprinting (speeding up walking and flying)."
@@ -8474,6 +8569,16 @@ msgstr "Клавиша для перехода к следующей запис�
 #: src/settings_translation_file.cpp
 msgid "Key for switching to the previous entry in Quicktune."
 msgstr "Клавиша для перехода к предыдущей записи в Quicktune."
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Key for the map of the area the game marks out (the whole arena, say),\n"
+"with whatever the game puts on it. Opens over the picture, closes with\n"
+"the same key."
+msgstr ""
+"Клавиша карты области, которую отмечает крейт (например, всей арены),\n"
+"вместе со всем, что крейт на неё кладёт. Открывается поверх картинки,\n"
+"закрывается той же клавишей."
 
 #: src/settings_translation_file.cpp
 msgid "Key for toggling the camera update. Only usable with 'debug' privilege."
@@ -9399,6 +9504,16 @@ msgid "Occlusion Culling"
 msgstr "Окклюзивное отсечение"
 
 #: src/settings_translation_file.cpp
+msgid ""
+"Opacity of the selection box edges, 0-255. Below 255 the edges do not\n"
+"cover what is under them but brighten it by color * alpha: white edges\n"
+"come out green on grass and light on stone."
+msgstr ""
+"Непрозрачность рёбер рамки выделения, 0–255. Ниже 255 рёбра не закрывают\n"
+"то, что под ними, а высветляют его на цвет × альфу: белые рёбра\n"
+"на траве выходят зелёными, на камне — светлыми."
+
+#: src/settings_translation_file.cpp
 msgid "Opaqueness (alpha) of the shadow behind the font."
 msgstr "Непрозрачность (альфа) теней за шрифтом."
 
@@ -9494,6 +9609,10 @@ msgstr "Лимит каждого игрока на генерацию мапб�
 #: src/settings_translation_file.cpp
 msgid "Physics"
 msgstr "Физика"
+
+#: src/settings_translation_file.cpp
+msgid "Pixel shadows"
+msgstr "Пиксельные тени"
 
 #: src/settings_translation_file.cpp
 msgid "Place repetition interval"
@@ -9906,6 +10025,10 @@ msgid "Selection box color"
 msgstr "Цвет рамки выделения"
 
 #: src/settings_translation_file.cpp
+msgid "Selection box opacity"
+msgstr "Непрозрачность рамки выделения"
+
+#: src/settings_translation_file.cpp
 msgid "Selection box width"
 msgstr "Толщина рамки выделения"
 
@@ -10152,6 +10275,18 @@ msgstr ""
 #: src/settings_translation_file.cpp
 msgid "Shadow strength gamma"
 msgstr "Гамма силы тени"
+
+#: src/settings_translation_file.cpp
+msgid ""
+"Shadows on the pixel grid of the world: the edge of a shadow steps in\n"
+"squares of 1/N of a node, like the texels of the textures, instead of\n"
+"running smooth. N is the number of squares per node, 16 matches\n"
+"16-pixel textures; 0 keeps smooth shadows."
+msgstr ""
+"Тени по пиксельной сетке мира: край тени идёт ступеньками\n"
+"в квадраты по 1/N ноды, как тексели текстур, а не плавно.\n"
+"N — число квадратов на ноду, 16 совпадает с текстурами\n"
+"в 16 пикселей; 0 оставляет тени плавными."
 
 #: src/settings_translation_file.cpp
 msgid "Shape of the cloud edges. 0 keeps them blocky, 0.5 makes them smooth."
